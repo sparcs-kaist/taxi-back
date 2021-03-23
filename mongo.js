@@ -12,8 +12,8 @@ var userSchema = mongoose.Schema({
 });
 var roomSchema = mongoose.Schema({
     name: { type: String, required: true, default: '이름 없음' },
-    from: { type: String, required: true }, // obj id로?
-    to: { type: String, required: true }, // obj id로?
+    from: { type: schema.Types.ObjectId, required: true }, // obj id로?
+    to: { type: schema.Types.ObjectId, required: true }, // obj id로?
     time: { type: Date, required: true },
     part: { type: Array, default: [] },
     madeat: { type: Date, required: true }
@@ -22,6 +22,7 @@ var chatSchema = mongoose.Schema({
     content: { type: String, default: '' },
     sender: { type: schema.Types.ObjectId, required: true },
     sendat: { type: Date, required: true },
+    room: { type: schema.Types.ObjectId, required: true },
     deleted: { type: Boolean, default: false }
 });
 var locationSchema = mongoose.Schema({
