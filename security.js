@@ -1,2 +1,4 @@
-module.exports.mongo = 'mongodb://localhost:27017/local';
-module.exports.session = '2021 SPARCS TAXI';
+require("dotenv").config()
+
+module.exports.mongo = process.env.DB_PATH;
+module.exports.session = process.env.SESSION_KEP;
