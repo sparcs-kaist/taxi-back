@@ -1,10 +1,10 @@
 const mongoose = require('mongoose');
 const schema = mongoose.Schema;
-const security = require('./security');
+const security = require('../../security');
 
 const userSchema = mongoose.Schema({
     name: { type: String, required: true },
-    uniqueid: { type: String, required: true, unique: true },
+    id: { type: String, required: true, unique: true },
     withdraw: { type: Boolean, default: false },
     ban: { type: Boolean, default: false },
     joinat: { type: Date, required: true },
