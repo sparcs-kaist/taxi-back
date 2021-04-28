@@ -30,17 +30,8 @@ const session = expressSession({ secret: security.session, resave: true, saveUni
 app.use(session);
 app.use(cookieParser());
 
-// 라우터 미들웨어
-const router = express.Router();
-router.route('/auth/sparcssso').get(login.login());
-router.route('/auth/sparcssso/callback').get(login.loginCallback(mongo));
-router.route('/auth/logout').get(login.logout());
-
-const routeLogininfo = require('./src/route/logininfo');
-router.route('/json/logininfo').get(routeLogininfo.logininfo(login));
-
 // 라우터 및 리액트
-app.use('/', router);
+app.use('/auth', require('./src/route/auth')(login));
 app.use(proxy('/', { target: 'http://localhost:3000/' }));
 
 const serverHttp = http.createServer(app).listen(443, () => {
