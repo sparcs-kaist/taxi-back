@@ -31,15 +31,13 @@ app.use(session);
 app.use(cookieParser());
 
 // 라우터 및 리액트
-app.use('/auth', require('./src/route/auth')(login));
-app.use(proxy('/', { target: 'http://localhost:3000/' }));
-const indexRouter = require('./routes/index');
-const usersRouter = require('./routes/users');
-const roomRouter = require('./routes/rooms');
-app.use('/', indexRouter);
-app.use('/users', usersRouter);
-app.use('/rooms', roomRouter);
+app.use('/auth', require('./src/route/auth')(mongo, login));
+app.use('/json/logininfo', require('./src/route/logininfo')(login));
+app.use('/', require('./routes/index'));
+app.use('/users', require('./routes/users'));
+app.use('/rooms', require('./routes/rooms'));
 
+app.use(proxy('/', { target: 'http://localhost:3000/' }));
 const serverHttp = http.createServer(app).listen(443, () => {
     console.log('Express 서버가 443번 포트에서 시작됨.');
 });

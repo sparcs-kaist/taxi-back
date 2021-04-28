@@ -1,85 +1,31 @@
-const security = require('../../security');
+const e = require("express");
 
-// SPARCS SSO
-const Client = require('./sparcsso');
-const client = new Client(security.sparcssso_id, security.sparcssso_key, isBeta = false);
-
-const getLoginInfo = (req) => {
-    if(req.session.loginInfo){
-        const { id, sid, name, time } = req.session.loginInfo;
-        const timeFlow = Date.now() - time;
-        if(timeFlow > 3600000) return { id: undefined, sid: undefined, name: undefined };
-        else{
-            req.session.time = Date.now();
-            return { id, sid, name };
-        }
+class Login{
+    constructor(){
     }
-    else return { id: undefined, sid: undefined, name: undefined };
-}
-const transUserData = (userData) => {
-    const info = {};
-
-    info.id = userData.uid;
-    info.sid = userData.sid;
-    info.name = userData.first_name + userData.last_name;
-    info.facebook = userData.facebook_id || '';
-    info.twitter = userData.twitter_id || '';
-    info.kaist = userData.kaist_id || '';
-    info.sparcs = userData.sparcs_id || '';
-
-    return info;
-}
-
-const joinus = (req, res, userData, mongo) => {
-    const newUser = new mongo.userModel({ id: userData.id, name: userData.name, joinat: Date.now() });
-    newUser.save((err) => {
-        if(err){ loginFalse(req, res); return; }
-        loginDone(req, res, userData, mongo);
-    });
-}
-const update = async (req, res, userData, mongo) => {
-    const updateInfo = { name: userData.name };
-    await mongo.userModel.updateOne({ id: userData.id }, updateInfo);
-    loginDone(req, res, userData, mongo);
-}
-const loginDone = (req, res, userData, mongo) => {
-    mongo.userModel.findOne({ id: userData.id }, 'name id withdraw ban', (err, result) => {
-        if(err) loginFalse(req, res);
-        else if(!result) joinus(req, res, userData, mongo);
-        else if(result.name != userData.name) update(req, res, userData, mongo);
-        else{
-            req.session.loginInfo = { sid: userData.sid, id: result.id, name: result.name, time: Date.now() };
-            res.redirect('/');
+    getLoginInfo(req){
+        if(req.session.loginInfo){
+            const { id, sid, name, time } = req.session.loginInfo;
+            const timeFlow = Date.now() - time;
+            if(timeFlow > 3600000) return { id: undefined, sid: undefined, name: undefined };
+            else{
+                req.session.time = Date.now();
+                return { id, sid, name };
+            }
         }
-    });
-}
-const loginFalse = (req, res) => {
-    res.redirect('/login/false');
-}
-
-module.exports.login = () => (req, res) => { // for route
-    const userInfo = getLoginInfo(req);
-    const { url, state } = client.getLoginParams();
-    req.session.state = state;
-    res.redirect(url);
-}
-
-module.exports.loginCallback = (mongo) => (req, res) => { // for route
-    const state1 = req.session.state;
-    const state2 = req.body.state || req.query.state;
-
-    if(state1 != state2) loginFalse(req, res);
-    else{
-        const code = req.body.code || req.query.code;
-        client.getUserInfo(code).then((userDataBefore) => {
-            const userData = transUserData(userDataBefore);
-            loginDone(req, res, userData, mongo);
-        });
+        else return { id: undefined, sid: undefined, name: undefined };
+    }
+    isLogin(req){
+        const loginInfo = this.getLoginInfo(req);
+        if(loginInfo.id) return true;
+        else return false;
+    }
+    login(req, sid, id, name){
+        req.session.loginInfo = { sid, id, name, time: Date.now() }
+    }
+    logout(req){
+        // 다음에 구현
     }
 }
 
-module.exports.logout = () => (req, res) => { // for route
-    const userInfo = getLoginInfo(req);
-}
-
-module.exports.getLoginInfo = getLoginInfo;
+module.exports = new Login();
