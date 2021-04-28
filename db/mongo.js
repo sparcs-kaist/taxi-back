@@ -4,6 +4,7 @@ const schema = mongoose.Schema;
 const userSchema = mongoose.Schema({
     name: { type: String, required: true },
     id: { type: String, required: true, unique: true },
+    password: { type: String, required: true },
     withdraw: { type: Boolean, default: false },
     ban: { type: Boolean, default: false },
     joinat: { type: Date, required: true },
