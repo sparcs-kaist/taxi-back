@@ -8,7 +8,13 @@ const userSchema = mongoose.Schema({
     withdraw: { type: Boolean, default: false },
     ban: { type: Boolean, default: false },
     joinat: { type: Date, required: true },
-    room: { type: Array, default: [] }
+    room: { type: Array, default: [] },
+    subinfo: mongoose.Schema({
+        kaist: { type: String, default: '' },
+        sparcs: { type: String, default: '' },
+        facebook: { type: String, default: '' },
+        twitter: { type: String, default: '' },
+    })
 });
 const roomSchema = mongoose.Schema({
     name: { type: String, required: true, default: '이름 없음' },
