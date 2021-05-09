@@ -23,7 +23,7 @@ const login = require('./src/auth/login');
 const app = express();
 app.use(bodyParser.urlencoded({ extended : false }));
 app.use(bodyParser.json());
-app.use(cors());
+app.use(cors({ origin: true, credentials: true }));
 
 // 세션 및 쿠키
 const session = expressSession({ secret: security.session, resave: true, saveUninitialized: true });

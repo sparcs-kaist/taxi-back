@@ -40,12 +40,12 @@ module.exports = (mongo, login) => {
             else if(result.name != userData.name) update(req, res, userData, mongo);
             else{
                 login.login(req, userData.sid, result.id, result.name);
-                res.redirect('/');
+                res.redirect(security.frontUrl+'/');
             }
         });
     }
     const loginFalse = (req, res) => {
-        res.redirect('/login/false'); // 리엑트로 연결되나?
+        res.redirect(security.frontUrl+'/login/false'); // 리엑트로 연결되나?
     }
     
     router.route('/sparcssso').get((req, res) => {
@@ -69,7 +69,7 @@ module.exports = (mongo, login) => {
     })
     router.route('/logout').get((req, res) => {
         login.logout(req);
-        res.redirect('/');
+        res.redirect(security.frontUrl);
     })
 
     return router;
