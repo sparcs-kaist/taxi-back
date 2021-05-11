@@ -8,15 +8,21 @@ const userSchema = mongoose.Schema({
     withdraw: { type: Boolean, default: false },
     ban: { type: Boolean, default: false },
     joinat: { type: Date, required: true },
-    room: { type: Array, default: [] }
+    room: { type: Array, default: [] },
+    subinfo: {
+        kaist: { type: String, default: '' },
+        sparcs: { type: String, default: '' },
+        facebook: { type: String, default: '' },
+        twitter: { type: String, default: '' },
+    }
 });
 const roomSchema = mongoose.Schema({
     name: { type: String, required: true, default: '이름 없음' },
     from: { type: schema.Types.ObjectId, required: true }, // obj id로?
     to: { type: schema.Types.ObjectId, required: true }, // obj id로?
-    time: { type: Date, required: true },
-    part: { type: Array, default: [] },
-    madeat: { type: Date, required: true }
+    time: { type: Date, required: true }, 
+    part: { type: Array, default: [] }, 
+    madeat: { type: Date, required: true } // 
 });
 const chatSchema = mongoose.Schema({
     content: { type: String, default: '' },
@@ -27,8 +33,8 @@ const chatSchema = mongoose.Schema({
 });
 const locationSchema = mongoose.Schema({
     name: { type: String, required: true },
-    latitude: { type: Number, required: true },
-    longitude: { type: Number, required: true }
+ //   latitude: { type: Number, required: true },
+   // longitude: { type: Number, required: true }
 });
 
 class Mongo{

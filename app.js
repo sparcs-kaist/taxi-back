@@ -32,7 +32,7 @@ app.use(cookieParser());
 
 // 라우터 및 리액트
 app.use('/auth', require('./src/route/auth')(mongo, login));
-app.use('/json/logininfo', require('./src/route/logininfo')(login));
+app.use('/json/logininfo', require('./src/route/logininfo')(mongo, login));
 app.use('/users', require('./src/route/users')(mongo));
 app.use('/rooms', require('./src/route/rooms')(mongo));
 

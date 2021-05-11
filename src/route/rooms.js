@@ -1,4 +1,5 @@
 const express = require('express');
+const { locationModel } = require('../db/mongo');
 const router = express.Router();
 const loginCheckMiddleware = require('../middleware/logincheck')
 
@@ -7,17 +8,25 @@ module.exports = (mongo, login) => {
     router.use(loginCheckMiddleware);
   });
 
-  router.post('/create', (req, res) => {
-    let room = new mongo.roomModel({'name':req.body.name, 'from':req.body.from, 'to':req.body.to, 'time':req.body.time, 'part':req.body.part, 'madeat':req.body.madeat});
-    room.save()
-    .then(room => {
-        res.status(200).json({'class': 'class added successfully'});
+  router.route('/create').post(function(req,res){
+    //console.log(req.body);
+    mongo.locationModel.findOneAndUpdate({"name":req.body.from},{}, {upsert:true}, (err, result1) => {
+	    let from = result1._id;
+   	  mongo.locationModel.findOneAndUpdate({"name":req.body.to},{}, {upsert:true}, (err,result2)=> {
+	      let to = result2._id;
+        let room = new mongo.roomModel({'name':req.body.name, 'from':from, 'to':to, 'time':req.body.time, 'part':req.body.part, 'madeat':Date.now()});
+    	  console.log(room)
+	      room.save()
+    	  .then(room => {
+          res.status(200).json({'class': 'class added successfully'});
+   	    })
+    	  .catch(err => {
+          res.status(400).send('adding new class failed');
+        	console.log(err);
+    	  });
+      })
     })
-    .catch(err => {
-        res.status(400).send('adding new class failed');
-        console.log(err);
-    });
-  })
+  });
 
   router.get('/:id/delete', (req, res) => {
     mongo.roomModel.deleteOne({"id": req.params.id}, (err, result) => {
