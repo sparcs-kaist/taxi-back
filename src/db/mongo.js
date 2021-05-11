@@ -9,12 +9,12 @@ const userSchema = mongoose.Schema({
     ban: { type: Boolean, default: false },
     joinat: { type: Date, required: true },
     room: { type: Array, default: [] },
-    subinfo: mongoose.Schema({
+    subinfo: {
         kaist: { type: String, default: '' },
         sparcs: { type: String, default: '' },
         facebook: { type: String, default: '' },
         twitter: { type: String, default: '' },
-    })
+    }
 });
 const roomSchema = mongoose.Schema({
     name: { type: String, required: true, default: '이름 없음' },
