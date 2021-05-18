@@ -20,9 +20,9 @@ const roomSchema = mongoose.Schema({
     name: { type: String, required: true, default: '이름 없음' },
     from: { type: schema.Types.ObjectId, required: true }, // obj id로?
     to: { type: schema.Types.ObjectId, required: true }, // obj id로?
-    time: { type: Date, required: true }, 
-    part: { type: Array, default: [] }, 
-    madeat: { type: Date, required: true } // 
+    time: { type: Date, required: true }, // 출발 시간
+    part: { type: Array, default: [] }, // 참여 멤버
+    madeat: { type: Date, required: true } // 생성 날짜
 });
 const chatSchema = mongoose.Schema({
     content: { type: String, default: '' },

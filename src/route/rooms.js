@@ -3,28 +3,56 @@ const { locationModel } = require('../db/mongo');
 const router = express.Router();
 const loginCheckMiddleware = require('../middleware/logincheck')
 
-module.exports = (mongo, login) => {
-  router.get('/', function(_, _) {
-    router.use(loginCheckMiddleware);
-  });
+module.exports = (mongo) => {
+  // router.get('/', function(_, _) {
+  //   router.use(loginCheckMiddleware);
+  // });
+
+  router.get('/getAllRoom', (_, res) => {
+    console.log("/getAllRoom called");
+    mongo.roomModel.find({}, (err, result) => {
+      if (err) {
+        console.log(err);
+        throw err;
+      }
+      if (result) {
+        console.log(result);
+        jsonResult = JSON.parse(JSON.stringify(result))
+        fromName = mongo.locationModel.findOne( {_id : jsonResult.from } );
+        console.log(fromName);
+        toName = mongo.locationModel.findOne( {_id : jsonResult.to } )
+        console.log(toName);
+        res.send(jsonResult);
+      }
+    })
+  })
 
   router.route('/create').post(function(req,res){
     //console.log(req.body);
     mongo.locationModel.findOneAndUpdate({"name":req.body.from},{}, {upsert:true}, (err, result1) => {
-	    let from = result1._id;
-   	  mongo.locationModel.findOneAndUpdate({"name":req.body.to},{}, {upsert:true}, (err,result2)=> {
-	      let to = result2._id;
-        let room = new mongo.roomModel({'name':req.body.name, 'from':from, 'to':to, 'time':req.body.time, 'part':req.body.part, 'madeat':Date.now()});
-    	  console.log(room)
-	      room.save()
-    	  .then(room => {
-          res.status(200).json({'class': 'class added successfully'});
-   	    })
-    	  .catch(err => {
-          res.status(400).send('adding new class failed');
-        	console.log(err);
-    	  });
-      })
+      if (err) {
+        console.log(err);
+        throw err;
+      } else {
+        let from = result1._id;
+   	    mongo.locationModel.findOneAndUpdate({"name":req.body.to},{}, {upsert:true}, (err,result2)=> {
+          if (err) {
+            console.log(err);
+            throw err;
+          }
+          let to = result2._id;
+          let room = new mongo.roomModel({'name':req.body.name, 'from':from, 'to':to, 'time':req.body.time, 'part':req.body.part, 'madeat':Date.now()});
+          console.log(room)
+          room.save()
+          .then(room => {
+            res.status(200).json({'class': 'class added successfully'});
+          })
+          .catch(err => {
+            res.status(400).send('adding new class failed');
+            console.log(err);
+          });
+        })
+      }
     })
   });
 
