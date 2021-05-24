@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const security = require('../../security');
+const authRepace = require('./auth.replace');
 
 // SPARCS SSO
 const Client = require('../auth/sparcsso');
@@ -72,5 +73,6 @@ module.exports = (mongo, login) => {
         res.redirect(security.frontUrl);
     })
 
-    return router;
+    if(security.sparcssso_replace == 'true') return authRepace(mongo, login);
+    else return router;
 }
