@@ -9,22 +9,25 @@ module.exports = (mongo) => {
   // });
 
   router.get('/getAllRoom', (_, res) => {
-    console.log("/getAllRoom called");
-    mongo.roomModel.find({}, (err, result) => {
-      if (err) {
-        console.log(err);
-        throw err;
+    console.log('/getAllRoom called');
+    mongo.roomModel.find({})
+    .then( 
+      async (results) => {
+
+        jsonResult = await JSON.parse(JSON.stringify(results));
+        console.log(jsonResult)
+        for (const result of jsonResult) {
+          let fromLocation = await mongo.locationModel.findById( result.from );
+          result.from = fromLocation.name;
+          let toLocation = await mongo.locationModel.findById( result.to );
+          result.to = toLocation.name;
+        }
+        // await jsonResult.map( async result => {
+          
+        // })
+        res.send( jsonResult );
       }
-      if (result) {
-        console.log(result);
-        jsonResult = JSON.parse(JSON.stringify(result))
-        fromName = mongo.locationModel.findOne( {_id : jsonResult.from } );
-        console.log(fromName);
-        toName = mongo.locationModel.findOne( {_id : jsonResult.to } )
-        console.log(toName);
-        res.send(jsonResult);
-      }
-    })
+    )
   })
 
   router.route('/create').post(function(req,res){
@@ -92,16 +95,16 @@ module.exports = (mongo) => {
 
   // 특정 id 방 세부사항 보기
   router.get('/:id', (req, res) => {
-    mongo.roomModel.findOne({"id": req.params.id}, (err, result) => {
-      if (err) {
-        console.log(err);
-        throw err;
+    mongo.roomModel.findById( req.params.id )
+    .then(
+      (result) => {
+        console.log(JSON.stringify(result))
+        res.send(JSON.stringify(result));
       }
-      if (result) {
-        console.log(result);
-        res.send(result);
-      }
-    });
+    )
+    .catch(
+      (err) => { console.log(err); throw err; }
+    )
   })
   
   return router;
