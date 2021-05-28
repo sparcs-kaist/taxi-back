@@ -2,7 +2,6 @@ const express = require('express');
 const { locationModel } = require('../db/mongo');
 const router = express.Router();
 const loginCheckMiddleware = require('../middleware/logincheck')
-const objectId = require('mongodb').ObjectID;
 
 module.exports = (mongo) => {
   router.get('/', function(_, _) {
@@ -30,7 +29,7 @@ module.exports = (mongo) => {
     )
   })
 
-  router.route('/create').post(async function(req, res){
+  router.post('/create', async (req, res) => {
     //console.log(req.body);
     let from = await mongo.locationModel.findOneAndUpdate({"name":req.body.from},{}, {upsert:true})
    	let to = await mongo.locationModel.findOneAndUpdate({"name":req.body.to},{}, {upsert:true})
@@ -103,6 +102,33 @@ module.exports = (mongo) => {
         }
       })
     .catch( err => { console.log(err); throw err; })
+  })
+
+  // Request JSON form
+  // { roomId : ObjectID,
+  //   users : List[ObjectID] }
+  router.post('/invite', async (req, res) => {
+    // Request JSON Validation
+    if( !req.body.roomId || !req.body.users ) res.status("400").send("Room/invite : Bad request")
+
+    try {
+      let room = await mongo.roomModel.findById( req.body.roomId )
+      if ( !room ) res.status(400).send("Room/invite : no corresponding room")
+      for( const userID of req.body.users ){
+        if ( room.part.includes(userID) ) res.status("400").send("Room/invite : "+ userID +" Already in room")
+      }
+      await room.save()
+      for ( const userID of req.body.users ){
+        room.part.append(userID)
+        let user = await mongo.userModel.findById( userID )
+        user.room.append( req.body.roomId )
+        await user.save()
+      }
+      res.status("200").send("Room/invite : Successful")
+    } catch ( error ) {
+      console.log(error);
+      res.status("500").send("Room/invite : Error 500")
+    }
   })
   
   return router;
