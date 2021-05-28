@@ -45,7 +45,7 @@ class Mongo{
         console.log('데이터베이스 연결을 시도합니다.');
         const databaseUrl = security.mongo;
         mongoose.connect(databaseUrl, { useNewUrlParser: true, useCreateIndex: true, useUnifiedTopology: true });
-
+        mongoose.set('useFindAndModify', false);
         const database = mongoose.connection;
         database.on('error', console.error.bind(console,'mongoose connection error.'));
         database.on('open', () => {
