@@ -1,4 +1,5 @@
 const express = require('express');
+const { stringify } = require('querystring');
 const { locationModel } = require('../db/mongo');
 const router = express.Router();
 const loginCheckMiddleware = require('../middleware/logincheck')
@@ -129,6 +130,92 @@ module.exports = (mongo) => {
       console.log(error);
       res.status("500").send("Room/invite : Error 500")
     }
+  })
+
+  // Request JSON Form
+  // {
+  //   fromName : String,
+  //   toName : String,
+  //   startDate : Date,
+  //   roomName : String
+  // }
+
+  // 방 이름이 있다면 방 이름으로만 검색
+  // 없다면 나머지 조건으로
+  // 최소한 하나의 조건은 있어야 함.
+  router.post('/search', async (req, res) => {
+    if ( !req.body.fromName && !req.body.toName && !req.body.startDate && !req.body.roomName ) {
+      res.status("400").send(JSON.stringify({
+        error : true,
+        message : "Room/search : Bad request, not enough info"
+      }))
+    }
+    if ( req.body.roomName && ( req.body.fromName || req.body.toName || req.body.startDate )) {
+      rres.status("400").send(JSON.stringify({
+        error : true,
+        message : "Room/search : Bad request, too many info"
+      }))
+    }
+    if ( !req.body.roomName && (( req.body.fromName && !req.body.toName) || ( !req.body.fromName && req.body.toName ))){
+      res.status("400").send(JSON.stringify({
+        error : true,
+        message : "Room/search : Bad request, from and to must be given together"
+      }))
+    }
+
+    try {
+      if ( req.body.roomName ){
+        let rooms = await mongo.roomModel.find({ name : { $regex : req.body.roomName, $options : "i" }})
+        if (!rooms) res.status("404").send(JSON.stringify({
+          error : true,
+          message : "Room/search : No corresponding room"
+        }))
+        res.status("200").send(JSON.stringify(rooms))
+      } else {
+        let fromLocationID = (() => {if ( req.body.fromName ){
+          let fromLocation = await mongo.locationModel.find({ name : req.body.fromName })
+          return fromLocation._id
+        }}) ()
+        let toLocationID = (() => {if ( req.body.toName ){
+          let toLocation = await mongo.locationModel.find({ name : req.body.toName })
+          return toLocation._id
+        }}) ()
+        let rooms = await mongo.roomModel.find({})
+        if ( fromLocationID && toLocationID ){
+          rooms = await rooms.find({
+            from : fromLocationID,
+            to : toLocationID
+          })
+        }
+        // date form 2012-04-23T18:25:43.511Z
+        if ( startDate ){
+          rooms = await rooms.find({
+            
+          })
+        }
+        
+        if ( fromLocationID && toLocationID ){
+          let rooms = await mongo.roomModel.find({
+            from : fromLocationID,
+            to : toLocationID
+          })
+          res.status("200").send(JSON.stringify(rooms))
+        }
+
+        res.status("404").send(JSON.stringify({
+          error : true,
+          message : "Room/search : No corresponding room"
+        }))
+      }
+    } catch (error) {
+      res.status("500").send(JSON.stringify({
+        error : true,
+        message : "Room/search : Internal server error"
+      }))
+    }
+
+    
+    
   })
   
   return router;
