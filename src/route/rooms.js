@@ -9,6 +9,7 @@ module.exports = (mongo) => {
     router.use(loginCheckMiddleware);
   });
 
+  // TEST
   router.get('/getAllRoom', (_, res) => {
     console.log('/getAllRoom called');
     mongo.roomModel.find({})
@@ -30,10 +31,18 @@ module.exports = (mongo) => {
     )
   })
 
+  router.get('/removeAllRoom', async (req, res) => {
+    console.log("DELETE ALL ROOM")
+    mongo.roomModel.remove({}).exec()
+    res.redirect("/rooms/getAllRoom")
+  })
+
   router.post('/create', async (req, res) => {
     //console.log(req.body);
-    let from = await mongo.locationModel.findOneAndUpdate({"name":req.body.from},{}, {upsert:true})
-   	let to = await mongo.locationModel.findOneAndUpdate({"name":req.body.to},{}, {upsert:true})
+    let from = await mongo.locationModel.findOneAndUpdate({"name":req.body.from},{}, {new:true, upsert:true}).exec()
+    console.log(from)
+   	let to = await mongo.locationModel.findOneAndUpdate({"name":req.body.to},{}, {new:true, upsert:true}).exec()
+    
     let room = new mongo.roomModel({
       'name':req.body.name,
       'from':from._id,
@@ -73,8 +82,20 @@ module.exports = (mongo) => {
   })
 
   // json으로 수정할 값들을 받는다
+  // json 형식이 맞는지 검증해야 함
+  // request JSON
+  // name, from, to, time, part, madeat
   router.post('/:id/edit', (req, res) => {
-    mongo.roomModel.findByIdAndUpdate( req.params.id, {$set : req.body} )
+    if( !req.body.name || !req.body.from || !req.body.to || !req.body.time || !req.body.part || !req.body.madeat )
+      res.status("400").send("Room/edit : Bad request")
+    mongo.roomModel.findByIdAndUpdate(req.params.id, {$set : {
+      name: req.body.name,
+      from: req.body.from,
+      to: req.body.to,
+      time: req.body.time,
+      part: req.body.part,
+      madeat: req.body.madeat
+    }})
     .then( result => {
       if(result){
         console.log("edit room successful")
@@ -143,80 +164,80 @@ module.exports = (mongo) => {
   // 방 이름이 있다면 방 이름으로만 검색
   // 없다면 나머지 조건으로
   // 최소한 하나의 조건은 있어야 함.
-  router.post('/search', async (req, res) => {
-    if ( !req.body.fromName && !req.body.toName && !req.body.startDate && !req.body.roomName ) {
-      res.status("400").send(JSON.stringify({
-        error : true,
-        message : "Room/search : Bad request, not enough info"
-      }))
-    }
-    if ( req.body.roomName && ( req.body.fromName || req.body.toName || req.body.startDate )) {
-      rres.status("400").send(JSON.stringify({
-        error : true,
-        message : "Room/search : Bad request, too many info"
-      }))
-    }
-    if ( !req.body.roomName && (( req.body.fromName && !req.body.toName) || ( !req.body.fromName && req.body.toName ))){
-      res.status("400").send(JSON.stringify({
-        error : true,
-        message : "Room/search : Bad request, from and to must be given together"
-      }))
-    }
+  // router.post('/search', async (req, res) => {
+  //   if ( !req.body.fromName && !req.body.toName && !req.body.startDate && !req.body.roomName ) {
+  //     res.status("400").send(JSON.stringify({
+  //       error : true,
+  //       message : "Room/search : Bad request, not enough info"
+  //     }))
+  //   }
+  //   if ( req.body.roomName && ( req.body.fromName || req.body.toName || req.body.startDate )) {
+  //     rres.status("400").send(JSON.stringify({
+  //       error : true,
+  //       message : "Room/search : Bad request, too many info"
+  //     }))
+  //   }
+  //   if ( !req.body.roomName && (( req.body.fromName && !req.body.toName) || ( !req.body.fromName && req.body.toName ))){
+  //     res.status("400").send(JSON.stringify({
+  //       error : true,
+  //       message : "Room/search : Bad request, from and to must be given together"
+  //     }))
+  //   }
 
-    try {
-      if ( req.body.roomName ){
-        let rooms = await mongo.roomModel.find({ name : { $regex : req.body.roomName, $options : "i" }})
-        if (!rooms) res.status("404").send(JSON.stringify({
-          error : true,
-          message : "Room/search : No corresponding room"
-        }))
-        res.status("200").send(JSON.stringify(rooms))
-      } else {
-        let fromLocationID = (() => {if ( req.body.fromName ){
-          let fromLocation = await mongo.locationModel.find({ name : req.body.fromName })
-          return fromLocation._id
-        }}) ()
-        let toLocationID = (() => {if ( req.body.toName ){
-          let toLocation = await mongo.locationModel.find({ name : req.body.toName })
-          return toLocation._id
-        }}) ()
-        let rooms = await mongo.roomModel.find({})
-        if ( fromLocationID && toLocationID ){
-          rooms = await rooms.find({
-            from : fromLocationID,
-            to : toLocationID
-          })
-        }
-        // date form 2012-04-23T18:25:43.511Z
-        if ( startDate ){
-          rooms = await rooms.find({
+  //   try {
+  //     if ( req.body.roomName ){
+  //       let rooms = await mongo.roomModel.find({ name : { $regex : req.body.roomName, $options : "i" }})
+  //       if (!rooms) res.status("404").send(JSON.stringify({
+  //         error : true,
+  //         message : "Room/search : No corresponding room"
+  //       }))
+  //       res.status("200").send(JSON.stringify(rooms))
+  //     } else {
+  //       let fromLocationID = (() => {if ( req.body.fromName ){
+  //         let fromLocation = await mongo.locationModel.find({ name : req.body.fromName })
+  //         return fromLocation._id
+  //       }}) ()
+  //       let toLocationID = (() => {if ( req.body.toName ){
+  //         let toLocation = await mongo.locationModel.find({ name : req.body.toName })
+  //         return toLocation._id
+  //       }}) ()
+  //       let rooms = await mongo.roomModel.find({})
+  //       if ( fromLocationID && toLocationID ){
+  //         rooms = await rooms.find({
+  //           from : fromLocationID,
+  //           to : toLocationID
+  //         })
+  //       }
+  //       // date form 2012-04-23T18:25:43.511Z
+  //       if ( startDate ){
+  //         rooms = await rooms.find({
             
-          })
-        }
+  //         })
+  //       }
         
-        if ( fromLocationID && toLocationID ){
-          let rooms = await mongo.roomModel.find({
-            from : fromLocationID,
-            to : toLocationID
-          })
-          res.status("200").send(JSON.stringify(rooms))
-        }
+  //       if ( fromLocationID && toLocationID ){
+  //         let rooms = await mongo.roomModel.find({
+  //           from : fromLocationID,
+  //           to : toLocationID
+  //         })
+  //         res.status("200").send(JSON.stringify(rooms))
+  //       }
 
-        res.status("404").send(JSON.stringify({
-          error : true,
-          message : "Room/search : No corresponding room"
-        }))
-      }
-    } catch (error) {
-      res.status("500").send(JSON.stringify({
-        error : true,
-        message : "Room/search : Internal server error"
-      }))
-    }
+  //       res.status("404").send(JSON.stringify({
+  //         error : true,
+  //         message : "Room/search : No corresponding room"
+  //       }))
+  //     }
+  //   } catch (error) {
+  //     res.status("500").send(JSON.stringify({
+  //       error : true,
+  //       message : "Room/search : Internal server error"
+  //     }))
+  //   }
 
     
     
-  })
+  // })
   
   return router;
 }
