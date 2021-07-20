@@ -31,6 +31,7 @@ module.exports = (mongo) => {
     )
   })
 
+  //TEST
   router.get('/removeAllRoom', async (req, res) => {
     console.log("DELETE ALL ROOM")
     mongo.roomModel.remove({}).exec()
@@ -126,6 +127,24 @@ module.exports = (mongo) => {
     .catch( err => { console.log(err); throw err; })
   })
 
+  // test method
+  // requestJSON
+  // { id : {id} }
+  router.post('/roominfo', (req, res) => {
+    if(!req.body.id) res.status("400").send("Room/roominfo : Bad request")
+    mongo.roomModel.findById( req.body.id )
+    .then( result => {
+        if(result) {
+          console.log(JSON.stringify(result))
+          res.send(JSON.stringify(result));
+        } else {
+          console.log("room info error : id does not exist")
+          res.status(400).send("such id does not exist");
+        }
+      })
+    .catch( err => { console.log(err); throw err; })
+  })
+
   // Request JSON form
   // { roomId : ObjectID,
   //   users : List[ObjectID] }
@@ -158,86 +177,103 @@ module.exports = (mongo) => {
   //   fromName : String,
   //   toName : String,
   //   startDate : Date,
-  //   roomName : String
   // }
 
-  // 방 이름이 있다면 방 이름으로만 검색
-  // 없다면 나머지 조건으로
-  // 최소한 하나의 조건은 있어야 함.
-  // router.post('/search', async (req, res) => {
-  //   if ( !req.body.fromName && !req.body.toName && !req.body.startDate && !req.body.roomName ) {
-  //     res.status("400").send(JSON.stringify({
-  //       error : true,
-  //       message : "Room/search : Bad request, not enough info"
-  //     }))
-  //   }
-  //   if ( req.body.roomName && ( req.body.fromName || req.body.toName || req.body.startDate )) {
-  //     rres.status("400").send(JSON.stringify({
-  //       error : true,
-  //       message : "Room/search : Bad request, too many info"
-  //     }))
-  //   }
-  //   if ( !req.body.roomName && (( req.body.fromName && !req.body.toName) || ( !req.body.fromName && req.body.toName ))){
-  //     res.status("400").send(JSON.stringify({
-  //       error : true,
-  //       message : "Room/search : Bad request, from and to must be given together"
-  //     }))
-  //   }
+  // fromName, toName은 필수
+  // startDate는 선택
+  router.post('/search', async (req, res) => {
+    if ( !req.body.fromName && !req.body.toName ) {
+      res.status("400").send(JSON.stringify({
+        error : true,
+        message : "Room/search : Bad request, from/to location not given"
+      }))
+    }
+    // if ( req.body.roomName && ( req.body.fromName || req.body.toName || req.body.startDate )) {
+    //   rres.status("400").send(JSON.stringify({
+    //     error : true,
+    //     message : "Room/search : Bad request, too many info"
+    //   }))
+    // }
+    // if ( !req.body.roomName && (( req.body.fromName && !req.body.toName) || ( !req.body.fromName && req.body.toName ))){
+    //   res.status("400").send(JSON.stringify({
+    //     error : true,
+    //     message : "Room/search : Bad request, from and to must be given together"
+    //   }))
+    // }
 
-  //   try {
-  //     if ( req.body.roomName ){
-  //       let rooms = await mongo.roomModel.find({ name : { $regex : req.body.roomName, $options : "i" }})
-  //       if (!rooms) res.status("404").send(JSON.stringify({
-  //         error : true,
-  //         message : "Room/search : No corresponding room"
-  //       }))
-  //       res.status("200").send(JSON.stringify(rooms))
-  //     } else {
-  //       let fromLocationID = (() => {if ( req.body.fromName ){
-  //         let fromLocation = await mongo.locationModel.find({ name : req.body.fromName })
-  //         return fromLocation._id
-  //       }}) ()
-  //       let toLocationID = (() => {if ( req.body.toName ){
-  //         let toLocation = await mongo.locationModel.find({ name : req.body.toName })
-  //         return toLocation._id
-  //       }}) ()
-  //       let rooms = await mongo.roomModel.find({})
-  //       if ( fromLocationID && toLocationID ){
-  //         rooms = await rooms.find({
-  //           from : fromLocationID,
-  //           to : toLocationID
-  //         })
-  //       }
-  //       // date form 2012-04-23T18:25:43.511Z
-  //       if ( startDate ){
-  //         rooms = await rooms.find({
-            
-  //         })
-  //       }
-        
-  //       if ( fromLocationID && toLocationID ){
-  //         let rooms = await mongo.roomModel.find({
-  //           from : fromLocationID,
-  //           to : toLocationID
-  //         })
-  //         res.status("200").send(JSON.stringify(rooms))
-  //       }
+    try {
+      // if ( req.body.roomName ){
+      //   let rooms = await mongo.roomModel.find({ name : { $regex : req.body.roomName, $options : "i" }})
+      //   if (!rooms) res.status("404").send(JSON.stringify({
+      //     error : true,
+      //     message : "Room/search : No corresponding room"
+      //   }))
+      //   res.status("200").send(JSON.stringify(rooms))
+      // } else {
+      let fromLocation;
+      let fromLocationID;
+      if( req.body.fromName ){
+        fromLocation = await mongo.locationModel.findOne({ name : req.body.fromName })
+      }
+      
+      let toLocation;
+      let toLocationID;
+      if( req.body.toName ){
+        toLocation = await mongo.locationModel.findOne({ name : req.body.toName })
+      }
+      
+      if(fromLocation && toLocation){
+        fromLocationID = await fromLocation._id;
+        toLocationID = await toLocation._id;
+      } else {
+        res.status("400").send(JSON.stringify({
+          error: true,
+          message: "Room/search : No corresponding location"
+        }))
+      }
+      
+      let rooms;
+      if ( fromLocationID && toLocationID ){
+        if( !req.body.startDate ){
+          rooms = await mongo.roomModel.find({
+            from : fromLocationID,
+            to : toLocationID
+          })
+        } else {
+          rooms = await mongo.roomModel.find({
+            from : fromLocationID,
+            to : toLocationID,
+            time : { $gte : new Date(req.body.startDate) }
+          })
+        }
+      }
+      // date form 2012-04-23T18:25:43.511Z
+      
+      res.status("200").send(JSON.stringify({
+        error: false,
+        data: rooms
+      }))
+      // if ( fromLocationID && toLocationID ){
+      //   let rooms = await mongo.roomModel.find({
+      //     from : fromLocationID,
+      //     to : toLocationID
+      //   })
+      //   res.status("200").send(JSON.stringify(rooms))
+      // }
 
-  //       res.status("404").send(JSON.stringify({
-  //         error : true,
-  //         message : "Room/search : No corresponding room"
-  //       }))
-  //     }
-  //   } catch (error) {
-  //     res.status("500").send(JSON.stringify({
-  //       error : true,
-  //       message : "Room/search : Internal server error"
-  //     }))
-  //   }
-
-    
-    
-  // })
+      // res.status("404").send(JSON.stringify({
+      //   error : true,
+      //   message : "Room/search : No corresponding room"
+      // }))
+    // }
+    } catch (error) {
+      console.log(error);
+      res.status("500").send(JSON.stringify({
+        error : true,
+        message : "Room/search : Internal server error"
+      }))
+    }
+  })
   
   return router;
 }
