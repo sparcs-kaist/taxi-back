@@ -38,6 +38,12 @@ module.exports = (mongo) => {
     res.redirect("/rooms/getAllRoom")
   })
 
+  // request JSON form
+  // name : String
+  // from : String
+  // to : String
+  // time : Date
+  // part : Array
   router.post('/create', async (req, res) => {
     //console.log(req.body);
     let from = await mongo.locationModel.findOneAndUpdate({"name":req.body.from},{}, {new:true, upsert:true}).exec()
@@ -54,10 +60,10 @@ module.exports = (mongo) => {
     })
     room.save()
     .then(room => {
-      res.status(200).send('adding room successful')
+      res.status(200).send('Rooms/create : add room successful')
     })
     .catch(err => {
-      res.status(500).send('adding room failed');
+      res.status(500).send('Rooms/create : internal server error');
       console.log(err);
     });
   });
@@ -68,16 +74,16 @@ module.exports = (mongo) => {
     .then( result => {
       if(result) {
         console.log(result);
-        res.status(200).send('delete room successful')
+        res.status(200).send('Rooms/delete : delete room successful')
       } else {
         console.log("room delete error : id does not exist");
-        res.status(400).send("such id does not exist");
+        res.status(404).send("Rooms/delete : ID does not exist");
       }
     })
     // catch는 반환값이 없을 경우(result == undefined일 때)는 처리하지 않는다.
     .catch( error => {
       console.log(error);
-      throw error;
+      res.status(500).send("Rooms/delete : internal server error")
     })
     
   })
@@ -85,30 +91,29 @@ module.exports = (mongo) => {
   // json으로 수정할 값들을 받는다
   // json 형식이 맞는지 검증해야 함
   // request JSON
-  // name, from, to, time, part, madeat
+  // name, from, to, time, part
   router.post('/:id/edit', (req, res) => {
-    if( !req.body.name || !req.body.from || !req.body.to || !req.body.time || !req.body.part || !req.body.madeat )
-      res.status("400").send("Room/edit : Bad request")
+    if( !req.body.name || !req.body.from || !req.body.to || !req.body.time || !req.body.part )
+      res.status("400").send("Rooms/edit : Bad request")
     mongo.roomModel.findByIdAndUpdate(req.params.id, {$set : {
       name: req.body.name,
       from: req.body.from,
       to: req.body.to,
       time: req.body.time,
       part: req.body.part,
-      madeat: req.body.madeat
     }})
     .then( result => {
       if(result){
         console.log("edit room successful")
-        res.status(200).send('edit room successful')
+        res.status(200).send('Rooms/edit : edit room successful')
       } else {
         console.log("room delete error : id does not exist");
-        res.status(400).send("such id does not exist");
+        res.status(404).send("Rooms/edit : id does not exist");
       }
     })
     .catch( error => {
       console.log("room edit error : " +error);
-      throw error;
+      res.status(500).send("Rooms/edit : internal server error")
     })
   })
 
@@ -118,13 +123,20 @@ module.exports = (mongo) => {
     .then( result => {
         if(result) {
           console.log(JSON.stringify(result))
-          res.send(JSON.stringify(result));
+          res.status(200).send(JSON.stringify({
+            error : false,
+            message : "Rooms/info : room info successful",
+            data : result
+          }));
         } else {
           console.log("room info error : id does not exist")
-          res.status(400).send("such id does not exist");
+          res.status(404).send("Rooms/info : id does not exist");
         }
       })
-    .catch( err => { console.log(err); throw err; })
+    .catch( err => { 
+      console.log(err);
+      res.status(500).send("Rooms/info : internal server error")
+    })
   })
 
   // test method
@@ -154,9 +166,9 @@ module.exports = (mongo) => {
 
     try {
       let room = await mongo.roomModel.findById( req.body.roomId )
-      if ( !room ) res.status(400).send("Room/invite : no corresponding room")
+      if ( !room ) res.status(404).send("Room/invite : no corresponding room")
       for( const userID of req.body.users ){
-        if ( room.part.includes(userID) ) res.status("400").send("Room/invite : "+ userID +" Already in room")
+        if ( room.part.includes(userID) ) res.status("409").send("Room/invite : "+ userID +" Already in room")
       }
       await room.save()
       for ( const userID of req.body.users ){
@@ -165,10 +177,10 @@ module.exports = (mongo) => {
         user.room.append( req.body.roomId )
         await user.save()
       }
-      res.status("200").send("Room/invite : Successful")
+      res.status("200").send("Room/invite : invite successful")
     } catch ( error ) {
       console.log(error);
-      res.status("500").send("Room/invite : Error 500")
+      res.status("500").send("Room/invite : internal server error")
     }
   })
 
@@ -226,7 +238,7 @@ module.exports = (mongo) => {
         fromLocationID = await fromLocation._id;
         toLocationID = await toLocation._id;
       } else {
-        res.status("400").send(JSON.stringify({
+        res.status("404").send(JSON.stringify({
           error: true,
           message: "Room/search : No corresponding location"
         }))
@@ -251,6 +263,7 @@ module.exports = (mongo) => {
       
       res.status("200").send(JSON.stringify({
         error: false,
+        message : "Room/search : search successful",
         data: rooms
       }))
       // if ( fromLocationID && toLocationID ){

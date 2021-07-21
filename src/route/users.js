@@ -13,18 +13,27 @@ module.exports = (mongo) => {
     })
   })
 
-  router.get('/:id', (req, res) => {
-    mongo.userModel.findById( req.params.id )
-    .then( result => {
-        if(result) {
-          console.log(JSON.stringify(result))
-          res.send(JSON.stringify(result));
-        } else {
-          console.log("user info error : id does not exist")
-          res.status(400).send("such id does not exist");
-        }
-      })
-    .catch( err => { console.log(err); throw err; })
+  router.get('/:id', async (req, res) => {
+    try {
+      let usr = await mongo.userModel.findById( req.params.id );
+      if(usr) {
+        res.status(200).send(JSON.stringify({
+          error: false,
+          data: usr
+        }))
+      } else {
+        res.status(404).send(JSON.stringify({
+          error: true,
+          message: "user/:id : such id does not exist"
+        }))
+      }
+    } catch (error) {
+      console.log(error);
+      res.status(500).send(JSON.stringify({
+        error: true,
+        message: "user/:id : internal server error"
+      }))
+    }
   })
 
   // json으로 수정할 값들을 받는다
