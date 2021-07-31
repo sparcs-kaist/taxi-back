@@ -1,5 +1,4 @@
 # Taxi backend documentation
-
 ## /rooms
 ### create (POST)
 접근 : `/create`  
@@ -65,7 +64,7 @@ room의 ID와 user들의 ID list를 받아 해당 room의 participants에 추가
     users : List[ObjectID]
 }
 ```
-#### Return values
+#### Errors
 - 400 "Bad request"
 - 404 "no corresponding room"
 - 409 "{userID} Already in room"
@@ -82,9 +81,18 @@ room의 ID와 user들의 ID list를 받아 해당 room의 participants에 추가
     startDate : Date
 }
 ```
-#### Return values
+#### Errors
 - 400 "Bad request, from/to location not given"
 - 404 "no corresponding location"
 - 500 "internal server error"  
+
+### searchByName (GET)
+접근 : `/searchByName/:name`  
+출발지/도착지/날짜를 받아 해당하는 room들을 반환한다.
+#### Parameters
+name : 검색할 방의 이름
+#### Errors
+- 400 "Bad request"
+- 404 "no matching room"
 
 

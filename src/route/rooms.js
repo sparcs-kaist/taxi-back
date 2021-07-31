@@ -227,6 +227,29 @@ module.exports = (mongo) => {
   //   startDate : Date,
   // }
 
+  router.get('/searchByName/:name', async (req, res) => {
+    if ( !req.params.name ) {
+      res.status("400").json({
+        error : "Room/searchByName : Bad request"
+      })
+    }
+
+    try {
+      let room = await mongo.roomModel.findOne({ name : req.params.name })
+      if ( !room ) {
+        res.status("404").json({
+          error : "Room/searchByName : No matching room"
+        })
+      }
+      res.send(room)
+    } catch ( err ) {
+      console.log(error);
+      res.status("500").json({
+        error : "Room/searchByName : Internal server error"
+      })
+    }
+  })
+
   // fromName, toName은 필수
   // startDate는 선택
   router.post('/search', async (req, res) => {
@@ -235,28 +258,8 @@ module.exports = (mongo) => {
         error : "Room/search : Bad request"
       })
     }
-    // if ( req.body.roomName && ( req.body.fromName || req.body.toName || req.body.startDate )) {
-    //   rres.status("400").send(JSON.stringify({
-    //     error : true,
-    //     message : "Room/search : Bad request, too many info"
-    //   }))
-    // }
-    // if ( !req.body.roomName && (( req.body.fromName && !req.body.toName) || ( !req.body.fromName && req.body.toName ))){
-    //   res.status("400").send(JSON.stringify({
-    //     error : true,
-    //     message : "Room/search : Bad request, from and to must be given together"
-    //   }))
-    // }
 
     try {
-      // if ( req.body.roomName ){
-      //   let rooms = await mongo.roomModel.find({ name : { $regex : req.body.roomName, $options : "i" }})
-      //   if (!rooms) res.status("404").send(JSON.stringify({
-      //     error : true,
-      //     message : "Room/search : No corresponding room"
-      //   }))
-      //   res.status("200").send(JSON.stringify(rooms))
-      // } else {
       let fromLocation;
       let fromLocationID;
       if( req.body.fromName ){

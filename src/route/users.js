@@ -17,22 +17,17 @@ module.exports = (mongo) => {
     try {
       let usr = await mongo.userModel.findById( req.params.id );
       if(usr) {
-        res.status(200).send(JSON.stringify({
-          error: false,
-          data: usr
-        }))
+        res.send(usr);
       } else {
-        res.status(404).send(JSON.stringify({
-          error: true,
-          message: "user/:id : such id does not exist"
-        }))
+        res.status(404).json({
+          error: "user/:id : such id does not exist"
+        })
       }
     } catch (error) {
       console.log(error);
-      res.status(500).send(JSON.stringify({
-        error: true,
-        message: "user/:id : internal server error"
-      }))
+      res.status(500).json({
+        error: "user/:id : internal server error"
+      })
     }
   })
 
@@ -42,7 +37,6 @@ module.exports = (mongo) => {
     mongo.userModel.findByIdAndUpdate( req.params.id, {$set : req.body} )
     .then( result => {
       if(result){
-        console.log("edit user successful")
         res.status(200).send('edit user successful')
       } else {
         console.log("user delete error : id does not exist");
@@ -58,27 +52,6 @@ module.exports = (mongo) => {
   // 409 Conflict
   // This response is sent when a request conflicts with the current state of the server.
   router.get('/:id/ban', async (req, res) => {
-    // mongo.userModel.findById( req.params.id )
-    // .then( user => {
-    //   if (user) {
-    //     if (user.ban === false) {
-    //       user.ban = true;
-    //       user.save()
-    //     } else {
-    //       res.status(409).send("The user is already banned")
-    //     }
-    //   } else {
-    //     res.status(400).send("The user does not exist")
-    //   }
-    // })
-    // .then( user => {
-    //   console.log(user);
-    //   res.status(200).send("The user banned successfully")
-    // })
-    // .catch( err => {
-    //   console.log(err);
-    //   throw err;
-    // })
 
     let user = await mongo.userModel.findById( req.params.id )
     if( user ) {
