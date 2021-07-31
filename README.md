@@ -1,6 +1,6 @@
 # Taxi backend documentation
   
-## /rooms
+## /rooms  
 ### create (POST)
 접근 : `/create`  
 요청을 받아 room을 생성
