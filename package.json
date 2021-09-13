@@ -17,8 +17,7 @@
     "http-proxy-middleware": "^1.0.6",
     "mongoose": "^5.12.1",
     "pbkdf2-password": "^1.2.1",
-    "querystring": "^0.2.1",
-    "socket.io": "^2.3.0"
+    "querystring": "^0.2.1"
   },
   "devDependencies": {},
   "scripts": {

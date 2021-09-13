@@ -13,6 +13,27 @@ module.exports = (mongo) => {
     })
   })
 
+  router.get('/rooms', async (req, res) => {
+    try{
+      const user = await mongo.userModel.findById(req.params.id).exec();
+      if(user){
+        res.send({
+          id: req.params.id,
+          rooms: user.room
+        });
+      } else {
+        res.status(404).json({
+          error: "user/rooms : such id does not exist"
+        })
+      }
+    } catch(error) {
+      console.log(error);
+      res.status(500).json({
+        error: "user/rooms : internal server error"
+      })
+    }
+  })
+
   router.get('/:id', async (req, res) => {
     try {
       let usr = await mongo.userModel.findById( req.params.id );
@@ -52,7 +73,6 @@ module.exports = (mongo) => {
   // 409 Conflict
   // This response is sent when a request conflicts with the current state of the server.
   router.get('/:id/ban', async (req, res) => {
-
     let user = await mongo.userModel.findById( req.params.id )
     if( user ) {
       if (user.ban === false) {

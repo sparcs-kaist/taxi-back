@@ -298,7 +298,9 @@ module.exports = (mongo) => {
       }
       // date form 2012-04-23T18:25:43.511Z
       
-      res.send(rooms)
+      res.send({
+        data: rooms
+      })
     } catch (error) {
       console.log(error);
       res.status("500").json({

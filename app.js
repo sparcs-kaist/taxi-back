@@ -8,7 +8,6 @@ const bodyParser = require('body-parser');
 const cookieParser = require('cookie-parser');
 const expressSession = require('express-session');
 const fs = require('fs');
-const socketio = require('socket.io');
 const cors = require('cors');
 
 //const bkfd2Password = require("pbkdf2-password");
