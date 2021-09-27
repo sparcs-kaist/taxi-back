@@ -9,33 +9,20 @@ module.exports = (mongo) => {
     router.use(loginCheckMiddleware);
   });
 
-  // TEST
-  router.get('/getAllRoom', (_, res) => {
-    console.log('/getAllRoom called');
-    mongo.roomModel.find({})
-    .then( 
-      async (results) => {
-        jsonResult = await JSON.parse(JSON.stringify(results));
-        console.log(jsonResult)
-        for (const result of jsonResult) {
-          let fromLocation = await mongo.locationModel.findById( result.from );
-          result.from = fromLocation.name;
-          let toLocation = await mongo.locationModel.findById( result.to );
-          result.to = toLocation.name;
-        }
-        // await jsonResult.map( async result => {
-          
-        // })
-        res.send( jsonResult );
-      }
-    )
+  // ONLY FOR TEST
+  router.get('/getAllRoom', async (_, res) => {
+    console.log("GET ALL ROOM");
+    const result = await mongo.roomModel.find({}).exec();
+    res.send(JSON.parse(JSON.stringify(result)));
+    return;
   })
 
-  //TEST
-  router.get('/removeAllRoom', async (req, res) => {
+  // ONLY FOR TEST
+  router.get('/removeAllRoom', async (_, res) => {
     console.log("DELETE ALL ROOM")
-    mongo.roomModel.remove({}).exec()
+    await mongo.roomModel.remove({}).exec()
     res.redirect("/rooms/getAllRoom")
+    return;
   })
 
   // request JSON form
@@ -45,11 +32,11 @@ module.exports = (mongo) => {
   // time : Date
   // part : Array
   router.post('/create', async (req, res) => {
-    //console.log(req.body);
     if(!req.body.name || !req.body.from || !req.body.to || !req.body.time ){
       res.status(400).json({
         error : "Rooms/create : bad request"
       })
+      return;
     }
 
     try {
@@ -74,30 +61,37 @@ module.exports = (mongo) => {
       })
       await room.save()
       res.send(room);
+      return;
     } catch(err) {
       console.log(err);
       res.status(500).json({
         error : 'Rooms/create : internal server error'
       })
+      return;
     }
   });
 
   router.get('/:id/delete', async (req, res) => {
     try {
-      let result;
-      result = await mongo.roomModel.findByIdAndRemove( req.params.id )
+      const result = await mongo.roomModel.findByIdAndRemove( req.params.id ).exec();
       if(result) {
-        res.send(true);
+        res.send({
+          id: req.params.id,
+          isDeleted: true
+        });
+        return;
       } else {
         res.status(404).json({
           error : "Rooms/delete : ID does not exist"
         });
+        return;
       }
     } catch (err) {
       console.log(err);
       res.status(500).json({
         error : 'Rooms/create : internal server error'
       })
+      return;
     }
     
     // catch는 반환값이 없을 경우(result == undefined일 때)는 처리하지 않는다.
@@ -108,6 +102,7 @@ module.exports = (mongo) => {
   // request JSON
   // name, from, to, time, part
   router.post('/:id/edit', async (req, res) => {
+    // #FIXME 하드코딩, map reduce으로 어케 안되나?
     if( !req.body.name || !req.body.from || !req.body.to || !req.body.time || !req.body.part ){
       res.status("400").json({
         error : "Rooms/edit : Bad request"
@@ -175,14 +170,14 @@ module.exports = (mongo) => {
     if(!req.body.id) res.status("400").send("Room/roominfo : Bad request")
     mongo.roomModel.findById( req.body.id )
     .then( result => {
-        if(result) {
-          console.log(JSON.stringify(result))
-          res.send(JSON.stringify(result));
-        } else {
-          console.log("room info error : id does not exist")
-          res.status(400).send("such id does not exist");
-        }
-      })
+      if(result) {
+        console.log(JSON.stringify(result))
+        res.send(JSON.stringify(result));
+      } else {
+        console.log("room info error : id does not exist")
+        res.status(400).send("such id does not exist");
+      }
+    })
     .catch( err => { console.log(err); throw err; })
   })
 
@@ -257,47 +252,38 @@ module.exports = (mongo) => {
       res.status("400").json({
         error : "Room/search : Bad request"
       })
+      return;
     }
 
     try {
-      let fromLocation;
-      let fromLocationID;
-      if( req.body.fromName ){
-        fromLocation = await mongo.locationModel.findOne({ name : req.body.fromName })
-      }
+      const fromLocationID = req.body.fromName?
+        await mongo.locationModel.findOne({ name : req.body.fromName })?._id : null;
+      const toLocationID = req.body.toName?
+        await mongo.locationModel.findOne({ name : req.body.toName })?._id : null;
       
-      let toLocation;
-      let toLocationID;
-      if( req.body.toName ){
-        toLocation = await mongo.locationModel.findOne({ name : req.body.toName })
-      }
-      
-      if(fromLocation && toLocation){
-        fromLocationID = await fromLocation._id;
-        toLocationID = await toLocation._id;
-      } else {
+      if(!fromLocationID || !toLocationID){
         res.status("404").json({
           error: "Room/search : No corresponding location"
         })
+        return;
       }
       
       let rooms;
-      if ( fromLocationID && toLocationID ){
-        if( !req.body.startDate ){
-          rooms = await mongo.roomModel.find({
-            from : fromLocationID,
-            to : toLocationID
-          })
-        } else {
-          rooms = await mongo.roomModel.find({
-            from : fromLocationID,
-            to : toLocationID,
-            time : { $gte : new Date(req.body.startDate) }
-          })
-        }
+      if( !req.body.startDate ){
+        rooms = await mongo.roomModel.find({
+          from : fromLocationID,
+          to : toLocationID
+        })
+      } else {
+        rooms = await mongo.roomModel.find({
+          from : fromLocationID,
+          to : toLocationID,
+          time : { $gte : new Date(req.body.startDate) }
+        })
       }
       // date form 2012-04-23T18:25:43.511Z
-      
+      rooms.from = (await mongo.locationModel.findById(fromLocationID)).name
+      rooms.to = (await mongo.locationModel.findById(toLocationID)).name
       res.send({
         data: rooms
       })
