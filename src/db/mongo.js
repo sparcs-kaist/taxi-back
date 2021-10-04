@@ -4,6 +4,7 @@ const security = require('../../security');
 
 const userSchema = mongoose.Schema({
     name: { type: String, required: true },
+    nickname: {type: String, required: true},
     id: { type: String, required: true, unique: true },
     withdraw: { type: Boolean, default: false },
     ban: { type: Boolean, default: false },

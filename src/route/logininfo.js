@@ -10,11 +10,11 @@ module.exports = (mongo, login) => {
         const user = login.getLoginInfo(req);
 
         if(user.id){
-            mongo.userModel.findOne({ id: user.id }, 'id withdraw ban joinat subinfo', (err, result) => {
+            mongo.userModel.findOne({ id: user.id }, 'id nickname withdraw ban joinat subinfo', (err, result) => {
                 if(err) res.json({ err: true });
                 else if(!result) res.json({ err: true });
                 else{
-                    res.json({ id: result.id, withdraw: result.withdraw, ban: result.ban, joinat: result.joinat, subinfo: result.subinfo });
+                    res.json({ id: result.id, nickname: result.nickname, withdraw: result.withdraw, ban: result.ban, joinat: result.joinat, subinfo: result.subinfo });
                 }
             });
         }
