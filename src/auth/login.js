@@ -24,7 +24,7 @@ class Login{
         req.session.loginInfo = { sid, id, name, time: Date.now() }
     }
     logout(req){
-        // 다음에 구현
+        req.session.destroy();
     }
 }
 
