@@ -1,5 +1,3 @@
-const e = require("express");
-
 class Login {
   constructor() {}
   getLoginInfo(req) {

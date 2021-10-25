@@ -1,6 +1,6 @@
-const crypto = require('crypto');
-const axios = require('axios');
-const querystring = require('querystring');
+const crypto = require("crypto");
+const axios = require("axios");
+const querystring = require("querystring");
 
 /*
 SPARCS SSO V2 Client for NodeJS Version 1.0 (verified)
@@ -9,7 +9,7 @@ Dependencies: node ^10, axios ^0.18
 */
 
 class Client {
-  constructor(clientId, secretKey, isBeta = false, serverAddr = '') {
+  constructor(clientId, secretKey, isBeta = false, serverAddr = "") {
     /*
       Initialize SPARCS SSO Client
       :param clientId: your client id
@@ -17,32 +17,32 @@ class Client {
       :param isBeta: true iff you want to use SPARCS SSO beta server
       :param serverAddr: SPARCS SSO server addr (only for testing)
     */
-    const SERVER_DOMAIN = 'https://sparcssso.kaist.ac.kr/';
-    const BETA_DOMAIN = 'https://ssobeta.sparcs.org/';
+    const SERVER_DOMAIN = "https://sparcssso.kaist.ac.kr/";
+    const BETA_DOMAIN = "https://ssobeta.sparcs.org/";
 
-    const API_PREFIX = 'api/';
-    const VERSION_PREFIX = 'v2/';
+    const API_PREFIX = "api/";
+    const VERSION_PREFIX = "v2/";
 
     const URLS = {
-      token_require: 'token/require/',
-      token_info: 'token/info/',
-      logout: 'logout/',
-      unregister: 'unregister/',
-      point: 'point/',
-      notice: 'notice/',
+      token_require: "token/require/",
+      token_info: "token/info/",
+      logout: "logout/",
+      unregister: "unregister/",
+      point: "point/",
+      notice: "notice/",
     };
 
-    this.DOMAIN = (isBeta ? BETA_DOMAIN : SERVER_DOMAIN);
-    this.DOMAIN = (serverAddr === '' ? this.DOMAIN : serverAddr);
+    this.DOMAIN = isBeta ? BETA_DOMAIN : SERVER_DOMAIN;
+    this.DOMAIN = serverAddr === "" ? this.DOMAIN : serverAddr;
 
-    const baseUrl = [this.DOMAIN, API_PREFIX, VERSION_PREFIX].join('');
+    const baseUrl = [this.DOMAIN, API_PREFIX, VERSION_PREFIX].join("");
     this.URLS = {};
     for (const [key, url] of Object.entries(URLS)) {
-      this.URLS[key] = [baseUrl, url].join('');
+      this.URLS[key] = [baseUrl, url].join("");
     }
 
     this.clientId = clientId;
-    this.secretKey = Buffer.from(secretKey, 'utf8');
+    this.secretKey = Buffer.from(secretKey, "utf8");
   }
 
   _signPayload(payload, appendTimestamp = true) {
@@ -50,8 +50,11 @@ class Client {
     if (appendTimestamp) {
       payload.push(timestamp);
     }
-    const msg = Buffer.from(payload.join(''), 'utf8');
-    const sign = crypto.createHmac('md5', this.secretKey).update(msg).digest('hex');
+    const msg = Buffer.from(payload.join(""), "utf8");
+    const sign = crypto
+      .createHmac("md5", this.secretKey)
+      .update(msg)
+      .digest("hex");
     return { sign, timestamp };
   }
 
@@ -73,18 +76,18 @@ class Client {
     } catch (err) {
       if (err.response) {
         if (err.response.status === 400) {
-          throw new Error('INVALID_REQUEST');
+          throw new Error("INVALID_REQUEST");
         } else if (err.response.status === 403) {
-          throw new Error('NO_PERMISSION');
+          throw new Error("NO_PERMISSION");
         } else if (err.response.status !== 200) {
-          throw new Error('UNKNOWN_ERROR');
+          throw new Error("UNKNOWN_ERROR");
         }
       } else if (err.request) {
-        throw new Error('NO_RESPONSE');
+        throw new Error("NO_RESPONSE");
       } else {
-        throw new Error('REQUEST_SETUP_ERROR');
+        throw new Error("REQUEST_SETUP_ERROR");
       }
-      throw new Error('UNKNOWN_ERROR');
+      throw new Error("UNKNOWN_ERROR");
     }
   }
 
@@ -94,13 +97,18 @@ class Client {
       :returns: [url, state] where url is a url to redirect user,
           and state is random string to prevent CSRF
     */
-    const state = crypto.randomBytes(10).toString('hex');
+    const state = crypto.randomBytes(10).toString("hex");
     const { clientId, URLS } = this;
     const params = {
       client_id: clientId,
       state,
     };
-    const url = [URLS.token_require, Object.entries(params).map(e => e.join('=')).join('&')].join('?');
+    const url = [
+      URLS.token_require,
+      Object.entries(params)
+        .map((e) => e.join("="))
+        .join("&"),
+    ].join("?");
     return { url, state };
   }
 
@@ -140,7 +148,12 @@ class Client {
       redirect_uri: redirectUri,
       sign,
     };
-    return [this.URLS.logout, Object.entries(params).map(e => e.join('=')).join('&')].join('?');
+    return [
+      this.URLS.logout,
+      Object.entries(params)
+        .map((e) => e.join("="))
+        .join("&"),
+    ].join("?");
   }
 
   getPoint(sid) {
@@ -149,7 +162,7 @@ class Client {
       :param sid: the user's service id
       :returns: the user's point
     */
-    return this.modifyPoint(sid, 0, '').point;
+    return this.modifyPoint(sid, 0, "").point;
   }
 
   async modifyPoint(sid, delta, message, lowerBound = 0) {
@@ -161,7 +174,12 @@ class Client {
       :param lowerBound: a minimum point value that required
       :returns: a server response; check the full docs
     */
-    const { sign, timestamp } = this._signPayload([sid, delta, message, lowerBound]);
+    const { sign, timestamp } = this._signPayload([
+      sid,
+      delta,
+      message,
+      lowerBound,
+    ]);
     const params = {
       client_id: this.clientId,
       sid,
@@ -200,9 +218,7 @@ class Client {
     }
   }
 
-  parseUnregisterRequest({
-    clientId, sid, timestamp, sign,
-  }) {
+  parseUnregisterRequest({ clientId, sid, timestamp, sign }) {
     /*
       Parse unregister request from SPARCS SSO server
       :param data_dict: a data dictionary that the server sent
@@ -210,9 +226,9 @@ class Client {
       :raises RuntimeError: raise iff the request is invalid
     */
     if (clientId !== this.clientId) {
-      throw new Error('INVALID_REQUEST');
+      throw new Error("INVALID_REQUEST");
     } else if (!this._validateSign([sid], timestamp, sign)) {
-      throw new Error('INVALID_REQUEST');
+      throw new Error("INVALID_REQUEST");
     }
     return sid;
   }
