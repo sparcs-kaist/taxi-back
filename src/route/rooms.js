@@ -4,9 +4,7 @@ const loginCheckMiddleware = require("../middleware/logincheck");
 //const taxiResponse = require('../taxiResponse')
 
 module.exports = (mongo) => {
-  router.get("/", () => {
-    router.use(loginCheckMiddleware);
-  });
+  router.use(loginCheckMiddleware);
 
   // ONLY FOR TEST
   router.get("/getAllRoom", async (_, res) => {

@@ -37,6 +37,14 @@ const locationSchema = mongoose.Schema({
   // longitude: { type: Number, required: true }
 });
 
+const chatRoomSchema = new mongoose.Schema({
+  _id: Number,
+  chats: [{
+    author: String,
+    text: String,
+    time: Date
+  }]
+})
 class Mongo {
   constructor() {
     this.connectDB();
@@ -62,6 +70,7 @@ class Mongo {
       this.roomModel = mongoose.model("rooms", roomSchema);
       this.chatModel = mongoose.model("chats", chatSchema);
       this.locationModel = mongoose.model("locations", locationSchema);
+      this.chatRoomModel = mongoose.model("chatRooms", chatRoomSchema)
     });
     database.on("disconnected", () => {
       console.log(

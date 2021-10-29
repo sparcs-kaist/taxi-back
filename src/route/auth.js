@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const security = require("../../security");
 const authRepace = require("./auth.replace");
+const generateTokenBySession = require("../auth/generateTokenBySession");
 
 // SPARCS SSO
 const Client = require("../auth/sparcsso");
@@ -84,8 +85,20 @@ module.exports = (mongo, login) => {
     }
   });
   router.route("/logout").get((req, res) => {
-    login.logout(req);
+    login.logout(req, res);
+
+    // FIXME: redirect는 프론트에서 처리하는게 좋을듯
     res.redirect(security.frontUrl);
+  });
+
+  // 세션의 로그인 정보를 토큰으로 만들어 반환
+  router.get("/getToken", (req, res) => {
+    const userInfo = login.getLoginInfo(req);
+    console.log(userInfo)
+    if (!userInfo) { return res.status(403).send("not logged in"); }
+    const token = generateTokenBySession(userInfo);
+
+    res.status(200).send(token);
   });
 
   if (security.sparcssso_replace == "true") return authRepace(mongo, login);

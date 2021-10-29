@@ -23,8 +23,12 @@ class Login {
     req.session.loginInfo = { sid, id, name, time: Date.now() };
   }
 
-  // logout(req) {
-  // }
+  logout(req, res) {
+    req.session.destroy((err) => {
+      if (err) console.log(err);
+      res.redirect('/');
+    });
+  }
 }
 
 module.exports = new Login();
