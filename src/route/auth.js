@@ -3,6 +3,7 @@ const router = express.Router();
 const security = require("../../security");
 const authRepace = require("./auth.replace");
 const generateTokenBySession = require("../auth/generateTokenBySession");
+const { userModel } = require("../db/mongo");
 
 // SPARCS SSO
 const Client = require("../auth/sparcsso");
@@ -11,23 +12,23 @@ const client = new Client(
   security.sparcssso_key
 );
 
-module.exports = (mongo, login) => {
+module.exports = (login) => {
   const transUserData = (userData) => {
-    const info = {};
-
-    info.id = userData.uid;
-    info.sid = userData.sid;
-    info.name = userData.first_name + userData.last_name;
-    info.facebook = userData.facebook_id || "";
-    info.twitter = userData.twitter_id || "";
-    info.kaist = userData.kaist_id || "";
-    info.sparcs = userData.sparcs_id || "";
+    const info = {
+      id: userData.uid,
+      sid: userData.sid,
+      name: userData.first_name + userData.last_name,
+      facebook: userData.facebook_id || "",
+      twitter: userData.twitter_id || "",
+      kaist: userData.kaist_id || "",
+      sparcs: userData.sparcs_id || ""
+    };
 
     return info;
   };
 
-  const joinus = (req, res, userData, mongo) => {
-    const newUser = new mongo.userModel({
+  const joinus = (req, res, userData) => {
+    const newUser = new userModel({
       id: userData.id,
       name: userData.name,
       joinat: Date.now(),
@@ -37,23 +38,25 @@ module.exports = (mongo, login) => {
         loginFalse(req, res);
         return;
       }
-      loginDone(req, res, userData, mongo);
+      loginDone(req, res, userData);
     });
   };
-  const update = async (req, res, userData, mongo) => {
+
+  const update = async (req, res, userData) => {
     const updateInfo = { name: userData.name };
-    await mongo.userModel.updateOne({ id: userData.id }, updateInfo);
-    loginDone(req, res, userData, mongo);
+    await userModel.updateOne({ id: userData.id }, updateInfo);
+    loginDone(req, res, userData);
   };
-  const loginDone = (req, res, userData, mongo) => {
-    mongo.userModel.findOne(
+
+  const loginDone = (req, res, userData) => {
+    userModel.findOne(
       { id: userData.id },
       "name id withdraw ban",
       (err, result) => {
         if (err) loginFalse(req, res);
-        else if (!result) joinus(req, res, userData, mongo);
+        else if (!result) joinus(req, res, userData);
         else if (result.name != userData.name)
-          update(req, res, userData, mongo);
+          update(req, res, userData);
         else {
           login.login(req, userData.sid, result.id, result.name);
           res.redirect(security.frontUrl + "/");
@@ -61,6 +64,7 @@ module.exports = (mongo, login) => {
       }
     );
   };
+
   const loginFalse = (req, res) => {
     res.redirect(security.frontUrl + "/login/false"); // 리엑트로 연결되나?
   };
@@ -80,7 +84,7 @@ module.exports = (mongo, login) => {
       const code = req.body.code || req.query.code;
       client.getUserInfo(code).then((userDataBefore) => {
         const userData = transUserData(userDataBefore);
-        loginDone(req, res, userData, mongo);
+        loginDone(req, res, userData);
       });
     }
   });
@@ -101,6 +105,6 @@ module.exports = (mongo, login) => {
     res.status(200).send(token);
   });
 
-  if (security.sparcssso_replace == "true") return authRepace(mongo, login);
+  if (security.sparcssso_replace == "true") return authRepace(login);
   else return router;
 };

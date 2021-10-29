@@ -1,7 +1,8 @@
 const express = require("express");
 const router = express.Router();
+const { userModel } = require("../db/mongo")
 
-module.exports = (mongo, login) => {
+module.exports = (login) => {
   router.route("/").get((req, res) => {
     const user = login.getLoginInfo(req);
     res.json(user);
@@ -10,7 +11,7 @@ module.exports = (mongo, login) => {
     const user = login.getLoginInfo(req);
 
     if (user.id) {
-      mongo.userModel.findOne(
+      userModel.findOne(
         { id: user.id },
         "id withdraw ban joinat subinfo",
         (err, result) => {

@@ -2,7 +2,7 @@ const express = require("express");
 const router = express.Router();
 const ejs = require("ejs");
 const security = require("../../security");
-const mongo = require("../db/mongo")
+const { userModel } = require("../db/mongo")
 const generateTokenBySession = require("../auth/generateTokenBySession");
 
 const loginHtml = `
@@ -45,23 +45,24 @@ const loginHtml = `
 </html>
 `;
 
-module.exports = (mongo, login) => {
+module.exports = (login) => {
   const makeInfo = (id) => {
-    const info = {};
-    info.id = id;
-    info.sid = id + "-sid";
-    info.name = id + "-name";
-    info.facebook = id + "-facebook";
-    info.twitter = id + "-twitter";
-    info.kaist = id + "-kaist";
-    info.sparcs = id + "-sparcs";
+    const info = {
+      id: id,
+      sid: id + "-sid",
+      name: id + "-name",
+      facebook: id + "-facebook",
+      twitter: id + "-twitter",
+      kaist: id + "-kaist",
+      sparcs: id + "-sparcs"
+    };
     return info;
   };
 
   // 새로운 유저 만들기
   // 이거 왜 이름이 joinus?
   const joinus = (req, res, userData) => {
-    const newUser = new mongo.userModel({
+    const newUser = new userModel({
       id: userData.id,
       name: userData.name,
       joinat: Date.now(),
@@ -85,12 +86,12 @@ module.exports = (mongo, login) => {
   // 만약 없으면 새로운 유저 만들기
   // 있으면 로그인 진행 후 리다이렉트
   const loginDone = (req, res, userData) => {
-    mongo.userModel.findOne(
+    userModel.findOne(
       { id: userData.id },
       "name id withdraw ban",
       (err, result) => {
         if (err) console.log("login > done error");
-        else if (!result) joinus(req, res, userData, mongo);
+        else if (!result) joinus(req, res, userData);
         else {
           login.login(req, userData.sid, result.id, result.name);
           res.send("successful");
