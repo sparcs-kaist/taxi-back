@@ -4,6 +4,7 @@ const ejs = require("ejs");
 const security = require("../../security");
 const { userModel } = require("../db/mongo")
 const generateTokenBySession = require("../auth/generateTokenBySession");
+const { logout, getLoginInfo, login } = require("../auth/login");
 
 const loginHtml = `
 <!DOCTYPE html>
@@ -45,89 +46,88 @@ const loginHtml = `
 </html>
 `;
 
-module.exports = (login) => {
-  const makeInfo = (id) => {
-    const info = {
-      id: id,
-      sid: id + "-sid",
-      name: id + "-name",
-      facebook: id + "-facebook",
-      twitter: id + "-twitter",
-      kaist: id + "-kaist",
-      sparcs: id + "-sparcs"
-    };
-    return info;
+const makeInfo = (id) => {
+  const info = {
+    id: id,
+    sid: id + "-sid",
+    name: id + "-name",
+    facebook: id + "-facebook",
+    twitter: id + "-twitter",
+    kaist: id + "-kaist",
+    sparcs: id + "-sparcs"
   };
-
-  // 새로운 유저 만들기
-  // 이거 왜 이름이 joinus?
-  const joinus = (req, res, userData) => {
-    const newUser = new userModel({
-      id: userData.id,
-      name: userData.name,
-      joinat: Date.now(),
-      subinfo: {
-        kaist: userData.kaist,
-        sparcs: userData.sparcs,
-        facebook: userData.facebook,
-        twitter: userData.twitter,
-      },
-    });
-    newUser.save((err) => {
-      if (err) {
-        console.log("login > usersave error");
-        return;
-      }
-      loginDone(req, res, userData);
-    });
-  };
-
-  // 주어진 데이터로 DB 검색
-  // 만약 없으면 새로운 유저 만들기
-  // 있으면 로그인 진행 후 리다이렉트
-  const loginDone = (req, res, userData) => {
-    userModel.findOne(
-      { id: userData.id },
-      "name id withdraw ban",
-      (err, result) => {
-        if (err) console.log("login > done error");
-        else if (!result) joinus(req, res, userData);
-        else {
-          login.login(req, userData.sid, result.id, result.name);
-          res.send("successful");
-        }
-      }
-    );
-  };
-
-  // 로그인 시도
-  router.route("/try").post((req, res) => {
-    {
-      const id = req.body.id || req.query.id;
-      loginDone(req, res, makeInfo(id));
-    }
-  });
-
-  // html 로그인 페이지 쏴주기
-  router.route("/sparcssso").get((req, res) => {
-    res.end(loginHtml);
-  });
-
-  router.route("/logout").get((req, res) => {
-    // FIXME: 리다이렉트는 프론트에서 처리하도록 하는게 좋을듯
-    login.logout(req, res);
-    res.redirect(security.frontUrl);
-  });
-
-  // 세션의 로그인 정보를 토큰으로 만들어 반환
-  router.get("/getToken", (req, res) => {
-    const userInfo = login.getLoginInfo(req);
-    if (!userInfo.id || !userInfo.name || !userInfo.sid) {
-      return res.status(403).send("not logged in");
-    }
-    const token = generateTokenBySession(userInfo);
-
-    res.status(200).send(token);
-  });
-  return router;
+  return info;
 };
+
+// 새로운 유저 만들기
+// 이거 왜 이름이 joinus?
+const joinus = (req, res, userData) => {
+  const newUser = new userModel({
+    id: userData.id,
+    name: userData.name,
+    joinat: Date.now(),
+    subinfo: {
+      kaist: userData.kaist,
+      sparcs: userData.sparcs,
+      facebook: userData.facebook,
+      twitter: userData.twitter,
+    },
+  });
+  newUser.save((err) => {
+    if (err) {
+      console.log("login > usersave error");
+      return;
+    }
+    loginDone(req, res, userData);
+  });
+};
+
+// 주어진 데이터로 DB 검색
+// 만약 없으면 새로운 유저 만들기
+// 있으면 로그인 진행 후 리다이렉트
+const loginDone = (req, res, userData) => {
+  userModel.findOne(
+    { id: userData.id },
+    "name id withdraw ban",
+    (err, result) => {
+      if (err) console.log("login > done error");
+      else if (!result) joinus(req, res, userData);
+      else {
+        login(req, userData.sid, result.id, result.name);
+        res.send("successful");
+      }
+    }
+  );
+};
+
+// 로그인 시도
+router.route("/try").post((req, res) => {
+  {
+    const id = req.body.id || req.query.id;
+    loginDone(req, res, makeInfo(id));
+  }
+});
+
+// html 로그인 페이지 쏴주기
+router.route("/sparcssso").get((req, res) => {
+  res.end(loginHtml);
+});
+
+router.route("/logout").get((req, res) => {
+  // FIXME: 리다이렉트는 프론트에서 처리하도록 하는게 좋을듯
+  logout(req, res);
+  res.redirect(security.frontUrl);
+});
+
+// 세션의 로그인 정보를 토큰으로 만들어 반환
+router.get("/getToken", (req, res) => {
+  const userInfo = getLoginInfo(req);
+  const { id, sid, name } = userInfo;
+  if (!id || !sid || !name) {
+    return res.status(403).send("not logged in");
+  }
+  const token = generateTokenBySession(userInfo);
+
+  res.status(200).send(token);
+});
+module.exports = router;

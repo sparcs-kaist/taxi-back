@@ -16,8 +16,6 @@ const startSocketServer = require("./src/modules/socket");
 
 // 내부 모듈
 const security = require("./security");
-const mongo = require("./src/db/mongo");
-const login = require("./src/auth/login");
 
 // 익스프레스 서버 생성
 const app = express();
@@ -35,10 +33,10 @@ app.use(session);
 app.use(cookieParser());
 
 // 라우터 및 리액트
-app.use("/auth", require("./src/route/auth")(login));
-app.use("/json/logininfo", require("./src/route/logininfo")(login));
-app.use("/users", require("./src/route/users")());
-app.use("/rooms", require("./src/route/rooms")());
+app.use("/auth", require("./src/route/auth"));
+app.use("/json/logininfo", require("./src/route/logininfo"));
+app.use("/users", require("./src/route/users"));
+app.use("/rooms", require("./src/route/rooms"));
 app.use("/chats", require("./src/route/chats"));
 
 const serverHttp = http.createServer(app).listen(security.nodePort, () => {
