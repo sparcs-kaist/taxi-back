@@ -9,6 +9,7 @@ const cookieParser = require("cookie-parser");
 const expressSession = require("express-session");
 const fs = require("fs");
 const cors = require("cors");
+const startSocketServer = require("./src/modules/socket");
 
 //const bkfd2Password = require("pbkdf2-password");
 //const hasher = bkfd2Password();
@@ -38,7 +39,10 @@ app.use("/auth", require("./src/route/auth")(mongo, login));
 app.use("/json/logininfo", require("./src/route/logininfo")(mongo, login));
 app.use("/users", require("./src/route/users")(mongo));
 app.use("/rooms", require("./src/route/rooms")(mongo));
+app.use("/chats", require("./src/route/chats"));
 
 const serverHttp = http.createServer(app).listen(security.nodePort, () => {
   console.log(`Express 서버가 ${security.nodePort}번 포트에서 시작됨.`);
 });
+
+startSocketServer(serverHttp);

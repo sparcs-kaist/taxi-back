@@ -20,8 +20,11 @@ class Login {
   login(req, sid, id, name) {
     req.session.loginInfo = { sid, id, name, time: Date.now() };
   }
-  logout(req) {
-    req.session.destroy();
+  logout(req, res) {
+    req.session.destroy((err) => {
+      if (err) console.log(err);
+      res.redirect('/');
+    });
   }
 }
 

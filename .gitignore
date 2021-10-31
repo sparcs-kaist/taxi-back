@@ -3,3 +3,4 @@
 .DS_store
 package-lock.json
 *.code-workspace
+*.swp
