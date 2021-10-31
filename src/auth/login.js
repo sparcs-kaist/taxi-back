@@ -1,5 +1,5 @@
 class Login {
-  constructor() { }
+  constructor() {}
   getLoginInfo(req) {
     if (req.session.loginInfo) {
       const { id, sid, name, time } = req.session.loginInfo;
@@ -12,17 +12,14 @@ class Login {
       }
     } else return { id: undefined, sid: undefined, name: undefined };
   }
-
   isLogin(req) {
     const loginInfo = this.getLoginInfo(req);
     if (loginInfo.id) return true;
     else return false;
   }
-
   login(req, sid, id, name) {
     req.session.loginInfo = { sid, id, name, time: Date.now() };
   }
-
   logout(req, res) {
     req.session.destroy((err) => {
       if (err) console.log(err);

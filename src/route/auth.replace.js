@@ -51,6 +51,7 @@ module.exports = (mongo, login) => {
     info.id = id;
     info.sid = id + "-sid";
     info.name = id + "-name";
+    info.nickname = id + "-nickname";
     info.facebook = id + "-facebook";
     info.twitter = id + "-twitter";
     info.kaist = id + "-kaist";
@@ -64,6 +65,7 @@ module.exports = (mongo, login) => {
     const newUser = new mongo.userModel({
       id: userData.id,
       name: userData.name,
+      nickname: userData.nickname,
       joinat: Date.now(),
       subinfo: {
         kaist: userData.kaist,
