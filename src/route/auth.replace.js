@@ -2,8 +2,9 @@ const express = require("express");
 const router = express.Router();
 const ejs = require("ejs");
 const security = require("../../security");
-const mongo = require("../db/mongo")
+const mongo = require("../db/mongo");
 const generateTokenBySession = require("../auth/generateTokenBySession");
+const generateNickname = require("../modules/generateNickname");
 
 const loginHtml = `
 <!DOCTYPE html>
@@ -51,7 +52,7 @@ module.exports = (mongo, login) => {
     info.id = id;
     info.sid = id + "-sid";
     info.name = id + "-name";
-    info.nickname = id + "-nickname";
+    info.nickname = generateNickname(id);
     info.facebook = id + "-facebook";
     info.twitter = id + "-twitter";
     info.kaist = id + "-kaist";
