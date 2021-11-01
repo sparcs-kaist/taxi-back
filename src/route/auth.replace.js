@@ -51,6 +51,7 @@ const makeInfo = (id) => {
     id: id,
     sid: id + "-sid",
     name: id + "-name",
+    nickname: id + "-nickname",
     facebook: id + "-facebook",
     twitter: id + "-twitter",
     kaist: id + "-kaist",
@@ -65,6 +66,7 @@ const joinus = (req, res, userData) => {
   const newUser = new userModel({
     id: userData.id,
     name: userData.name,
+    nickname: userData.nickname,
     joinat: Date.now(),
     subinfo: {
       kaist: userData.kaist,

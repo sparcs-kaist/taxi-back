@@ -13,13 +13,14 @@ router.route("/detail").get((req, res) => {
   if (user.id) {
     userModel.findOne(
       { id: user.id },
-      "id withdraw ban joinat subinfo",
+      "id nickname withdraw ban joinat subinfo",
       (err, result) => {
         if (err) res.json({ err: true });
         else if (!result) res.json({ err: true });
         else {
           res.json({
             id: result.id,
+            nickname: result.nickname,
             withdraw: result.withdraw,
             ban: result.ban,
             joinat: result.joinat,
