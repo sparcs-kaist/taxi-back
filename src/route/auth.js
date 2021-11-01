@@ -4,15 +4,15 @@ const security = require("../../security");
 const authReplace = require("./auth.replace");
 const generateTokenBySession = require("../auth/generateTokenBySession");
 const { userModel } = require("../db/mongo");
-const { getLoginInfo, logout, login } = require("../auth/login")
+const { getLoginInfo, logout, login } = require("../auth/login");
+const {
+  generateNickname,
+  generateProfileImgUrl,
+} = require("../modules/generateProfile");
 
 // SPARCS SSO
 const Client = require("../auth/sparcsso");
-const client = new Client(
-  security.sparcssso_id,
-  security.sparcssso_key
-);
-
+const client = new Client(security.sparcssso_id, security.sparcssso_key);
 
 const transUserData = (userData) => {
   const info = {
@@ -22,7 +22,7 @@ const transUserData = (userData) => {
     facebook: userData.facebook_id || "",
     twitter: userData.twitter_id || "",
     kaist: userData.kaist_id || "",
-    sparcs: userData.sparcs_id || ""
+    sparcs: userData.sparcs_id || "",
   };
 
   return info;
@@ -32,6 +32,8 @@ const joinus = (req, res, userData) => {
   const newUser = new userModel({
     id: userData.id,
     name: userData.name,
+    nickname: generateNickname(userData.id),
+    profileImageUrl: generateProfileImgUrl(userData.id),
     joinat: Date.now(),
   });
   newUser.save((err) => {
@@ -56,8 +58,7 @@ const loginDone = (req, res, userData) => {
     (err, result) => {
       if (err) loginFalse(req, res);
       else if (!result) joinus(req, res, userData);
-      else if (result.name != userData.name)
-        update(req, res, userData);
+      else if (result.name != userData.name) update(req, res, userData);
       else {
         login(req, userData.sid, result.id, result.name);
         res.redirect(security.frontUrl + "/");
@@ -99,12 +100,13 @@ router.route("/logout").get((req, res) => {
 // 세션의 로그인 정보를 토큰으로 만들어 반환
 router.get("/getToken", (req, res) => {
   const userInfo = getLoginInfo(req);
-  console.log(userInfo)
-  if (!userInfo) { return res.status(403).send("not logged in"); }
+  console.log(userInfo);
+  if (!userInfo) {
+    return res.status(403).send("not logged in");
+  }
   const token = generateTokenBySession(userInfo);
 
   res.status(200).send(token);
 });
 
 module.exports = security.sparcssso_replace ? authReplace : router;
-

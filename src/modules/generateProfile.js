@@ -48,7 +48,6 @@ const adjectives = [
 
 const generateNickname = (id) => {
   // Generate the random indices to pick the noun and the adjective.
-  let indexArray = new Uint32Array(2);
   const nounIdx = crypto.randomInt(nouns.length);
   const adjectiveIdx = crypto.randomInt(adjectives.length);
   const noun = nouns[nounIdx];
@@ -63,4 +62,8 @@ const generateNickname = (id) => {
   return nickname;
 };
 
-module.exports = generateNickname;
+const generateProfileImgUrl = (id) => {
+  return "/public/profile-images/sample.png";
+};
+
+module.exports = { generateNickname, generateProfileImgUrl };

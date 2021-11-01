@@ -5,7 +5,10 @@ const security = require("../../security");
 const { userModel } = require("../db/mongo");
 const generateTokenBySession = require("../auth/generateTokenBySession");
 const { logout, getLoginInfo, login } = require("../auth/login");
-const generateNickname = require("../modules/generateNickname");
+const {
+  generateNickname,
+  generateProfileImgUrl,
+} = require("../modules/generateProfile");
 
 const loginHtml = `
 <!DOCTYPE html>
@@ -53,6 +56,7 @@ const makeInfo = (id) => {
     sid: id + "-sid",
     name: id + "-name",
     nickname: generateNickname(id),
+    profileImgUrl: generateProfileImgUrl(id),
     facebook: id + "-facebook",
     twitter: id + "-twitter",
     kaist: id + "-kaist",
@@ -68,6 +72,7 @@ const joinus = (req, res, userData) => {
     id: userData.id,
     name: userData.name,
     nickname: userData.nickname,
+    profileImgUrl: userData.profileImg,
     joinat: Date.now(),
     subinfo: {
       kaist: userData.kaist,
@@ -134,4 +139,5 @@ router.get("/getToken", (req, res) => {
 
   res.status(200).send(token);
 });
+
 module.exports = router;
