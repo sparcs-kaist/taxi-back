@@ -9,25 +9,27 @@ const getLoginInfo = (req) => {
       return { id, sid, name };
     }
   } else return { id: undefined, sid: undefined, name: undefined };
-}
+};
 
 const isLogin = (req) => {
   const loginInfo = this.getLoginInfo(req);
   if (loginInfo.id) return true;
   else return false;
-}
+};
 
 const login = (req, sid, id, name) => {
   req.session.loginInfo = { sid, id, name, time: Date.now() };
-}
+};
 
 const logout = (req, res) => {
   req.session.destroy((err) => {
     if (err) console.log(err);
-    res.redirect('/');
   });
-}
+};
 
 module.exports = {
-  getLoginInfo, isLogin, login, logout,
-}
+  getLoginInfo,
+  isLogin,
+  login,
+  logout,
+};
