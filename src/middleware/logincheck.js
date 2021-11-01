@@ -1,7 +1,7 @@
-const login = require("../auth/login");
+const { isLogin } = require("../auth/login");
 
 const loginCheckMiddleware = (req, res, next) => {
-  if (!login.isLogin(req)) {
+  if (!isLogin(req)) {
     console.log("Access denied");
     console.log("loginCheck Middleware");
     res.status("403").json({

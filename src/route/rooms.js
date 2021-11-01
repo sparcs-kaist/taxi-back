@@ -1,15 +1,16 @@
 const express = require("express");
 const router = express.Router();
 const loginCheckMiddleware = require("../middleware/logincheck");
+const { roomModel, locationModel, userModel } = require("../db/mongo")
 //const taxiResponse = require('../taxiResponse')
 
-module.exports = (mongo) => {
+module.exports = () => {
   router.use(loginCheckMiddleware);
 
   // ONLY FOR TEST
   router.get("/getAllRoom", async (_, res) => {
     console.log("GET ALL ROOM");
-    const result = await mongo.roomModel.find({}).exec();
+    const result = await roomModel.find({}).exec();
     res.send(JSON.parse(JSON.stringify(result)));
     return;
   });
@@ -17,7 +18,7 @@ module.exports = (mongo) => {
   // ONLY FOR TEST
   router.get("/removeAllRoom", async (_, res) => {
     console.log("DELETE ALL ROOM");
-    await mongo.roomModel.remove({}).exec();
+    await roomModel.remove({}).exec();
     res.redirect("/rooms/getAllRoom");
     return;
   });
@@ -37,18 +38,18 @@ module.exports = (mongo) => {
     }
 
     try {
-      let from = await mongo.locationModel.findOneAndUpdate(
+      let from = await locationModel.findOneAndUpdate(
         { name: req.body.from },
         {},
         { new: true, upsert: true }
       );
-      let to = await mongo.locationModel.findOneAndUpdate(
+      let to = await locationModel.findOneAndUpdate(
         { name: req.body.to },
         {},
         { new: true, upsert: true }
       );
 
-      let room = new mongo.roomModel({
+      let room = new roomModel({
         name: req.body.name,
         from: from._id,
         to: to._id,
@@ -70,7 +71,7 @@ module.exports = (mongo) => {
 
   router.get("/:id/delete", async (req, res) => {
     try {
-      const result = await mongo.roomModel
+      const result = await roomModel
         .findByIdAndRemove(req.params.id)
         .exec();
       if (result) {
@@ -113,12 +114,12 @@ module.exports = (mongo) => {
         error: "Rooms/edit : Bad request",
       });
     }
-    let from = await mongo.locationModel.findOneAndUpdate(
+    let from = await locationModel.findOneAndUpdate(
       { name: req.body.from },
       {},
       { new: true, upsert: true }
     );
-    let to = await mongo.locationModel.findOneAndUpdate(
+    let to = await locationModel.findOneAndUpdate(
       { name: req.body.to },
       {},
       { new: true, upsert: true }
@@ -132,7 +133,7 @@ module.exports = (mongo) => {
     };
 
     try {
-      let result = await mongo.roomModel.findByIdAndUpdate(req.params.id, {
+      let result = await roomModel.findByIdAndUpdate(req.params.id, {
         $set: changeJSON,
         new: true,
       });
@@ -155,7 +156,7 @@ module.exports = (mongo) => {
   // 특정 id 방 세부사항 보기
   router.get("/:id", async (req, res) => {
     try {
-      let result = await mongo.roomModel.findById(req.params.id);
+      let result = await roomModel.findById(req.params.id);
       if (result) {
         res.status(200).send(result);
       } else {
@@ -176,7 +177,7 @@ module.exports = (mongo) => {
   // { id : {id} }
   router.post("/roominfo", (req, res) => {
     if (!req.body.id) res.status("400").send("Room/roominfo : Bad request");
-    mongo.roomModel
+    roomModel
       .findById(req.body.id)
       .then((result) => {
         if (result) {
@@ -203,7 +204,7 @@ module.exports = (mongo) => {
         error: "Room/invite : Bad request",
       });
     try {
-      let room = await mongo.roomModel.findById(req.body.roomId);
+      let room = await roomModel.findById(req.body.roomId);
       if (!room)
         res.status(404).json({
           error: "Room/invite : no corresponding room",
@@ -217,7 +218,7 @@ module.exports = (mongo) => {
       for (const userID of req.body.users) {
         room.part = room.part.concat(userID);
         await room.save();
-        let user = await mongo.userModel.findById(userID);
+        let user = await userModel.findById(userID);
         user.room = user.room.concat(req.body.roomId);
         user.save();
       }
@@ -245,7 +246,7 @@ module.exports = (mongo) => {
     }
 
     try {
-      let room = await mongo.roomModel.findOne({ name: req.params.name });
+      let room = await roomModel.findOne({ name: req.params.name });
       if (!room) {
         res.status("404").json({
           error: "Room/searchByName : No matching room",
@@ -272,10 +273,10 @@ module.exports = (mongo) => {
 
     try {
       const fromLocationID = req.body.fromName
-        ? await mongo.locationModel.findOne({ name: req.body.fromName })?._id
+        ? await locationModel.findOne({ name: req.body.fromName })?._id
         : null;
       const toLocationID = req.body.toName
-        ? await mongo.locationModel.findOne({ name: req.body.toName })?._id
+        ? await locationModel.findOne({ name: req.body.toName })?._id
         : null;
 
       if (!fromLocationID || !toLocationID) {
@@ -287,20 +288,20 @@ module.exports = (mongo) => {
 
       let rooms;
       if (!req.body.startDate) {
-        rooms = await mongo.roomModel.find({
+        rooms = await roomModel.find({
           from: fromLocationID,
           to: toLocationID,
         });
       } else {
-        rooms = await mongo.roomModel.find({
+        rooms = await roomModel.find({
           from: fromLocationID,
           to: toLocationID,
           time: { $gte: new Date(req.body.startDate) },
         });
       }
       // date form 2012-04-23T18:25:43.511Z
-      rooms.from = (await mongo.locationModel.findById(fromLocationID)).name;
-      rooms.to = (await mongo.locationModel.findById(toLocationID)).name;
+      rooms.from = (await locationModel.findById(fromLocationID)).name;
+      rooms.to = (await locationModel.findById(toLocationID)).name;
       res.send({
         data: rooms,
       });

@@ -1,5 +1,5 @@
 const { Server } = require("socket.io");
-const mongo = require("../db/mongo");
+const { chatRoomModel } = require("../db/mongo");
 const jwt = require('jsonwebtoken');
 
 // server: express server
@@ -30,15 +30,15 @@ const startSocketServer = (server) => {
     // ~님이 채팅방에 참여했습니다. 메시지 출력/기록
     socket.on('join', async (roomId) => {
       try {
-        let result = await mongo.chatRoomModel.findOne({ "_id": roomId })
+        let result = await chatRoomModel.findOne({ "_id": roomId })
         if (!result) {
-          result = await mongo.chatRoomModel.create({ "_id": roomId, "chats": [], "isSecret": false });
+          result = await chatRoomModel.create({ "_id": roomId, "chats": [], "isSecret": false });
         }
         socket.username = decoded.name;
         socket.join(roomId);
         const newUserChat = { author: socket.username, text: "님이 채팅방에 참여했습니다.", time: new Date() };
         await result.updateOne({ $push: { "chats": newUserChat } });
-        // await mongo.chatRoomModel.updateOne({ "_id": socket.activeRoom }, {
+        // await chatRoomModel.updateOne({ "_id": socket.activeRoom }, {
         //   $push: {
         //     "chats": newUserChat
         //   }
@@ -56,7 +56,7 @@ const startSocketServer = (server) => {
       // chat: { text: string, time: Date }
       console.log('chatEvent');
       chat.author = socket.username;
-      mongo.chatRoomModel.updateOne({ "_id": socket.activeRoom }, {
+      chatRoomModel.updateOne({ "_id": socket.activeRoom }, {
         $push: {
           "chats": chat
         }
@@ -70,7 +70,7 @@ const startSocketServer = (server) => {
         const chat = {
           author: socket.username, text: "님이 퇴장했습니다.", time: new Date()
         }
-        const res = await mongo.chatRoomModel.updateOne({ "_id": socket.activeRoom }, {
+        const res = await chatRoomModel.updateOne({ "_id": socket.activeRoom }, {
           $push: {
             "chats": chat
           }
