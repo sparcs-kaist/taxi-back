@@ -1,10 +1,11 @@
 const express = require("express");
 const router = express.Router();
+const { userModel, roomModel } = require("../db/mongo")
 
-module.exports = (mongo) => {
+module.exports = () => {
   /* GET users listing. */
   router.get("/", function (_, res) {
-    mongo.userModel.find({}, function (err, result) {
+    userModel.find({}, function (err, result) {
       if (err) throw err;
       if (result) {
         res.json(result);
@@ -15,7 +16,7 @@ module.exports = (mongo) => {
 
   router.get("/rooms", async (req, res) => {
     try {
-      const user = await mongo.userModel.findById(req.params.id).exec();
+      const user = await userModel.findById(req.params.id).exec();
       if (user) {
         res.send({
           id: req.params.id,
@@ -36,7 +37,7 @@ module.exports = (mongo) => {
 
   router.get("/:id", async (req, res) => {
     try {
-      let usr = await mongo.userModel.findById(req.params.id);
+      let usr = await userModel.findById(req.params.id);
       if (usr) {
         res.send(usr);
       } else {
@@ -55,7 +56,7 @@ module.exports = (mongo) => {
   // json으로 수정할 값들을 받는다
   // replace/overwrite all user informations with given JSON
   router.post("/:id/edit", (req, res) => {
-    mongo.userModel
+    userModel
       .findByIdAndUpdate(req.params.id, { $set: req.body })
       .then((result) => {
         if (result) {
@@ -74,7 +75,7 @@ module.exports = (mongo) => {
   // 409 Conflict
   // This response is sent when a request conflicts with the current state of the server.
   router.get("/:id/ban", async (req, res) => {
-    let user = await mongo.userModel.findById(req.params.id);
+    let user = await userModel.findById(req.params.id);
     if (user) {
       if (user.ban === false) {
         user.ban = true;
@@ -95,7 +96,7 @@ module.exports = (mongo) => {
   });
 
   router.get("/:id/unban", async (req, res) => {
-    let user = await mongo.userModel.findById(req.params.id);
+    let user = await userModel.findById(req.params.id);
     if (user) {
       if (user.ban === true) {
         user.ban = false;
@@ -124,7 +125,7 @@ module.exports = (mongo) => {
     // Validate whether a room ObjectID is valid or not
     // And add the user ObjectID to room participants list
     try {
-      let room = await mongo.roomModel.findById(req.body.room);
+      let room = await roomModel.findById(req.body.room);
       if (!room)
         res.status(400).send("User/participate : No corresponding room");
       room.part.append(req.params.id);
@@ -135,7 +136,7 @@ module.exports = (mongo) => {
     }
 
     try {
-      let user = await mongo.userModel.findById(req.params.id);
+      let user = await userModel.findById(req.params.id);
       if (!user) res.status(400).send("The user does not exist");
       if (user.room.includes(req.body.room))
         res.status(409).send("The user already entered the room");

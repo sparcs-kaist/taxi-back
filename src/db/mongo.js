@@ -37,7 +37,6 @@ const locationSchema = mongoose.Schema({
   //   latitude: { type: Number, required: true },
   // longitude: { type: Number, required: true }
 });
-
 const chatRoomSchema = new mongoose.Schema({
   _id: Number,
   chats: [{
@@ -46,40 +45,32 @@ const chatRoomSchema = new mongoose.Schema({
     time: Date
   }]
 })
-class Mongo {
-  constructor() {
-    this.connectDB();
-  }
-  connectDB() {
-    console.log("데이터베이스 연결을 시도합니다.");
-    const databaseUrl = security.mongo;
-    mongoose.connect(databaseUrl, {
-      useNewUrlParser: true,
-      useCreateIndex: true,
-      useUnifiedTopology: true,
-    });
-    mongoose.set("useFindAndModify", false);
-    const database = mongoose.connection;
-    database.on(
-      "error",
-      console.error.bind(console, "mongoose connection error.")
-    );
-    database.on("open", () => {
-      console.log("데이터베이스와 연결되었습니다.");
 
-      this.userModel = mongoose.model("users", userSchema);
-      this.roomModel = mongoose.model("rooms", roomSchema);
-      this.chatModel = mongoose.model("chats", chatSchema);
-      this.locationModel = mongoose.model("locations", locationSchema);
-      this.chatRoomModel = mongoose.model("chatRooms", chatRoomSchema)
-    });
-    database.on("disconnected", () => {
-      console.log(
-        "데이터베이스와 연결이 끊어졌습니다. 5초 후 다시 연결합니다."
-      );
-      setTimeout(this.connectDB, 5000);
-    });
-  }
+mongoose.set("useFindAndModify", false);
+
+const database = mongoose.connection;
+database.on(
+  "error",
+  console.error.bind(console, "mongoose connection error.")
+);
+database.on("open", () => {
+  console.log("데이터베이스와 연결되었습니다.");
+});
+database.on('error', function (err) {
+  console.error('데이터베이스 연결 에러 발생: ' + err);
+  mongoose.disconnect();
+});
+database.on('disconnected', function () {
+  console.log('데이터베이스와 연결이 끊어졌습니다!');
+  mongoose.connect(security.mongo, { server: { auto_reconnect: true } });
+});
+
+mongoose.connect(security.mongo, { server: { auto_reconnect: true } });
+
+module.exports = {
+  userModel: mongoose.model("users", userSchema),
+  roomModel: mongoose.model("rooms", roomSchema),
+  chatModel: mongoose.model("chats", chatSchema),
+  locationModel: mongoose.model("locations", locationSchema),
+  chatRoomModel: mongoose.model("chatRooms", chatRoomSchema)
 }
-
-module.exports = new Mongo();

@@ -1,5 +1,5 @@
 const express = require("express");
-const mongo = require("../db/mongo");
+const { chatRoomModel } = require("../db/mongo");
 const chunkArray = require("../modules/chunkArray");
 
 const router = express.Router();
@@ -21,7 +21,7 @@ router.get('/:roomId', async (req, res) => {
     if (!validateRoomId(req.params.roomId)) {
       return res.status(400).send("wrong room id");
     }
-    const room = await mongo.chatRoomModel.findOne({ "_id": req.params.roomId });
+    const room = await chatRoomModel.findOne({ "_id": req.params.roomId });
     const chats = room?.chats;
     if (!room) {
       return res.status(404).send("ID not exist");
