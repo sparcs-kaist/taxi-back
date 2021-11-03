@@ -8,10 +8,10 @@ const { roomModel, locationModel, userModel } = require("../db/mongo")
 // router.use(loginCheckMiddleware);
 
 const removeLocationId = async (room) => {
-  const { from: fromId, to: toId, name, time, part, madeat } = room;
+  const { _id, from: fromId, to: toId, name, time, part, madeat } = room;
   const from = await locationModel.findById(fromId);
   const to = await locationModel.findById(toId);
-  return { from: from.name, to: to.name, name, part, madeat, time };
+  return { _id, from: from.name, to: to.name, name, part, madeat, time };
 }
 
 // ONLY FOR TEST
@@ -240,7 +240,7 @@ router.post("/:id/edit", async (req, res) => {
     });
     console.log(result);
     if (result) {
-      res.send(removeLocationId(changeJSON));
+      res.send(removeLocationId(result));
     } else {
       res.status(404).json({
         error: "Rooms/edit : id does not exist",
