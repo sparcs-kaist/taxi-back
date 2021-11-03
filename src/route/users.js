@@ -1,6 +1,10 @@
 const express = require("express");
 const router = express.Router();
-const { userModel, roomModel } = require("../db/mongo")
+const fs = require("fs/promises");
+const { userModel, roomModel } = require("../db/mongo");
+const { getLoginInfo } = require("../auth/login");
+const { checkNickname } = require("../modules/modifyProfile");
+const uploadProfileImg = require("../middleware/uploadProfileImg");
 
 /* GET users listing. */
 router.get("/", function (_, res) {
@@ -125,8 +129,7 @@ router.post("/:id/participate", async (req, res) => {
   // And add the user ObjectID to room participants list
   try {
     let room = await roomModel.findById(req.body.room);
-    if (!room)
-      res.status(400).send("User/participate : No corresponding room");
+    if (!room) res.status(400).send("User/participate : No corresponding room");
     room.part.append(req.params.id);
     await room.save();
   } catch (error) {
@@ -148,5 +151,90 @@ router.post("/:id/participate", async (req, res) => {
     res.status(500).send("User/participate : Error 500");
   }
 });
+
+// 새 닉네임을 받아 로그인된 유저의 닉네임을 바꾼다.
+router.post("/:user_id/editNickname", (req, res) => {
+  // 사용자 검증
+  const { id, sid, name } = getLoginInfo(req);
+  if (!id || !sid || !name || req.params.user_id !== id) {
+    res.status(403).send("not logged in");
+    return;
+  }
+
+  // Todo: 닉네임 유효성 확인
+  const newNickname = req.body.nickname;
+  if (!checkNickname(newNickname)) {
+    res.status(400).send("wrong nickname");
+    return;
+  }
+
+  // 닉네임을 갱신하고 결과를 반환
+  userModel
+    .findOneAndUpdate({ id: id }, { nickname: newNickname })
+    .then((result) => {
+      if (result) {
+        res.status(200).send("edit user nickname successful");
+      } else {
+        res.status(400).send("such user id does not exist");
+      }
+    })
+    .catch((error) => {
+      console.log("user nickname edit error : " + error);
+      res.status(500).json({
+        error: "/:user_id/editNickname : internal server error",
+      });
+    });
+});
+
+// Upload profile pictures with multipart form
+router.post(
+  "/:user_id/uploadProfileImg",
+  uploadProfileImg.single("profileImg"),
+  (req, res) => {
+    // TODO: 업로드 시 예외 처리 (직접 uploadProfileImg를 호출해야 한다고 함)
+
+    // 사용자 검증
+    const { id, sid, name } = getLoginInfo(req);
+    if (!id || !sid || !name || req.params.user_id !== id) {
+      res.status(403).send("not logged in");
+      return;
+    }
+
+    // 사진 url 정보 갱신 및 기존 파일 삭제
+    // TODO: 테스트
+    const newFilename = req.file.filename;
+    let oldFilename = "";
+    let needToRemove = false;
+
+    userModel
+      .findOne({ id: id }, (err, user) => {
+        if (err) return res.status(500).send("such user id does not exist");
+        if (user) {
+          const parsedOldFilename = user.profileImgUrl.split("/");
+          oldFilename = parsedOldFilename.at(-1);
+          needToRemove =
+            parsedOldFilename.at(-2) === "profile-images" ? true : false;
+          user.profileImgUrl = `/static/profile-images/${newFilename}`;
+          user.save((err) => {
+            if (err) {
+              res
+                .status(500)
+                .send("/:user_id/uploadProfileImg : internal server error");
+            }
+          });
+        }
+      })
+      .then(async () => {
+        if (oldFilename !== "" && needToRemove) {
+          await fs.unlink(`/public/profile-images/${oldFilename}`);
+        }
+      })
+      .catch(() => {
+        res
+          .status(500)
+          .send("/:user_id/uploadProfileImg : internal server error");
+      });
+  }
+);
 
 module.exports = router;

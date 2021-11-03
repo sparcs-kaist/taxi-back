@@ -60,23 +60,23 @@ const generateNickname = (id) => {
   return nickname;
 };
 
-// 새 닉네임이 닉네임 규치겡 부합하는지 검사합니다.
+// 새 닉네임이 닉네임 규칙에 부합하는지 검사합니다.
+// 알파벳, 한글, 숫자, -, _ 기호로 3~12자 구성
 const checkNickname = (nickname) => {
-  return true;
+  const re = new RegExp("[a-z가-힣0-9-_]{3,10}");
+  return re.test(nickname);
 };
 
 // 기존 프로필 사진의 URI 중 하나를 무작위로 선택해 반환합니다.
 const generateProfileImgUrl = (id) => {
-  const fileName = "sample.png";
-  const imgUrl = `/static/profile-images/${fileName}`;
+  const fileNames = ["sample.png"];
+  const fileName = fileNames[0];
+  const imgUrl = `/static/profile-images/default/${fileName}`;
   return imgUrl;
 };
 
-// ?
-const uploadProfileImg = (id) => {
-  const fileName = "sample.png";
-  const imgUrl = `/static/profile-images/${fileName}`;
-  return imgUrl;
+module.exports = {
+  generateNickname,
+  checkNickname,
+  generateProfileImgUrl,
 };
-
-module.exports = { generateNickname, generateProfileImgUrl, uploadProfileImg };
