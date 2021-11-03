@@ -2,7 +2,7 @@ const express = require("express");
 const router = express.Router();
 const ejs = require("ejs");
 const security = require("../../security");
-const { userModel } = require("../db/mongo")
+const { userModel } = require("../db/mongo");
 const generateTokenBySession = require("../auth/generateTokenBySession");
 const { logout, getLoginInfo, login } = require("../auth/login");
 
@@ -55,7 +55,7 @@ const makeInfo = (id) => {
     facebook: id + "-facebook",
     twitter: id + "-twitter",
     kaist: id + "-kaist",
-    sparcs: id + "-sparcs"
+    sparcs: id + "-sparcs",
   };
   return info;
 };
@@ -96,7 +96,8 @@ const loginDone = (req, res, userData) => {
       else if (!result) joinus(req, res, userData);
       else {
         login(req, userData.sid, result.id, result.name);
-        res.send("successful");
+        // res.send("successful");
+        res.redirect(security.frontUrl);
       }
     }
   );
