@@ -8,7 +8,7 @@ const { getLoginInfo, logout, login } = require("../auth/login");
 const {
   generateNickname,
   generateProfileImgUrl,
-} = require("../modules/generateProfile");
+} = require("../modules/modifyProfile");
 
 // SPARCS SSO
 const Client = require("../auth/sparcsso");

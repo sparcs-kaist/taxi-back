@@ -8,7 +8,7 @@ const { logout, getLoginInfo, login } = require("../auth/login");
 const {
   generateNickname,
   generateProfileImgUrl,
-} = require("../modules/generateProfile");
+} = require("../modules/modifyProfile");
 
 const loginHtml = `
 <!DOCTYPE html>

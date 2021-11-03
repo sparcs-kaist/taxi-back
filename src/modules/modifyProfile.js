@@ -1,6 +1,3 @@
-// 닉네임 규칙에 따라 새 유저의 닉네임을 생성해 반환합니다.
-// Ara의 닉네임 생성 규칙을 참고하였습니다.
-
 const crypto = require("crypto");
 
 const nouns = [
@@ -46,14 +43,15 @@ const adjectives = [
   "고삐풀린 망아지 같은",
 ];
 
+// 닉네임 규칙에 따라 새 유저의 닉네임을 생성해 반환합니다.
+// Ara의 닉네임 생성 규칙을 참고하였습니다.
 const generateNickname = (id) => {
-  // Generate the random indices to pick the noun and the adjective.
   const nounIdx = crypto.randomInt(nouns.length);
   const adjectiveIdx = crypto.randomInt(adjectives.length);
   const noun = nouns[nounIdx];
   const adjective = adjectives[adjectiveIdx];
 
-  // Add the postfix in order to prevent nickname duplications
+  // 닉네임 중복을 방지하기 위해 해시값 일부를 붙입니다.
   const hash = crypto.createHash("sha256");
   hash.update(noun + adjective + id);
   const postfix = hash.digest("hex").substring(0, 5);
@@ -62,8 +60,23 @@ const generateNickname = (id) => {
   return nickname;
 };
 
-const generateProfileImgUrl = (id) => {
-  return "/public/profile-images/sample.png";
+// 새 닉네임이 닉네임 규치겡 부합하는지 검사합니다.
+const checkNickname = (nickname) => {
+  return true;
 };
 
-module.exports = { generateNickname, generateProfileImgUrl };
+// 기존 프로필 사진의 URI 중 하나를 무작위로 선택해 반환합니다.
+const generateProfileImgUrl = (id) => {
+  const fileName = "sample.png";
+  const imgUrl = `/static/profile-images/${fileName}`;
+  return imgUrl;
+};
+
+// ?
+const uploadProfileImg = (id) => {
+  const fileName = "sample.png";
+  const imgUrl = `/static/profile-images/${fileName}`;
+  return imgUrl;
+};
+
+module.exports = { generateNickname, generateProfileImgUrl, uploadProfileImg };
