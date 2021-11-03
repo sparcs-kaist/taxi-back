@@ -62,10 +62,18 @@ database.on('error', function (err) {
 });
 database.on('disconnected', function () {
   console.log('데이터베이스와 연결이 끊어졌습니다!');
-  mongoose.connect(security.mongo, { server: { auto_reconnect: true } });
+  mongoose.connect(security.mongo, {
+    server: { auto_reconnect: true },
+    useNewUrlParser: true,
+    useUnifiedTopology: true
+  });
 });
 
-mongoose.connect(security.mongo, { server: { auto_reconnect: true } });
+mongoose.connect(security.mongo, {
+  server: { auto_reconnect: true },
+  useNewUrlParser: true,
+  useUnifiedTopology: true
+});
 
 module.exports = {
   userModel: mongoose.model("users", userSchema),

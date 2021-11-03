@@ -12,7 +12,7 @@ const getLoginInfo = (req) => {
 }
 
 const isLogin = (req) => {
-  const loginInfo = this.getLoginInfo(req);
+  const loginInfo = getLoginInfo(req);
   if (loginInfo.id) return true;
   else return false;
 }
