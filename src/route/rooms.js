@@ -37,7 +37,8 @@ router.get("/removeAllRoom", async (_, res) => {
 // time : Date
 // part : Array
 router.post("/create", async (req, res) => {
-  if (!req.body.name || !req.body.from || !req.body.to || !req.body.time) {
+  const { name, from, to, time, part } = req.body.data;
+  if (!name || !from || !to || !time) {
     res.status(400).json({
       error: "Rooms/create : bad request",
     });
@@ -45,27 +46,28 @@ router.post("/create", async (req, res) => {
   }
 
   try {
-    let from = await locationModel.findOneAndUpdate(
-      { name: req.body.from },
+    let fromLoc = await locationModel.findOneAndUpdate(
+      { name: from },
       {},
       { new: true, upsert: true }
     );
-    let to = await locationModel.findOneAndUpdate(
-      { name: req.body.to },
+    let toLoc = await locationModel.findOneAndUpdate(
+      { name: to },
       {},
       { new: true, upsert: true }
     );
 
     let room = new roomModel({
-      name: req.body.name,
-      from: from._id,
-      to: to._id,
-      time: req.body.time,
-      part: req.body.part,
+      name: name,
+      from: fromLoc._id,
+      to: toLoc._id,
+      time: time,
+      part: part,
       madeat: Date.now(),
     });
     await room.save();
-    res.send(removeLocationId(room));
+    console.log(room)
+    res.send(await removeLocationId(room));
     return;
   } catch (err) {
     console.log(err);
@@ -167,7 +169,7 @@ router.get("/searchByName/:name", async (req, res) => {
 
 // 동명의 지역은 불가능
 router.get("/search", async (req, res) => {
-  const { from, to, startDate } = req.query;
+  const { from, to, time } = req.query;
   console.log(req.query);
   if (!from && !to) {
     res.status("400").json({
@@ -189,7 +191,7 @@ router.get("/search", async (req, res) => {
     const query = {};
     if (fromLocation) query.from = fromLocation._id;
     if (toLocation) query.to = toLocation._id;
-    if (startDate) query.time = { $gte: new Date(startDate) };
+    if (time) query.time = { $gte: new Date(time) };
 
     const rooms = await roomModel.find(query);
     res.json(await Promise.all(rooms.map(room => removeLocationId(room))));
