@@ -2,7 +2,7 @@
 const multer = require("multer");
 const crypto = require("crypto");
 
-const uploadProfileImg = multer({
+const uploadProfileImage = multer({
   storage: multer.diskStorage({
     destination: (req, file, callback) => {
       callback(null, "public/profile-images");
@@ -20,4 +20,4 @@ const uploadProfileImg = multer({
   },
 });
 
-module.exports = uploadProfileImg;
+module.exports = uploadProfileImage;

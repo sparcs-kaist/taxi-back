@@ -7,7 +7,7 @@ const generateTokenBySession = require("../auth/generateTokenBySession");
 const { logout, getLoginInfo, login } = require("../auth/login");
 const {
   generateNickname,
-  generateProfileImgUrl,
+  generateProfileImageUrl,
 } = require("../modules/modifyProfile");
 
 const loginHtml = `
@@ -56,7 +56,7 @@ const makeInfo = (id) => {
     sid: id + "-sid",
     name: id + "-name",
     nickname: generateNickname(id),
-    profileImgUrl: generateProfileImgUrl(id),
+    profileImageUrl: generateProfileImageUrl(id),
     facebook: id + "-facebook",
     twitter: id + "-twitter",
     kaist: id + "-kaist",
@@ -72,7 +72,7 @@ const joinus = (req, res, userData) => {
     id: userData.id,
     name: userData.name,
     nickname: userData.nickname,
-    profileImgUrl: userData.profileImg,
+    profileImageUrl: userData.profileImageUrl,
     joinat: Date.now(),
     subinfo: {
       kaist: userData.kaist,

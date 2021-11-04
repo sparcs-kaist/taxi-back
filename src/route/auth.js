@@ -7,7 +7,7 @@ const { userModel } = require("../db/mongo");
 const { getLoginInfo, logout, login } = require("../auth/login");
 const {
   generateNickname,
-  generateProfileImgUrl,
+  generateProfileImageUrl,
 } = require("../modules/modifyProfile");
 
 // SPARCS SSO
@@ -33,7 +33,7 @@ const joinus = (req, res, userData) => {
     id: userData.id,
     name: userData.name,
     nickname: generateNickname(userData.id),
-    profileImageUrl: generateProfileImgUrl(userData.id),
+    profileImageUrl: generateProfileImageUrl(userData.id),
     joinat: Date.now(),
   });
   newUser.save((err) => {

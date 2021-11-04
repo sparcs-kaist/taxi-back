@@ -68,7 +68,7 @@ const checkNickname = (nickname) => {
 };
 
 // 기존 프로필 사진의 URI 중 하나를 무작위로 선택해 반환합니다.
-const generateProfileImgUrl = (id) => {
+const generateProfileImageUrl = (id) => {
   const fileNames = ["sample.png"];
   const fileName = fileNames[0];
   const imgUrl = `/static/profile-images/default/${fileName}`;
@@ -78,5 +78,5 @@ const generateProfileImgUrl = (id) => {
 module.exports = {
   generateNickname,
   checkNickname,
-  generateProfileImgUrl,
+  generateProfileImageUrl,
 };
