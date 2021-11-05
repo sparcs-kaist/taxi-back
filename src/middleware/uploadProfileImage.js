@@ -5,7 +5,7 @@ const crypto = require("crypto");
 const uploadProfileImage = multer({
   storage: multer.diskStorage({
     destination: (req, file, callback) => {
-      callback(null, "public/profile-images");
+      callback(null, "public/profile-images/user-upload");
     },
     filename: (req, file, callback) => {
       const hash = crypto.createHash("sha256");
