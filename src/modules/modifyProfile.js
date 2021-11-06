@@ -71,7 +71,7 @@ const checkNickname = (nickname) => {
 const generateProfileImageUrl = (id) => {
   const fileNames = ["sample.png"];
   const fileName = fileNames[0];
-  const imgUrl = `/static/profile-images/default/${fileName}`;
+  const imgUrl = `public/profile-images/default/${fileName}`;
   return imgUrl;
 };
 

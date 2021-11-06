@@ -5,7 +5,10 @@ const fs = require("fs/promises");
 const { userModel, roomModel } = require("../db/mongo");
 const { getLoginInfo } = require("../auth/login");
 const { checkNickname } = require("../modules/modifyProfile");
-const uploadProfileImage = require("../middleware/uploadProfileImage");
+const {
+  uploadProfileImage,
+  checkProfileImage,
+} = require("../middleware/uploadProfileImage");
 
 /* GET users listing. */
 router.get("/", function (_, res) {
@@ -153,26 +156,6 @@ router.post("/:id/participate", async (req, res) => {
   }
 });
 
-// 유저의 id를 받아 프로필 이미지의 url을 반환합니다.
-router.get("/:user_id/getProfileImgUrl", (req, res) => {
-  const user_id = req.params.user_id;
-  if (false) {
-    return res.status(403).send("wrong id");
-  }
-  userModel
-    .findOne({ id: user_id }, (err, user) => {
-      if (err || !user) {
-        res.status(403).send("such id does not exist");
-      } else {
-        res.status(200).json({ profileImageUrl: user.profileImageUrl });
-      }
-    })
-    .catch((err) => {
-      console.log(err);
-      throw err;
-    });
-});
-
 // 새 닉네임을 받아 로그인된 유저의 닉네임을 변경합니다.
 router.post("/:user_id/editNickname", (req, res) => {
   // 사용자 검증
@@ -207,21 +190,28 @@ router.post("/:user_id/editNickname", (req, res) => {
     });
 });
 
-// Upload profile pictures with multipart form
+// multipart form으로 프로필 사진을 업로드 받아 변경합니다.
 router.post(
   "/:user_id/uploadProfileImage",
   uploadProfileImage.single("profileImage"),
-  (req, res) => {
+  async (req, res) => {
     // 빈 파일이 아닌지 검사
-    // FIXME: 이미지 파일 유효성 검사
     if (!req.file) {
-      res.status(403).send("no file uploaded");
+      return res.status(400).send("no file uploaded");
     }
+
     // 사용자 검증
     const { id, sid, name } = getLoginInfo(req);
     if (!id || !sid || !name || req.params.user_id !== id) {
-      res.status(403).send("not logged in");
-      return;
+      await fs.unlink(path.resolve(req.file.path));
+      return res.status(403).send("not logged in");
+    }
+
+    // 이미지 파일 유효성 검사
+    const isImage = await checkProfileImage(req.file.path);
+    if (!isImage) {
+      await fs.unlink(path.resolve(req.file.path));
+      return res.status(400).send("not an image file");
     }
 
     // 사진 url 정보 갱신 및 기존 파일 삭제
@@ -231,7 +221,7 @@ router.post(
 
     userModel
       .findOne({ id: id }, (err, user) => {
-        if (err) return res.status(403).send("such user id does not exist");
+        if (err) return res.status(400).send("such user id does not exist");
         if (user) {
           const parsedOldImageUrl = user.profileImageUrl.split("/");
           oldFilename = parsedOldImageUrl[parsedOldImageUrl.length - 1];
@@ -239,7 +229,7 @@ router.post(
             parsedOldImageUrl[parsedOldImageUrl.length - 2] === "default"
               ? false
               : true;
-          user.profileImageUrl = `/static/profile-images/user-upload/${newFilename}`;
+          user.profileImageUrl = `public/profile-images/user-upload/${newFilename}`;
           user.save((err) => {
             if (err) {
               console.log(err);

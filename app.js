@@ -38,7 +38,7 @@ app.use("/json/logininfo", require("./src/route/logininfo"));
 app.use("/users", require("./src/route/users"));
 app.use("/rooms", require("./src/route/rooms"));
 app.use("/chats", require("./src/route/chats"));
-app.use("/static", express.static(__dirname + "/public"));
+app.use("/static", require("./src/route/static"));
 
 const serverHttp = http.createServer(app).listen(security.nodePort, () => {
   console.log(`Express 서버가 ${security.nodePort}번 포트에서 시작됨.`);
