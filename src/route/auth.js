@@ -92,9 +92,7 @@ router.route("/sparcssso/callback").get((req, res) => {
 });
 router.route("/logout").get((req, res) => {
   logout(req, res);
-
-  // FIXME: redirect는 프론트에서 처리하는게 좋을듯
-  res.redirect(security.frontUrl);
+  res.status(200).send("logged out successfully");
 });
 
 // 세션의 로그인 정보를 토큰으로 만들어 반환
