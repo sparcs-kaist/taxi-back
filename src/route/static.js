@@ -5,33 +5,25 @@ const router = express.Router();
 const path = require("path");
 const { userModel } = require("../db/mongo");
 
-router.get("/profile-images/:user_id", (req, res) => {
+router.get("/profile-images/:user_id", async (req, res) => {
   const user_id = req.params.user_id;
   const idPattern = RegExp("[a-zA-Z0-9_-]{1,20}");
-  let filePath = "";
 
   if (!idPattern.test(user_id)) {
-    return res.status(403).send("wrong id");
+    res.status(404).send("image not found");
   }
-  userModel
-    .findOne({ id: user_id }, (err, user) => {
-      if (err || !user) {
-        res.status(403).send("such id does not exist");
-      } else {
-        filePath = user.profileImageUrl;
-      }
-    })
-    .then(() => {
-      if (filePath) {
-        res.sendFile(path.resolve(filePath));
-      } else {
-        res.status(404).send("image not found");
-      }
-    })
-    .catch((err) => {
-      console.log(err);
-      throw err;
-    });
+
+  try {
+    user = await userModel.findOne({ id: user_id });
+    if (user) {
+      res.sendFile(path.resolve(user.profileImageUrl));
+    } else {
+      res.status(404).send("image not found");
+    }
+  } catch (err) {
+    console.log(err);
+    res.status(500).send("static/profile-images: internal server error");
+  }
 });
 
 module.exports = router;

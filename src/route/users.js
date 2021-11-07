@@ -195,7 +195,7 @@ router.post(
   "/:user_id/uploadProfileImage",
   uploadProfileImage.single("profileImage"),
   async (req, res) => {
-    // 빈 파일이 아닌지 검사
+    // 빈 파일이 아닌지 검사. fileFilter에서 false가 리턴된 경우가 여기에 해당합니다.
     if (!req.file) {
       return res.status(400).send("no file uploaded");
     }
@@ -214,46 +214,54 @@ router.post(
       return res.status(400).send("not an image file");
     }
 
-    // 사진 url 정보 갱신 및 기존 파일 삭제
+    // 기존 프로필 사진의 url 갱신
     const newFilename = req.file.filename;
     let oldFilename = "";
     let needToRemove = false;
 
-    userModel
-      .findOne({ id: id }, (err, user) => {
-        if (err) return res.status(400).send("such user id does not exist");
-        if (user) {
-          const parsedOldImageUrl = user.profileImageUrl.split("/");
-          oldFilename = parsedOldImageUrl[parsedOldImageUrl.length - 1];
-          needToRemove =
-            parsedOldImageUrl[parsedOldImageUrl.length - 2] === "default"
-              ? false
-              : true;
-          user.profileImageUrl = `public/profile-images/user-upload/${newFilename}`;
-          user.save((err) => {
-            if (err) {
-              console.log(err);
-              res
-                .status(500)
-                .send("/:user_id/uploadProfileImage : internal server error");
-            }
-          });
+    let user = await userModel.findOne({ id: id });
+    if (user) {
+      try {
+        const parsedOldImageUrl = user.profileImageUrl.split("/");
+        oldFilename = parsedOldImageUrl[parsedOldImageUrl.length - 1];
+        needToRemove =
+          parsedOldImageUrl[parsedOldImageUrl.length - 2] === "user-upload";
+        user.profileImageUrl = `public/profile-images/user-upload/${newFilename}`;
+        await user.save();
+      } catch (err) {
+        // 기존 프로필 사진의 url 갱신에 실패한 경우, 새로 업로드된 파일을 삭제합니다.
+        console.log(err);
+        try {
+          await fs.unlink(req.file.path);
+          return res
+            .status(500)
+            .send("/:user_id/uploadProfileImage: internal server error");
+        } catch (err) {
+          // 새로 업로드된 파일 삭제에도 실패한 경우
+          console.log(err);
+          return res
+            .status(500)
+            .send("/:user_id/uploadProfileImage: internal server error");
         }
-      })
-      .then(async () => {
-        if (oldFilename !== "" && needToRemove) {
-          await fs.unlink(
-            path.resolve("public/profile-images/user-upload", oldFilename)
-          );
-        }
+      }
+    } else {
+      return res.status(400).send("such user id does not exist");
+    }
+
+    // 기존 파일 삭제
+    if (oldFilename !== "" && needToRemove) {
+      try {
+        await fs.unlink(
+          path.resolve("public/profile-images/user-upload", oldFilename)
+        );
         res.status(200).send("upload profile image successful");
-      })
-      .catch((err) => {
+      } catch (err) {
         console.log(err);
         res
           .status(200)
           .send("upload profile image successful, however failed to delete");
-      });
+      }
+    }
   }
 );
 
