@@ -24,6 +24,8 @@ router.get("/profile-images/:user_id", (req, res) => {
     .then(() => {
       if (filePath) {
         res.sendFile(path.resolve(filePath));
+      } else {
+        res.status(404).send("image not found");
       }
     })
     .catch((err) => {
