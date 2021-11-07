@@ -6,6 +6,7 @@ const userSchema = mongoose.Schema({
   name: { type: String, required: true },
   nickname: { type: String, required: true },
   id: { type: String, required: true, unique: true },
+  profileImageUrl: { type: String, required: true },
   withdraw: { type: Boolean, default: false },
   ban: { type: Boolean, default: false },
   joinat: { type: Date, required: true },
@@ -39,40 +40,39 @@ const locationSchema = mongoose.Schema({
 });
 const chatRoomSchema = new mongoose.Schema({
   _id: Number,
-  chats: [{
-    author: String,
-    text: String,
-    time: Date
-  }]
-})
+  chats: [
+    {
+      author: String,
+      text: String,
+      time: Date,
+    },
+  ],
+});
 
 mongoose.set("useFindAndModify", false);
 
 const database = mongoose.connection;
-database.on(
-  "error",
-  console.error.bind(console, "mongoose connection error.")
-);
+database.on("error", console.error.bind(console, "mongoose connection error."));
 database.on("open", () => {
   console.log("데이터베이스와 연결되었습니다.");
 });
-database.on('error', function (err) {
-  console.error('데이터베이스 연결 에러 발생: ' + err);
+database.on("error", function (err) {
+  console.error("데이터베이스 연결 에러 발생: " + err);
   mongoose.disconnect();
 });
-database.on('disconnected', function () {
-  console.log('데이터베이스와 연결이 끊어졌습니다!');
+database.on("disconnected", function () {
+  console.log("데이터베이스와 연결이 끊어졌습니다!");
   mongoose.connect(security.mongo, {
     server: { auto_reconnect: true },
     useNewUrlParser: true,
-    useUnifiedTopology: true
+    useUnifiedTopology: true,
   });
 });
 
 mongoose.connect(security.mongo, {
   server: { auto_reconnect: true },
   useNewUrlParser: true,
-  useUnifiedTopology: true
+  useUnifiedTopology: true,
 });
 
 module.exports = {
@@ -80,5 +80,5 @@ module.exports = {
   roomModel: mongoose.model("rooms", roomSchema),
   chatModel: mongoose.model("chats", chatSchema),
   locationModel: mongoose.model("locations", locationSchema),
-  chatRoomModel: mongoose.model("chatRooms", chatRoomSchema)
-}
+  chatRoomModel: mongoose.model("chatRooms", chatRoomSchema),
+};

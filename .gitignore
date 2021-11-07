@@ -4,3 +4,7 @@
 package-lock.json
 *.code-workspace
 *.swp
+
+#profile images
+public/profile-images/*
+!public/profile-images/default
