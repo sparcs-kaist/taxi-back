@@ -1,7 +1,7 @@
 ## `/users`
 
 - **API 문서화 작업 진행 중**
-- 사용자 조회 기능을 지원하는 API.
+- 사용자 정보 조회 및 수정 기능을 지원하는 API.
 - 사용자를 반환할 경우 그 type은 다음과 같다.
 
 ```javascript
@@ -38,7 +38,7 @@ User {
 ```javascript
 {
     status: 200,
-    data: User[] // 전체 사용자 리스트
+    data: User[], // 전체 사용자 리스트
 }
 ```
 
@@ -46,7 +46,7 @@ User {
 
 - 없음
 
-### `/rooms` **(GET)**
+### `/rooms` **(GET)** (for dev)
 
 - 사용자의 방 리스트를 반환함.
 
@@ -58,8 +58,8 @@ User {
 
 ```javascript
 {
-    id: String // 요청된 id
-    rooms: Room[] // 방 리스트
+    id: String, // 요청된 id
+    rooms: Room[], // 방 리스트
 }
 ```
 
@@ -68,7 +68,7 @@ User {
 - 404 "user/rooms : such id does not exist"
 - 500 "user/rooms : internal server error"
 
-### `/:id` **(GET)**
+### `/:id` **(GET)** (for dev)
 
 - 사용자 정보를 반환함.
 
@@ -90,7 +90,7 @@ User {
 - 404 "user/:id : such id does not exist"
 - 500 "user/:id : internal server error"
 
-### `/:id/edit` **(POST)**
+### `/:id/edit` **(POST)** (for dev)
 
 - 새 사용자 정보를 받아 업데이트함.
 
@@ -117,7 +117,7 @@ User; //수정할 사용자 정보
 
 - 400 "such id does not exist"
 
-### `/:id/ban` **(GET)**
+### `/:id/ban` **(GET)** (for dev)
 
 - 해당 사용자를 밴함.
 
@@ -140,7 +140,7 @@ User; //수정할 사용자 정보
 - 409 "The user is already banned"
 - 500 "User/ban : Error 500"
 
-### `/:id/unban` **(GET)**
+### `/:id/unban` **(GET)** (for dev)
 
 - 해당 사용자를 밴 해제함.
 
@@ -162,3 +162,108 @@ User; //수정할 사용자 정보
 - 400 "The user does not exist"
 - 409 "The user is already banned"
 - 500 "User/unban : Error 500"
+
+### `/:id/participate` **(POST)** (for dev)
+
+- 해당 사용자를 특정 방에 참여시킴.
+
+#### URL Parameters
+
+- id : User document의 id
+
+#### request JSON form
+
+```javascript
+{
+    room: String, // Room document의 id
+}
+```
+
+#### Response
+
+```javascript
+{
+    status: 200,
+    data: "User/participate : Successful",
+}
+```
+
+#### Errors
+
+- 400 "User/participate : Bad request"
+- 400 "User/participate : No corresponding room"
+- 400 "The user does not exist"
+- 409 "The user already entered the room"
+- 500 "User/participate : Error 500"
+
+### `/:user_id/editNickname` **(POST)**
+
+- 해당 사용자의 닉네임을 새로 설정함.
+- 닉네임은 다음 규칙을 모두 만족해야 함.
+  1. 영어 대소문자, 한글, 0~9, "-", "\_" 으로만 이루어져야 함.
+  2. 3글자 이상 25글자 이하여야 함.
+
+#### URL Parameters
+
+- user_id : 사용자의 SPARCS SSO ID
+
+#### request JSON form
+
+```javascript
+{
+    nickname: String, // 새 닉네임
+}
+```
+
+#### Response
+
+```javascript
+{
+    status: 200,
+    data: "edit user nickname successful",
+}
+```
+
+#### Errors
+
+- 400 "wrong nickname"
+- 400 "such user id does not exist"
+- 403 "not logged in"
+- 500 "internal server error"
+
+### `/:user_id/uploadProfileImage` **(POST)**
+
+- 해당 사용자의 프로필 사진을 업로드받아 변경.
+- 프로필 사진은 multipart/form-data를 통해 업로드되어야 함. (header의 Content-Type을 multipart/form-data로 설정)
+- 프로필 사진은 아래 규칙을 만족해야 함.
+  1. 파일명이 100 bytes 이하
+  2. 파일 크기는 최대 2 MB
+
+#### URL Parameters
+
+- user_id : 사용자의 SPARCS SSO ID
+
+#### request JSON form
+
+```javascript
+{
+    profileImage: File, // 새 프로필 사진
+}
+```
+
+#### Response
+
+```javascript
+{
+    status: 200,
+    data: "upload profile image successful",
+}
+```
+
+#### Errors
+
+- 400 "no file uploaded"
+- 400 "not an image file"
+- 400 "such user id does not exist"
+- 403 "not logged in"
+- 500 "internal server error"
