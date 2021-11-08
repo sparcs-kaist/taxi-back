@@ -92,7 +92,7 @@ router.get("/:id/ban", async (req, res) => {
         res.status(200).send("The user banned successfully");
       } catch (err) {
         console.log(err);
-        throw err;
+        res.status(500).send("User/ban : Error 500");
       }
     } else {
       res.status(409).send("The user is already banned");

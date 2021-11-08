@@ -22,7 +22,7 @@ router.get("/profile-images/:user_id", async (req, res) => {
     }
   } catch (err) {
     console.log(err);
-    res.status(500).send("static/profile-images: internal server error");
+    res.status(500).send("internal server error");
   }
 });
 

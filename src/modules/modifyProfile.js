@@ -1,4 +1,5 @@
 const crypto = require("crypto");
+const fs = require("fs");
 
 const nouns = [
   "재료역학",
@@ -69,8 +70,10 @@ const checkNickname = (nickname) => {
 
 // 기존 프로필 사진의 URI 중 하나를 무작위로 선택해 반환합니다.
 const generateProfileImageUrl = (id) => {
-  const fileNames = ["sample.png"];
-  const fileName = fileNames[0];
+  const fileNames = fs.readdirSync("public/profile-images/default/");
+  const fileIdx = crypto.randomInt(fileNames.length);
+  const fileName = fileNames[fileIdx];
+
   const imgUrl = `public/profile-images/default/${fileName}`;
   return imgUrl;
 };
