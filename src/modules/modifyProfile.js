@@ -1,5 +1,6 @@
 const crypto = require("crypto");
 const fs = require("fs");
+const path = require("path");
 
 const nouns = [
   "재료역학",
@@ -62,15 +63,17 @@ const generateNickname = (id) => {
 };
 
 // 새 닉네임이 닉네임 규칙에 부합하는지 검사합니다.
-// 알파벳, 한글, 숫자, -, _ 기호로 3~12자 구성
+// 알파벳, 한글, 숫자, -, _ 기호로 3~25자 구성
 const checkNickname = (nickname) => {
-  const re = new RegExp("[a-z가-힣0-9-_]{3,10}");
+  const re = new RegExp("[A-Za-z가-힣0-9-_]{3,25}");
   return re.test(nickname);
 };
 
 // 기존 프로필 사진의 URI 중 하나를 무작위로 선택해 반환합니다.
 const generateProfileImageUrl = (id) => {
-  const fileNames = fs.readdirSync("public/profile-images/default/");
+  const fileNames = fs.readdirSync(
+    path.resolve("public/profile-images/default/")
+  );
   const fileIdx = crypto.randomInt(fileNames.length);
   const fileName = fileNames[fileIdx];
 
