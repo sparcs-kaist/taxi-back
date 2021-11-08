@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
-const { userModel } = require("../db/mongo")
-const { getLoginInfo } = require("../auth/login")
+const { userModel } = require("../db/mongo");
+const { getLoginInfo } = require("../auth/login");
 
 router.route("/").get((req, res) => {
   const user = getLoginInfo(req);

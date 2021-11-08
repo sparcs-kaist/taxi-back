@@ -1,6 +1,14 @@
 const express = require("express");
 const router = express.Router();
-const { userModel, roomModel } = require("../db/mongo")
+const path = require("path");
+const fs = require("fs/promises");
+const { userModel, roomModel } = require("../db/mongo");
+const { getLoginInfo } = require("../auth/login");
+const { checkNickname } = require("../modules/modifyProfile");
+const {
+  uploadProfileImage,
+  checkProfileImage,
+} = require("../middleware/uploadProfileImage");
 
 /* GET users listing. */
 router.get("/", function (_, res) {
@@ -84,7 +92,7 @@ router.get("/:id/ban", async (req, res) => {
         res.status(200).send("The user banned successfully");
       } catch (err) {
         console.log(err);
-        throw err;
+        res.status(500).send("User/ban : Error 500");
       }
     } else {
       res.status(409).send("The user is already banned");
@@ -125,8 +133,7 @@ router.post("/:id/participate", async (req, res) => {
   // And add the user ObjectID to room participants list
   try {
     let room = await roomModel.findById(req.body.room);
-    if (!room)
-      res.status(400).send("User/participate : No corresponding room");
+    if (!room) res.status(400).send("User/participate : No corresponding room");
     room.part.append(req.params.id);
     await room.save();
   } catch (error) {
@@ -148,5 +155,114 @@ router.post("/:id/participate", async (req, res) => {
     res.status(500).send("User/participate : Error 500");
   }
 });
+
+// 새 닉네임을 받아 로그인된 유저의 닉네임을 변경합니다.
+router.post("/:user_id/editNickname", (req, res) => {
+  // 사용자 검증
+  const { id, sid, name } = getLoginInfo(req);
+  if (!id || !sid || !name || req.params.user_id !== id) {
+    res.status(403).send("not logged in");
+    return;
+  }
+
+  // Todo: 닉네임 유효성 확인
+  const newNickname = req.body.nickname;
+  if (!checkNickname(newNickname)) {
+    res.status(400).send("wrong nickname");
+    return;
+  }
+
+  // 닉네임을 갱신하고 결과를 반환
+  userModel
+    .findOneAndUpdate({ id: id }, { nickname: newNickname })
+    .then((result) => {
+      if (result) {
+        res.status(200).send("edit user nickname successful");
+      } else {
+        res.status(400).send("such user id does not exist");
+      }
+    })
+    .catch((error) => {
+      console.log("user nickname edit error : " + error);
+      res.status(500).json({
+        error: "/:user_id/editNickname : internal server error",
+      });
+    });
+});
+
+// multipart form으로 프로필 사진을 업로드 받아 변경합니다.
+router.post(
+  "/:user_id/uploadProfileImage",
+  uploadProfileImage.single("profileImage"),
+  async (req, res) => {
+    // 빈 파일이 아닌지 검사. fileFilter에서 false가 리턴된 경우가 여기에 해당합니다.
+    if (!req.file) {
+      return res.status(400).send("no file uploaded");
+    }
+
+    // 사용자 검증
+    const { id, sid, name } = getLoginInfo(req);
+    if (!id || !sid || !name || req.params.user_id !== id) {
+      await fs.unlink(path.resolve(req.file.path));
+      return res.status(403).send("not logged in");
+    }
+
+    // 이미지 파일 유효성 검사
+    const isImage = await checkProfileImage(req.file.path);
+    if (!isImage) {
+      await fs.unlink(path.resolve(req.file.path));
+      return res.status(400).send("not an image file");
+    }
+
+    // 기존 프로필 사진의 url 갱신
+    const newFilename = req.file.filename;
+    let oldFilename = "";
+    let needToRemove = false;
+
+    let user = await userModel.findOne({ id: id });
+    if (user) {
+      try {
+        const parsedOldImageUrl = user.profileImageUrl.split("/");
+        oldFilename = parsedOldImageUrl[parsedOldImageUrl.length - 1];
+        needToRemove =
+          parsedOldImageUrl[parsedOldImageUrl.length - 2] === "user-upload";
+        user.profileImageUrl = `public/profile-images/user-upload/${newFilename}`;
+        await user.save();
+      } catch (err) {
+        // 기존 프로필 사진의 url 갱신에 실패한 경우, 새로 업로드된 파일을 삭제합니다.
+        console.log(err);
+        try {
+          await fs.unlink(req.file.path);
+          return res
+            .status(500)
+            .send("/:user_id/uploadProfileImage: internal server error");
+        } catch (err) {
+          // 새로 업로드된 파일 삭제에도 실패한 경우
+          console.log(err);
+          return res
+            .status(500)
+            .send("/:user_id/uploadProfileImage: internal server error");
+        }
+      }
+    } else {
+      return res.status(400).send("such user id does not exist");
+    }
+
+    // 기존 파일 삭제
+    if (oldFilename !== "" && needToRemove) {
+      try {
+        await fs.unlink(
+          path.resolve("public/profile-images/user-upload", oldFilename)
+        );
+        res.status(200).send("upload profile image successful");
+      } catch (err) {
+        console.log(err);
+        res
+          .status(200)
+          .send("upload profile image successful, however failed to delete");
+      }
+    }
+  }
+);
 
 module.exports = router;
