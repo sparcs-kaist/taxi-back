@@ -7,6 +7,7 @@ router.route("/").get((req, res) => {
   const user = getLoginInfo(req);
   res.json(user);
 });
+
 router.route("/detail").get((req, res) => {
   const user = getLoginInfo(req);
 

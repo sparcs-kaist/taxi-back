@@ -13,7 +13,7 @@ const client = new Client(
   security.sparcssso_key
 );
 
-
+// type 변경
 const transUserData = (userData) => {
   const info = {
     id: userData.uid,
@@ -28,6 +28,7 @@ const transUserData = (userData) => {
   return info;
 };
 
+// 가입시키기
 const joinus = (req, res, userData) => {
   const newUser = new userModel({
     id: userData.id,
@@ -43,6 +44,7 @@ const joinus = (req, res, userData) => {
   });
 };
 
+// 닉네임 변경?
 const update = async (req, res, userData) => {
   const updateInfo = { name: userData.name };
   await userModel.updateOne({ id: userData.id }, updateInfo);
@@ -76,6 +78,7 @@ router.route("/sparcssso").get((req, res) => {
   req.session.state = state;
   res.redirect(url);
 });
+
 router.route("/sparcssso/callback").get((req, res) => {
   const state1 = req.session.state;
   const state2 = req.body.state || req.query.state;
@@ -89,10 +92,10 @@ router.route("/sparcssso/callback").get((req, res) => {
     });
   }
 });
+
 router.route("/logout").get((req, res) => {
   logout(req, res);
 
-  // FIXME: redirect는 프론트에서 처리하는게 좋을듯
   res.redirect(security.frontUrl);
 });
 
