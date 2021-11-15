@@ -184,9 +184,7 @@ router.post("/:user_id/editNickname", (req, res) => {
     })
     .catch((error) => {
       console.log("user nickname edit error : " + error);
-      res.status(500).json({
-        error: "/:user_id/editNickname : internal server error",
-      });
+      res.status(500).send("internal server error");
     });
 });
 
@@ -233,15 +231,11 @@ router.post(
         console.log(err);
         try {
           await fs.unlink(req.file.path);
-          return res
-            .status(500)
-            .send("/:user_id/uploadProfileImage: internal server error");
+          return res.status(500).send("internal server error");
         } catch (err) {
           // 새로 업로드된 파일 삭제에도 실패한 경우
           console.log(err);
-          return res
-            .status(500)
-            .send("/:user_id/uploadProfileImage: internal server error");
+          return res.status(500).send("internal server error");
         }
       }
     } else {
