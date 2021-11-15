@@ -26,13 +26,6 @@ const roomSchema = mongoose.Schema({
   part: { type: Array, default: [] }, // 참여 멤버
   madeat: { type: Date, required: true }, // 생성 날짜
 });
-const chatSchema = mongoose.Schema({
-  content: { type: String, default: "" },
-  sender: { type: schema.Types.ObjectId, required: true },
-  sendat: { type: Date, required: true },
-  room: { type: schema.Types.ObjectId, required: true },
-  deleted: { type: Boolean, default: false },
-});
 const locationSchema = mongoose.Schema({
   name: { type: String, required: true },
   //   latitude: { type: Number, required: true },
@@ -78,7 +71,6 @@ mongoose.connect(security.mongo, {
 module.exports = {
   userModel: mongoose.model("users", userSchema),
   roomModel: mongoose.model("rooms", roomSchema),
-  chatModel: mongoose.model("chats", chatSchema),
   locationModel: mongoose.model("locations", locationSchema),
   chatRoomModel: mongoose.model("chatRooms", chatRoomSchema),
 };

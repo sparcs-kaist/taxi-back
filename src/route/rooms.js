@@ -1,18 +1,17 @@
 const express = require("express");
 const router = express.Router();
-const loginCheckMiddleware = require("../middleware/logincheck");
-const { roomModel, locationModel, userModel } = require("../db/mongo")
+const authMiddleware = require("../middleware/auth");
+const { roomModel, locationModel, userModel } = require("../db/mongo");
 //const taxiResponse = require('../taxiResponse')
 
-
-// router.use(loginCheckMiddleware);
+router.use(authMiddleware);
 
 const removeLocationId = async (room) => {
   const { _id, from: fromId, to: toId, name, time, part, madeat } = room;
   const from = await locationModel.findById(fromId);
   const to = await locationModel.findById(toId);
   return { _id, from: from.name, to: to.name, name, part, madeat, time };
-}
+};
 
 // ONLY FOR TEST
 router.get("/getAllRoom", async (_, res) => {
@@ -66,7 +65,7 @@ router.post("/create", async (req, res) => {
       madeat: Date.now(),
     });
     await room.save();
-    console.log(room)
+    console.log(room);
     res.send(await removeLocationId(room));
     return;
   } catch (err) {
@@ -84,7 +83,7 @@ router.post("/create", async (req, res) => {
 router.post("/roominfo", async (req, res) => {
   if (!req.body.id) res.status("400").send("Room/roominfo : Bad request");
   try {
-    const room = await roomModel.findById(req.body.id)
+    const room = await roomModel.findById(req.body.id);
     if (room) {
       res.json(removeLocationId(room));
     } else {
@@ -179,8 +178,8 @@ router.get("/search", async (req, res) => {
   }
 
   try {
-    const fromLocation = await locationModel.findOne({ name: from })
-    const toLocation = await locationModel.findOne({ name: to })
+    const fromLocation = await locationModel.findOne({ name: from });
+    const toLocation = await locationModel.findOne({ name: to });
 
     if ((from && !fromLocation) || (to && !toLocation)) {
       res.status("404").json({
@@ -194,7 +193,7 @@ router.get("/search", async (req, res) => {
     if (time) query.time = { $gte: new Date(time) };
 
     const rooms = await roomModel.find(query);
-    res.json(await Promise.all(rooms.map(room => removeLocationId(room))));
+    res.json(await Promise.all(rooms.map((room) => removeLocationId(room))));
   } catch (error) {
     console.log(error);
     res.status("500").json({
@@ -256,9 +255,7 @@ router.post("/:id/edit", async (req, res) => {
 
 router.get("/:id/delete", async (req, res) => {
   try {
-    const result = await roomModel
-      .findByIdAndRemove(req.params.id)
-      .exec();
+    const result = await roomModel.findByIdAndRemove(req.params.id).exec();
     if (result) {
       res.send({
         id: req.params.id,
@@ -282,7 +279,6 @@ router.get("/:id/delete", async (req, res) => {
   // catch는 반환값이 없을 경우(result == undefined일 때)는 처리하지 않는다.
 });
 
-
 // 특정 id 방 세부사항 보기
 router.get("/:id", async (req, res) => {
   try {
@@ -301,7 +297,5 @@ router.get("/:id", async (req, res) => {
     });
   }
 });
-
-
 
 module.exports = router;
