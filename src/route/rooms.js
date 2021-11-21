@@ -13,6 +13,13 @@ const removeLocationId = async (room) => {
   return { _id, from: from.name, to: to.name, name, part, madeat, time };
 };
 
+const removeUserId = async (room) => {
+  const { _id, from, to, name, time, part: partIds, madeat } = room;
+  let part = await userModel.find({ _id: { $in: partIds } });
+  part = await Promise.all(part.map((user) => user.id));
+  return { _id, from, to, name, time, part, madeat };
+};
+
 // ONLY FOR TEST
 router.get("/getAllRoom", async (_, res) => {
   console.log("GET ALL ROOM");
@@ -55,6 +62,10 @@ router.post("/create", async (req, res) => {
       {},
       { new: true, upsert: true }
     );
+
+    // 방 생성 요청을 한 사용자의 ObjectID를 room의 part 리스트에 추가
+    const user = await userModel.findOne({ id: req.userId });
+    part.push(user._id);
 
     let room = new roomModel({
       name: name,
@@ -198,6 +209,33 @@ router.get("/search", async (req, res) => {
     console.log(error);
     res.status("500").json({
       error: "Room/search : Internal server error",
+    });
+  }
+});
+
+// 로그인된 사용자의 모든 방 반환
+router.get("/searchByUser/", async (req, res) => {
+  const userId = req.userId;
+  if (!userId) {
+    req.status(403).json({
+      error: "Rooms/searchByUser : not logged in",
+    });
+  }
+
+  try {
+    const user = await userModel.findOne({ id: userId });
+    let rooms = await roomModel.find({ part: { $all: [user._id] } });
+    rooms = await Promise.all(
+      rooms.map(async (room) => {
+        const removedLocationId = await removeLocationId(room);
+        return await removeUserId(removedLocationId);
+      })
+    );
+    res.json(rooms);
+  } catch (err) {
+    console.log(err);
+    req.status(500).json({
+      error: "Rooms/searchByUser : internal server error",
     });
   }
 });

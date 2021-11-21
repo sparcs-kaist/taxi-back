@@ -10,7 +10,7 @@ const userSchema = mongoose.Schema({
   withdraw: { type: Boolean, default: false },
   ban: { type: Boolean, default: false },
   joinat: { type: Date, required: true },
-  room: { type: Array, default: [] },
+  room: { type: Array, default: [] }, // IDEA: room document의 part에 저장된 정보니까 없애도 좋다고 생각합니다.
   subinfo: {
     kaist: { type: String, default: "" },
     sparcs: { type: String, default: "" },
@@ -56,16 +56,18 @@ database.on("error", function (err) {
 database.on("disconnected", function () {
   console.log("데이터베이스와 연결이 끊어졌습니다!");
   mongoose.connect(security.mongo, {
-    server: { auto_reconnect: true },
+    auto_reconnect: true,
     useNewUrlParser: true,
     useUnifiedTopology: true,
+    useCreateIndex: true,
   });
 });
 
 mongoose.connect(security.mongo, {
-  server: { auto_reconnect: true },
+  auto_reconnect: true,
   useNewUrlParser: true,
   useUnifiedTopology: true,
+  useCreateIndex: true,
 });
 
 module.exports = {
