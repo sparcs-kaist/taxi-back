@@ -10,7 +10,6 @@ const userSchema = mongoose.Schema({
   withdraw: { type: Boolean, default: false },
   ban: { type: Boolean, default: false },
   joinat: { type: Date, required: true },
-  room: { type: Array, default: [] }, // IDEA: room document의 part에 저장된 정보니까 없애도 좋다고 생각합니다.
   subinfo: {
     kaist: { type: String, default: "" },
     sparcs: { type: String, default: "" },

@@ -2,14 +2,14 @@
 
 ## Routes
 
-### [/auth](https://github.com/sparcs-kaist/taxi-back/blob/main/src/route/docs/auth.md)
+### [/auth](src/route/docs/auth.md)
 
-### [/auth](https://github.com/sparcs-kaist/taxi-back/blob/main/src/route/docs/auth.replace.md) **(for dev)**
+### [/auth](src/route/docs/auth.replace.md) **(for dev)**
 
-### [/chats](https://github.com/sparcs-kaist/taxi-back/blob/main/src/route/docs/chats.md)
+### [/chats](src/route/docs/chats.md)
 
-### [/rooms](https://github.com/sparcs-kaist/taxi-back/blob/main/src/route/docs/rooms.md)
+### [/rooms](src/route/docs/rooms.md)
 
-### [/static](https://github.com/sparcs-kaist/taxi-back/blob/main/src/route/docs/static.md)
+### [/static](src/route/docs/static.md)
 
-### [/users](https://github.com/sparcs-kaist/taxi-back/blob/main/src/route/docs/users.md)
+### [/users](src/route/docs/users.md)
