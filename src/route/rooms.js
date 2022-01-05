@@ -6,16 +6,8 @@ const { roomModel, locationModel, userModel } = require("../db/mongo");
 
 router.use(authMiddleware);
 
-// 출발지와 도착지의 ObjectId 지우기 (아래 코드로 대체되어 다음 커밋에서 삭제될 예정)
-// const removeLocationId = async (room) => {
-//   const { _id, from: fromId, to: toId, name, time, part, madeat } = room;
-//   const from = await locationModel.findById(fromId);
-//   const to = await locationModel.findById(toId);
-//   return { _id, from: from.name, to: to.name, name, part, madeat, time };
-// };
-
+// 장소, 참가자 목록의 ObjectID 제거하기
 const extractLocationName = (location) => location.name;
-
 const roomPopulateQuery = [
   { path: "part", select: "id name nickname -_id" },
   { path: "from", transform: extractLocationName },
@@ -124,23 +116,37 @@ router.post("/invite", async (req, res) => {
   }
   try {
     let room = await roomModel.findById(req.body.roomId);
-    if (!room)
+    if (!room) {
       res.status(404).json({
         error: "Room/invite : no corresponding room",
       });
+      return;
+    }
+
+    let users = [];
     for (const userID of req.body.users) {
-      if (room.part.includes(userID))
+      let user = await userModel.findOne({ id: userID });
+      if (!user) {
+        res.status(404).json({
+          error: "Room/invite : no corresponding user",
+        });
+        return;
+      }
+      if (room.part.includes(user._id)) {
         res.status(409).json({
           error: "Room/invite : " + userID + " Already in room",
         });
+        return;
+      }
+      users.push(user);
     }
-    for (const userID of req.body.users) {
-      room.part = room.part.concat(userID);
-      await room.save();
-      let user = await userModel.findById(userID);
-      user.room = user.room.concat(req.body.roomId);
-      user.save();
+
+    for (let user of users) {
+      room.part.push(user._id);
+      user.room.push(req.body.roomId);
+      await user.save();
     }
+    await room.save();
     await room.execPopulate(roomPopulateQuery);
     res.send(room);
   } catch (error) {
@@ -182,8 +188,6 @@ router.post("/abort", async (req, res) => {
 
     // 사용자가 참여중인 방 목록에서 해당 방을 제거하고, 해당 방의 참여자 목록에서 사용자를 제거한다.
     // 사용자가 해당 룸의 구성원이 아닌 경우, 403 오류를 반환한다.
-    console.log(room.part, user._id);
-    console.log(user.room, room._id);
     const roomPartIndex = room.part.indexOf(user._id);
     const userRoomIndex = user.room.indexOf(room._id);
     if (roomPartIndex === -1 || userRoomIndex === -1) {

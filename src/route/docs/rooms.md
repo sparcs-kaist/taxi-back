@@ -11,9 +11,10 @@ Room {
   name: String,
   from: String,
   to: String,
-  time: Date,
+  time: String(ISO 8601),
   part: String[],
-  madeat: Date
+  madeat: String(ISO 8601),
+  __v: Number,
 }
 ```
 
@@ -72,7 +73,7 @@ room의 ID와 user들의 ID list를 받아 해당 room의 participants에 추가
 ```javascript
 {
     roomId : ObjectID,
-    users : List[ObjectID],
+    users : List[userID], //user.id (not ObjectID)
 }
 ```
 
