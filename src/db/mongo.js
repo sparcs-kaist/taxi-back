@@ -1,16 +1,16 @@
 const mongoose = require("mongoose");
-const Schema = mongoose.Schema;
+const schema = mongoose.Schema;
 const security = require("../../security");
 
-const userSchema = Schema({
-  name: { type: String, required: true }, //실명
-  nickname: { type: String, required: true }, //닉네임
-  id: { type: String, required: true, unique: true }, //택시 서비스에서만 사용되는 id
-  profileImageUrl: { type: String, required: true }, //백엔드에서의 프로필 이미지 경로
-  room: [{ type: Schema.Types.ObjectId, ref: "Room" }], //참여중인 방 배열
+const userSchema = mongoose.Schema({
+  name: { type: String, required: true },
+  nickname: { type: String, required: true },
+  id: { type: String, required: true, unique: true },
+  profileImageUrl: { type: String, required: true },
   withdraw: { type: Boolean, default: false },
   ban: { type: Boolean, default: false },
   joinat: { type: Date, required: true },
+  room: { type: Array, default: [] },
   subinfo: {
     kaist: { type: String, default: "" },
     sparcs: { type: String, default: "" },
@@ -18,20 +18,20 @@ const userSchema = Schema({
     twitter: { type: String, default: "" },
   },
 });
-const roomSchema = Schema({
+const roomSchema = mongoose.Schema({
   name: { type: String, required: true, default: "이름 없음" },
-  from: { type: Schema.Types.ObjectId, ref: "Location", required: true },
-  to: { type: Schema.Types.ObjectId, ref: "Location", required: true },
+  from: { type: schema.Types.ObjectId, required: true },
+  to: { type: schema.Types.ObjectId, required: true },
   time: { type: Date, required: true }, // 출발 시간
-  part: [{ type: Schema.Types.ObjectId, ref: "User" }], // 참여 멤버
+  part: { type: Array, default: [] }, // 참여 멤버
   madeat: { type: Date, required: true }, // 생성 날짜
 });
-const locationSchema = Schema({
+const locationSchema = mongoose.Schema({
   name: { type: String, required: true },
   //   latitude: { type: Number, required: true },
   // longitude: { type: Number, required: true }
 });
-const chatRoomSchema = Schema({
+const chatRoomSchema = new mongoose.Schema({
   _id: Number,
   chats: [
     {
@@ -56,23 +56,21 @@ database.on("error", function (err) {
 database.on("disconnected", function () {
   console.log("데이터베이스와 연결이 끊어졌습니다!");
   mongoose.connect(security.mongo, {
-    auto_reconnect: true,
+    server: { auto_reconnect: true },
     useNewUrlParser: true,
     useUnifiedTopology: true,
-    useCreateIndex: true,
   });
 });
 
 mongoose.connect(security.mongo, {
-  auto_reconnect: true,
+  server: { auto_reconnect: true },
   useNewUrlParser: true,
   useUnifiedTopology: true,
-  useCreateIndex: true,
 });
 
 module.exports = {
-  userModel: mongoose.model("User", userSchema),
-  roomModel: mongoose.model("Room", roomSchema),
-  locationModel: mongoose.model("Location", locationSchema),
-  chatRoomModel: mongoose.model("ChatRoom", chatRoomSchema),
+  userModel: mongoose.model("users", userSchema),
+  roomModel: mongoose.model("rooms", roomSchema),
+  locationModel: mongoose.model("locations", locationSchema),
+  chatRoomModel: mongoose.model("chatRooms", chatRoomSchema),
 };
