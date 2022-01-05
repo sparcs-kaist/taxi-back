@@ -8,21 +8,22 @@ const { roomModel, locationModel, userModel } = require("../db/mongo");
 
 router.use(authMiddleware);
 
-// 출발지와 도착지의 ObjectId 지우기 (아래 코드로 대체되어 다음 커밋에서 삭제될 예정)
-// const removeLocationId = async (room) => {
-//   const { _id, from: fromId, to: toId, name, time, part, madeat } = room;
-//   const from = await locationModel.findById(fromId);
-//   const to = await locationModel.findById(toId);
-//   return { _id, from: from.name, to: to.name, name, part, madeat, time };
-// };
+// 출발지와 도착지의 ObjectId 지우기
+const removeLocationId = async (room) => {
+  const { _id, from: fromId, to: toId, name, time, part, madeat } = room;
+  const from = await locationModel.findById(fromId);
+  const to = await locationModel.findById(toId);
+  return { _id, from: from.name, to: to.name, name, part, madeat, time };
+};
 
-const extractLocationName = (location) => location.name;
+const removeLocationOid = (location) => location.name;
 
 const roomPopulateQuery = [
   { path: "part", select: "id name nickname -_id" },
-  { path: "from", transform: extractLocationName },
-  { path: "to", transform: extractLocationName },
+  { path: "from", select: "name -_id", trnasform: removeLocationOid },
+  { path: "to", select: "name -_id", transform: removeLocationOid },
 ];
+const userSelectedFields = "id name nickname -_id";
 
 // 특정 id 방 세부사항 보기
 router.get("/:id/info", async (req, res) => {
@@ -45,9 +46,8 @@ router.get("/:id/info", async (req, res) => {
           error: "Rooms/info : did not joined the room",
         });
       }
-      //From mongoose v6, this needs to be changed to room.populate(roomPopulateQuery)
-      await room.execPopulate(roomPopulateQuery);
-      res.status(200).send(room);
+      await room.populate("part", userSelectedFields);
+      res.status(200).send(removeLocationId(room));
     } else {
       res.status(404).json({
         error: "Rooms/info : id does not exist",
@@ -102,8 +102,7 @@ router.post("/create", async (req, res) => {
     user.room.push(room._id);
     await user.save();
 
-    room.execPopulate(roomPopulateQuery);
-    res.send(room);
+    res.send(await removeLocationId(room));
     return;
   } catch (err) {
     console.log(err);
@@ -143,8 +142,7 @@ router.post("/invite", async (req, res) => {
       user.room = user.room.concat(req.body.roomId);
       user.save();
     }
-    await room.execPopulate(roomPopulateQuery);
-    res.send(room);
+    res.send(removeLocationId(room));
   } catch (error) {
     console.log(error);
     res.status(500).json({
@@ -153,7 +151,7 @@ router.post("/invite", async (req, res) => {
   }
 });
 
-// 기존 방에서 나간다. (검증 안됨: 방 주인이 바뀌는 경우.)
+// 기존 방에서 나간다. (검증 안됨)
 // request: {roomId: 나갈 방}
 // result: Room
 // 모든 사람이 나갈 경우 방 삭제!
@@ -203,8 +201,7 @@ router.post("/abort", async (req, res) => {
         await room.remove();
       }
     }
-    await room.execPopulate(roomPopulateQuery);
-    res.send(room);
+    res.send(removeLocationId(room));
   } catch (error) {
     console.log(error);
     res.status(500).json({
@@ -241,11 +238,8 @@ router.get("/search", async (req, res) => {
     if (toLocation) query.to = toLocation._id;
     if (time) query.time = { $gte: new Date(time) };
 
-    const rooms = await roomModel
-      .find(query)
-      .populate(roomPopulateQuery)
-      .exec();
-    res.json(rooms);
+    const rooms = await roomModel.find(query);
+    res.json(await Promise.all(rooms.map((room) => removeLocationId(room))));
   } catch (error) {
     console.log(error);
     res.status(500).json({
@@ -263,16 +257,13 @@ router.get("/searchByName/:name", async (req, res) => {
   }
 
   try {
-    let rooms = await roomModel
-      .find({ name: req.params.name })
-      .populate(roomPopulateQuery)
-      .exec();
-    if (!rooms) {
+    let room = await roomModel.find({ name: req.params.name });
+    if (!room) {
       res.status(404).json({
         error: "Room/searchByName : No matching room(s)",
       });
     }
-    res.json(rooms);
+    res.json(await Promise.all(rooms.map((room) => removeLocationId(room))));
   } catch (err) {
     console.log(err);
     res.status(500).json({
@@ -285,7 +276,7 @@ router.get("/searchByName/:name", async (req, res) => {
 router.get("/searchByUser/", async (req, res) => {
   const userId = req.userId;
   if (!userId) {
-    res.status(403).json({
+    req.status(403).json({
       error: "Rooms/searchByUser : not logged in",
     });
   }
@@ -295,13 +286,18 @@ router.get("/searchByUser/", async (req, res) => {
       .findOne({ id: userId })
       .populate({
         path: "room",
-        populate: roomPopulateQuery,
+        populate: { path: "part", select: userSelectedFields },
       })
       .exec();
-    res.json(user.room);
+    console.log(user);
+    res.json(
+      await Promise.all(
+        user.room.map(async (room) => await removeLocationId(room))
+      )
+    );
   } catch (err) {
     console.log(err);
-    res.status(500).json({
+    req.status(500).json({
       error: "Rooms/searchByUser : internal server error",
     });
   }
@@ -310,6 +306,13 @@ router.get("/searchByUser/", async (req, res) => {
 // THE ROUTES BELOW ARE ONLY FOR TEST
 router.get("/getAllRoom", async (_, res) => {
   console.log("GET ALL ROOM");
+  // const result = await roomModel
+  //   .find({})
+  //   .populate("part", userSelectedFields)
+  //   .exec();
+  // res.json(
+  //   await Promise.all(result.map(async (room) => removeLocationId(room)))
+  // );
   const result = await roomModel.find({}).populate(roomPopulateQuery).exec();
   res.json(result);
   return;
@@ -359,8 +362,7 @@ router.post("/:id/edit", async (req, res) => {
     });
     console.log(result);
     if (result) {
-      await result.execPopulate(roomPopulateQuery);
-      res.send(result);
+      res.send(removeLocationId(result));
     } else {
       res.status(404).json({
         error: "Rooms/edit : id does not exist",
