@@ -1,3 +1,5 @@
+//TODO: roomModel.find나 roomModel.findOne을 쓴 부분에서 populate 적용하기.
+
 const express = require("express");
 const router = express.Router();
 const authMiddleware = require("../middleware/auth");
@@ -6,6 +8,7 @@ const { roomModel, locationModel, userModel } = require("../db/mongo");
 
 router.use(authMiddleware);
 
+// 출발지와 도착지의 ObjectId 지우기
 const removeLocationId = async (room) => {
   const { _id, from: fromId, to: toId, name, time, part, madeat } = room;
   const from = await locationModel.findById(fromId);
@@ -13,12 +16,14 @@ const removeLocationId = async (room) => {
   return { _id, from: from.name, to: to.name, name, part, madeat, time };
 };
 
-const removeUserId = async (room) => {
-  const { _id, from, to, name, time, part: partIds, madeat } = room;
-  let part = await userModel.find({ _id: { $in: partIds } });
-  part = await Promise.all(part.map((user) => user.id));
-  return { _id, from, to, name, time, part, madeat };
-};
+const removeLocationOid = (location) => location.name;
+
+const roomPopulateQuery = [
+  { path: "part", select: "id name nickname -_id" },
+  { path: "from", select: "name -_id", trnasform: removeLocationOid },
+  { path: "to", select: "name -_id", transform: removeLocationOid },
+];
+const userSelectedFields = "id name nickname -_id";
 
 // 특정 id 방 세부사항 보기
 router.get("/:id/info", async (req, res) => {
@@ -41,6 +46,7 @@ router.get("/:id/info", async (req, res) => {
           error: "Rooms/info : did not joined the room",
         });
       }
+      await room.populate("part", userSelectedFields);
       res.status(200).send(removeLocationId(room));
     } else {
       res.status(404).json({
@@ -56,6 +62,7 @@ router.get("/:id/info", async (req, res) => {
 });
 
 // JSON으로 받은 정보로 방을 생성한다.
+// 연도가 2001년으로 뜨는데 어디 문제지...
 router.post("/create", async (req, res) => {
   const { name, from, to, time, part } = req.body.data;
   if (!name || !from || !to || !time) {
@@ -90,7 +97,11 @@ router.post("/create", async (req, res) => {
       madeat: Date.now(),
     });
     await room.save();
-    console.log(room);
+
+    // 방의 ObjectID를 방 생성 요청을 한 사용자의 room 배열에 추가
+    user.room.push(room._id);
+    await user.save();
+
     res.send(await removeLocationId(room));
     return;
   } catch (err) {
@@ -136,6 +147,65 @@ router.post("/invite", async (req, res) => {
     console.log(error);
     res.status(500).json({
       error: "Room/invite : internal server error",
+    });
+  }
+});
+
+// 기존 방에서 나간다. (검증 안됨)
+// request: {roomId: 나갈 방}
+// result: Room
+// 모든 사람이 나갈 경우 방 삭제!
+router.post("/abort", async (req, res) => {
+  // Request JSON Validation
+  if (!req.body.roomId) {
+    res.status(400).json({
+      error: "Room/abort : Bad request",
+    });
+    return;
+  }
+
+  try {
+    let room = await roomModel.findById(req.body.roomId);
+    if (!room) {
+      res.status(404).json({
+        error: "Room/abort : no corresponding room",
+      });
+      return;
+    }
+    let user = await userModel.findOne({ id: req.userId });
+    if (!user) {
+      res.status(400).json({
+        error: "Room/abort : Bad request",
+      });
+      return;
+    }
+
+    // 사용자가 참여중인 방 목록에서 해당 방을 제거하고, 해당 방의 참여자 목록에서 사용자를 제거한다.
+    // 사용자가 해당 룸의 구성원이 아닌 경우, 403 오류를 반환한다.
+    console.log(room.part, user._id);
+    console.log(user.room, room._id);
+    const roomPartIndex = room.part.indexOf(user._id);
+    const userRoomIndex = user.room.indexOf(room._id);
+    if (roomPartIndex === -1 || userRoomIndex === -1) {
+      res.status(403).json({
+        error: "Rooms/info : did not joined the room",
+      });
+      return;
+    } else {
+      room.part.splice(roomPartIndex, 1);
+      user.room.splice(userRoomIndex, 1);
+      await user.save();
+      if (room.part.length !== 0) await room.save();
+      else {
+        //남은 사용자가 없는 경우.
+        await room.remove();
+      }
+    }
+    res.send(removeLocationId(room));
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({
+      error: "Room/abort : internal server error",
     });
   }
 });
@@ -212,15 +282,19 @@ router.get("/searchByUser/", async (req, res) => {
   }
 
   try {
-    const user = await userModel.findOne({ id: userId });
-    let rooms = await roomModel.find({ part: { $all: [user._id] } });
-    rooms = await Promise.all(
-      rooms.map(async (room) => {
-        const removedLocationId = await removeLocationId(room);
-        return await removeUserId(removedLocationId);
+    const user = await userModel
+      .findOne({ id: userId })
+      .populate({
+        path: "room",
+        populate: { path: "part", select: userSelectedFields },
       })
+      .exec();
+    console.log(user);
+    res.json(
+      await Promise.all(
+        user.room.map(async (room) => await removeLocationId(room))
+      )
     );
-    res.json(rooms);
   } catch (err) {
     console.log(err);
     req.status(500).json({
@@ -232,8 +306,15 @@ router.get("/searchByUser/", async (req, res) => {
 // THE ROUTES BELOW ARE ONLY FOR TEST
 router.get("/getAllRoom", async (_, res) => {
   console.log("GET ALL ROOM");
-  const result = await roomModel.find({});
-  res.send(result);
+  // const result = await roomModel
+  //   .find({})
+  //   .populate("part", userSelectedFields)
+  //   .exec();
+  // res.json(
+  //   await Promise.all(result.map(async (room) => removeLocationId(room)))
+  // );
+  const result = await roomModel.find({}).populate(roomPopulateQuery).exec();
+  res.json(result);
   return;
 });
 
