@@ -4,11 +4,11 @@ const path = require("path");
 const fs = require("fs/promises");
 const { userModel, roomModel } = require("../db/mongo");
 const { getLoginInfo } = require("../auth/login");
-const { checkNickname } = require("../modules/modifyProfile");
 const {
-  uploadProfileImage,
+  checkNickname,
   checkProfileImage,
-} = require("../middleware/uploadProfileImage");
+} = require("../modules/modifyProfile");
+const { uploadProfileImage } = require("../middleware/uploadProfileImage");
 
 /* GET users listing. */
 router.get("/", function (_, res) {
@@ -167,7 +167,7 @@ router.post("/:user_id/editNickname", (req, res) => {
 
   // Todo: 닉네임 유효성 확인
   const newNickname = req.body.nickname;
-  if (!checkNickname(newNickname)) {
+  if (!newNickname || !checkNickname(newNickname)) {
     res.status(400).send("wrong nickname");
     return;
   }
@@ -191,9 +191,9 @@ router.post("/:user_id/editNickname", (req, res) => {
 // multipart form으로 프로필 사진을 업로드 받아 변경합니다.
 router.post(
   "/:user_id/uploadProfileImage",
-  uploadProfileImage.single("profileImage"),
+  uploadProfileImage,
   async (req, res) => {
-    // 빈 파일이 아닌지 검사. fileFilter에서 false가 리턴된 경우가 여기에 해당합니다.
+    // 빈 파일이 아닌지 검사.
     if (!req.file) {
       return res.status(400).send("no file uploaded");
     }
