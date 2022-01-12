@@ -11,9 +11,9 @@ Room {
   name: String,
   from: String,
   to: String,
-  time: String(ISO 8601),
-  part: String[],
-  madeat: String(ISO 8601),
+  time: String(ISO 8601), //ex) '2022-01-12T13:58:20.180Z'
+  part: [{name: String, id: String, nickname: String}],
+  madeat: String(ISO 8601), //ex) '2022-01-12T13:58:20.180Z'
   __v: Number,
 }
 ```
@@ -51,7 +51,7 @@ ID를 parameter로 받아 해당 ID의 room의 정보 출력
   from : String,
   to : String,
   time : Date,
-  part? : String[]  // 방 안의 사람들의 고유 id
+  part? : String[]  // 방 사람들의 ObjectId. 따라서 빈 배열로 요청하시면 됩니다.
 }
 ```
 
@@ -137,7 +137,12 @@ room의 ID와 user들의 ID list를 받아 해당 room의 participants에 추가
 
 #### Response
 
-- 해당 방의 정보
+```javascript
+{
+  ongoing: [Room],
+  done: [Room],
+}
+```
 
 #### Errors
 
