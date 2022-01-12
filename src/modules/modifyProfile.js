@@ -1,6 +1,7 @@
 const crypto = require("crypto");
 const fs = require("fs");
 const path = require("path");
+const fileType = require("file-type"); //file type을 검사하기 위해 필요한 모듈
 
 const nouns = [
   "재료역학",
@@ -81,8 +82,16 @@ const generateProfileImageUrl = (id) => {
   return imgUrl;
 };
 
+const checkProfileImage = async (filePath) => {
+  const imageFileType = await fileType.fromFile(filePath);
+  if (!imageFileType || imageFileType.mime.split("/")[0] != "image")
+    return false;
+  else return true;
+};
+
 module.exports = {
   generateNickname,
   checkNickname,
   generateProfileImageUrl,
+  checkProfileImage,
 };
