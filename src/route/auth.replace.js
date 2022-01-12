@@ -102,8 +102,8 @@ const loginDone = (req, res, userData) => {
       else if (!result) joinus(req, res, userData);
       else {
         login(req, userData.sid, result.id, result.name);
-        // res.send("successful");
-        res.redirect(security.frontUrl)
+        res.send("successful");
+        // res.redirect(security.frontUrl)
       }
     }
   );

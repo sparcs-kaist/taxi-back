@@ -54,7 +54,14 @@ router.get("/:id/info", async (req, res) => {
 // JSON으로 받은 정보로 방을 생성한다.
 // 연도가 2001년으로 뜨는데 어디 문제지...
 router.post("/create", async (req, res) => {
-  const { name, from, to, time, part } = req.body.data;
+  if (!req.body.data) {
+    res.status(400).json({
+      error: "Rooms/create : bad request",
+    });
+    return;
+  }
+  const { name, from, to, time } = req.body.data;
+  let { part } = req.body.data;
   if (!name || !from || !to || !time) {
     res.status(400).json({
       error: "Rooms/create : bad request",
@@ -75,8 +82,9 @@ router.post("/create", async (req, res) => {
     );
 
     // 방 생성 요청을 한 사용자의 ObjectID를 room의 part 리스트에 추가
+    // part.push(user._id)를 사용하지 않은 이유: request로 받은 part 내의 값들에 대한 입력값 검증이 안 됨.
     const user = await userModel.findOne({ id: req.userId });
-    part.push(user._id);
+    part = [user._id];
 
     let room = new roomModel({
       name: name,
@@ -285,6 +293,12 @@ router.get("/searchByName/:name", async (req, res) => {
 
 // 로그인된 사용자의 모든 방들을 반환한다.
 router.get("/searchByUser/", async (req, res) => {
+  // 방이 서버 시간을 기준으로 완료되었는지(출발 시간이 지났는지) 확인하는 함수
+  const isOver = (room, time) => {
+    if (new Date(room.time) <= time) return true;
+    else return false;
+  };
+
   const userId = req.userId;
   if (!userId) {
     res.status(403).json({
@@ -299,8 +313,18 @@ router.get("/searchByUser/", async (req, res) => {
         path: "room",
         populate: roomPopulateQuery,
       })
+      .lean()
       .exec();
-    res.json(user.room);
+    const time = Date.now();
+    const response = {
+      ongoing: [],
+      done: [],
+    };
+    user.room.map((room) => {
+      if (isOver(room, time)) response.done.push(room);
+      else response.ongoing.push(room);
+    });
+    res.json(response);
   } catch (err) {
     console.log(err);
     res.status(500).json({
