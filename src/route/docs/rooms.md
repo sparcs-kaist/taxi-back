@@ -7,13 +7,13 @@
 
 ```javascript
 Room {
-  _id: String,
-  name: String,
-  from: String,
-  to: String,
-  time: String(ISO 8601), //ex) '2022-01-12T13:58:20.180Z'
-  part: [{name: String, id: String, nickname: String}],
-  madeat: String(ISO 8601), //ex) '2022-01-12T13:58:20.180Z'
+  _id: String, //ObjectID
+  name: String, // 1~50글자로 구성되며 영어 대소문자, 숫자, 한글, "-", ",", ".", "?", "!", "_"로만 이루어져야 함.
+  from: String, // 출발지
+  to: String, // 도착지
+  time: String(ISO 8601), // ex) '2022-01-12T13:58:20.180Z'
+  part: [{name: String, id: String, nickname: String}], // 참여 중인 사용자 목록
+  madeat: String(ISO 8601), // ex) '2022-01-12T13:58:20.180Z'
   __v: Number,
 }
 ```
@@ -139,8 +139,8 @@ room의 ID와 user들의 ID list를 받아 해당 room의 participants에 추가
 
 ```javascript
 {
-  ongoing: [Room],
-  done: [Room],
+  ongoing: [Room], //이미 출발한 방
+  done: [Room], //아직 출발 안 한 방
 }
 ```
 
