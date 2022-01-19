@@ -64,9 +64,9 @@ const generateNickname = (id) => {
 };
 
 // 새 닉네임이 닉네임 규칙에 부합하는지 검사합니다.
-// 알파벳, 한글, 숫자, -, _ 기호로 3~25자 구성
+// 알파벳, 한글, 숫자, 공백, -, _ 기호로 3~25자 구성
 const checkNickname = (nickname) => {
-  const re = new RegExp("[A-Za-z가-힣0-9-_]{3,25}");
+  const re = new RegExp("[A-Za-z가-힣ㄱ-ㅎㅏ-ㅣ0-9-_ ]{3,25}");
   return re.test(nickname);
 };
 
