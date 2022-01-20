@@ -41,4 +41,4 @@ const uploadProfileImage = (req, res, next) => {
   });
 };
 
-module.exports = { uploadProfileImage };
+module.exports = uploadProfileImage;
