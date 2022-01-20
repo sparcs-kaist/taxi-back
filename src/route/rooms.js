@@ -1,5 +1,3 @@
-// FIXME: 모든 라우터들에 대해 입력값 검증 추가하기
-
 const express = require("express");
 const router = express.Router();
 const authMiddleware = require("../middleware/auth");
@@ -7,7 +5,15 @@ const { roomModel, locationModel, userModel } = require("../db/mongo");
 const { query, param, body, validationResult } = require("express-validator");
 //const taxiResponse = require('../taxiResponse')
 
+// 라우터 접근 시 로그인 필요
 router.use(authMiddleware);
+
+// 입력 데이터 검증을 위한 정규 표현식들
+const patterns = {
+  name: RegExp("^[A-Za-z0-9가-힣ㄱ-ㅎㅏ-ㅣ,.?! _-]{1,50}$"),
+  from: RegExp("^[A-Za-z0-9가-힣 -]{1,30}$"),
+  to: RegExp("^[A-Za-z0-9가-힣 -]{1,30}$"),
+};
 
 // 장소, 참가자 목록의 ObjectID 제거하기
 const extractLocationName = (location) => location.name;
@@ -45,6 +51,7 @@ router.get("/:id/info", param("id").isMongoId(), async (req, res) => {
         res.status(403).json({
           error: "Rooms/info : did not joined the room",
         });
+        return;
       }
       //From mongoose v6, this needs to be changed to room.populate(roomPopulateQuery)
       await room.execPopulate(roomPopulateQuery);
@@ -68,17 +75,10 @@ router.post(
   "/create",
   [
     body("data").exists(),
-    body("data.name")
-      .isLength({ min: 1, max: 50 })
-      .isAlphanumeric("en-US", "[가-힣ㄱ-ㅎㅏ-ㅣ -_,.?!]"),
-    body("data.from")
-      .isLength({ min: 1, max: 30 })
-      .isAlphanumeric("en-US", "[가-힣 -]"),
-    body("data.to")
-      .isLength({ min: 1, max: 30 })
-      .isAlphanumeric("en-US", "[가-힣 -]"),
-    ,
-    body("time").isISO8601(),
+    body("data.name").matches(patterns.name),
+    body("data.from").matches(patterns.from),
+    body("data.to").matches(patterns.to),
+    body("data.time").isISO8601(),
   ],
   async (req, res) => {
     const validationErrors = validationResult(req);
@@ -141,7 +141,8 @@ router.post(
   "/invite",
   [
     body("roomId").isMongoId(),
-    body("users.*").isLength({ min: 1, max: 30 }).isAlphanumeric("en-us", "_"),
+    body("users").isArray(),
+    body("users.*").isLength({ min: 1, max: 30 }).isAlphanumeric(),
   ],
   async (req, res) => {
     // Request JSON Validation
@@ -154,6 +155,7 @@ router.post(
     }
 
     try {
+      let user = await userModel.findOne({ id: req.userId });
       let room = await roomModel.findById(req.body.roomId);
       if (!room) {
         res.status(404).json({
@@ -162,29 +164,47 @@ router.post(
         return;
       }
 
-      let users = [];
-      for (const userID of req.body.users) {
-        let user = await userModel.findOne({ id: userID });
-        if (!user) {
-          res.status(404).json({
-            error: "Room/invite : no corresponding user",
-          });
-          return;
-        }
-        if (room.part.includes(user._id)) {
-          res.status(409).json({
-            error: "Room/invite : " + userID + " Already in room",
-          });
-          return;
-        }
-        users.push(user);
-      }
+      let newUsers = [];
 
-      for (let user of users) {
+      // 사용자가 이미 참여중인 방인 경우, req.body.users의 사용자들을 방에 참여시킵니다.
+      if (room.part.includes(user._id)) {
+        for (const userID of req.body.users) {
+          let newUser = await userModel.findOne({ id: userID });
+          if (!newUser) {
+            res.status(404).json({
+              error: "Room/invite : no corresponding user",
+            });
+            return;
+          }
+          if (room.part.includes(newUser._id)) {
+            res.status(409).json({
+              error: "Room/invite : " + userID + " Already in room",
+            });
+            return;
+          }
+          newUsers.push(newUser);
+        }
+
+        for (let newUser of newUsers) {
+          room.part.push(newUser._id);
+          newUser.room.push(room._id);
+          await newUser.save();
+        }
+      } else {
+        // 사용자가 참여하지 않은 방의 경우, 사용자 자신만 참여하도록 요청했을 때에만 사용자를 방에 참여시킵니다.
+        // 아닌 경우, 400 오류를 발생시킵니다.
+        if (req.body.users.length != 1 || req.body.users[0] !== user.id) {
+          res.status(400).json({
+            error:
+              "Room/invite : You cannot invite other user(s) when you are not joining the room",
+          });
+          return;
+        }
         room.part.push(user._id);
-        user.room.push(req.body.roomId);
+        user.room.push(room._id);
         await user.save();
       }
+
       await room.save();
       await room.execPopulate(roomPopulateQuery);
       res.send(room);
@@ -261,12 +281,8 @@ router.post("/abort", body("roomId").isMongoId(), async (req, res) => {
 router.get(
   "/search",
   [
-    query("from")
-      .isLength({ min: 1, max: 30 })
-      .isAlphanumeric("en-US", "[가-힣 -]"),
-    query("to")
-      .isLength({ min: 1, max: 30 })
-      .isAlphanumeric("en-US", "[가-힣 -]"),
+    query("from").matches(patterns.from),
+    query("to").matches(patterns.to),
     query("time").optional().isISO8601(),
   ],
   async (req, res) => {
@@ -314,9 +330,7 @@ router.get(
 // 해당 이름과 일치하는 방을 반환한다.
 router.get(
   "/searchByName/:name",
-  param("name")
-    .isLength({ min: 1, max: 50 })
-    .isAlphanumeric("en-US", "[가-힣ㄱ-ㅎㅏ-ㅣ -_,.?!]"),
+  param("name").matches(patterns.name),
   async (req, res) => {
     const validationErrors = validationResult(req);
     if (!validationErrors.isEmpty()) {
@@ -412,24 +426,12 @@ router.get("/removeAllRoom", async (_, res) => {
 router.post(
   "/:id/edit",
   [
-    body("name")
-      .optional()
-      .isLength({ min: 1, max: 50 })
-      .isAlphanumeric("en-US", "[가-힣ㄱ-ㅎㅏ-ㅣ -_,.?!]"),
-    body("from")
-      .optional()
-      .isLength({ min: 1, max: 30 })
-      .isAlphanumeric("en-US", "[가-힣 -]"),
-    body("to")
-      .optional()
-      .isLength({ min: 1, max: 30 })
-      .isAlphanumeric("en-US", "[가-힣 -]"),
-    ,
+    body("name").optional().matches(patterns.name),
+    body("from").optional().matches(patterns.from),
+    body("to").optional().matches(patterns.to),
     body("time").optional().isISO8601(),
-    body("part.*")
-      .optional()
-      .isLength({ min: 1, max: 30 })
-      .isAlphanumeric("en-us", "_"),
+    body("part").isArray(),
+    body("part.*").optional().isLength({ min: 1, max: 30 }).isAlphanumeric(),
   ],
   async (req, res) => {
     const validationErrors = validationResult(req);
@@ -491,6 +493,7 @@ router.post(
   }
 );
 
+// FIXME: 방장만 삭제 가능.
 router.get("/:id/delete", param("id").isMongoId(), async (req, res) => {
   const validationErrors = validationResult(req);
   if (!validationErrors.isEmpty()) {

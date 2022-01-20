@@ -82,6 +82,7 @@ room의 ID와 user들의 ID list를 받아 해당 room의 participants에 추가
 - 400 "Bad request"
 - 404 "no corresponding room"
 - 409 "{userID} Already in room"
+- 400 You cannot invite other user(s) when you are not joining the room
 - 500 "internal server error"
 
 ### `/search` **(GET)**
