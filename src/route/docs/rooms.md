@@ -64,7 +64,7 @@ ID를 parameter로 받아 해당 ID의 room의 정보 출력
 
 - 새로이 만들어진 방
 
-### `/invite` (POST) (검증 안됨)
+### `/invite` (POST)
 
 room의 ID와 user들의 ID list를 받아 해당 room의 participants에 추가한다.
 
@@ -89,15 +89,9 @@ room의 ID와 user들의 ID list를 받아 해당 room의 participants에 추가
 
 출발지/도착지/날짜를 받아 해당하는 room들을 반환한다.
 
-#### GET request body
-
-```javascript
-{
-    from : String, // 출발지
-    to : String, // 도착지
-    time? : Date, // 날짜
-}
-```
+- from : String, // 출발지
+- to : String, // 도착지
+- time? : Date, // 출발 시각
 
 #### Response
 
@@ -109,9 +103,9 @@ room의 ID와 user들의 ID list를 받아 해당 room의 participants에 추가
 - 404 "no corresponding location"
 - 500 "internal server error"
 
-### `/searchByName/:name` **(GET)**
+### `/searchByName/` **(GET)**
 
-방 이름을 받아 해당하는 room들을 반환한다.
+방 이름을 받아 이름이 정확히 일치하는 room들을 반환한다.
 
 #### URL parameters
 

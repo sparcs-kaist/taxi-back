@@ -329,8 +329,8 @@ router.get(
 
 // 해당 이름과 일치하는 방을 반환한다.
 router.get(
-  "/searchByName/:name",
-  param("name").matches(patterns.name),
+  "/searchByName/",
+  query("name").matches(patterns.name),
   async (req, res) => {
     const validationErrors = validationResult(req);
     if (!validationErrors.isEmpty()) {
@@ -342,7 +342,7 @@ router.get(
 
     try {
       let rooms = await roomModel
-        .find({ name: req.params.name })
+        .find({ name: req.query.name })
         .populate(roomPopulateQuery)
         .exec();
       if (!rooms) {
