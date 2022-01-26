@@ -3,7 +3,6 @@ const router = express.Router();
 const ejs = require("ejs");
 const security = require("../../security");
 const { userModel } = require("../db/mongo");
-const generateTokenBySession = require("../auth/generateTokenBySession");
 const { logout, getLoginInfo, login } = require("../auth/login");
 const {
   generateNickname,
@@ -102,8 +101,8 @@ const loginDone = (req, res, userData) => {
       else if (!result) joinus(req, res, userData);
       else {
         login(req, userData.sid, result.id, result.name);
-        // res.send("successful");
-        res.redirect(security.frontUrl);
+        res.send("successful"); //API 테스트용 코드(프론트 리다이렉트 X)
+        // res.redirect(security.frontUrl);
       }
     }
   );
@@ -125,18 +124,6 @@ router.route("/sparcssso").get((req, res) => {
 router.route("/logout").get((req, res) => {
   logout(req, res);
   res.status(200).send("logged out successfully");
-});
-
-// 세션의 로그인 정보를 토큰으로 만들어 반환
-router.get("/getToken", (req, res) => {
-  const userInfo = getLoginInfo(req);
-  const { id, sid, name } = userInfo;
-  if (!id || !sid || !name) {
-    return res.status(403).send("not logged in");
-  }
-  const token = generateTokenBySession(userInfo);
-
-  res.status(200).send(token);
 });
 
 module.exports = router;
