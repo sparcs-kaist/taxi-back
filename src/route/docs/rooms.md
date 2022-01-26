@@ -7,13 +7,13 @@
 
 ```javascript
 Room {
-  _id: String,
-  name: String,
-  from: String,
-  to: String,
-  time: String(ISO 8601), //ex) '2022-01-12T13:58:20.180Z'
-  part: [{name: String, id: String, nickname: String}],
-  madeat: String(ISO 8601), //ex) '2022-01-12T13:58:20.180Z'
+  _id: String, //ObjectID
+  name: String, // 1~50글자로 구성되며 영어 대소문자, 숫자, 한글, "-", ",", ".", "?", "!", "_"로만 이루어져야 함.
+  from: String, // 출발지
+  to: String, // 도착지
+  time: String(ISO 8601), // ex) '2022-01-12T13:58:20.180Z'
+  part: [{name: String, id: String, nickname: String}], // 참여 중인 사용자 목록
+  madeat: String(ISO 8601), // ex) '2022-01-12T13:58:20.180Z'
   __v: Number,
 }
 ```
@@ -64,7 +64,7 @@ ID를 parameter로 받아 해당 ID의 room의 정보 출력
 
 - 새로이 만들어진 방
 
-### `/invite` (POST) (검증 안됨)
+### `/invite` (POST)
 
 room의 ID와 user들의 ID list를 받아 해당 room의 participants에 추가한다.
 
@@ -82,21 +82,16 @@ room의 ID와 user들의 ID list를 받아 해당 room의 participants에 추가
 - 400 "Bad request"
 - 404 "no corresponding room"
 - 409 "{userID} Already in room"
+- 400 You cannot invite other user(s) when you are not joining the room
 - 500 "internal server error"
 
 ### `/search` **(GET)**
 
 출발지/도착지/날짜를 받아 해당하는 room들을 반환한다.
 
-#### GET request body
-
-```javascript
-{
-    from : String, // 출발지
-    to : String, // 도착지
-    time? : Date, // 날짜
-}
-```
+- from : String, // 출발지
+- to : String, // 도착지
+- time? : Date, // 출발 시각
 
 #### Response
 
@@ -108,9 +103,9 @@ room의 ID와 user들의 ID list를 받아 해당 room의 participants에 추가
 - 404 "no corresponding location"
 - 500 "internal server error"
 
-### `/searchByName/:name` **(GET)**
+### `/searchByName/` **(GET)**
 
-방 이름을 받아 해당하는 room들을 반환한다.
+방 이름을 받아 이름이 정확히 일치하는 room들을 반환한다.
 
 #### URL parameters
 
@@ -139,8 +134,8 @@ room의 ID와 user들의 ID list를 받아 해당 room의 participants에 추가
 
 ```javascript
 {
-  ongoing: [Room],
-  done: [Room],
+  ongoing: [Room], //이미 출발한 방
+  done: [Room], //아직 출발 안 한 방
 }
 ```
 

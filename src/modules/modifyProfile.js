@@ -63,13 +63,6 @@ const generateNickname = (id) => {
   return nickname;
 };
 
-// 새 닉네임이 닉네임 규칙에 부합하는지 검사합니다.
-// 알파벳, 한글, 숫자, -, _ 기호로 3~25자 구성
-const checkNickname = (nickname) => {
-  const re = new RegExp("[A-Za-z가-힣0-9-_]{3,25}");
-  return re.test(nickname);
-};
-
 // 기존 프로필 사진의 URI 중 하나를 무작위로 선택해 반환합니다.
 const generateProfileImageUrl = (id) => {
   const fileNames = fs.readdirSync(
@@ -82,6 +75,7 @@ const generateProfileImageUrl = (id) => {
   return imgUrl;
 };
 
+// 업로드된 파일의 경로가 주어졌을 때, 해당 파일(buffer)의 magic number를 계산해 해당 파일이 이미지인지 판별합니다.
 const checkProfileImage = async (filePath) => {
   const imageFileType = await fileType.fromFile(filePath);
   if (!imageFileType || imageFileType.mime.split("/")[0] != "image")
@@ -91,7 +85,6 @@ const checkProfileImage = async (filePath) => {
 
 module.exports = {
   generateNickname,
-  checkNickname,
   generateProfileImageUrl,
   checkProfileImage,
 };

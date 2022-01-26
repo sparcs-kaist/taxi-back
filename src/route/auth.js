@@ -2,7 +2,6 @@ const express = require("express");
 const router = express.Router();
 const security = require("../../security");
 const authReplace = require("./auth.replace");
-const generateTokenBySession = require("../auth/generateTokenBySession");
 const { userModel } = require("../db/mongo");
 const { getLoginInfo, logout, login } = require("../auth/login");
 const {
@@ -97,18 +96,6 @@ router.route("/sparcssso/callback").get((req, res) => {
 router.route("/logout").get((req, res) => {
   logout(req, res);
   res.status(200).send("logged out successfully");
-});
-
-// 세션의 로그인 정보를 토큰으로 만들어 반환
-router.get("/getToken", (req, res) => {
-  const userInfo = getLoginInfo(req);
-  console.log(userInfo);
-  if (!userInfo) {
-    return res.status(403).send("not logged in");
-  }
-  const token = generateTokenBySession(userInfo);
-
-  res.status(200).send(token);
 });
 
 module.exports = security.sparcssso_replace ? authReplace : router;

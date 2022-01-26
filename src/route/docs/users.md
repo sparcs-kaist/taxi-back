@@ -8,13 +8,12 @@
 User {
     _id: String,
     name: String,
-    nickname: String,
+    nickname: String, // 3글자 이상 25글자 이하로 구성되며 영어 대소문자, 한글, " ", 0~9, "-", "_" 으로만 이루어져야 함.
     id: String,
     withdraw: Boolean,
     ban: Boolean,
     joinat: Date,
-    room: Array,
-    profileImageUrl: String,
+    room: [Room],
     subinfo: {
         kaist: String,
         sparcs: String,
@@ -24,6 +23,76 @@ User {
     __v: Number,
 }
 ```
+
+### `/:user_id/editNickname` **(POST)**
+
+- 해당 사용자의 닉네임을 새로 설정함.
+- 새로운 닉네임은 상술한 규칙을 만족해야 함.
+
+#### URL Parameters
+
+- user_id : 사용자의 SPARCS SSO ID
+
+#### request JSON form
+
+```javascript
+{
+    nickname: String, // 새 닉네임
+}
+```
+
+#### Response
+
+```javascript
+{
+    status: 200,
+    data: "edit user nickname successful",
+}
+```
+
+#### Errors
+
+- 400 "wrong nickname"
+- 400 "such user id does not exist"
+- 403 "not logged in"
+- 500 "internal server error"
+
+### `/:user_id/uploadProfileImage` **(POST)**
+
+- 해당 사용자의 프로필 사진을 업로드받아 변경.
+- 프로필 사진은 multipart/form-data를 통해 업로드되어야 함. (header의 Content-Type을 multipart/form-data로 설정)
+- 프로필 사진은 아래 규칙을 만족해야 함.
+  1. 파일명이 100 bytes 이하
+  2. 파일 크기는 최대 2 MB
+
+#### URL Parameters
+
+- user_id : 사용자의 SPARCS SSO ID
+
+#### request JSON form
+
+```javascript
+{
+    profileImage: File, // 새 프로필 사진
+}
+```
+
+#### Response
+
+```javascript
+{
+    status: 200,
+    data: "upload profile image successful",
+}
+```
+
+#### Errors
+
+- 400 "no file uploaded"
+- 400 "not an image file"
+- 400 "such user id does not exist"
+- 403 "not logged in"
+- 500 "internal server error"
 
 ### `/` **(GET)** (for dev)
 
@@ -195,75 +264,3 @@ User; //수정할 사용자 정보
 - 400 "The user does not exist"
 - 409 "The user already entered the room"
 - 500 "User/participate : Error 500"
-
-### `/:user_id/editNickname` **(POST)**
-
-- 해당 사용자의 닉네임을 새로 설정함.
-- 닉네임은 다음 규칙을 모두 만족해야 함.
-  1. 영어 대소문자, 한글, 0~9, "-", "\_" 으로만 이루어져야 함.
-  2. 3글자 이상 25글자 이하여야 함.
-
-#### URL Parameters
-
-- user_id : 사용자의 SPARCS SSO ID
-
-#### request JSON form
-
-```javascript
-{
-    nickname: String, // 새 닉네임
-}
-```
-
-#### Response
-
-```javascript
-{
-    status: 200,
-    data: "edit user nickname successful",
-}
-```
-
-#### Errors
-
-- 400 "wrong nickname"
-- 400 "such user id does not exist"
-- 403 "not logged in"
-- 500 "internal server error"
-
-### `/:user_id/uploadProfileImage` **(POST)**
-
-- 해당 사용자의 프로필 사진을 업로드받아 변경.
-- 프로필 사진은 multipart/form-data를 통해 업로드되어야 함. (header의 Content-Type을 multipart/form-data로 설정)
-- 프로필 사진은 아래 규칙을 만족해야 함.
-  1. 파일명이 100 bytes 이하
-  2. 파일 크기는 최대 2 MB
-
-#### URL Parameters
-
-- user_id : 사용자의 SPARCS SSO ID
-
-#### request JSON form
-
-```javascript
-{
-    profileImage: File, // 새 프로필 사진
-}
-```
-
-#### Response
-
-```javascript
-{
-    status: 200,
-    data: "upload profile image successful",
-}
-```
-
-#### Errors
-
-- 400 "no file uploaded"
-- 400 "not an image file"
-- 400 "such user id does not exist"
-- 403 "not logged in"
-- 500 "internal server error"
