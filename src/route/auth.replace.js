@@ -101,8 +101,8 @@ const loginDone = (req, res, userData) => {
       else if (!result) joinus(req, res, userData);
       else {
         login(req, userData.sid, result.id, result.name);
-        res.send("successful"); //API 테스트용 코드(프론트 리다이렉트 X)
-        // res.redirect(security.frontUrl);
+        // res.send("successful"); //API 테스트용 코드(프론트 리다이렉트 X)
+        res.redirect(security.frontUrl);
       }
     }
   );
