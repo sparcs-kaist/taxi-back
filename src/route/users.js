@@ -21,13 +21,19 @@ const patterns = {
 router.get("/:user_id/agreeOnTermsOfService", async (req, res) => {
   try {
     let user = userModel.findOne({ id: req.userId });
-    user.agreeOnTermsOfService = true;
-    await user.save();
-    res
-      .status(200)
-      .send(
-        "User/:user_id/agreeOnTermsOfService : agree on Terms of Service successful"
-      );
+    if (user.agreeOnTermsOfService === false) {
+      user.agreeOnTermsOfService = true;
+      await user.save();
+      res
+        .status(200)
+        .send(
+          "User/:user_id/agreeOnTermsOfService : agree on Terms of Service successful"
+        );
+    } else {
+      res
+        .status(400)
+        .send("User/:user_id/agreeOnTermsOfService : already agreed");
+    }
   } catch {
     res
       .status(500)
