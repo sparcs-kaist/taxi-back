@@ -1,8 +1,6 @@
 const express = require("express");
-const { roomModel, userModel, chatModel } = require("../db/mongo");
+const { roomModel, userModel } = require("../db/mongo");
 const { getLoginInfo } = require("../auth/login");
-// const chunkArray = require("../modules/chunkArray");
-
 const router = express.Router();
 
 router.get('/:roomId', async (req, res) => {
@@ -27,16 +25,9 @@ router.get('/:roomId', async (req, res) => {
     // if user don't participate in the room
     if(!includingMe) return res.status(404).send("no authority");
 
-    /* 일단 모든 채팅을 불러온다 */
-    chatModel.find({ roomId: roomId }, (err, chats) => {
-      if(err) return res.status(404).send(err);
-
-      res.send({
-        name: room.name, time: room.time, parts: parts,
-        chats: chats
-      });
-    }).sort({ time: 1 })
-
+    res.send({
+      name: room.name, time: room.time, parts: parts
+    });
   })
 })
 
