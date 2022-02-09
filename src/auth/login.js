@@ -27,9 +27,19 @@ const logout = (req, res) => {
   });
 };
 
+const joinChatRoom = (req, roomId) => {
+  req.session.chatRoomId = roomId;
+}
+
+const leaveChatRoom = () => {
+  req.session.chatRoomId = undefined;
+}
+
 module.exports = {
   getLoginInfo,
   isLogin,
   login,
   logout,
+  joinChatRoom,
+  leaveChatRoom
 };
