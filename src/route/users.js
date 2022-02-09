@@ -17,6 +17,24 @@ const patterns = {
   nickname: RegExp("^[A-Za-z가-힣ㄱ-ㅎㅏ-ㅣ0-9-_ ]{3,25}$"),
 };
 
+// 이용 약관에 동의합니다.
+router.get("/:user_id/agreeOnTermsOfService", async (req, res) => {
+  try {
+    let user = userModel.findOne({ id: req.userId });
+    user.agreeOnTermsOfService = true;
+    await user.save();
+    res
+      .status(200)
+      .send(
+        "User/:user_id/agreeOnTermsOfService : agree on Terms of Service successful"
+      );
+  } catch {
+    res
+      .status(500)
+      .send("User/:user_id/agreeOnTermsOfService : internal server error");
+  }
+});
+
 // 새 닉네임을 받아 로그인된 유저의 닉네임을 변경합니다.
 // 닉네임은 알파벳, 한글, 숫자, 공백, "-", ",", "_" 기호만을 이용해 3~25자 길이로 구성되어야 합니다.
 router.post(

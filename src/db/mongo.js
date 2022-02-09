@@ -9,8 +9,9 @@ const userSchema = Schema({
   profileImageUrl: { type: String, required: true }, //백엔드에서의 프로필 이미지 경로
   room: [{ type: Schema.Types.ObjectId, ref: "Room" }], //참여중인 방 배열
   withdraw: { type: Boolean, default: false },
-  ban: { type: Boolean, default: false },
-  joinat: { type: Date, required: true },
+  ban: { type: Boolean, default: false }, //계정 정지 여부
+  joinat: { type: Date, required: true }, //가입 시각
+  agreeOnTermsOfService: { type: Boolean, default: false }, //이용약관 동의 여부
   subinfo: {
     kaist: { type: String, default: "" },
     sparcs: { type: String, default: "" },
@@ -19,12 +20,13 @@ const userSchema = Schema({
   },
 });
 const roomSchema = Schema({
-  name: { type: String, required: true, default: "이름 없음" },
+  name: { type: String, required: true, default: "이름 없음", text: true },
   from: { type: Schema.Types.ObjectId, ref: "Location", required: true },
   to: { type: Schema.Types.ObjectId, ref: "Location", required: true },
   time: { type: Date, required: true }, // 출발 시간
   part: [{ type: Schema.Types.ObjectId, ref: "User" }], // 참여 멤버
   madeat: { type: Date, required: true }, // 생성 날짜
+  //FIXME: 결제 예정자, 정산 여부 (웹페이지에서 이를 어떻게 처리할 것인지 추가 논의가 필요함)
 });
 const locationSchema = Schema({
   name: { type: String, required: true },
