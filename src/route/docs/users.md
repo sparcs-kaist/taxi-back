@@ -25,11 +25,11 @@ User {
 }
 ```
 
-### `/:user_id/agreeOnTermsOfService` **(GET)**
+### `/agreeOnTermsOfService` **(POST)**
 
-- 이용 약관에 동의함
+- 이용 약관에 동의함 (철회 불가)
 
-#### URL Parameters
+#### URL Parameters, Request JSON form
 
 - 없음
 
@@ -38,6 +38,22 @@ User {
 - 200 "agree on Terms of Service successful"
 - 400 "already agreed"
 - 500 "internal server error"
+
+### `/getAgreeOnTermsOfService` **(GET)**
+
+- 이용 약관 동의 여부를 가져옴
+
+#### URL Parameters, Request JSON form
+
+- 없음
+
+#### Response
+
+```javascript
+{
+    agreeOnTermsOfService: Boolean
+},
+```
 
 ### `/:user_id/editNickname` **(POST)**
 

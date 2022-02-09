@@ -18,26 +18,34 @@ const patterns = {
 };
 
 // 이용 약관에 동의합니다.
-router.get("/:user_id/agreeOnTermsOfService", async (req, res) => {
+router.post("/agreeOnTermsOfService", async (req, res) => {
   try {
-    let user = userModel.findOne({ id: req.userId });
+    let user = await userModel.findOne({ id: req.userId });
     if (user.agreeOnTermsOfService === false) {
       user.agreeOnTermsOfService = true;
       await user.save();
       res
         .status(200)
         .send(
-          "User/:user_id/agreeOnTermsOfService : agree on Terms of Service successful"
+          "User/agreeOnTermsOfService : agree on Terms of Service successful"
         );
     } else {
-      res
-        .status(400)
-        .send("User/:user_id/agreeOnTermsOfService : already agreed");
+      res.status(400).send("User/agreeOnTermsOfService : already agreed");
     }
   } catch {
-    res
-      .status(500)
-      .send("User/:user_id/agreeOnTermsOfService : internal server error");
+    res.status(500).send("User/agreeOnTermsOfService : internal server error");
+  }
+});
+
+router.get("/getAgreeOnTermsOfService", async (req, res) => {
+  try {
+    const user = await userModel
+      .findOne({ id: req.userId }, "agreeOnTermsOfService")
+      .lean();
+    const agreeOnTermsOfService = user.agreeOnTermsOfService;
+    res.status(200).json({ agreeOnTermsOfService });
+  } catch {
+    res.status(500).send("/getAgreeOnTermsOfService : internal server error");
   }
 });
 
