@@ -31,15 +31,12 @@ const locationSchema = Schema({
   //   latitude: { type: Number, required: true },
   // longitude: { type: Number, required: true }
 });
-const chatRoomSchema = Schema({
-  _id: Number,
-  chats: [
-    {
-      author: String,
-      text: String,
-      time: Date,
-    },
-  ],
+const chatSchema = Schema({
+  roomId: { type: Schema.Types.ObjectId, required: true },
+  authorId: { type: Schema.Types.ObjectId, required: true },
+  authorName: { type: String, required: true },
+  text: { type: String, default: "" },
+  time: { type: Date, required: true },
 });
 
 mongoose.set("useFindAndModify", false);
@@ -74,5 +71,5 @@ module.exports = {
   userModel: mongoose.model("User", userSchema),
   roomModel: mongoose.model("Room", roomSchema),
   locationModel: mongoose.model("Location", locationSchema),
-  chatRoomModel: mongoose.model("ChatRoom", chatRoomSchema),
+  chatModel: mongoose.model("Chat", chatSchema),
 };
