@@ -3,6 +3,7 @@ const router = express.Router();
 const authMiddleware = require("../middleware/auth");
 const { roomModel, locationModel, userModel } = require("../db/mongo");
 const { query, param, body, validationResult } = require("express-validator");
+const { emitChatEvent } = require("../route/chats.socket");
 //const taxiResponse = require('../taxiResponse')
 
 // 라우터 접근 시 로그인 필요
@@ -200,10 +201,20 @@ router.post(
           });
           return;
         }
+        newUsers.push(user);
         room.part.push(user._id);
         user.room.push(room._id);
         await user.save();
       }
+
+      // "AAA님, BBB님" 처럼 사용자 목록을 텍스트로 가공합니다.
+      const nicknames = newUsers.map((user) => user.nickname);
+      const concatenatedNicknames = nicknames.join(" 님, ") + " 님";
+
+      // 입장 채팅을 보냅니다.
+      emitChatEvent(req.app.get("io"), room._id, {
+        text: `${concatenatedNicknames}이 입장했습니다`,
+      });
 
       await room.save();
       await room.execPopulate(roomPopulateQuery);
@@ -221,6 +232,7 @@ router.post(
 // request: {roomId: 나갈 방}
 // result: Room
 // 모든 사람이 나갈 경우 방 삭제.
+// FIXME: 출발 이후에는 방에서 나갈 수 없어야 함 (정산 없이 도망가는 경우 방지)
 router.post("/abort", body("roomId").isMongoId(), async (req, res) => {
   // Request JSON Validation
   const validationErrors = validationResult(req);
@@ -267,6 +279,11 @@ router.post("/abort", body("roomId").isMongoId(), async (req, res) => {
         await room.remove();
       }
     }
+
+    // 퇴장 채팅을 보냅니다.
+    emitChatEvent(req.app.get("io"), room._id, {
+      text: `${user.nickname} 님이 퇴장했습니다.`,
+    });
     await room.execPopulate(roomPopulateQuery);
     res.send(room);
   } catch (error) {

@@ -25,6 +25,7 @@ const roomSchema = Schema({
   time: { type: Date, required: true }, // 출발 시간
   part: [{ type: Schema.Types.ObjectId, ref: "User" }], // 참여 멤버
   madeat: { type: Date, required: true }, // 생성 날짜
+  //FIXME: 결제 예정자, 정산 여부 (웹페이지에서 이를 어떻게 처리할 것인지 추가 논의가 필요함)
 });
 const locationSchema = Schema({
   name: { type: String, required: true },
@@ -33,8 +34,8 @@ const locationSchema = Schema({
 });
 const chatSchema = Schema({
   roomId: { type: Schema.Types.ObjectId, required: true },
-  authorId: { type: Schema.Types.ObjectId, required: true },
-  authorName: { type: String, required: true },
+  authorId: { type: Schema.Types.ObjectId },
+  authorName: { type: String },
   text: { type: String, default: "" },
   time: { type: Date, required: true },
 });
