@@ -71,7 +71,6 @@ router.get("/:id/info", param("id").isMongoId(), async (req, res) => {
 });
 
 // JSON으로 받은 정보로 방을 생성한다.
-// FIXME: {data: JSON} -> {JSON} 로 API 단순화하기,
 router.post(
   "/create",
   [
@@ -232,7 +231,6 @@ router.post(
 // request: {roomId: 나갈 방}
 // result: Room
 // 모든 사람이 나갈 경우 방 삭제.
-// FIXME: 출발 이후에는 방에서 나갈 수 없어야 함 (정산 없이 도망가는 경우 방지)
 router.post("/abort", body("roomId").isMongoId(), async (req, res) => {
   // Request JSON Validation
   const validationErrors = validationResult(req);
@@ -510,7 +508,6 @@ router.post(
   }
 );
 
-// FIXME: 방장만 삭제 가능.
 router.get("/:id/delete", param("id").isMongoId(), async (req, res) => {
   const validationErrors = validationResult(req);
   if (!validationErrors.isEmpty()) {
