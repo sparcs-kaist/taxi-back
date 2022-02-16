@@ -21,7 +21,7 @@ const patterns = {
 router.post("/agreeOnTermsOfService", async (req, res) => {
   try {
     let user = await userModel.findOne({ id: req.userId });
-    if (user.agreeOnTermsOfService === false) {
+    if (user.agreeOnTermsOfService !== true) {
       user.agreeOnTermsOfService = true;
       await user.save();
       res
@@ -42,7 +42,7 @@ router.get("/getAgreeOnTermsOfService", async (req, res) => {
     const user = await userModel
       .findOne({ id: req.userId }, "agreeOnTermsOfService")
       .lean();
-    const agreeOnTermsOfService = user.agreeOnTermsOfService;
+    const agreeOnTermsOfService = user.agreeOnTermsOfService === true;
     res.status(200).json({ agreeOnTermsOfService });
   } catch {
     res.status(500).send("/getAgreeOnTermsOfService : internal server error");
