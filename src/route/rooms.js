@@ -122,7 +122,7 @@ router.post(
       user.room.push(room._id);
       await user.save();
 
-      room.execPopulate(roomPopulateQuery);
+      await room.execPopulate(roomPopulateQuery);
       res.send(room);
       return;
     } catch (err) {
