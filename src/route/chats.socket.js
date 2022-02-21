@@ -29,8 +29,8 @@ const ioListeners = (io, socket) => {
         // find chats
         chatModel
           .find({ roomId: roomId }, (err, chats) => {
-            if (err) return res.status(404).send(err);
-            io.to(socket.id).emit("chats-join", { chats: chats });
+            if (err) io.to(socket.id).emit("chats-join", { err: true });
+            else io.to(socket.id).emit("chats-join", { chats: chats });
           })
           .sort({ time: 1 });
       });

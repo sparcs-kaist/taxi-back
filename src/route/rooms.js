@@ -4,6 +4,7 @@ const authMiddleware = require("../middleware/auth");
 const { roomModel, locationModel, userModel } = require("../db/mongo");
 const { query, param, body, validationResult } = require("express-validator");
 const { emitChatEvent } = require("../route/chats.socket");
+const { leaveChatRoom } = require("../auth/login");
 //const taxiResponse = require('../taxiResponse')
 
 // 라우터 접근 시 로그인 필요
@@ -256,6 +257,12 @@ router.post("/abort", body("roomId").isMongoId(), async (req, res) => {
         error: "Room/abort : no corresponding room",
       });
       return;
+    }
+
+    // 사용자가 채팅방에 들어와있는 경우, 소켓 연결을 먼저 끊는다.
+    if (req.session.socketId && req.session.chatRoomId) {
+      req.app.get("io").in(req.session.socketId).disconnectSockets(true);
+      leaveChatRoom({ session: req.session });
     }
 
     // 사용자가 참여중인 방 목록에서 해당 방을 제거하고, 해당 방의 참여자 목록에서 사용자를 제거한다.
