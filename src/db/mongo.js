@@ -34,7 +34,7 @@ const locationSchema = Schema({
 });
 const chatSchema = Schema({
   roomId: { type: Schema.Types.ObjectId, required: true },
-  authorId: { type: Schema.Types.ObjectId },
+  authorId: { type: String, required: true },
   authorName: { type: String },
   text: { type: String, default: "" },
   time: { type: Date, required: true },

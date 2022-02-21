@@ -23,7 +23,7 @@ const ioListeners = (io, socket) => {
         }
 
         // join chat room
-        joinChatRoom({ session: session }, roomId);
+        joinChatRoom({ session: session }, socket.id, roomId);
         socket.join(`chatRoom-${roomId}`);
 
         // find chats
@@ -65,20 +65,18 @@ const ioListeners = (io, socket) => {
   socket.on("chats-send", async (content) => {
     try {
       const myUserId = getLoginInfo({ session: session }).id || "";
-      const myUser = await userModel.findOne({ id: myUserId }, "_id nickname");
+      const myUser = await userModel.findOne({ id: myUserId }, "id nickname");
       if (!myUser)
         return io.to(socket.id).emit("chats-send", { err: "user not exist" });
-
       const roomId = session.chatRoomId;
       if (!roomId)
         return io
           .to(socket.id)
           .emit("chats-send", { err: "user not join chat room" });
-
       // push chat to db
       const chat = new chatModel({
         roomId: roomId,
-        authorId: myUser._id,
+        authorId: myUser.id,
         authorName: myUser.nickname,
         text: content,
         time: Date.now(),
@@ -105,7 +103,7 @@ class IllegalArgumentsException {
 }
 
 // express 라우터에서 채팅 이벤트를 보낼 수 있게 함수를 분리했습니다.
-const emitChatEvent = (io, roomId, chat) => {
+const emitChatEvent = async (io, roomId, chat) => {
   if (!io || !roomId || !chat.text) {
     throw new IllegalArgumentsException();
   }
@@ -121,7 +119,7 @@ const emitChatEvent = (io, roomId, chat) => {
   }
 
   const chatDocument = new chatModel(chat);
-  chatDocument.save((err) => {
+  await chatDocument.save((err) => {
     if (!err) {
       io.to(`chatRoom-${roomId}`).emit("chats-receive", chat);
     }
