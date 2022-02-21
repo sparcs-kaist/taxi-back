@@ -5,9 +5,11 @@
 
 ```javascript
 Chat {
-    author: String,
-    text: String,
-    time: Date,
+    roomId: ObjectId, //방의 objectId
+    authorName: String, //작성자 닉네임 (사용자 입,퇴장 알림 등 전체 메시지일 때: null)
+    authorId: String, //작성자 id (!==ObjectId) (전체 메시지일 때: null)
+    text: String, //채팅 내용
+    time: Date, //UTC 시각
 }
 ```
 
