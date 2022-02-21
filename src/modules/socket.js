@@ -2,7 +2,7 @@ const { Server } = require("socket.io");
 const sharedsession = require("express-socket.io-session");
 const cookieParser = require("cookie-parser");
 const security = require("../../security");
-const ioChats = require("../route/chats.socket");
+const { ioListeners } = require("../route/chats.socket");
 
 // server: express server
 // session: session middleware
@@ -23,10 +23,11 @@ module.exports = (server, session) => {
   );
 
   io.on("connection", (socket) => {
-    socket.on('disconnect', () => {});
+    socket.on("disconnect", () => {});
 
-    ioChats(io, socket);
+    // 채팅 이벤트 리스너들을 함수로 분리
+    ioListeners(io, socket);
   });
 
   return io;
-};;
+};

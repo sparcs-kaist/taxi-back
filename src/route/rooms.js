@@ -3,6 +3,7 @@ const router = express.Router();
 const authMiddleware = require("../middleware/auth");
 const { roomModel, locationModel, userModel } = require("../db/mongo");
 const { query, param, body, validationResult } = require("express-validator");
+const { emitChatEvent } = require("../route/chats.socket");
 //const taxiResponse = require('../taxiResponse')
 
 // 라우터 접근 시 로그인 필요
@@ -70,7 +71,6 @@ router.get("/:id/info", param("id").isMongoId(), async (req, res) => {
 });
 
 // JSON으로 받은 정보로 방을 생성한다.
-// FIXME: {data: JSON} -> {JSON} 로 API 단순화하기,
 router.post(
   "/create",
   [
@@ -122,7 +122,7 @@ router.post(
       user.room.push(room._id);
       await user.save();
 
-      room.execPopulate(roomPopulateQuery);
+      await room.execPopulate(roomPopulateQuery);
       res.send(room);
       return;
     } catch (err) {
@@ -200,10 +200,20 @@ router.post(
           });
           return;
         }
+        newUsers.push(user);
         room.part.push(user._id);
         user.room.push(room._id);
         await user.save();
       }
+
+      // "AAA님, BBB님" 처럼 사용자 목록을 텍스트로 가공합니다.
+      const nicknames = newUsers.map((user) => user.nickname);
+      const concatenatedNicknames = nicknames.join(" 님, ") + " 님";
+
+      // 입장 채팅을 보냅니다.
+      await emitChatEvent(req.app.get("io"), room._id, {
+        text: `${concatenatedNicknames}이 입장했습니다`,
+      });
 
       await room.save();
       await room.execPopulate(roomPopulateQuery);
@@ -267,6 +277,11 @@ router.post("/abort", body("roomId").isMongoId(), async (req, res) => {
         await room.remove();
       }
     }
+
+    // 퇴장 채팅을 보냅니다.
+    await emitChatEvent(req.app.get("io"), room._id, {
+      text: `${user.nickname} 님이 퇴장했습니다.`,
+    });
     await room.execPopulate(roomPopulateQuery);
     res.send(room);
   } catch (error) {
@@ -287,7 +302,6 @@ router.get(
   ],
   async (req, res) => {
     const { from, to, time } = req.query;
-    // console.log(req.query);
 
     const validationErrors = validationResult(req);
     if (!validationErrors.isEmpty()) {
@@ -493,7 +507,6 @@ router.post(
   }
 );
 
-// FIXME: 방장만 삭제 가능.
 router.get("/:id/delete", param("id").isMongoId(), async (req, res) => {
   const validationErrors = validationResult(req);
   if (!validationErrors.isEmpty()) {

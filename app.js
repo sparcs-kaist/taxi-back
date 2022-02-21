@@ -44,8 +44,10 @@ app.use("/rooms", require("./src/route/rooms"));
 app.use("/chats", require("./src/route/chats"));
 app.use("/static", require("./src/route/static"));
 
+// express 서버 시작
 const serverHttp = http.createServer(app).listen(security.nodePort, () => {
   console.log(`Express 서버가 ${security.nodePort}번 포트에서 시작됨.`);
 });
 
-startSocketServer(serverHttp, session);
+// socket.io 서버 시작 및 app 인스턴스에 저장
+app.set("io", startSocketServer(serverHttp, session));
