@@ -211,7 +211,7 @@ router.post(
       const concatenatedNicknames = nicknames.join(" 님, ") + " 님";
 
       // 입장 채팅을 보냅니다.
-      emitChatEvent(req.app.get("io"), room._id, {
+      await emitChatEvent(req.app.get("io"), room._id, {
         text: `${concatenatedNicknames}이 입장했습니다`,
       });
 
@@ -279,7 +279,7 @@ router.post("/abort", body("roomId").isMongoId(), async (req, res) => {
     }
 
     // 퇴장 채팅을 보냅니다.
-    emitChatEvent(req.app.get("io"), room._id, {
+    await emitChatEvent(req.app.get("io"), room._id, {
       text: `${user.nickname} 님이 퇴장했습니다.`,
     });
     await room.execPopulate(roomPopulateQuery);
@@ -302,7 +302,6 @@ router.get(
   ],
   async (req, res) => {
     const { from, to, time } = req.query;
-    // console.log(req.query);
 
     const validationErrors = validationResult(req);
     if (!validationErrors.isEmpty()) {
