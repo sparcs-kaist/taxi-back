@@ -11,8 +11,7 @@ const generateUser = async (id) => {
     name: `${id}-name`,
     nickname: `${id}-nickname`,
     id: id,
-    profileImageUrl:
-      security.taxiBackDir + "/public/profile-images/default/sample.png", //hardcoded
+    profileImageUrl: "public/profile-images/default/sample.png", //hardcoded
     room: [],
     joinat: Date.now(),
   });
