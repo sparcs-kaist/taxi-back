@@ -62,7 +62,6 @@ const generateChats = async (roomId, numOfChats) => {
   await room.populate(roomPopulateQuery);
   let lastTime = Date.now();
   const someMinutes = 1000 * 60; //1 mins
-
   for (const i of Array(numOfChats).keys()) {
     const authorIdx = Math.floor(Math.random() * room.part.length);
     lastTime += Math.floor(Math.random() * someMinutes);

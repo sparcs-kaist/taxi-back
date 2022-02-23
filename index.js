@@ -13,7 +13,7 @@ const main = async () => {
   const numberOfChats = security.numberOfChats;
   const userOids = [];
   const roomOids = [];
-  for (const userId in userIds) {
+  for (const userId of userIds) {
     const userOid = await generateUser(userId);
     userOids.push(userOid);
   }

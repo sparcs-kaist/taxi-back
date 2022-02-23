@@ -7,6 +7,4 @@ const env = {
   numberOfChats: (process.env.NUM_OF_CHATS *= 1),
 };
 
-console.log(env);
-
 module.exports = env;
