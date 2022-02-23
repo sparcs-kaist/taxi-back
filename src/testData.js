@@ -4,7 +4,6 @@ const {
   locationModel,
   chatModel,
 } = require("./db/mongo");
-const security = require("../security");
 
 const generateUser = async (id) => {
   const newUser = new userModel({

@@ -47,12 +47,16 @@ const roomModel = mongoose.model("Room", roomSchema);
 const locationModel = mongoose.model("Location", locationSchema);
 const chatModel = mongoose.model("Chat", chatSchema);
 
-database.on("error", console.error.bind(console, "mongoose connection error."));
-database.on("open", () => {
+const initailizeDB = () => {
   userModel.collection.drop();
   roomModel.collection.drop();
   locationModel.collection.drop();
   chatModel.collection.drop();
+};
+
+database.on("error", console.error.bind(console, "mongoose connection error."));
+database.on("open", () => {
+  initializeDB();
   console.log("데이터베이스와 연결되었습니다.");
 });
 database.on("error", function (err) {
