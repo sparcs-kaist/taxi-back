@@ -8,7 +8,7 @@ const {
 const security = require("./security");
 
 const main = async () => {
-  const userIds = ["sunday", "monday", "tuesday", "wednesday"];
+  const userIds = security.users;
   const numberOfRooms = security.numberOfRooms;
   const numberOfChats = security.numberOfChats;
   const userOids = [];
@@ -21,7 +21,7 @@ const main = async () => {
   const { fromOid, toOid } = await generateSampleLocations();
 
   for (const i of Array(numberOfRooms).keys()) {
-    const roomOid = await generateRoom(fromOid, toOid, i + 1, userOids, 7);
+    const roomOid = await generateRoom(fromOid, toOid, i + 1, userOids, 7); //하드코딩: 일주일 뒤에 출발하는 방(들)을 만듭니다.
     roomOids.push(roomOid);
   }
 

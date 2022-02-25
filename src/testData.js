@@ -4,6 +4,7 @@ const {
   locationModel,
   chatModel,
 } = require("./db/mongo");
+const security = require("../security");
 
 const generateUser = async (id) => {
   const newUser = new userModel({
@@ -20,10 +21,10 @@ const generateUser = async (id) => {
 
 const generateSampleLocations = async () => {
   const newFrom = new locationModel({
-    name: "택시승강장",
+    name: security.fromLocation,
   });
   const newTo = new locationModel({
-    name: "대전역",
+    name: security.toLocation,
   });
   await newFrom.save();
   await newTo.save();
@@ -65,7 +66,7 @@ const generateJoinAbortChat = async (roomId, user, isJoining, time) => {
     roomId: roomId,
     authorId: null,
     authorName: null,
-    text: `${user.id}님이 ${isJoining ? "입장" : "퇴장"}했습니다.`,
+    text: `${user.nickname}님이 ${isJoining ? "입장" : "퇴장"}했습니다.`,
     time: time,
   });
   await newChat.save();
@@ -73,45 +74,49 @@ const generateJoinAbortChat = async (roomId, user, isJoining, time) => {
 
 const generateChats = async (roomId, numOfChats) => {
   const roomPopulateQuery = [{ path: "part", select: "id name nickname -_id" }];
-  const room = await roomModel.findById(roomId).exec();
-  await room.populate(roomPopulateQuery);
+  const room = await roomModel
+    .findById(roomId)
+    .lean()
+    .populate(roomPopulateQuery);
 
   const userIdsInRoom = [];
-  const userIdsOutRoom = room.part.map((user) => user.id);
-
+  const userIdsOutRoom = room.part;
   let lastTime = Date.now();
-  const someMinutes = 1000 * 20; //20 seconds
-  let occurenceOfJoin = 0.05; //5%
-  let occurenceOfAbort = 0.05; //5%, 즉 새로운 하나의 채팅 메시지가 입/퇴장 메시지 중 하나일 확률은 10%
+  const maximumIntervalBtwChats = 1000 * security.maximumIntervalBtwChats; //Default: 20,000 milliseconds
+  let occurenceOfJoin = security.occurenceOfJoin; //Default: 10%
+  let occurenceOfAbort = security.occurenceOfAbort; //Default: 10%, 즉 새로운 하나의 채팅 메시지가 입/퇴장 메시지 중 하나일 확률은 20%
 
   for (const i of Array(numOfChats).keys()) {
-    lastTime += Math.floor(Math.random() * someMinutes);
+    lastTime += Math.floor(Math.random() * maximumIntervalBtwChats);
     const event = Math.random();
 
-    if (event > occurenceOfJoin + occurenceOfAbort) {
+    if (
+      userIdsInRoom.length === 0 ||
+      (event < occurenceOfJoin && userIdsOutRoom.length !== 0)
+    ) {
+      // 더 들어올 사용자가 있을 경우, 더 들어옴
+      const authorIdx = Math.floor(Math.random() * userIdsOutRoom.length);
+      const user = userIdsOutRoom[authorIdx];
+      await generateJoinAbortChat(roomId, user, true, lastTime);
+      userIdsInRoom.push(user);
+      userIdsOutRoom.splice(authorIdx, 1);
+    } else if (
+      occurenceOfJoin <= event &&
+      event < occurenceOfJoin + occurenceOfAbort &&
+      userIdsInRoom.length > 1
+    ) {
+      // 나갈 사용자가 있을 경우, 나감
+      const authorIdx = Math.floor(Math.random() * userIdsInRoom.length);
+      const user = userIdsInRoom[authorIdx];
+      await generateJoinAbortChat(roomId, user, false, lastTime);
+      userIdsOutRoom.push(user);
+      userIdsInRoom.splice(authorIdx, 1);
+    } else {
       // 방이 비어있지 않을 경우, 채팅 메시지를 만듦
       if (userIdsInRoom.length !== 0) {
         const authorIdx = Math.floor(Math.random() * userIdsInRoom.length);
-        const user = room.part[authorIdx];
+        const user = userIdsInRoom[authorIdx];
         await generateNormalChat(i, roomId, user, lastTime);
-      }
-    } else if (event < occurenceOfJoin) {
-      // 더 들어올 사용자가 있을 경우, 더 들어옴
-      if (userIdsOutRoom.length !== 0) {
-        const authorIdx = Math.floor(Math.random() * userIdsOutRoom.length);
-        const user = userIdsOutRoom[authorIdx];
-        generateJoinAbortChat(roomId, user, true, lastTime);
-        userIdsInRoom.push(user);
-        userIdsOutRoom.splice(authorIdx, 1);
-      }
-    } else {
-      // 나갈 사용자가 있을 경우, 나감
-      if (userIdsInRoom.length > 1) {
-        const authorIdx = Math.floor(Math.random() * userIdsInRoom.length);
-        const user = userIdsOutRoom[authorIdx];
-        generateJoinAbortChat(roomId, user, false, lastTime);
-        userIdsOutRoom.push(user);
-        userIdsInRoom.splice(authorIdx, 1);
       }
     }
   }
