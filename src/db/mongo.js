@@ -47,11 +47,13 @@ const roomModel = mongoose.model("Room", roomSchema);
 const locationModel = mongoose.model("Location", locationSchema);
 const chatModel = mongoose.model("Chat", chatSchema);
 
-const initailizeDB = () => {
-  userModel.collection.drop();
-  roomModel.collection.drop();
-  locationModel.collection.drop();
-  chatModel.collection.drop();
+const initializeDB = () => {
+  const models = [userModel, roomModel, locationModel, chatModel];
+  for (const model of models) {
+    if (model.collection) {
+      model.collection.drop();
+    }
+  }
 };
 
 database.on("error", console.error.bind(console, "mongoose connection error."));
