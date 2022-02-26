@@ -28,7 +28,7 @@ const main = async () => {
   for (const roomOid of roomOids) {
     await generateChats(roomOid, numberOfChats);
   }
-  console.log("끝!");
+  console.log("끝! 스크립트 실행을 중단하셔도 됩니다.");
 };
 
 main();
