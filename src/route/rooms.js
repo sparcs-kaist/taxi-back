@@ -419,6 +419,43 @@ router.get("/removeAllRoom", async (_, res) => {
   return;
 });
 
+
+router.post(
+  "/:id/settlement",
+  async (req, res) => {
+    const validationErrors = validationResult(req);
+    if (!validationErrors.isEmpty()) {
+      res.status(400).json({
+          error: "/:id/settlement : Bad request",
+      });
+      return;
+    }
+
+    try {
+      let result = await roomModel.findOneAndUpdate(
+        {_id : req.params.id, "settlement.studentID": req.userId },
+        {"settlement.$.isSettlement": true}
+      );
+      console.log(result);
+      if (result){
+        // 개인정산완료 -> 룸 정산 완료 되었는지도 확인 
+        res.send(result);
+      } else {
+        res.status(404).json({
+          error: " what error message? "
+        });
+      }
+    } catch (err) {
+      console.log(err);
+      res.status(500).json({
+        error: "/:id/settlement : internal server error",
+      });
+    }
+
+  }
+
+);
+
 // json으로 수정할 값들을 받아 방의 정보를 수정합니다.
 // request JSON
 // name, from, to, time, part
