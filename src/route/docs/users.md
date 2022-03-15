@@ -13,6 +13,7 @@ User {
     withdraw: Boolean,
     ban: Boolean,
     joinat: Date,
+    agreeOnTermsOfService: { type: Boolean, default: false }, //이용약관 동의 여부
     room: [Room],
     subinfo: {
         kaist: String,
@@ -22,6 +23,36 @@ User {
     },
     __v: Number,
 }
+```
+
+### `/agreeOnTermsOfService` **(POST)**
+
+- 이용 약관에 동의함 (철회 불가)
+
+#### URL Parameters, Request JSON form
+
+- 없음
+
+#### Response
+
+- 200 "agree on Terms of Service successful"
+- 400 "already agreed"
+- 500 "internal server error"
+
+### `/getAgreeOnTermsOfService` **(GET)**
+
+- 이용 약관 동의 여부를 가져옴
+
+#### URL Parameters, Request JSON form
+
+- 없음
+
+#### Response
+
+```javascript
+{
+    agreeOnTermsOfService: Boolean
+},
 ```
 
 ### `/:user_id/editNickname` **(POST)**

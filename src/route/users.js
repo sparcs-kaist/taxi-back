@@ -17,6 +17,38 @@ const patterns = {
   nickname: RegExp("^[A-Za-z가-힣ㄱ-ㅎㅏ-ㅣ0-9-_ ]{3,25}$"),
 };
 
+// 이용 약관에 동의합니다.
+router.post("/agreeOnTermsOfService", async (req, res) => {
+  try {
+    let user = await userModel.findOne({ id: req.userId });
+    if (user.agreeOnTermsOfService !== true) {
+      user.agreeOnTermsOfService = true;
+      await user.save();
+      res
+        .status(200)
+        .send(
+          "User/agreeOnTermsOfService : agree on Terms of Service successful"
+        );
+    } else {
+      res.status(400).send("User/agreeOnTermsOfService : already agreed");
+    }
+  } catch {
+    res.status(500).send("User/agreeOnTermsOfService : internal server error");
+  }
+});
+
+router.get("/getAgreeOnTermsOfService", async (req, res) => {
+  try {
+    const user = await userModel
+      .findOne({ id: req.userId }, "agreeOnTermsOfService")
+      .lean();
+    const agreeOnTermsOfService = user.agreeOnTermsOfService === true;
+    res.status(200).json({ agreeOnTermsOfService });
+  } catch {
+    res.status(500).send("/getAgreeOnTermsOfService : internal server error");
+  }
+});
+
 // 새 닉네임을 받아 로그인된 유저의 닉네임을 변경합니다.
 // 닉네임은 알파벳, 한글, 숫자, 공백, "-", ",", "_" 기호만을 이용해 3~25자 길이로 구성되어야 합니다.
 router.post(
