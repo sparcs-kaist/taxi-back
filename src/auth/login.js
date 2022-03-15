@@ -22,6 +22,11 @@ const login = (req, sid, id, name) => {
 };
 
 const logout = (req, res) => {
+  // 로그아웃 전 socket.io 소켓들 연결부터 끊기
+  if (req.session.socketId && req.session.chatRoomId) {
+    req.app.get("io").in(req.session.socketId).disconnectSockets(true);
+    leaveChatRoom(req);
+  }
   req.session.destroy((err) => {
     if (err) console.log(err);
   });
