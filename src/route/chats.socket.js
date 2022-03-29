@@ -1,5 +1,6 @@
 const { getLoginInfo, joinChatRoom, leaveChatRoom } = require("../auth/login");
 const { roomModel, userModel, chatModel } = require("../db/mongo");
+const validator = require("validator");
 
 const ioListeners = (io, socket) => {
   const session = socket.handshake.session;
@@ -11,12 +12,11 @@ const ioListeners = (io, socket) => {
       if (!myUser)
         return io.to(socket.id).emit("chats-join", { err: "user not exist" });
 
-      roomModel.findOne({ _id: roomId }, "part", (err, room) => {
+      roomModel.findOne({ _id: roomId }, "part", async (err, room) => {
         if (err)
           return io.to(socket.id).emit("chats-join", { err: "mongo error" });
         if (!room)
           return io.to(socket.id).emit("chats-join", { err: "room not exist" });
-
         // if user don't participate in the room
         if (room.part.indexOf(myUser._id) < 0) {
           return io.to(socket.id).emit("chats-join", { err: "user not join" });
@@ -26,13 +26,16 @@ const ioListeners = (io, socket) => {
         joinChatRoom({ session: session }, socket.id, roomId);
         socket.join(`chatRoom-${roomId}`);
 
-        // find chats
-        chatModel
-          .find({ roomId: roomId }, (err, chats) => {
-            if (err) io.to(socket.id).emit("chats-join", { err: true });
-            else io.to(socket.id).emit("chats-join", { chats: chats });
-          })
-          .sort({ time: 1 });
+        const amount = 30;
+        const chats = await chatModel
+          .find({ roomId }, "authorId authorName text time -_id")
+          .sort({ time: -1 })
+          .limit(amount);
+        chats.reverse();
+
+        if (chats) {
+          io.to(socket.id).emit("chats-join", { chats: chats });
+        }
       });
     } catch (e) {
       io.to(socket.id).emit("chats-join", { err: true });
@@ -90,6 +93,35 @@ const ioListeners = (io, socket) => {
       });
     } catch (e) {
       io.to(socket.id).emit("chats-send", { err: true });
+    }
+  });
+
+  socket.on("chats-load", async (lastDate, amount) => {
+    try {
+      const roomId = session.chatRoomId;
+      // 클라이언트로부터 받은 lastDate가 유효한 날짜 문자열일 때만 쿼리를 수행
+      if (lastDate && validator.isISO8601(lastDate)) {
+        // 새로 불러올 메시지 수는 기본 30, 사용자가 입력한 값이 유효하면 그 값을 사용
+        if (validator.isInt(String(amount), { min: 1, max: 50 })) {
+          amount = Number(amount);
+        } else {
+          amount = 30;
+        }
+
+        const chats = await chatModel
+          .find({ roomId }, "authorId authorName text time -_id", {
+            time: { $lt: lastDate },
+          })
+          .sort({ time: -1 })
+          .limit(amount);
+        chats.reverse();
+
+        return io.to(socket.id).emit("chats-load", { chats });
+      } else {
+        return io.to(socket.id).emit("chats-load", { err: true });
+      }
+    } catch (e) {
+      io.to(socket.id).emit("chats-load", { err: true });
     }
   });
 };
