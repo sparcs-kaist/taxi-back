@@ -40,6 +40,7 @@ const chatSchema = Schema({
   text: { type: String, default: "" },
   time: { type: Date, required: true },
 });
+chatSchema.index({ roomId: 1, time: -1 });
 
 mongoose.set("useFindAndModify", false);
 

@@ -12,31 +12,29 @@ const ioListeners = (io, socket) => {
       if (!myUser)
         return io.to(socket.id).emit("chats-join", { err: "user not exist" });
 
-      roomModel.findOne({ _id: roomId }, "part", async (err, room) => {
-        if (err)
-          return io.to(socket.id).emit("chats-join", { err: "mongo error" });
-        if (!room)
-          return io.to(socket.id).emit("chats-join", { err: "room not exist" });
-        // if user don't participate in the room
-        if (room.part.indexOf(myUser._id) < 0) {
-          return io.to(socket.id).emit("chats-join", { err: "user not join" });
-        }
+      const room = await roomModel.findById(roomId, "part");
+      if (!room) {
+        return io.to(socket.id).emit("chats-join", { err: "room not exist" });
+      }
+      // If the user didn't participate in the room
+      if (!room.part.indexOf(myUser._id) === -1) {
+        return io.to(socket.id).emit("chats-join", { err: "user not joined" });
+      }
 
-        // join chat room
-        joinChatRoom({ session: session }, socket.id, roomId);
-        socket.join(`chatRoom-${roomId}`);
+      // join chat room
+      joinChatRoom({ session: session }, socket.id, roomId);
+      socket.join(`chatRoom-${roomId}`);
 
-        const amount = 30;
-        const chats = await chatModel
-          .find({ roomId }, "authorId authorName text time -_id")
-          .sort({ time: -1 })
-          .limit(amount);
-        chats.reverse();
+      const amount = 30;
+      const chats = await chatModel
+        .find({ roomId }, "authorId authorName text time -_id")
+        .sort({ time: -1 })
+        .limit(amount);
+      chats.reverse();
 
-        if (chats) {
-          io.to(socket.id).emit("chats-join", { chats: chats });
-        }
-      });
+      if (chats) {
+        io.to(socket.id).emit("chats-join", { chats: chats });
+      }
     } catch (e) {
       io.to(socket.id).emit("chats-join", { err: true });
     }
