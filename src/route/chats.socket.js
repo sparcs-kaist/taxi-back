@@ -130,26 +130,28 @@ class IllegalArgumentsException {
 
 // express 라우터에서 채팅 이벤트를 보낼 수 있게 함수를 분리했습니다.
 const emitChatEvent = async (io, roomId, chat) => {
-  if (!io || !roomId || !chat.text) {
-    throw new IllegalArgumentsException();
-  }
-  if (!chat.authorId || !chat.authorName) {
-    chat.authorId = null;
-    chat.authorName = null;
-  }
-  if (!chat.time) {
-    chat.time = Date.now();
-  }
-  if (!chat.roomId) {
-    chat.roomId = roomId;
-  }
-
-  const chatDocument = new chatModel(chat);
-  await chatDocument.save((err) => {
-    if (!err) {
-      io.to(`chatRoom-${roomId}`).emit("chats-receive", { chat });
+  try {
+    if (!io || !roomId || !chat.text) {
+      throw new IllegalArgumentsException();
     }
-  });
+    if (!chat.authorId || !chat.authorName) {
+      chat.authorId = null;
+      chat.authorName = null;
+    }
+    if (!chat.time) {
+      chat.time = Date.now();
+    }
+    if (!chat.roomId) {
+      chat.roomId = roomId;
+    }
+
+    const chatDocument = new chatModel(chat);
+
+    await chatDocument.save();
+    io.to(`chatRoom-${roomId}`).emit("chats-receive", { chat });
+  } catch (e) {
+    return;
+  }
 };
 
 module.exports = {
