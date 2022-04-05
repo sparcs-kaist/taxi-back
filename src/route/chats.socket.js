@@ -63,7 +63,7 @@ const ioListeners = (io, socket) => {
     }
   });
 
-  socket.on("chats-send", async (content) => {
+  socket.on("chats-send", async (chatMessage) => {
     try {
       const myUserId = getLoginInfo({ session: session }).id || "";
       const myUser = await userModel.findOne({ id: myUserId }, "id nickname");
@@ -79,16 +79,12 @@ const ioListeners = (io, socket) => {
         roomId: roomId,
         authorId: myUser.id,
         authorName: myUser.nickname,
-        text: content,
+        text: chatMessage.content,
         time: Date.now(),
       });
-      chat.save((err) => {
-        if (err) io.to(socket.id).emit("chats-send", { err: "mongo error" });
-        else {
-          io.to(socket.id).emit("chats-send", { done: true });
-          io.to(`chatRoom-${roomId}`).emit("chats-receive", chat);
-        }
-      });
+      await chat.save();
+      io.to(socket.id).emit("chats-send", { done: true });
+      io.to(`chatRoom-${roomId}`).emit("chats-receive", { chat });
     } catch (e) {
       io.to(socket.id).emit("chats-send", { err: true });
     }
@@ -151,7 +147,7 @@ const emitChatEvent = async (io, roomId, chat) => {
   const chatDocument = new chatModel(chat);
   await chatDocument.save((err) => {
     if (!err) {
-      io.to(`chatRoom-${roomId}`).emit("chats-receive", chat);
+      io.to(`chatRoom-${roomId}`).emit("chats-receive", { chat });
     }
   });
 };
