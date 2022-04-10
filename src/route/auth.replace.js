@@ -58,8 +58,9 @@ const makeInfo = (id) => {
     profileImageUrl: generateProfileImageUrl(id),
     facebook: id + "-facebook",
     twitter: id + "-twitter",
-    kaist: id + "-kaist",
+    kaist: "20220411",
     sparcs: id + "-sparcs",
+    email: "taxi@sparcs.org",
   };
   return info;
 };
@@ -79,6 +80,7 @@ const joinus = (req, res, userData) => {
       facebook: userData.facebook,
       twitter: userData.twitter,
     },
+    email: userData.email,
   });
   newUser.save((err) => {
     if (err) {

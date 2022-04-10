@@ -18,6 +18,7 @@ const userSchema = Schema({
     facebook: { type: String, default: "" },
     twitter: { type: String, default: "" },
   },
+  email: { type: String, required: true },
 });
 const roomSchema = Schema({
   name: { type: String, required: true, default: "이름 없음", text: true },
