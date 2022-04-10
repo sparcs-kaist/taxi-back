@@ -6,7 +6,6 @@
 
 ```javascript
 User {
-    _id: String,
     name: String,
     nickname: String, // 3글자 이상 25글자 이하로 구성되며 영어 대소문자, 한글, " ", 0~9, "-", "_" 으로만 이루어져야 함.
     id: String,
@@ -21,6 +20,7 @@ User {
         facebook: String,
         twitter: String,
     },
+    email: String,
     __v: Number,
 }
 ```
