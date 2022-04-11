@@ -93,7 +93,7 @@ router.post("/uploadProfileImage", uploadProfileImage, async (req, res) => {
 
   // 사용자 검증
   const { id, sid, name } = getLoginInfo(req);
-  if (!id || !sid || !name || req.params.user_id !== id) {
+  if (!id || !sid || !name) {
     await fs.unlink(path.resolve(req.file.path));
     return res.status(403).send("User/uploadProfileImage : not logged in");
   }
