@@ -56,7 +56,7 @@
   ban: Boolean,
   joinat: Date,
   subinfo: {
-      kaist: String,
+      kaist: String, // KAIST 학번(8자리)
       sparcs: String,
       facebook: String,
       twitter: String,
