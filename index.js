@@ -13,15 +13,16 @@ const main = async () => {
   const numberOfChats = security.numberOfChats;
   const userOids = [];
   const roomOids = [];
-  for (const userId of userIds) {
-    const userOid = await generateUser(userId);
+
+  for (const [index, userId] of userIds.entries()) {
+    const userOid = await generateUser(userId, index + 1);
     userOids.push(userOid);
   }
 
   const { fromOid, toOid } = await generateSampleLocations();
 
-  for (const i of Array(numberOfRooms).keys()) {
-    const roomOid = await generateRoom(fromOid, toOid, i + 1, userOids, 7); //하드코딩: 일주일 뒤에 출발하는 방(들)을 만듭니다.
+  for (const index of Array(numberOfRooms).keys()) {
+    const roomOid = await generateRoom(fromOid, toOid, index + 1, userOids, 7); //하드코딩: 일주일 뒤에 출발하는 방(들)을 만듭니다.
     roomOids.push(roomOid);
   }
 

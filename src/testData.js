@@ -6,14 +6,20 @@ const {
 } = require("./db/mongo");
 const security = require("../security");
 
-const generateUser = async (id) => {
+const generateUser = async (id, num) => {
   const newUser = new userModel({
+    id: id,
     name: `${id}-name`,
     nickname: `${id}-nickname`,
-    id: id,
     profileImageUrl: "public/profile-images/default/sample.png", //hardcoded
-    room: [],
     joinat: Date.now(),
+    subinfo: {
+      kaist: new String(20220000 + num),
+      sparcs: "",
+      facebook: "",
+      twitter: "",
+    },
+    email: `${id}@kaist.ac.kr`,
   });
   await newUser.save();
   return newUser._id;
