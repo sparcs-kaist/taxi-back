@@ -24,11 +24,11 @@ const roomPopulateQuery = [
 ];
 
 // 특정 id 방 세부사항 보기
-router.get("/:id/info", param("id").isMongoId(), async (req, res) => {
+router.get("/info", query("id").isMongoId(), async (req, res) => {
   const userId = req.userId;
   if (!userId) {
     res.status(403).json({
-      error: "room/info : not logged in",
+      error: "Rooms/info : not logged in",
     });
     return;
   }
@@ -44,7 +44,7 @@ router.get("/:id/info", param("id").isMongoId(), async (req, res) => {
   try {
     const user = await userModel.findOne({ id: userId });
 
-    let room = await roomModel.findById(req.params.id);
+    let room = await roomModel.findById(req.query.id);
     if (room) {
       // 사용자가 해당 룸의 구성원이 아닌 경우, 403 오류를 반환한다.
       if (room.part.indexOf(user._id) === -1) {
@@ -74,11 +74,10 @@ router.get("/:id/info", param("id").isMongoId(), async (req, res) => {
 router.post(
   "/create",
   [
-    body("data").exists(),
-    body("data.name").matches(patterns.name),
-    body("data.from").matches(patterns.from),
-    body("data.to").matches(patterns.to),
-    body("data.time").isISO8601(),
+    body("name").matches(patterns.name),
+    body("from").matches(patterns.from),
+    body("to").matches(patterns.to),
+    body("time").isISO8601(),
   ],
   async (req, res) => {
     const validationErrors = validationResult(req);
@@ -89,7 +88,7 @@ router.post(
       return;
     }
 
-    const { name, from, to, time } = req.body.data;
+    const { name, from, to, time } = req.body;
 
     try {
       let fromLoc = await locationModel.findOneAndUpdate(
