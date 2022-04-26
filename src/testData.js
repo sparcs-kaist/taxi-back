@@ -41,7 +41,7 @@ const generateSampleLocations = async () => {
   };
 };
 
-const generateRoom = async (from, to, num, users, daysAfter) => {
+const generateRoom = async (from, to, num, daysAfter) => {
   const date = new Date();
   date.setDate(date.getDate() + daysAfter);
   const newRoom = new roomModel({
@@ -49,7 +49,7 @@ const generateRoom = async (from, to, num, users, daysAfter) => {
     from: from,
     to: to,
     time: date,
-    part: users,
+    part: [],
     madeat: Date.now(),
   });
   await newRoom.save();
@@ -78,7 +78,7 @@ const generateJoinAbortChat = async (roomId, user, isJoining, time) => {
   await newChat.save();
 };
 
-const generateChats = async (roomId, numOfChats) => {
+const generateChats = async (roomId, userOids, numOfChats) => {
   const roomPopulateQuery = [{ path: "part", select: "id name nickname -_id" }];
   const room = await roomModel
     .findById(roomId)
@@ -86,7 +86,7 @@ const generateChats = async (roomId, numOfChats) => {
     .populate(roomPopulateQuery);
 
   const userIdsInRoom = [];
-  const userIdsOutRoom = room.part;
+  const userIdsOutRoom = userOids;
   let lastTime = Date.now();
   const maximumIntervalBtwChats = 1000 * security.maximumIntervalBtwChats; //Default: 20,000 milliseconds
   let occurenceOfJoin = security.occurenceOfJoin; //Default: 10%
@@ -101,24 +101,40 @@ const generateChats = async (roomId, numOfChats) => {
       (event < occurenceOfJoin && userIdsOutRoom.length !== 0)
     ) {
       // 더 들어올 사용자가 있을 경우, 더 들어옴
+      // 들어올 사용자를 무작위로 선택
       const authorIdx = Math.floor(Math.random() * userIdsOutRoom.length);
-      const user = userIdsOutRoom[authorIdx];
-      await generateJoinAbortChat(roomId, user, true, lastTime);
-      userIdsInRoom.push(user);
+      const userOid = userIdsOutRoom[authorIdx];
+
+      // 입장 메시지 생성
+      await generateJoinAbortChat(roomId, userOid, true, lastTime);
+
+      // 방, 유저 상태 갱신
+      userIdsInRoom.push(userOid);
       userIdsOutRoom.splice(authorIdx, 1);
+      const user = await userModel.findById(userOid, "room");
+      user.room.push(roomId);
+      await user.save();
     } else if (
       occurenceOfJoin <= event &&
       event < occurenceOfJoin + occurenceOfAbort &&
       userIdsInRoom.length > 1
     ) {
       // 나갈 사용자가 있을 경우, 나감
+      // 나갈 사용자를 무작위로 선택
       const authorIdx = Math.floor(Math.random() * userIdsInRoom.length);
-      const user = userIdsInRoom[authorIdx];
-      await generateJoinAbortChat(roomId, user, false, lastTime);
-      userIdsOutRoom.push(user);
+      const userOid = userIdsInRoom[authorIdx];
+
+      // 퇴장 메시지 생성
+      await generateJoinAbortChat(roomId, userOid, false, lastTime);
+
+      // 방, 유저 상태 갱신
+      userIdsOutRoom.push(userOid);
       userIdsInRoom.splice(authorIdx, 1);
+      const user = await userModel.findById(userOid, "room");
+      user.room.splice(user.room.indexOf(roomId), 1);
+      await user.save();
     } else {
-      // 방이 비어있지 않을 경우, 채팅 메시지를 만듦
+      // 방이 비어있지 않을 경우, 일반 채팅 메시지를 만듦
       if (userIdsInRoom.length !== 0) {
         const authorIdx = Math.floor(Math.random() * userIdsInRoom.length);
         const user = userIdsInRoom[authorIdx];
@@ -126,6 +142,8 @@ const generateChats = async (roomId, numOfChats) => {
       }
     }
   }
+  // 현재 참여중인 사용자 기준으로 방의 part 리스트를 업데이트함
+  room.part = userIdsInRoom;
   return;
 };
 

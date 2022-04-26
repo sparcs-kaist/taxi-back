@@ -22,12 +22,12 @@ const main = async () => {
   const { fromOid, toOid } = await generateSampleLocations();
 
   for (const index of Array(numberOfRooms).keys()) {
-    const roomOid = await generateRoom(fromOid, toOid, index + 1, userOids, 7); //하드코딩: 일주일 뒤에 출발하는 방(들)을 만듭니다.
+    const roomOid = await generateRoom(fromOid, toOid, index + 1, 7); //하드코딩: 일주일 뒤에 출발하는 방(들)을 만듭니다.
     roomOids.push(roomOid);
   }
 
   for (const roomOid of roomOids) {
-    await generateChats(roomOid, numberOfChats);
+    await generateChats(roomOid, userOids, numberOfChats);
   }
   console.log("끝! 스크립트 실행을 중단하셔도 됩니다.");
 };
