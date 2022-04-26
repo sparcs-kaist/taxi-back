@@ -55,7 +55,7 @@ User {
 },
 ```
 
-### `/:user_id/editNickname` **(POST)**
+### `/editNickname` **(POST)**
 
 - 해당 사용자의 닉네임을 새로 설정함.
 - 새로운 닉네임은 상술한 규칙을 만족해야 함.
@@ -88,7 +88,7 @@ User {
 - 403 "not logged in"
 - 500 "internal server error"
 
-### `/:user_id/uploadProfileImage` **(POST)**
+### `/uploadProfileImage` **(POST)**
 
 - 해당 사용자의 프로필 사진을 업로드받아 변경.
 - 프로필 사진은 multipart/form-data를 통해 업로드되어야 함. (header의 Content-Type을 multipart/form-data로 설정)
