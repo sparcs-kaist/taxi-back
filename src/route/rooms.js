@@ -277,17 +277,19 @@ router.post("/abort", body("roomId").isMongoId(), async (req, res) => {
   }
 });
 
-// 조건(출발지, 도착지, 날짜)에 맞는 방들을 모두 반환한다.
+// 조건(이름, 출발지, 도착지, 날짜)에 맞는 방들을 모두 반환한다.
 router.get(
   "/search",
   [
-    query("from").matches(patterns.from),
-    query("to").matches(patterns.to),
+    query("name").optional().matches(patterns.name),
+    query("from").optional().matches(patterns.from),
+    query("to").optional().matches(patterns.to),
     query("time").optional().isISO8601(),
   ],
   async (req, res) => {
-    const { from, to, time } = req.query;
-    // console.log(req.query);
+    const { name, from, to, time } = req.query;
+    let fromOid = null;
+    let toOid = null;
 
     const validationErrors = validationResult(req);
     if (!validationErrors.isEmpty()) {
@@ -298,63 +300,50 @@ router.get(
     }
 
     try {
-      const fromLocation = await locationModel.findOne({ name: from });
-      const toLocation = await locationModel.findOne({ name: to });
-
-      // 동명의 지역은 불가능
-      if ((from && !fromLocation) || (to && !toLocation)) {
-        res.status(404).json({
-          error: "Room/search : No corresponding location",
+      if (from && to && from === to) {
+        res.status(400).json({
+          error: "Room/search : Bad request",
         });
         return;
       }
+      if (from) {
+        const fromLocation = await locationModel.findOne({ name: from });
+        if (!fromLocation) {
+          res.status(400).json({
+            error: "Room/search : Bad request",
+          });
+          return;
+        }
+        fromOid = fromLocation._id;
+      }
+
+      if (to) {
+        const toLocation = await locationModel.findOne({ name: to });
+        if (!toLocation) {
+          res.status(400).json({
+            error: "Room/search : Bad request",
+          });
+          return;
+        }
+        toOid = toLocation._id;
+      }
+
       const query = {};
-      if (fromLocation) query.from = fromLocation._id;
-      if (toLocation) query.to = toLocation._id;
+      if (name) query.name = { $eq: name };
+      if (fromOid) query.from = fromOid;
+      if (toOid) query.to = toOid;
       if (time) query.time = { $gte: new Date(time) };
 
       const rooms = await roomModel
         .find(query)
         .populate(roomPopulateQuery)
         .exec();
+
       res.json(rooms);
     } catch (error) {
       console.log(error);
       res.status(500).json({
         error: "Room/search : Internal server error",
-      });
-    }
-  }
-);
-
-// 해당 이름과 일치하는 방을 반환한다.
-router.get(
-  "/searchByName/",
-  query("name").matches(patterns.name),
-  async (req, res) => {
-    const validationErrors = validationResult(req);
-    if (!validationErrors.isEmpty()) {
-      res.status(400).json({
-        error: "Room/searchByName : Bad request",
-      });
-      return;
-    }
-
-    try {
-      let rooms = await roomModel
-        .find({ name: req.query.name })
-        .populate(roomPopulateQuery)
-        .exec();
-      if (!rooms) {
-        res.status(404).json({
-          error: "Room/searchByName : No matching room(s)",
-        });
-      }
-      res.json(rooms);
-    } catch (err) {
-      console.log(err);
-      res.status(500).json({
-        error: "Room/searchByName : Internal server error",
       });
     }
   }

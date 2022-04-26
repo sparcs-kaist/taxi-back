@@ -89,9 +89,10 @@ room의 ID와 user들의 ID list를 받아 해당 room의 participants에 추가
 
 출발지/도착지/날짜를 받아 해당하는 room들을 반환한다.
 
-- from : String, // 출발지
-- to : String, // 도착지
-- time? : Date, // 출발 시각
+- name: String, //검색할 방의 이름
+- from : String, // 출발지. 주어진 경우 출발지가 일치하는 방들만 반환
+- to : String, // 도착지. 주어진 경우 도착지가 일치하는 방들만 반환
+- time? : Date, // 출발 시각. 주어진 경우 주어진 시간 이후에 출발하는 방들만 반환.
 
 #### Response
 
@@ -99,28 +100,8 @@ room의 ID와 user들의 ID list를 받아 해당 room의 participants에 추가
 
 #### Errors
 
-- 400 "Bad request, from/to location not given"
-- 404 "no corresponding location"
-- 500 "internal server error"
-
-### `/searchByName/` **(GET)**
-
-방 이름을 받아 이름이 정확히 일치하는 room들을 반환한다.
-
-#### URL parameters
-
-- name : 검색할 방의 이름
-
-#### Response
-
-- 해당 방의 정보
-- **동명의 방이 있을 시, 해당 방들을 모두 반환한다.**
-
-#### Errors
-
 - 400 "Bad request"
-- 404 "no matching room(s)"
-- 500 "internal server error"
+- 500 "Internal server error"
 
 ### `/searchByUser` **(GET)**
 
