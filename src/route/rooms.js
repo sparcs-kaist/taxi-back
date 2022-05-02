@@ -3,6 +3,7 @@ const router = express.Router();
 const authMiddleware = require("../middleware/auth");
 const { roomModel, locationModel, userModel } = require("../db/mongo");
 const { query, param, body, validationResult } = require("express-validator");
+const { urlencoded } = require("body-parser");
 //const taxiResponse = require('../taxiResponse')
 
 // 라우터 접근 시 로그인 필요
@@ -115,6 +116,8 @@ router.post(
         time: time,
         part: part,
         madeat: Date.now(),
+        settlement: {studentId : user._id, isSettlement: false},
+        settlementTotal: 0
       });
       await room.save();
 
@@ -188,6 +191,7 @@ router.post(
         for (let newUser of newUsers) {
           room.part.push(newUser._id);
           newUser.room.push(room._id);
+          room.settlement.push({studentId : newUser._id, isSettlement: false});
           await newUser.save();
         }
       } else {
@@ -202,6 +206,7 @@ router.post(
         }
         room.part.push(user._id);
         user.room.push(room._id);
+        room.settlement.push({studentId : user._id, isSettlement: false});
         await user.save();
       }
 
@@ -419,6 +424,32 @@ router.get("/removeAllRoom", async (_, res) => {
   return;
 });
 
+// 정산 API 
+async function removeRoomByID(req, res){
+  try {
+    const result = await roomModel.findByIdAndRemove(req.params.id).exec();
+    if (result) {
+      res.send({
+        id: req.params.id,
+        isDeleted: true,
+      });
+      console.log("remove Room By ID");
+      return;
+    } else {
+      res.status(404).json({
+        error: "Rooms/delete : ID does not exist",
+      });
+      return;
+    }
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({
+      error: "Rooms/delete : internal server error",
+    });
+    return;
+  }
+};
+
 
 router.post(
   "/:id/settlement",
@@ -430,19 +461,37 @@ router.post(
       });
       return;
     }
+    
 
     try {
+      const user = await userModel.findOne({ id: req.userId });
       let result = await roomModel.findOneAndUpdate(
-        {_id : req.params.id, "settlement.studentID": req.userId },
-        {"settlement.$.isSettlement": true}
+        {_id : req.params.id, "settlement.studentId": user._id },
+        {"settlement.$.isSettlement": true, $inc : {settlementTotal: 1}}
       );
       console.log(result);
       if (result){
-        // 개인정산완료 -> 룸 정산 완료 되었는지도 확인 
-        res.send(result);
+        // 유저가 확인 버튼을 누르고 난 후, 모든 사람이 눌렀는지 확인하는게 필요
+        // req.params.id에 해당하는 roomModel의 settlement의 isSettlement가 모두 true인지 확인
+        // 모두 true라면 방을 닫고,
+        // 아니라면 (false)가 나온s다면 해당함수 종료 
+
+        // let all_settlement = await roomModel.find(
+        //   {_id : req.params.id}).select('settlement.isSettlement');
+        let room = await roomModel.findById(req.params.id);
+        // all settlement 문제 해결해야함
+        // true 면 정산하기 버튼 비활성화해야함 -> 이건 front에서 
+          console.log(room.settlementTotal);
+          console.log(room.part.length);
+          if (room.settlementTotal === room.part.length){
+            console.log("settlement is DONE! RemoveROOM")
+            removeRoomByID(req, res);
+        }
+        console.log("done settlement process");
+        res.send(result);      
       } else {
         res.status(404).json({
-          error: " what error message? "
+          error: " cannot find settlement info"
         });
       }
     } catch (err) {
@@ -453,7 +502,6 @@ router.post(
     }
 
   }
-
 );
 
 // json으로 수정할 값들을 받아 방의 정보를 수정합니다.
@@ -530,6 +578,7 @@ router.post(
   }
 );
 
+
 // FIXME: 방장만 삭제 가능.
 router.get("/:id/delete", param("id").isMongoId(), async (req, res) => {
   const validationErrors = validationResult(req);
@@ -540,29 +589,7 @@ router.get("/:id/delete", param("id").isMongoId(), async (req, res) => {
     return;
   }
 
-  try {
-    const result = await roomModel.findByIdAndRemove(req.params.id).exec();
-    if (result) {
-      res.send({
-        id: req.params.id,
-        isDeleted: true,
-      });
-      return;
-    } else {
-      res.status(404).json({
-        error: "Rooms/delete : ID does not exist",
-      });
-      return;
-    }
-  } catch (err) {
-    console.log(err);
-    res.status(500).json({
-      error: "Rooms/delete : internal server error",
-    });
-    return;
-  }
-
-  // catch는 반환값이 없을 경우(result == undefined일 때)는 처리하지 않는다.
+  removeRoomByID(req, res);
 });
 
 module.exports = router;

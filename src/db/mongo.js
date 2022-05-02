@@ -19,6 +19,12 @@ const userSchema = Schema({
     twitter: { type: String, default: "" },
   },
 });
+
+const settlementSchema = Schema({
+  studentId : {type:Schema.Types.ObjectId, ref: "User" },
+  isSettlement: {type: Boolean}
+})
+
 const roomSchema = Schema({
   name: { type: String, required: true, default: "이름 없음", text: true },
   from: { type: Schema.Types.ObjectId, ref: "Location", required: true },
@@ -27,18 +33,14 @@ const roomSchema = Schema({
   part: [{ type: Schema.Types.ObjectId, ref: "User" }], // 참여 멤버
   madeat: { type: Date, required: true }, // 생성 날짜
   settlement: {
-     type: [settlementFAQSchema],
+     type: [settlementSchema],
      default:[{
        isSettlement: false
      }]
-  }
+  },
+  settlementTotal: {type: Number, default: 0}
   //FIXME: 결제 예정자, 정산 여부 (웹페이지에서 이를 어떻게 처리할 것인지 추가 논의가 필요함)
 });
-
-const settlementFAQSchema = Schema({
-  studentId : {type:Schema.Types.ObjectId, ref: "User" },
-  isSettlement: {type: Boolean}
-})
 
 const locationSchema = Schema({
   name: { type: String, required: true },
