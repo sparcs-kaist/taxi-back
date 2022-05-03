@@ -426,7 +426,7 @@ router.get("/removeAllRoom", async (_, res) => {
 });
 
 router.post(
-  "/:id/settlement",
+  "/:id/settlement", param("id").isMongoId(),
   async (req, res) => {
     const validationErrors = validationResult(req);
     if (!validationErrors.isEmpty()) {
