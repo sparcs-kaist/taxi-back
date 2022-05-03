@@ -425,33 +425,6 @@ router.get("/removeAllRoom", async (_, res) => {
   return;
 });
 
-// 정산 API 
-async function removeRoomByID(req, res){
-  try {
-    const result = await roomModel.findByIdAndRemove(req.params.id).exec();
-    if (result) {
-      res.send({
-        id: req.params.id,
-        isDeleted: true,
-      });
-      console.log("remove Room By ID");
-      return;
-    } else {
-      res.status(404).json({
-        error: "Rooms/delete : ID does not exist",
-      });
-      return;
-    }
-  } catch (err) {
-    console.log(err);
-    res.status(500).json({
-      error: "Rooms/delete : internal server error",
-    });
-    return;
-  }
-};
-
-
 router.post(
   "/:id/settlement",
   async (req, res) => {
@@ -578,7 +551,29 @@ router.get("/:id/delete", param("id").isMongoId(), async (req, res) => {
     return;
   }
 
-  removeRoomByID(req, res);
+  try {
+    const result = await roomModel.findByIdAndRemove(req.params.id).exec();
+    if (result) {
+      res.send({
+        id: req.params.id,
+        isDeleted: true,
+      });
+      return;
+    } else {
+      res.status(404).json({
+        error: "Rooms/delete : ID does not exist",
+      });
+      return;
+    }
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({
+      error: "Rooms/delete : internal server error",
+    });
+    return;
+  }
+
+  // catch는 반환값이 없을 경우(result == undefined일 때)는 처리하지 않는다.
 });
 
 module.exports = router;
