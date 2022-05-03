@@ -264,6 +264,7 @@ router.post("/abort", body("roomId").isMongoId(), async (req, res) => {
       return;
     } else {
       room.part.splice(roomPartIndex, 1);
+      room.settlement.splice(roomPartIndex, 1);
       user.room.splice(userRoomIndex, 1);
       await user.save();
       if (room.part.length !== 0) await room.save();
@@ -469,25 +470,13 @@ router.post(
         {_id : req.params.id, "settlement.studentId": user._id },
         {"settlement.$.isSettlement": true, $inc : {settlementTotal: 1}}
       );
-      console.log(result);
       if (result){
-        // 유저가 확인 버튼을 누르고 난 후, 모든 사람이 눌렀는지 확인하는게 필요
-        // req.params.id에 해당하는 roomModel의 settlement의 isSettlement가 모두 true인지 확인
-        // 모두 true라면 방을 닫고,
-        // 아니라면 (false)가 나온s다면 해당함수 종료 
 
-        // let all_settlement = await roomModel.find(
-        //   {_id : req.params.id}).select('settlement.isSettlement');
         let room = await roomModel.findById(req.params.id);
-        // all settlement 문제 해결해야함
-        // true 면 정산하기 버튼 비활성화해야함 -> 이건 front에서 
-          console.log(room.settlementTotal);
-          console.log(room.part.length);
           if (room.settlementTotal === room.part.length){
             console.log("settlement is DONE! RemoveROOM")
-            removeRoomByID(req, res);
+            // 과거 방으로 설정하는 코드 추가해야함 
         }
-        console.log("done settlement process");
         res.send(result);      
       } else {
         res.status(404).json({
