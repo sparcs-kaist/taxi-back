@@ -117,7 +117,8 @@ router.post(
         part: part,
         madeat: Date.now(),
         settlement: {studentId : user._id, isSettlement: false},
-        settlementTotal: 0
+        settlementTotal: 0,
+        isOver: false
       });
       await room.save();
 
@@ -236,6 +237,12 @@ router.post("/abort", body("roomId").isMongoId(), async (req, res) => {
     return;
   }
 
+  const time = Date.now();
+  const isOvertime= (room, time) => {
+    if (new Date(room.time) <= time) return true;
+    else return false;
+  };
+
   try {
     let user = await userModel.findOne({ id: req.userId });
     if (!user) {
@@ -263,6 +270,13 @@ router.post("/abort", body("roomId").isMongoId(), async (req, res) => {
       });
       return;
     } else {
+      // 방의 출발시간이 지나고 정산이 되지 않으면 나갈 수 없음
+      if(isOvertime(room, time) && !room.isOver){
+        res.status(403).json({
+          error: "Rooms/info : cannot exit room. Settlement is not done",
+        });
+        return;
+      }
       room.part.splice(roomPartIndex, 1);
       room.settlement.splice(roomPartIndex, 1);
       user.room.splice(userRoomIndex, 1);
@@ -368,11 +382,6 @@ router.get(
 
 // 로그인된 사용자의 모든 방들을 반환한다.
 router.get("/searchByUser/", async (req, res) => {
-  // 방이 서버 시간을 기준으로 완료되었는지(출발 시간이 지났는지) 확인하는 함수
-  const isOver = (room, time) => {
-    if (new Date(room.time) <= time) return true;
-    else return false;
-  };
 
   const userId = req.userId;
   if (!userId) {
@@ -391,14 +400,13 @@ router.get("/searchByUser/", async (req, res) => {
       .lean()
       .exec();
 
-    // 시각을 기준으로 진행중인 방과 완료된 방을 분리해서 응답을 전송합니다.
-    const time = Date.now();
+    // 정산완료여부 기준으로 진행중인 방과 완료된 방을 분리해서 응답을 전송합니다.
     const response = {
       ongoing: [],
       done: [],
     };
     user.room.map((room) => {
-      if (isOver(room, time)) response.done.push(room);
+      if (room.isOver) response.done.push(room);
       else response.ongoing.push(room);
     });
     res.json(response);
@@ -447,8 +455,8 @@ router.post(
 
         let room = await roomModel.findById(req.params.id);
           if (room.settlementTotal === room.part.length){
-            console.log("settlement is DONE! RemoveROOM")
-            // 과거 방으로 설정하는 코드 추가해야함 
+            room.isOver = true;
+            await room.save();
         }
         res.send(result);      
       } else {
