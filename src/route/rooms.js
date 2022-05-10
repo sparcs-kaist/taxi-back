@@ -3,6 +3,7 @@ const router = express.Router();
 const authMiddleware = require("../middleware/auth");
 const { roomModel, locationModel, userModel } = require("../db/mongo");
 const { query, param, body, validationResult } = require("express-validator");
+const { urlencoded } = require("body-parser");
 //const taxiResponse = require('../taxiResponse')
 
 // 라우터 접근 시 로그인 필요
@@ -115,6 +116,8 @@ router.post(
         time: time,
         part: part,
         madeat: Date.now(),
+        settlement: {studentId : user._id, isSettlement: false},
+        settlementTotal: 0
       });
       await room.save();
 
@@ -188,6 +191,7 @@ router.post(
         for (let newUser of newUsers) {
           room.part.push(newUser._id);
           newUser.room.push(room._id);
+          room.settlement.push({studentId : newUser._id, isSettlement: false});
           await newUser.save();
         }
       } else {
@@ -202,6 +206,7 @@ router.post(
         }
         room.part.push(user._id);
         user.room.push(room._id);
+        room.settlement.push({studentId : user._id, isSettlement: false});
         await user.save();
       }
 
@@ -259,6 +264,7 @@ router.post("/abort", body("roomId").isMongoId(), async (req, res) => {
       return;
     } else {
       room.part.splice(roomPartIndex, 1);
+      room.settlement.splice(roomPartIndex, 1);
       user.room.splice(userRoomIndex, 1);
       await user.save();
       if (room.part.length !== 0) await room.save();
@@ -419,6 +425,47 @@ router.get("/removeAllRoom", async (_, res) => {
   return;
 });
 
+router.post(
+  "/:id/settlement", param("id").isMongoId(),
+  async (req, res) => {
+    const validationErrors = validationResult(req);
+    if (!validationErrors.isEmpty()) {
+      res.status(400).json({
+          error: "/:id/settlement : Bad request",
+      });
+      return;
+    }
+    
+
+    try {
+      const user = await userModel.findOne({ id: req.userId });
+      let result = await roomModel.findOneAndUpdate(
+        {_id : req.params.id, "settlement.studentId": user._id },
+        {"settlement.$.isSettlement": true, $inc : {settlementTotal: 1}}
+      );
+      if (result){
+
+        let room = await roomModel.findById(req.params.id);
+          if (room.settlementTotal === room.part.length){
+            console.log("settlement is DONE! RemoveROOM")
+            // 과거 방으로 설정하는 코드 추가해야함 
+        }
+        res.send(result);      
+      } else {
+        res.status(404).json({
+          error: " cannot find settlement info"
+        });
+      }
+    } catch (err) {
+      console.log(err);
+      res.status(500).json({
+        error: "/:id/settlement : internal server error",
+      });
+    }
+
+  }
+);
+
 // json으로 수정할 값들을 받아 방의 정보를 수정합니다.
 // request JSON
 // name, from, to, time, part
@@ -492,6 +539,7 @@ router.post(
     }
   }
 );
+
 
 // FIXME: 방장만 삭제 가능.
 router.get("/:id/delete", param("id").isMongoId(), async (req, res) => {
