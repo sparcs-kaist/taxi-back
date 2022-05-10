@@ -55,6 +55,7 @@ router.get("/:id/info", param("id").isMongoId(), async (req, res) => {
       }
       //From mongoose v6, this needs to be changed to room.populate(roomPopulateQuery)
       await room.execPopulate(roomPopulateQuery);
+
       res.status(200).send(room);
     } else {
       res.status(404).json({
@@ -154,6 +155,8 @@ router.post(
       return;
     }
 
+    
+
     try {
       let user = await userModel.findOne({ id: req.userId });
       let room = await roomModel.findById(req.body.roomId);
@@ -182,6 +185,12 @@ router.post(
             });
             return;
           }
+          if ((room.part.length+req.body.users.length)>4){ // 초대할 사람 수가 방의 남은 자리 수를 초과하면 초대가 불가능합니다.
+            res.status(407).json({
+              error: "Room/invite : There are too many people to invite to the room",
+            });
+            return;
+          }
           newUsers.push(newUser);
         }
 
@@ -197,6 +206,13 @@ router.post(
           res.status(400).json({
             error:
               "Room/invite : You cannot invite other user(s) when you are not joining the room",
+          });
+          return;
+        }
+        if (room.part.length==4){ //방 정원이 꽉 차 있어 방 참여가 불가능합니다.
+          res.status(408).json({
+            error:
+              "Room/invite : The room is full, so you can't join the room",
           });
           return;
         }
