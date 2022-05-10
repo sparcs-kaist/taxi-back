@@ -84,7 +84,7 @@ const ioListeners = (io, socket) => {
       });
       await chat.save();
       io.to(socket.id).emit("chats-send", { done: true });
-      io.to(`chatRoom-${roomId}`).emit("chats-receive", { chat });
+      socket.to(`chatRoom-${roomId}`).emit("chats-receive", { chat });
     } catch (e) {
       io.to(socket.id).emit("chats-send", { err: true });
     }
