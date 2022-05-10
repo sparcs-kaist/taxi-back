@@ -1,3 +1,12 @@
+---
+name: Issue Template
+about: Suggest an idea for this project
+title: issue title
+labels: ''
+assignees: ''
+
+---
+
 # Summary <!-- 간단한 요약. -->
 
 It implements ...
