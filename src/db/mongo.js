@@ -21,8 +21,8 @@ const userSchema = Schema({
 });
 
 const settlementSchema = Schema({
-  studentId : {type:Schema.Types.ObjectId, ref: "User" },
-  isSettlement: {type: Boolean}
+  studentId : {type:Schema.Types.ObjectId, ref: "User", required: true },
+  isSettlement: {type: Boolean, required: true}
 })
 
 const roomSchema = Schema({
