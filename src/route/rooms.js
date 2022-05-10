@@ -117,7 +117,8 @@ router.post(
         part: part,
         madeat: Date.now(),
         settlement: {studentId : user._id, isSettlement: false},
-        settlementTotal: 0
+        settlementTotal: 0,
+        isOver: false
       });
       await room.save();
 
@@ -448,7 +449,8 @@ router.post(
         let room = await roomModel.findById(req.params.id);
           if (room.settlementTotal === room.part.length){
             console.log("settlement is DONE! RemoveROOM")
-            // 과거 방으로 설정하는 코드 추가해야함 
+            room.isOver = true;
+            await room.save();
         }
         res.send(result);      
       } else {
