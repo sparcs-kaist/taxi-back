@@ -401,7 +401,6 @@ router.get("/searchByUser/", async (req, res) => {
       .exec();
 
     // 정산완료여부 기준으로 진행중인 방과 완료된 방을 분리해서 응답을 전송합니다.
-    const time = Date.now();
     const response = {
       ongoing: [],
       done: [],
