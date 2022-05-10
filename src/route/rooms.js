@@ -149,8 +149,8 @@ router.post(
     // Request JSON Validation
     const validationErrors = validationResult(req);
     if (!validationErrors.isEmpty()) {
-      res.status(400).json({
-        error: "Room/invite : Bad request",
+      res.status(408).json({ // 현재 validation error 가 max 인원수 초과한 경우밖에 없어서, default 로 에러가 뜨면 인원수 초과 에러로 판정합니다.
+        error: "Room/invite : There are too many people to invite to the room",
       });
       return;
     }
