@@ -455,7 +455,6 @@ router.post(
 
         let room = await roomModel.findById(req.params.id);
           if (room.settlementTotal === room.part.length){
-            console.log("settlement is DONE! RemoveROOM")
             room.isOver = true;
             await room.save();
         }
