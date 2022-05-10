@@ -16,6 +16,5 @@
   "trailingComma": "es5",
   "useTabs": false,
   "vueIndentScriptAndStyle": false,
-  "filepath": "/Users/jeongsang/Develop/taxi/taxi-back/app.js",
   "parser": "babel"
 }
