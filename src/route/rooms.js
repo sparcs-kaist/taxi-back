@@ -370,10 +370,11 @@ router.get(
 // 로그인된 사용자의 모든 방들을 반환한다.
 router.get("/searchByUser/", async (req, res) => {
   // 방이 서버 시간을 기준으로 완료되었는지(출발 시간이 지났는지) 확인하는 함수
-  const isOver = (room, time) => {
-    if (new Date(room.time) <= time) return true;
-    else return false;
-  };
+  // const isOver = (room, time) => {
+  //   if (new Date(room.time) <= time) return true;
+  //   else return false;
+  // };
+  // 여기를 정산이 다 된건지 확인해야함 
 
   const userId = req.userId;
   if (!userId) {
@@ -399,7 +400,7 @@ router.get("/searchByUser/", async (req, res) => {
       done: [],
     };
     user.room.map((room) => {
-      if (isOver(room, time)) response.done.push(room);
+      if (room.isOver) response.done.push(room);
       else response.ongoing.push(room);
     });
     res.json(response);
