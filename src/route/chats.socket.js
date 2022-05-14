@@ -103,9 +103,10 @@ const ioListeners = (io, socket) => {
         }
 
         const chats = await chatModel
-          .find({ roomId }, "authorId authorName text time -_id", {
-            time: { $lt: lastDate },
-          })
+          .find(
+            { roomId, time: { $lt: lastDate } },
+            "authorId authorName text time -_id"
+          )
           .sort({ time: -1 })
           .limit(amount);
         chats.reverse();
