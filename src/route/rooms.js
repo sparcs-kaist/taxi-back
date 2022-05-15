@@ -90,7 +90,7 @@ router.post(
       return;
     }
 
-    const { name, from, to, time } = req.body.data;
+    const { name, from, to, time, maxPartLength } = req.body.data;
 
     try {
       let fromLoc = await locationModel.findOneAndUpdate(
@@ -116,6 +116,7 @@ router.post(
         time: time,
         part: part,
         madeat: Date.now(),
+        maxPartLength: maxPartLength,
       });
       await room.save();
 
@@ -149,7 +150,7 @@ router.post(
     // Request JSON Validation
     const validationErrors = validationResult(req);
     if (!validationErrors.isEmpty()) {
-      res.status(408).json({ // 현재 validation error 가 max 인원수 초과한 경우밖에 없어서, default 로 에러가 뜨면 인원수 초과 에러로 판정합니다.
+      res.status(400).json({ // 현재 validation error 가 max 인원수 초과한 경우밖에 없어서, default 로 에러가 뜨면 인원수 초과 에러로 판정합니다.
         error: "Room/invite : There are too many people to invite to the room",
       });
       return;
@@ -185,8 +186,8 @@ router.post(
             });
             return;
           }
-          if ((room.part.length+req.body.users.length)>4){ // 초대할 사람 수가 방의 남은 자리 수를 초과하면 초대가 불가능합니다.
-            res.status(407).json({
+          if ((room.part.length+req.body.users.length)>room.maxPartLength){ // 초대할 사람 수가 방의 남은 자리 수를 초과하면 초대가 불가능합니다.
+            res.status(400).json({
               error: "Room/invite : There are too many people to invite to the room",
             });
             return;
@@ -209,8 +210,8 @@ router.post(
           });
           return;
         }
-        if (room.part.length==4){ //방 정원이 꽉 차 있어 방 참여가 불가능합니다.
-          res.status(408).json({
+        if (room.part.length==room.maxPartLength){ //방 정원이 꽉 차 있어 방 참여가 불가능합니다.
+          res.status(400).json({
             error:
               "Room/invite : The room is full, so you can't join the room",
           });
