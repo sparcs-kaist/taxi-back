@@ -6,7 +6,6 @@
 
 ```javascript
 User {
-    _id: String,
     name: String,
     nickname: String, // 3글자 이상 25글자 이하로 구성되며 영어 대소문자, 한글, " ", 0~9, "-", "_" 으로만 이루어져야 함.
     id: String,
@@ -21,6 +20,7 @@ User {
         facebook: String,
         twitter: String,
     },
+    email: String,
     __v: Number,
 }
 ```
@@ -55,7 +55,7 @@ User {
 },
 ```
 
-### `/:user_id/editNickname` **(POST)**
+### `/editNickname` **(POST)**
 
 - 해당 사용자의 닉네임을 새로 설정함.
 - 새로운 닉네임은 상술한 규칙을 만족해야 함.
@@ -88,7 +88,7 @@ User {
 - 403 "not logged in"
 - 500 "internal server error"
 
-### `/:user_id/uploadProfileImage` **(POST)**
+### `/uploadProfileImage` **(POST)**
 
 - 해당 사용자의 프로필 사진을 업로드받아 변경.
 - 프로필 사진은 multipart/form-data를 통해 업로드되어야 함. (header의 Content-Type을 multipart/form-data로 설정)

@@ -58,8 +58,9 @@ const makeInfo = (id) => {
     profileImageUrl: generateProfileImageUrl(id),
     facebook: id + "-facebook",
     twitter: id + "-twitter",
-    kaist: id + "-kaist",
+    kaist: "20220411",
     sparcs: id + "-sparcs",
+    email: "taxi@sparcs.org",
   };
   return info;
 };
@@ -79,6 +80,7 @@ const joinus = (req, res, userData) => {
       facebook: userData.facebook,
       twitter: userData.twitter,
     },
+    email: userData.email,
   });
   newUser.save((err) => {
     if (err) {
@@ -101,8 +103,8 @@ const loginDone = (req, res, userData) => {
       else if (!result) joinus(req, res, userData);
       else {
         login(req, userData.sid, result.id, result.name);
-        res.send("successful"); //API 테스트용 코드(프론트 리다이렉트 X)
-        // res.redirect(security.frontUrl);
+        // res.send("successful"); //API 테스트용 코드(프론트 리다이렉트 X)
+        res.redirect(security.frontUrl);
       }
     }
   );

@@ -20,8 +20,9 @@ const transUserData = (userData) => {
     name: userData.first_name + userData.last_name,
     facebook: userData.facebook_id || "",
     twitter: userData.twitter_id || "",
-    kaist: userData.kaist_id || "",
+    kaist: userData.kaist_info?.ku_std_no || "",
     sparcs: userData.sparcs_id || "",
+    email: userData.email,
   };
 
   return info;
@@ -35,6 +36,13 @@ const joinus = (req, res, userData) => {
     nickname: generateNickname(userData.id),
     profileImageUrl: generateProfileImageUrl(userData.id),
     joinat: Date.now(),
+    subinfo: {
+      kaist: userData.kaist,
+      sparcs: userData.sparcs,
+      facebook: userData.facebook,
+      twitter: userData.twitter,
+    },
+    email: userData.email,
   });
   newUser.save((err) => {
     if (err) {
