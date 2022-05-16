@@ -45,6 +45,7 @@ const roomSchema = Schema({
   }, // 참여 멤버
   madeat: { type: Date, required: true }, // 생성 날짜
   settlement: {
+    type: [settlementSchema],
      default:[{
        isSettlement: false
      }]
