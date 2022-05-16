@@ -50,7 +50,8 @@ const roomSchema = Schema({
      }]
   },
   settlementTotal: {type: Number, default: 0, required: true},
-  isOver: {type:Boolean, default: false, required: true}
+  isOver: {type:Boolean, default: false, required: true},
+  maxPartLength: { type: Number, require: true , default: 4,},
   //FIXME: 결제 예정자, 정산 여부 (웹페이지에서 이를 어떻게 처리할 것인지 추가 논의가 필요함)
 });
 const locationSchema = Schema({
