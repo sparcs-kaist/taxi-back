@@ -80,6 +80,7 @@ router.post(
     body("data.from").matches(patterns.from),
     body("data.to").matches(patterns.to),
     body("data.time").isISO8601(),
+    body("data.maxPartLength").isInt({min: 1, max: 4}),
   ],
   async (req, res) => {
     const validationErrors = validationResult(req);
@@ -150,8 +151,8 @@ router.post(
     // Request JSON Validation
     const validationErrors = validationResult(req);
     if (!validationErrors.isEmpty()) {
-      res.status(400).json({ // 현재 validation error 가 max 인원수 초과한 경우밖에 없어서, default 로 에러가 뜨면 인원수 초과 에러로 판정합니다.
-        error: "Room/invite : There are too many people to invite to the room",
+      res.status(400).json({ 
+        error: "Room/invite : Bad request",
       });
       return;
     }
@@ -186,12 +187,12 @@ router.post(
             });
             return;
           }
-          if ((room.part.length+req.body.users.length)>room.maxPartLength){ // 초대할 사람 수가 방의 남은 자리 수를 초과하면 초대가 불가능합니다.
-            res.status(400).json({
-              error: "Room/invite : There are too many people to invite to the room",
-            });
-            return;
-          }
+          // if ((room.part.length+req.body.users.length)>room.maxPartLength){ // 초대할 사람 수가 방의 남은 자리 수를 초과하면 초대가 불가능합니다.
+          //   res.status(400).json({
+          //     error: "Room/invite : There are too many people to invite to the room",
+          //   });
+          //   return;
+          // }
           newUsers.push(newUser);
         }
 
@@ -210,13 +211,13 @@ router.post(
           });
           return;
         }
-        if (room.part.length==room.maxPartLength){ //방 정원이 꽉 차 있어 방 참여가 불가능합니다.
-          res.status(400).json({
-            error:
-              "Room/invite : The room is full, so you can't join the room",
-          });
-          return;
-        }
+        // if (room.part.length==room.maxPartLength){ //방 정원이 꽉 차 있어 방 참여가 불가능합니다.
+        //   res.status(400).json({
+        //     error:
+        //       "Room/invite : The room is full, so you can't join the room",
+        //   });
+        //   return;
+        // }
         room.part.push(user._id);
         user.room.push(room._id);
         await user.save();
@@ -227,6 +228,11 @@ router.post(
       res.send(room);
     } catch (error) {
       console.log(error);
+      if(error._message === 'Room validation failed' ){
+        res.status(400).json({
+          error: "Room/invite : the room is full",
+        });
+      }
       res.status(500).json({
         error: "Room/invite : internal server error",
       });
@@ -462,7 +468,7 @@ router.post(
     const { name, from, to, time, part } = req.body;
 
     // 수정할 값이 주어지지 않은 경우
-    if (!name && !from && !to && !time && !part) {
+    if (!name && !from && !to && !time && !part ) {
       res.status(400).json({
         error: "Rooms/edit : Bad request",
       });
