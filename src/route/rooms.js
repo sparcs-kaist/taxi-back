@@ -278,6 +278,7 @@ router.post("/abort", body("roomId").isMongoId(), async (req, res) => {
 });
 
 // 조건(이름, 출발지, 도착지, 날짜)에 맞는 방들을 모두 반환한다.
+// 어떻게 짜야 잘 짰다고 소문이 여기저기 동네방네 다 날까?
 router.get(
   "/search",
   [
@@ -287,10 +288,6 @@ router.get(
     query("time").optional().isISO8601(),
   ],
   async (req, res) => {
-    const { name, from, to, time } = req.query;
-    let fromOid = null;
-    let toOid = null;
-
     const validationErrors = validationResult(req);
     if (!validationErrors.isEmpty()) {
       res.status(400).json({
@@ -300,6 +297,10 @@ router.get(
     }
 
     try {
+      const { name, from, to, time } = req.query;
+      let fromOid = null;
+      let toOid = null;
+
       if (from && to && from === to) {
         res.status(400).json({
           error: "Room/search : Bad request",
@@ -308,34 +309,35 @@ router.get(
       }
       if (from) {
         const fromLocation = await locationModel.findOne({ name: from });
-        if (!fromLocation) {
-          res.status(400).json({
-            error: "Room/search : Bad request",
-          });
-          return;
-        }
         fromOid = fromLocation._id;
       }
 
       if (to) {
         const toLocation = await locationModel.findOne({ name: to });
-        if (!toLocation) {
-          res.status(400).json({
-            error: "Room/search : Bad request",
-          });
-          return;
-        }
         toOid = toLocation._id;
       }
 
+      // 검색 쿼리를 설정합니다.
       const query = {};
-      if (name) query.name = { $eq: name };
+      if (name) query.name = { $regex: new RegExp(name, "i") }; // 'i': 대소문자 무시
       if (fromOid) query.from = fromOid;
       if (toOid) query.to = toOid;
-      if (time) query.time = { $gte: new Date(time) };
+      // 검색 시간대는 시작 시각으로부터 24시간으로 설정합니다.
+      if (time) {
+        const minTime = new Date(time);
+        const maxTime = new Date(time);
+        maxTime.setDate(minTime.getDate() + 1);
+        query.time = { $gte: minTime, $lt: maxTime };
+      } else {
+        const minTime = new Date();
+        const maxTime = new Date();
+        maxTime.setDate(minTime.getDate() + 1);
+        query.time = { $gte: minTime, $lt: maxTime };
+      }
 
       const rooms = await roomModel
         .find(query)
+        .sort({ time: 1 })
         .populate(roomPopulateQuery)
         .exec();
 
