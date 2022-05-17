@@ -43,6 +43,7 @@ app.use("/users", require("./src/route/users"));
 app.use("/rooms", require("./src/route/rooms"));
 app.use("/chats", require("./src/route/chats"));
 app.use("/static", require("./src/route/static"));
+app.use("/admin", require("./src/route/admin"));
 
 const serverHttp = http.createServer(app).listen(security.nodePort, () => {
   console.log(`Express 서버가 ${security.nodePort}번 포트에서 시작됨.`);
