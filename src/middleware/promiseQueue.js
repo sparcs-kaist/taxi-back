@@ -21,6 +21,14 @@ class PromiseQueue {
     this.available = true;
     this.queue = new Queue();
   }
+  standbyExec(func) {
+    // func = async func
+    this.push(async (next) => {
+      x = await func();
+      next();
+      return x;
+    });
+  }
   push(func) {
     this.queue.push(func);
     checkAndPop();

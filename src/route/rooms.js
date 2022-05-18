@@ -116,9 +116,9 @@ router.post(
         time: time,
         part: part,
         madeat: Date.now(),
-        settlement: {studentId : user._id, isSettlement: false},
+        settlement: { studentId: user._id, isSettlement: false },
         settlementTotal: 0,
-        isOver: false
+        isOver: false,
       });
       await room.save();
 
@@ -189,12 +189,19 @@ router.post(
           newUsers.push(newUser);
         }
 
+        // 인원 수 확인이 없는 것 같아요!
+        // req.pqueue.push(async (next) => {
         for (let newUser of newUsers) {
           room.part.push(newUser._id);
           newUser.room.push(room._id);
-          room.settlement.push({studentId : newUser._id, isSettlement: false});
+          room.settlement.push({
+            studentId: newUser._id,
+            isSettlement: false,
+          });
           await newUser.save();
         }
+        // next();
+        // });
       } else {
         // 사용자가 참여하지 않은 방의 경우, 사용자 자신만 참여하도록 요청했을 때에만 사용자를 방에 참여시킵니다.
         // 아닌 경우, 400 오류를 발생시킵니다.
@@ -207,13 +214,21 @@ router.post(
         }
         room.part.push(user._id);
         user.room.push(room._id);
-        room.settlement.push({studentId : user._id, isSettlement: false});
+        room.settlement.push({ studentId: user._id, isSettlement: false });
+
+        // 인원 수 확인이 없는 것 같아요!
+        // req.pqueue.push(async (next) => {
         await user.save();
+        // next();
+        // });
       }
 
+      // req.pqueue.push(async (next) => {
       await room.save();
       await room.execPopulate(roomPopulateQuery);
       res.send(room);
+      // next();
+      // });
     } catch (error) {
       console.log(error);
       res.status(500).json({
@@ -238,7 +253,7 @@ router.post("/abort", body("roomId").isMongoId(), async (req, res) => {
   }
 
   const time = Date.now();
-  const isOvertime= (room, time) => {
+  const isOvertime = (room, time) => {
     if (new Date(room.time) <= time) return true;
     else return false;
   };
@@ -271,7 +286,7 @@ router.post("/abort", body("roomId").isMongoId(), async (req, res) => {
       return;
     } else {
       // 방의 출발시간이 지나고 정산이 되지 않으면 나갈 수 없음
-      if(isOvertime(room, time) && !room.isOver){
+      if (isOvertime(room, time) && !room.isOver) {
         res.status(403).json({
           error: "Rooms/info : cannot exit room. Settlement is not done",
         });
@@ -382,7 +397,6 @@ router.get(
 
 // 로그인된 사용자의 모든 방들을 반환한다.
 router.get("/searchByUser/", async (req, res) => {
-
   const userId = req.userId;
   if (!userId) {
     res.status(403).json({
@@ -433,46 +447,40 @@ router.get("/removeAllRoom", async (_, res) => {
   return;
 });
 
-router.post(
-  "/:id/settlement", param("id").isMongoId(),
-  async (req, res) => {
-    const validationErrors = validationResult(req);
-    if (!validationErrors.isEmpty()) {
-      res.status(400).json({
-          error: "/:id/settlement : Bad request",
-      });
-      return;
-    }
-    
-
-    try {
-      const user = await userModel.findOne({ id: req.userId });
-      let result = await roomModel.findOneAndUpdate(
-        {_id : req.params.id, "settlement.studentId": user._id },
-        {"settlement.$.isSettlement": true, $inc : {settlementTotal: 1}}
-      );
-      if (result){
-
-        let room = await roomModel.findById(req.params.id);
-          if (room.settlementTotal === room.part.length){
-            room.isOver = true;
-            await room.save();
-        }
-        res.send(result);      
-      } else {
-        res.status(404).json({
-          error: " cannot find settlement info"
-        });
-      }
-    } catch (err) {
-      console.log(err);
-      res.status(500).json({
-        error: "/:id/settlement : internal server error",
-      });
-    }
-
+router.post("/:id/settlement", param("id").isMongoId(), async (req, res) => {
+  const validationErrors = validationResult(req);
+  if (!validationErrors.isEmpty()) {
+    res.status(400).json({
+      error: "/:id/settlement : Bad request",
+    });
+    return;
   }
-);
+
+  try {
+    const user = await userModel.findOne({ id: req.userId });
+    let result = await roomModel.findOneAndUpdate(
+      { _id: req.params.id, "settlement.studentId": user._id },
+      { "settlement.$.isSettlement": true, $inc: { settlementTotal: 1 } }
+    );
+    if (result) {
+      let room = await roomModel.findById(req.params.id);
+      if (room.settlementTotal === room.part.length) {
+        room.isOver = true;
+        await room.save();
+      }
+      res.send(result);
+    } else {
+      res.status(404).json({
+        error: " cannot find settlement info",
+      });
+    }
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({
+      error: "/:id/settlement : internal server error",
+    });
+  }
+});
 
 // json으로 수정할 값들을 받아 방의 정보를 수정합니다.
 // request JSON
@@ -547,7 +555,6 @@ router.post(
     }
   }
 );
-
 
 // FIXME: 방장만 삭제 가능.
 router.get("/:id/delete", param("id").isMongoId(), async (req, res) => {
