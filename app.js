@@ -3,17 +3,12 @@ const express = require("express");
 const http = require("http");
 const https = require("https");
 
-const proxy = require("http-proxy-middleware").createProxyMiddleware;
 const bodyParser = require("body-parser");
 const cookieParser = require("cookie-parser");
 const expressSession = require("express-session");
 const MongoStore = require("connect-mongo");
-const fs = require("fs");
 const cors = require("cors");
 const startSocketServer = require("./src/modules/socket");
-
-//const bkfd2Password = require("pbkdf2-password");
-//const hasher = bkfd2Password();
 
 // 내부 모듈
 const security = require("./security");
@@ -35,6 +30,10 @@ const session = expressSession({
 });
 app.use(session);
 app.use(cookieParser());
+
+// promiseQueue 미들웨어
+const pqMiddleware = require("./src/middleware/promiseQueue");
+app.use(pqMiddleware);
 
 // 라우터 및 리액트
 app.use("/auth", require("./src/route/auth"));
