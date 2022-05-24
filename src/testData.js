@@ -6,7 +6,7 @@ const {
 } = require("./db/mongo");
 const security = require("../security");
 
-const generateUser = async (id, num) => {
+const generateUser = async (id, num, isAdmin) => {
   const newUser = new userModel({
     id: id,
     name: `${id}-name`,
@@ -20,6 +20,7 @@ const generateUser = async (id, num) => {
       twitter: "",
     },
     email: `${id}@kaist.ac.kr`,
+    isAdmin: isAdmin,
   });
   await newUser.save();
   return newUser._id;
@@ -41,7 +42,7 @@ const generateSampleLocations = async () => {
   };
 };
 
-const generateRoom = async (from, to, num, daysAfter) => {
+const generateRoom = async (from, to, num, daysAfter, creatorId) => {
   const date = new Date();
   date.setDate(date.getDate() + daysAfter);
   const newRoom = new roomModel({
@@ -51,6 +52,10 @@ const generateRoom = async (from, to, num, daysAfter) => {
     time: date,
     part: [],
     madeat: Date.now(),
+    settlement: {
+      studentId: creatorId,
+      isSettlement: false,
+    },
   });
   await newRoom.save();
   return newRoom._id;
@@ -80,10 +85,7 @@ const generateJoinAbortChat = async (roomId, user, isJoining, time) => {
 
 const generateChats = async (roomId, userOids, numOfChats) => {
   const roomPopulateQuery = [{ path: "part", select: "id name nickname -_id" }];
-  const room = await roomModel
-    .findById(roomId)
-    .lean()
-    .populate(roomPopulateQuery);
+  const room = await roomModel.findById(roomId).populate(roomPopulateQuery);
 
   const userIdsInRoom = [];
   const userIdsOutRoom = userOids;
