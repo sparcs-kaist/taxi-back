@@ -18,7 +18,7 @@ Room {
 }
 ```
 
-### `:id/info/` **(GET)**
+### `info/` **(GET)**
 
 ID를 parameter로 받아 해당 ID의 room의 정보 출력
 

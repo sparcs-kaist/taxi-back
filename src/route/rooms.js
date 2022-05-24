@@ -25,11 +25,11 @@ const roomPopulateQuery = [
 ];
 
 // 특정 id 방 세부사항 보기
-router.get("/:id/info", param("id").isMongoId(), async (req, res) => {
+router.get("/info", query("id").isMongoId(), async (req, res) => {
   const userId = req.userId;
   if (!userId) {
     res.status(403).json({
-      error: "room/info : not logged in",
+      error: "Rooms/info : not logged in",
     });
     return;
   }
@@ -45,7 +45,7 @@ router.get("/:id/info", param("id").isMongoId(), async (req, res) => {
   try {
     const user = await userModel.findOne({ id: userId });
 
-    let room = await roomModel.findById(req.params.id);
+    let room = await roomModel.findById(req.query.id);
     if (room) {
       // 사용자가 해당 룸의 구성원이 아닌 경우, 403 오류를 반환한다.
       if (room.part.indexOf(user._id) === -1) {
@@ -75,11 +75,10 @@ router.get("/:id/info", param("id").isMongoId(), async (req, res) => {
 router.post(
   "/create",
   [
-    body("data").exists(),
-    body("data.name").matches(patterns.name),
-    body("data.from").matches(patterns.from),
-    body("data.to").matches(patterns.to),
-    body("data.time").isISO8601(),
+    body("name").matches(patterns.name),
+    body("from").matches(patterns.from),
+    body("to").matches(patterns.to),
+    body("time").isISO8601(),
   ],
   async (req, res) => {
     const validationErrors = validationResult(req);
@@ -90,7 +89,7 @@ router.post(
       return;
     }
 
-    const { name, from, to, time } = req.body.data;
+    const { name, from, to, time } = req.body;
 
     try {
       let fromLoc = await locationModel.findOneAndUpdate(
@@ -153,7 +152,7 @@ router.post(
     const validationErrors = validationResult(req);
     if (!validationErrors.isEmpty()) {
       res.status(400).json({
-        error: "Room/invite : Bad request",
+        error: "Rooms/invite : Bad request",
       });
       return;
     }
@@ -163,7 +162,7 @@ router.post(
       let room = await roomModel.findById(req.body.roomId);
       if (!room) {
         res.status(404).json({
-          error: "Room/invite : no corresponding room",
+          error: "Rooms/invite : no corresponding room",
         });
         return;
       }
@@ -176,13 +175,13 @@ router.post(
           let newUser = await userModel.findOne({ id: userID });
           if (!newUser) {
             res.status(404).json({
-              error: "Room/invite : no corresponding user",
+              error: "Rooms/invite : no corresponding user",
             });
             return;
           }
           if (room.part.includes(newUser._id)) {
             res.status(409).json({
-              error: "Room/invite : " + userID + " Already in room",
+              error: "Rooms/invite : " + userID + " Already in room",
             });
             return;
           }
@@ -201,7 +200,7 @@ router.post(
         if (req.body.users.length != 1 || req.body.users[0] !== user.id) {
           res.status(400).json({
             error:
-              "Room/invite : You cannot invite other user(s) when you are not joining the room",
+              "Rooms/invite : You cannot invite other user(s) when you are not joining the room",
           });
           return;
         }
@@ -217,7 +216,7 @@ router.post(
     } catch (error) {
       console.log(error);
       res.status(500).json({
-        error: "Room/invite : internal server error",
+        error: "Rooms/invite : internal server error",
       });
     }
   }
@@ -232,7 +231,7 @@ router.post("/abort", body("roomId").isMongoId(), async (req, res) => {
   const validationErrors = validationResult(req);
   if (!validationErrors.isEmpty()) {
     res.status(400).json({
-      error: "Room/abort : Bad request",
+      error: "Rooms/abort : Bad request",
     });
     return;
   }
@@ -247,7 +246,7 @@ router.post("/abort", body("roomId").isMongoId(), async (req, res) => {
     let user = await userModel.findOne({ id: req.userId });
     if (!user) {
       res.status(400).json({
-        error: "Room/abort : Bad request",
+        error: "Rooms/abort : Bad request",
       });
       return;
     }
@@ -255,7 +254,7 @@ router.post("/abort", body("roomId").isMongoId(), async (req, res) => {
     let room = await roomModel.findById(req.body.roomId);
     if (!room) {
       res.status(404).json({
-        error: "Room/abort : no corresponding room",
+        error: "Rooms/abort : no corresponding room",
       });
       return;
     }
@@ -292,7 +291,7 @@ router.post("/abort", body("roomId").isMongoId(), async (req, res) => {
   } catch (error) {
     console.log(error);
     res.status(500).json({
-      error: "Room/abort : internal server error",
+      error: "Rooms/abort : internal server error",
     });
   }
 });
@@ -312,7 +311,7 @@ router.get(
     const validationErrors = validationResult(req);
     if (!validationErrors.isEmpty()) {
       res.status(400).json({
-        error: "Room/search : Bad request",
+        error: "Rooms/search : Bad request",
       });
       return;
     }
@@ -324,7 +323,7 @@ router.get(
       // 동명의 지역은 불가능
       if ((from && !fromLocation) || (to && !toLocation)) {
         res.status(404).json({
-          error: "Room/search : No corresponding location",
+          error: "Rooms/search : No corresponding location",
         });
         return;
       }
@@ -341,7 +340,7 @@ router.get(
     } catch (error) {
       console.log(error);
       res.status(500).json({
-        error: "Room/search : Internal server error",
+        error: "Rooms/search : Internal server error",
       });
     }
   }
@@ -355,7 +354,7 @@ router.get(
     const validationErrors = validationResult(req);
     if (!validationErrors.isEmpty()) {
       res.status(400).json({
-        error: "Room/searchByName : Bad request",
+        error: "Rooms/searchByName : Bad request",
       });
       return;
     }
@@ -367,14 +366,14 @@ router.get(
         .exec();
       if (!rooms) {
         res.status(404).json({
-          error: "Room/searchByName : No matching room(s)",
+          error: "Rooms/searchByName : No matching room(s)",
         });
       }
       res.json(rooms);
     } catch (err) {
       console.log(err);
       res.status(500).json({
-        error: "Room/searchByName : Internal server error",
+        error: "Rooms/searchByName : Internal server error",
       });
     }
   }
