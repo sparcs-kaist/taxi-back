@@ -216,13 +216,7 @@ router.post(
           });
           return;
         }
-        // if (room.part.length==room.maxPartLength){ //방 정원이 꽉 차 있어 방 참여가 불가능합니다.
-        //   res.status(400).json({
-        //     error:
-        //       "Room/invite : The room is full, so you can't join the room",
-        //   });
-        //   return;
-        // }
+        
         room.part.push(user._id);
         user.room.push(room._id);
         room.settlement.push({studentId : user._id, isSettlement: false});

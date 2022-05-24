@@ -1,4 +1,3 @@
-const { validationResult } = require("express-validator");
 const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 const security = require("../../security");
