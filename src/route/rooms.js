@@ -81,7 +81,7 @@ router.post(
     body("data.from").matches(patterns.from),
     body("data.to").matches(patterns.to),
     body("data.time").isISO8601(),
-    body("data.maxPartLength").isInt({min: 1, max: 4}),
+    body("data.maxPartLength").isInt({ min: 1, max: 4 }),
   ],
   async (req, res) => {
     const validationErrors = validationResult(req);
@@ -119,9 +119,9 @@ router.post(
         part: part,
         madeat: Date.now(),
         maxPartLength: maxPartLength,
-        settlement: {studentId : user._id, isSettlement: false},
+        settlement: { studentId: user._id, isSettlement: false },
         settlementTotal: 0,
-        isOver: false
+        isOver: false,
       });
       await room.save();
 
@@ -155,13 +155,11 @@ router.post(
     // Request JSON Validation
     const validationErrors = validationResult(req);
     if (!validationErrors.isEmpty()) {
-      res.status(400).json({ 
+      res.status(400).json({
         error: "Room/invite : Bad request",
       });
       return;
     }
-
-    
 
     try {
       let user = await userModel.findOne({ id: req.userId });
@@ -203,7 +201,7 @@ router.post(
         for (let newUser of newUsers) {
           room.part.push(newUser._id);
           newUser.room.push(room._id);
-          room.settlement.push({studentId : newUser._id, isSettlement: false});
+          room.settlement.push({ studentId: newUser._id, isSettlement: false });
           await newUser.save();
         }
       } else {
@@ -216,10 +214,10 @@ router.post(
           });
           return;
         }
-        
+
         room.part.push(user._id);
         user.room.push(room._id);
-        room.settlement.push({studentId : user._id, isSettlement: false});
+        room.settlement.push({ studentId: user._id, isSettlement: false });
         await user.save();
       }
 
@@ -228,7 +226,7 @@ router.post(
       res.send(room);
     } catch (error) {
       console.log(error);
-      if(error._message === 'Room validation failed' ){
+      if (error._message === "Room validation failed") {
         res.status(400).json({
           error: "Room/invite : the room is full",
         });
@@ -255,7 +253,7 @@ router.post("/abort", body("roomId").isMongoId(), async (req, res) => {
   }
 
   const time = Date.now();
-  const isOvertime= (room, time) => {
+  const isOvertime = (room, time) => {
     if (new Date(room.time) <= time) return true;
     else return false;
   };
@@ -288,7 +286,7 @@ router.post("/abort", body("roomId").isMongoId(), async (req, res) => {
       return;
     } else {
       // 방의 출발시간이 지나고 정산이 되지 않으면 나갈 수 없음
-      if(isOvertime(room, time) && !room.isOver){
+      if (isOvertime(room, time) && !room.isOver) {
         res.status(403).json({
           error: "Rooms/info : cannot exit room. Settlement is not done",
         });
@@ -399,7 +397,6 @@ router.get(
 
 // 로그인된 사용자의 모든 방들을 반환한다.
 router.get("/searchByUser/", async (req, res) => {
-
   const userId = req.userId;
   if (!userId) {
     res.status(403).json({
@@ -450,46 +447,40 @@ router.get("/removeAllRoom", async (_, res) => {
   return;
 });
 
-router.post(
-  "/:id/settlement", param("id").isMongoId(),
-  async (req, res) => {
-    const validationErrors = validationResult(req);
-    if (!validationErrors.isEmpty()) {
-      res.status(400).json({
-          error: "/:id/settlement : Bad request",
-      });
-      return;
-    }
-    
-
-    try {
-      const user = await userModel.findOne({ id: req.userId });
-      let result = await roomModel.findOneAndUpdate(
-        {_id : req.params.id, "settlement.studentId": user._id },
-        {"settlement.$.isSettlement": true, $inc : {settlementTotal: 1}}
-      );
-      if (result){
-
-        let room = await roomModel.findById(req.params.id);
-          if (room.settlementTotal === room.part.length){
-            room.isOver = true;
-            await room.save();
-        }
-        res.send(result);      
-      } else {
-        res.status(404).json({
-          error: " cannot find settlement info"
-        });
-      }
-    } catch (err) {
-      console.log(err);
-      res.status(500).json({
-        error: "/:id/settlement : internal server error",
-      });
-    }
-
+router.post("/:id/settlement", param("id").isMongoId(), async (req, res) => {
+  const validationErrors = validationResult(req);
+  if (!validationErrors.isEmpty()) {
+    res.status(400).json({
+      error: "/:id/settlement : Bad request",
+    });
+    return;
   }
-);
+
+  try {
+    const user = await userModel.findOne({ id: req.userId });
+    let result = await roomModel.findOneAndUpdate(
+      { _id: req.params.id, "settlement.studentId": user._id },
+      { "settlement.$.isSettlement": true, $inc: { settlementTotal: 1 } }
+    );
+    if (result) {
+      let room = await roomModel.findById(req.params.id);
+      if (room.settlementTotal === room.part.length) {
+        room.isOver = true;
+        await room.save();
+      }
+      res.send(result);
+    } else {
+      res.status(404).json({
+        error: " cannot find settlement info",
+      });
+    }
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({
+      error: "/:id/settlement : internal server error",
+    });
+  }
+});
 
 // json으로 수정할 값들을 받아 방의 정보를 수정합니다.
 // request JSON
@@ -517,7 +508,7 @@ router.post(
     const { name, from, to, time, part } = req.body;
 
     // 수정할 값이 주어지지 않은 경우
-    if (!name && !from && !to && !time && !part ) {
+    if (!name && !from && !to && !time && !part) {
       res.status(400).json({
         error: "Rooms/edit : Bad request",
       });
@@ -564,7 +555,6 @@ router.post(
     }
   }
 );
-
 
 // FIXME: 방장만 삭제 가능.
 router.get("/:id/delete", param("id").isMongoId(), async (req, res) => {
