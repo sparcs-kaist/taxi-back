@@ -61,7 +61,8 @@ const generateRoom = async (from, to, num, daysAfter, creatorId) => {
   return newRoom._id;
 };
 
-const generateNormalChat = async (i, roomId, user, time) => {
+const generateNormalChat = async (i, roomId, userOid, time) => {
+  const user = await userModel.findById(userOid);
   const newChat = new chatModel({
     roomId: roomId,
     authorId: user.id,
@@ -72,7 +73,8 @@ const generateNormalChat = async (i, roomId, user, time) => {
   await newChat.save();
 };
 
-const generateJoinAbortChat = async (roomId, user, isJoining, time) => {
+const generateJoinAbortChat = async (roomId, userOid, isJoining, time) => {
+  const user = await userModel.findById(userOid);
   const newChat = new chatModel({
     roomId: roomId,
     authorId: null,
@@ -88,7 +90,7 @@ const generateChats = async (roomId, userOids, numOfChats) => {
   const room = await roomModel.findById(roomId).populate(roomPopulateQuery);
 
   const userIdsInRoom = [];
-  const userIdsOutRoom = userOids;
+  const userIdsOutRoom = userOids.map((userOid) => userOid);
   let lastTime = Date.now();
   const maximumIntervalBtwChats = 1000 * security.maximumIntervalBtwChats; //Default: 20,000 milliseconds
   let occurenceOfJoin = security.occurenceOfJoin; //Default: 10%
