@@ -56,6 +56,7 @@ router.get("/:id/info", param("id").isMongoId(), async (req, res) => {
       }
       //From mongoose v6, this needs to be changed to room.populate(roomPopulateQuery)
       await room.execPopulate(roomPopulateQuery);
+
       res.status(200).send(room);
     } else {
       res.status(404).json({
@@ -80,6 +81,7 @@ router.post(
     body("data.from").matches(patterns.from),
     body("data.to").matches(patterns.to),
     body("data.time").isISO8601(),
+    body("data.maxPartLength").isInt({min: 1, max: 4}),
   ],
   async (req, res) => {
     const validationErrors = validationResult(req);
@@ -90,7 +92,7 @@ router.post(
       return;
     }
 
-    const { name, from, to, time } = req.body.data;
+    const { name, from, to, time, maxPartLength } = req.body.data;
 
     try {
       let fromLoc = await locationModel.findOneAndUpdate(
@@ -116,6 +118,7 @@ router.post(
         time: time,
         part: part,
         madeat: Date.now(),
+        maxPartLength: maxPartLength,
         settlement: {studentId : user._id, isSettlement: false},
         settlementTotal: 0,
         isOver: false
@@ -152,11 +155,13 @@ router.post(
     // Request JSON Validation
     const validationErrors = validationResult(req);
     if (!validationErrors.isEmpty()) {
-      res.status(400).json({
+      res.status(400).json({ 
         error: "Room/invite : Bad request",
       });
       return;
     }
+
+    
 
     try {
       let user = await userModel.findOne({ id: req.userId });
@@ -186,6 +191,12 @@ router.post(
             });
             return;
           }
+          // if ((room.part.length+req.body.users.length)>room.maxPartLength){ // 초대할 사람 수가 방의 남은 자리 수를 초과하면 초대가 불가능합니다.
+          //   res.status(400).json({
+          //     error: "Room/invite : There are too many people to invite to the room",
+          //   });
+          //   return;
+          // }
           newUsers.push(newUser);
         }
 
@@ -205,6 +216,13 @@ router.post(
           });
           return;
         }
+        // if (room.part.length==room.maxPartLength){ //방 정원이 꽉 차 있어 방 참여가 불가능합니다.
+        //   res.status(400).json({
+        //     error:
+        //       "Room/invite : The room is full, so you can't join the room",
+        //   });
+        //   return;
+        // }
         room.part.push(user._id);
         user.room.push(room._id);
         room.settlement.push({studentId : user._id, isSettlement: false});
@@ -216,6 +234,11 @@ router.post(
       res.send(room);
     } catch (error) {
       console.log(error);
+      if(error._message === 'Room validation failed' ){
+        res.status(400).json({
+          error: "Room/invite : the room is full",
+        });
+      }
       res.status(500).json({
         error: "Room/invite : internal server error",
       });
@@ -500,7 +523,7 @@ router.post(
     const { name, from, to, time, part } = req.body;
 
     // 수정할 값이 주어지지 않은 경우
-    if (!name && !from && !to && !time && !part) {
+    if (!name && !from && !to && !time && !part ) {
       res.status(400).json({
         error: "Rooms/edit : Bad request",
       });
