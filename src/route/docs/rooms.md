@@ -18,7 +18,7 @@ Room {
 }
 ```
 
-### `:id/info/` **(GET)**
+### `info/` **(GET)**
 
 ID를 parameter로 받아 해당 ID의 room의 정보 출력
 
@@ -222,3 +222,22 @@ ID를 받아 해당 ID의 room을 제거
 ### `/removeAllRoom` **(GET)** (for dev)
 
 모든 방 삭제
+
+### `:id/settlement/` **(POST)**
+
+- ID를 받아 해당 룸의 요청을 보낸 유저의 정산을 완료로 처리
+- 방에 참여한 멤버들이 모두 정산완료를 하면 방은 과거방으로 변경됨
+
+#### URL Parameters
+
+- id : 정산할 room의 ID
+
+#### Response
+
+- 멤버들의 정산정보가 반영된 방의 정보
+
+#### Errors
+
+- 400 "Bad request"
+- 404 "cannot find settlement info"
+- 500 "internal server error"

@@ -14,7 +14,7 @@ router.route("/detail").get((req, res) => {
   if (user.id) {
     userModel.findOne(
       { id: user.id },
-      "id nickname withdraw ban joinat subinfo",
+      "id nickname withdraw ban joinat agreeOnTermsOfService subinfo email",
       (err, result) => {
         if (err) res.json({ err: true });
         else if (!result) res.json({ err: true });
@@ -25,7 +25,9 @@ router.route("/detail").get((req, res) => {
             withdraw: result.withdraw,
             ban: result.ban,
             joinat: result.joinat,
+            agreeOnTermsOfService: result.agreeOnTermsOfService,
             subinfo: result.subinfo,
+            email: result.email,
           });
         }
       }
