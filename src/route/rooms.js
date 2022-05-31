@@ -337,6 +337,20 @@ router.get(
       return;
     }
 
+    const isRequestUnder1min = (date) => {
+      const ten_minutes_to_ms = 60 * 1000;
+      if (date.getTime() + ten_minutes_to_ms > Date.now()) return true;
+      else return false;
+    };
+
+    const getTomorrow5am = (date) => {
+      console.log(date.toLocaleString());
+      const date_tomorrow = new Date(date);
+      date_tomorrow.setUTCHours(20, 0, 0, 0);
+      console.log(date_tomorrow.toLocaleString());
+      // date_tomorrow.setHours(date_tomorrow.getHours())
+    };
+
     try {
       const { name, from, to, time } = req.query;
       let fromOid = null;
@@ -364,17 +378,18 @@ router.get(
       if (fromOid) query.from = fromOid;
       if (toOid) query.to = toOid;
       // 검색 시간대는 시작 시각으로부터 24시간으로 설정합니다.
-      if (time) {
-        const minTime = new Date(time);
-        const maxTime = new Date(time);
-        maxTime.setDate(minTime.getDate() + 1);
-        query.time = { $gte: minTime, $lt: maxTime };
-      } else {
-        const minTime = new Date();
-        const maxTime = new Date();
-        maxTime.setDate(minTime.getDate() + 1);
-        query.time = { $gte: minTime, $lt: maxTime };
+      const minTime = time ? new Date(time) : new Date();
+      getTomorrow5am(minTime);
+
+      if (!isRequestUnder1min(minTime)) {
+        return res.status(400).json({
+          error: "Room/search : Bad request",
+        });
       }
+      const maxTime = new Date(minTime);
+
+      maxTime.setDate(minTime.getDate() + 1);
+      query.time = { $gte: minTime, $lt: maxTime };
 
       const rooms = await roomModel
         .find(query)
