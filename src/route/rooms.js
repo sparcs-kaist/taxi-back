@@ -6,7 +6,6 @@ const { query, param, body, validationResult } = require("express-validator");
 const { emitChatEvent } = require("../route/chats.socket");
 const { leaveChatRoom } = require("../auth/login");
 const { urlencoded } = require("body-parser");
-//const taxiResponse = require('../taxiResponse')
 
 // 라우터 접근 시 로그인 필요
 router.use(authMiddleware);
