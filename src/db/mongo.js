@@ -19,12 +19,13 @@ const userSchema = Schema({
     twitter: { type: String, default: "" },
   },
   email: { type: String, required: true },
+  isAdmin: { type: Boolean, default: false }, //관리자 여부
 });
 
 const settlementSchema = Schema({
-  studentId : {type:Schema.Types.ObjectId, ref: "User", required: true },
-  isSettlement: {type: Boolean, required: true}
-})
+  studentId: { type: Schema.Types.ObjectId, ref: "User", required: true },
+  isSettlement: { type: Boolean, required: true },
+});
 
 const roomSchema = Schema({
   name: { type: String, required: true, default: "이름 없음", text: true },
@@ -34,13 +35,15 @@ const roomSchema = Schema({
   part: [{ type: Schema.Types.ObjectId, ref: "User" }], // 참여 멤버
   madeat: { type: Date, required: true }, // 생성 날짜
   settlement: {
-     type: [settlementSchema],
-     default:[{
-       isSettlement: false
-     }]
+    type: [settlementSchema],
+    default: [
+      {
+        isSettlement: false,
+      },
+    ],
   },
-  settlementTotal: {type: Number, default: 0, required: true},
-  isOver: {type:Boolean, default: false, required: true}
+  settlementTotal: { type: Number, default: 0, required: true },
+  isOver: { type: Boolean, default: false, required: true },
   //FIXME: 결제 예정자, 정산 여부 (웹페이지에서 이를 어떻게 처리할 것인지 추가 논의가 필요함)
 });
 
