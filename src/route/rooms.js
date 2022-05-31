@@ -197,8 +197,6 @@ router.post(
           room.settlement.push({ studentId: newUser._id, isSettlement: false });
           await newUser.save();
         }
-        // next();
-        // });
       } else {
         // 사용자가 참여하지 않은 방의 경우, 사용자 자신만 참여하도록 요청했을 때에만 사용자를 방에 참여시킵니다.
         // 아닌 경우, 400 오류를 발생시킵니다.
@@ -214,8 +212,6 @@ router.post(
         user.room.push(room._id);
         room.settlement.push({ studentId: user._id, isSettlement: false });
         await user.save();
-        // next();
-        // });
       }
 
       // "AAA님, BBB님" 처럼 사용자 목록을 텍스트로 가공합니다.
@@ -226,12 +222,10 @@ router.post(
       await emitChatEvent(req.app.get("io"), room._id, {
         text: `${concatenatedNicknames}이 입장했습니다`,
       });
-      
+
       await room.save();
       await room.execPopulate(roomPopulateQuery);
       res.send(room);
-      // next();
-      // });
     } catch (error) {
       console.log(error);
       res.status(500).json({
