@@ -4,3 +4,6 @@
 package-lock.json
 *.code-workspace
 *.swp
+
+# AdminJS 관련 디렉토리
+.adminjs
