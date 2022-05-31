@@ -14,10 +14,11 @@ router.get(
     const validationErrors = validationResult(req);
     if (!validationErrors.isEmpty()) {
       res.status(404).send("image not found");
+      return;
     }
 
     try {
-      user = await userModel.findOne({ id: req.params.user_id });
+      const user = await userModel.findOne({ id: req.params.user_id });
       if (user) {
         res.sendFile(path.resolve(user.profileImageUrl));
       } else {
