@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const authMiddleware = require("../middleware/auth");
-const { query, param, body, validationResult } = require("express-validator");
+const { query, param, body } = require("express-validator");
 const roomHandlers = require("../service/rooms");
 const { urlencoded } = require("body-parser");
 
@@ -10,26 +10,22 @@ router.use(authMiddleware);
 
 // 입력 데이터 검증을 위한 정규 표현식들
 const patterns = {
-  name: RegExp("^[A-Za-z0-9가-힣ㄱ-ㅎㅏ-ㅣ,.?! _-]{1,50}$"),
-  from: RegExp("^[A-Za-z0-9가-힣 -]{1,30}$"),
-  to: RegExp("^[A-Za-z0-9가-힣 -]{1,30}$"),
+  name: RegExp("^[A-Za-z0-9가-힣ㄱ-ㅎㅏ-ㅣ,.?! _-]{1,20}$"),
+  from: RegExp("^[A-Za-z0-9가-힣 -]{1,20}$"),
+  to: RegExp("^[A-Za-z0-9가-힣 -]{1,20}$"),
 };
-
-
 
 // 특정 id 방 세부사항 보기
 router.get("/:id/info", param("id").isMongoId(), roomHandlers.infoHandler);
 
 // JSON으로 받은 정보로 방을 생성한다.
-// FIXME: {data: JSON} -> {JSON} 로 API 단순화하기,
 router.post(
   "/create",
   [
-    body("data").exists(),
-    body("data.name").matches(patterns.name),
-    body("data.from").matches(patterns.from),
-    body("data.to").matches(patterns.to),
-    body("data.time").isISO8601(),
+    body("name").matches(patterns.name),
+    body("from").matches(patterns.from),
+    body("to").matches(patterns.to),
+    body("time").isISO8601(),
   ],
   roomHandlers.createHandler
 );
@@ -52,33 +48,32 @@ router.post(
 // 모든 사람이 나갈 경우 방 삭제.
 router.post("/abort", body("roomId").isMongoId(), roomHandlers.abortHandler);
 
-// 조건(출발지, 도착지, 날짜)에 맞는 방들을 모두 반환한다.
+// 조건(이름, 출발지, 도착지, 날짜)에 맞는 방들을 모두 반환한다.
+// 어떻게 짜야 잘 짰다고 소문이 여기저기 동네방네 다 날까?
 router.get(
   "/search",
   [
-    query("from").matches(patterns.from),
-    query("to").matches(patterns.to),
+    query("name").optional().matches(patterns.name),
+    query("from").optional().matches(patterns.from),
+    query("to").optional().matches(patterns.to),
     query("time").optional().isISO8601(),
   ],
   roomHandlers.searchHandler
 );
 
-// 해당 이름과 일치하는 방을 반환한다.
-router.get(
-  "/searchByName/",
-  query("name").matches(patterns.name),
-  roomHandlers.searchByNameHandler
+// 로그인된 사용자의 모든 방들을 반환한다.
+router.get("/searchByUser/", roomHandlers.searchByUserHandler);
+
+router.post(
+  "/:id/settlement",
+  param("id").isMongoId(),
+  roomHandlers.idSettlementHandler
 );
 
-// 로그인된 사용자의 모든 방들을 반환한다.
-router.get("/searchByUser/", roomHandlers.searchByUserHandler );
-
 // THE ROUTES BELOW ARE ONLY FOR TEST
-router.get("/getAllRoom", roomHandlers.getAllRoomHandler );
+router.get("/getAllRoom", roomHandlers.getAllRoomHandler);
 
-router.get("/removeAllRoom", roomHandlers.removeAllRoomHandler );
-
-router.post( "/:id/settlement", param("id").isMongoId(), roomHandlers.idSettlementHandler);
+router.get("/removeAllRoom", roomHandlers.removeAllRoomHandler);
 
 // json으로 수정할 값들을 받아 방의 정보를 수정합니다.
 // request JSON
@@ -96,7 +91,12 @@ router.post(
   ],
   roomHandlers.idEditHandler
 );
+
 // FIXME: 방장만 삭제 가능.
-router.get("/:id/delete", param("id").isMongoId(), roomHandlers.idDeleteHandler);
+router.get(
+  "/:id/delete",
+  param("id").isMongoId(),
+  roomHandlers.idDeleteHandler
+);
 
 module.exports = router;

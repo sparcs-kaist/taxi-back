@@ -2,7 +2,7 @@
 const express = require("express");
 const router = express.Router();
 const { param, validationResult } = require("express-validator");
-const staticHandlers = require("../service/static")
+const staticHandlers = require("../service/static");
 
 router.get(
   "/profile-images/:user_id",
