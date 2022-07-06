@@ -12,9 +12,9 @@ router.use(authMiddleware);
 
 // 입력 데이터 검증을 위한 정규 표현식들
 const patterns = {
-  name: RegExp("^[A-Za-z0-9가-힣ㄱ-ㅎㅏ-ㅣ,.?! _-]{1,50}$"),
-  from: RegExp("^[A-Za-z0-9가-힣 -]{1,30}$"),
-  to: RegExp("^[A-Za-z0-9가-힣 -]{1,30}$"),
+  name: RegExp("^[A-Za-z0-9가-힣ㄱ-ㅎㅏ-ㅣ,.?! _-]{1,20}$"),
+  from: RegExp("^[A-Za-z0-9가-힣 -]{1,20}$"),
+  to: RegExp("^[A-Za-z0-9가-힣 -]{1,20}$"),
 };
 
 // 장소, 참가자 목록의 ObjectID 제거하기
@@ -317,17 +317,17 @@ router.post("/abort", body("roomId").isMongoId(), async (req, res) => {
   }
 });
 
-// 조건(출발지, 도착지, 날짜)에 맞는 방들을 모두 반환한다.
+// 조건(이름, 출발지, 도착지, 날짜)에 맞는 방들을 모두 반환한다.
+// 어떻게 짜야 잘 짰다고 소문이 여기저기 동네방네 다 날까?
 router.get(
   "/search",
   [
-    query("from").matches(patterns.from),
-    query("to").matches(patterns.to),
+    query("name").optional().matches(patterns.name),
+    query("from").optional().matches(patterns.from),
+    query("to").optional().matches(patterns.to),
     query("time").optional().isISO8601(),
   ],
   async (req, res) => {
-    const { from, to, time } = req.query;
-
     const validationErrors = validationResult(req);
     if (!validationErrors.isEmpty()) {
       res.status(400).json({
@@ -336,64 +336,71 @@ router.get(
       return;
     }
 
-    try {
-      const fromLocation = await locationModel.findOne({ name: from });
-      const toLocation = await locationModel.findOne({ name: to });
+    const isRequestUnder1min = (date) => {
+      const oneMinuteInMilliseconds = 60 * 1000;
+      if (date.getTime() + oneMinuteInMilliseconds > Date.now()) return true;
+      else return false;
+    };
 
-      // 동명의 지역은 불가능
-      if ((from && !fromLocation) || (to && !toLocation)) {
-        res.status(404).json({
-          error: "Rooms/search : No corresponding location",
+    const getTomorrow5am = (date) => {
+      const tomorrowDate = new Date(date);
+      // If the minTime is over 12 AM
+      if (tomorrowDate.getUTCHours() >= 20) {
+        tomorrowDate.setUTCDate(tomorrowDate.getUTCDate() + 1);
+      }
+      tomorrowDate.setUTCHours(20, 0, 0, 0);
+      return tomorrowDate;
+    };
+
+    try {
+      const { name, from, to, time } = req.query;
+      let fromOid = null;
+      let toOid = null;
+
+      if (from && to && from === to) {
+        res.status(400).json({
+          error: "Room/search : Bad request",
         });
         return;
       }
+      if (from) {
+        const fromLocation = await locationModel.findOne({ name: from });
+        fromOid = fromLocation._id;
+      }
+
+      if (to) {
+        const toLocation = await locationModel.findOne({ name: to });
+        toOid = toLocation._id;
+      }
+
+      // 검색 쿼리를 설정합니다.
       const query = {};
-      if (fromLocation) query.from = fromLocation._id;
-      if (toLocation) query.to = toLocation._id;
-      if (time) query.time = { $gte: new Date(time) };
+      if (name) query.name = { $regex: new RegExp(name, "i") }; // 'i': 대소문자 무시
+      if (fromOid) query.from = fromOid;
+      if (toOid) query.to = toOid;
+      // 검색 시간대는 시작 시각으로부터 24시간으로 설정합니다.
+      const minTime = time ? new Date(time) : new Date();
+
+      if (!isRequestUnder1min(minTime)) {
+        return res.status(400).json({
+          error: "Room/search : Bad request",
+        });
+      }
+
+      const maxTime = getTomorrow5am(minTime);
+      query.time = { $gte: minTime, $lt: maxTime };
 
       const rooms = await roomModel
         .find(query)
+        .sort({ time: 1 })
         .populate(roomPopulateQuery)
         .exec();
+
       res.json(rooms);
     } catch (error) {
       console.log(error);
       res.status(500).json({
         error: "Rooms/search : Internal server error",
-      });
-    }
-  }
-);
-
-// 해당 이름과 일치하는 방을 반환한다.
-router.get(
-  "/searchByName/",
-  query("name").matches(patterns.name),
-  async (req, res) => {
-    const validationErrors = validationResult(req);
-    if (!validationErrors.isEmpty()) {
-      res.status(400).json({
-        error: "Rooms/searchByName : Bad request",
-      });
-      return;
-    }
-
-    try {
-      let rooms = await roomModel
-        .find({ name: req.query.name })
-        .populate(roomPopulateQuery)
-        .exec();
-      if (!rooms) {
-        res.status(404).json({
-          error: "Rooms/searchByName : No matching room(s)",
-        });
-      }
-      res.json(rooms);
-    } catch (err) {
-      console.log(err);
-      res.status(500).json({
-        error: "Rooms/searchByName : Internal server error",
       });
     }
   }
