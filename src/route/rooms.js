@@ -13,9 +13,9 @@ router.use(authMiddleware);
 
 // 입력 데이터 검증을 위한 정규 표현식들
 const patterns = {
-  name: RegExp("^[A-Za-z0-9가-힣ㄱ-ㅎㅏ-ㅣ,.?! _-]{1,50}$"),
-  from: RegExp("^[A-Za-z0-9가-힣 -]{1,30}$"),
-  to: RegExp("^[A-Za-z0-9가-힣 -]{1,30}$"),
+  name: RegExp("^[A-Za-z0-9가-힣ㄱ-ㅎㅏ-ㅣ,.?! _-]{1,20}$"),
+  from: RegExp("^[A-Za-z0-9가-힣 -]{1,20}$"),
+  to: RegExp("^[A-Za-z0-9가-힣 -]{1,20}$"),
 };
 
 // 장소, 참가자 목록의 ObjectID 제거하기
@@ -338,19 +338,19 @@ router.get(
     }
 
     const isRequestUnder1min = (date) => {
-      const ten_minutes_to_ms = 60 * 1000;
-      if (date.getTime() + ten_minutes_to_ms > Date.now()) return true;
+      const oneMinuteInMilliseconds = 60 * 1000;
+      if (date.getTime() + oneMinuteInMilliseconds > Date.now()) return true;
       else return false;
     };
 
     const getTomorrow5am = (date) => {
-      const date_tomorrow = new Date(date);
+      const tomorrowDate = new Date(date);
       // If the minTime is over 12 AM
-      if (date_tomorrow.getUTCHours() >= 20) {
-        date_tomorrow.setUTCDate(date_tomorrow.getUTCDate() + 1);
+      if (tomorrowDate.getUTCHours() >= 20) {
+        tomorrowDate.setUTCDate(tomorrowDate.getUTCDate() + 1);
       }
-      date_tomorrow.setUTCHours(20, 0, 0, 0);
-      return date_tomorrow;
+      tomorrowDate.setUTCHours(20, 0, 0, 0);
+      return tomorrowDate;
     };
 
     try {
