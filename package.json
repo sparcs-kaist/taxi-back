@@ -40,7 +40,7 @@
   },
   "scripts": {
     "start": "npx nodemon app.js",
-    "test": "mocha --recursive --reporter dot"
+    "test": "mocha --recursive --reporter spec --exit"
   },
   "author": "sparcs",
   "license": "ISC"
