@@ -2,14 +2,14 @@
 
 ## Routes
 
-### [/auth](src/route/docs/auth.md)
+### [/auth](auth.md)
 
-### [/auth](src/route/docs/auth.replace.md) **(for dev)**
+### [/auth](auth.replace.md) **(for dev)**
 
-### [/chats](src/route/docs/chats.md)
+### [/chats](chats.md)
 
-### [/rooms](src/route/docs/rooms.md)
+### [/rooms](rooms.md)
 
-### [/static](src/route/docs/static.md)
+### [/static](static.md)
 
-### [/users](src/route/docs/users.md)
+### [/users](users.md)
