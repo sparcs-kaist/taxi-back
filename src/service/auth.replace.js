@@ -108,22 +108,24 @@ const loginDone = (req, res, userData) => {
   );
 };
 
+const tryHandler = (req, res) => {
+  {
+    const id = req.body.id || req.query.id;
+    loginDone(req, res, makeInfo(id));
+  }
+};
 
-module.exports={
-    tryHandler : (req, res) => {
-        {
-            const id = req.body.id || req.query.id;
-            loginDone(req, res, makeInfo(id));
-        }
-    },
+const sparcsssoHandler = (req, res) => {
+  res.end(loginHtml);
+};
 
-    sparcsssoHandler : (req, res) => {
-        res.end(loginHtml);
-    },
+const logoutHandler = (req, res) => {
+  logout(req, res);
+  res.status(200).send("logged out successfully");
+};
 
-    logoutHandler :  (req, res) => {
-        logout(req, res);
-        res.status(200).send("logged out successfully");
-    },
-
-}
+module.exports = {
+  tryHandler,
+  sparcsssoHandler,
+  logoutHandler,
+};
