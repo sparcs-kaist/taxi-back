@@ -5,7 +5,7 @@ const getLoginInfo = (req) => {
     if (timeFlow > 3600000)
       return { id: undefined, sid: undefined, name: undefined };
     else {
-      req.session.time = Date.now();
+      req.session.loginInfo.time = Date.now();
       return { id, sid, name };
     }
   } else return { id: undefined, sid: undefined, name: undefined };
