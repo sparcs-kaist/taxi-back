@@ -10,9 +10,6 @@ const fs = require("fs");
 const cors = require("cors");
 const startSocketServer = require("./src/modules/socket");
 
-//const bkfd2Password = require("pbkdf2-password");
-//const hasher = bkfd2Password();
-
 // 내부 모듈
 const security = require("./security");
 
