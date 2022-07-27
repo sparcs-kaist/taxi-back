@@ -17,7 +17,7 @@ const infoHandler = async (req, res) => {
   const userId = req.userId;
   if (!userId) {
     res.status(403).json({
-      error: "room/info : not logged in",
+      error: "Rooms/info : not logged in",
     });
     return;
   }
@@ -33,7 +33,7 @@ const infoHandler = async (req, res) => {
   try {
     const user = await userModel.findOne({ id: userId });
 
-    let room = await roomModel.findById(req.params.id);
+    let room = await roomModel.findById(req.query.id);
     if (room) {
       // 사용자가 해당 룸의 구성원이 아닌 경우, 403 오류를 반환한다.
       if (room.part.indexOf(user._id) === -1) {
@@ -44,6 +44,7 @@ const infoHandler = async (req, res) => {
       }
       //From mongoose v6, this needs to be changed to room.populate(roomPopulateQuery)
       await room.execPopulate(roomPopulateQuery);
+
       res.status(200).send(room);
     } else {
       res.status(404).json({
@@ -67,7 +68,7 @@ const createHandler = async (req, res) => {
     return;
   }
 
-  const { name, from, to, time } = req.body.data;
+  const { name, from, to, time, maxPartLength } = req.body.data;
 
   try {
     let fromLoc = await locationModel.findOneAndUpdate(
@@ -93,6 +94,7 @@ const createHandler = async (req, res) => {
       time: time,
       part: part,
       madeat: Date.now(),
+      maxPartLength: maxPartLength,
       settlement: { studentId: user._id, isSettlement: false },
       settlementTotal: 0,
       isOver: false,
@@ -103,7 +105,7 @@ const createHandler = async (req, res) => {
     user.room.push(room._id);
     await user.save();
 
-    room.execPopulate(roomPopulateQuery);
+    await room.execPopulate(roomPopulateQuery);
     res.send(room);
     return;
   } catch (err) {
@@ -153,6 +155,12 @@ const inviteHandler = async (req, res) => {
           });
           return;
         }
+        // if ((room.part.length+req.body.users.length)>room.maxPartLength){ // 초대할 사람 수가 방의 남은 자리 수를 초과하면 초대가 불가능합니다.
+        //   res.status(400).json({
+        //     error: "Room/invite : There are too many people to invite to the room",
+        //   });
+        //   return;
+        // }
         newUsers.push(newUser);
       }
 
@@ -172,6 +180,7 @@ const inviteHandler = async (req, res) => {
         });
         return;
       }
+
       newUsers.push(user);
       room.part.push(user._id);
       user.room.push(room._id);
@@ -193,6 +202,11 @@ const inviteHandler = async (req, res) => {
     res.send(room);
   } catch (error) {
     console.log(error);
+    if (error._message === "Room validation failed") {
+      res.status(400).json({
+        error: "Room/invite : the room is full",
+      });
+    }
     res.status(500).json({
       error: "Rooms/invite : internal server error",
     });
@@ -394,20 +408,6 @@ const searchByUserHandler = async (req, res) => {
   }
 };
 
-const getAllRoomHandler = async (_, res) => {
-  console.log("GET ALL ROOM");
-  const result = await roomModel.find({}).populate(roomPopulateQuery).exec();
-  res.json(result);
-  return;
-};
-
-const removeAllRoomHandler = async (_, res) => {
-  console.log("DELETE ALL ROOM");
-  await roomModel.remove({});
-  res.redirect("/rooms/getAllRoom");
-  return;
-};
-
 const idSettlementHandler = async (req, res) => {
   const validationErrors = validationResult(req);
   if (!validationErrors.isEmpty()) {
@@ -441,6 +441,20 @@ const idSettlementHandler = async (req, res) => {
       error: "/:id/settlement : internal server error",
     });
   }
+};
+
+const getAllRoomHandler = async (_, res) => {
+  console.log("GET ALL ROOM");
+  const result = await roomModel.find({}).populate(roomPopulateQuery).exec();
+  res.json(result);
+  return;
+};
+
+const removeAllRoomHandler = async (_, res) => {
+  console.log("DELETE ALL ROOM");
+  await roomModel.remove({});
+  res.redirect("/rooms/getAllRoom");
+  return;
 };
 
 const idEditHandler = async (req, res) => {

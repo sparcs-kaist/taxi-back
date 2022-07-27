@@ -3,7 +3,6 @@ const router = express.Router();
 const authMiddleware = require("../middleware/auth");
 const { query, param, body } = require("express-validator");
 const roomHandlers = require("../service/rooms");
-const { urlencoded } = require("body-parser");
 
 // 라우터 접근 시 로그인 필요
 router.use(authMiddleware);
@@ -26,6 +25,7 @@ router.post(
     body("from").matches(patterns.from),
     body("to").matches(patterns.to),
     body("time").isISO8601(),
+    body("maxPartLength").isInt({ min: 1, max: 4 }),
   ],
   roomHandlers.createHandler
 );
@@ -49,7 +49,6 @@ router.post(
 router.post("/abort", body("roomId").isMongoId(), roomHandlers.abortHandler);
 
 // 조건(이름, 출발지, 도착지, 날짜)에 맞는 방들을 모두 반환한다.
-// 어떻게 짜야 잘 짰다고 소문이 여기저기 동네방네 다 날까?
 router.get(
   "/search",
   [
@@ -64,6 +63,7 @@ router.get(
 // 로그인된 사용자의 모든 방들을 반환한다.
 router.get("/searchByUser/", roomHandlers.searchByUserHandler);
 
+// 해당 룸의 요청을 보낸 유저의 정산을 완료로 처리한다.
 router.post(
   "/:id/settlement",
   param("id").isMongoId(),
