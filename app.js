@@ -37,6 +37,7 @@ app.use("/users", require("./src/route/users"));
 app.use("/rooms", require("./src/route/rooms"));
 app.use("/chats", require("./src/route/chats"));
 app.use("/static", require("./src/route/static"));
+app.use("/locations", require("./src/route/locations"));
 app.use("/admin", require("./src/route/admin"));
 
 // express 서버 시작

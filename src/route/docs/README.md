@@ -13,3 +13,5 @@
 ### [/static](static.md)
 
 ### [/users](users.md)
+
+### [/locations](locations.md)
