@@ -31,7 +31,7 @@ const joinus = (req, res, userData) => {
     id: userData.id,
     name: userData.name,
     nickname: generateNickname(userData.id),
-    profileImageUrl: generateProfileImageUrl(userData.id),
+    profileImageUrl: generateProfileImageUrl(),
     joinat: Date.now(),
     subinfo: {
       kaist: userData.kaist,

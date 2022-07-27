@@ -27,7 +27,6 @@ module.exports.getUploadPUrlPut = (filePath, contentType = "image/png") => {
     Bucket: security.aws.s3BucketName,
     Key: filePath,
     ContentType: contentType,
-    ACL: "public-read",
     Expires: 60, // 1 min
   });
   return presignedUrl;
@@ -40,7 +39,6 @@ module.exports.getUploadPUrlPost = (filePath, contentType, cb) => {
       Bucket: security.aws.s3BucketName,
       Expires: 60, // 1 min
       Conditions: [
-        //{ acl: "public-read" },
         { key: filePath },
         ["eq", "$Content-Type", contentType],
         ["content-length-range", 1, 50 * 1024 * 1024], // Maximum file size is 50MB
