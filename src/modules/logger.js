@@ -30,8 +30,8 @@ const logger = createLogger({
   ],
 });
 
-// If the environment is not production, the log is also recorded on console
-if (process.env.NODE_ENV !== "production") {
+// If the environment is neither production nor test, the log is also recorded on console
+if (process.env.NODE_ENV !== "production" || process.env.NODE_ENV !== "test") {
   logger.add(
     new transports.Console({
       format: format.combine(format.colorize(), format.simple(), customFormat),

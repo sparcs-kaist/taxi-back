@@ -11,6 +11,7 @@ const startSocketServer = require("./src/modules/socket");
 
 // 내부 모듈
 const security = require("./security");
+const { logger } = require("./src/modules/logger");
 
 // 익스프레스 서버 생성
 const app = express();
@@ -41,7 +42,7 @@ app.use("/admin", require("./src/route/admin"));
 
 // express 서버 시작
 const serverHttp = http.createServer(app).listen(security.nodePort, () => {
-  console.log(`Express 서버가 ${security.nodePort}번 포트에서 시작됨.`);
+  logger.info(`Express 서버가 ${security.nodePort}번 포트에서 시작됨.`);
 });
 
 // socket.io 서버 시작 및 app 인스턴스에 저장

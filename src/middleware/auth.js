@@ -1,11 +1,12 @@
 // 로그인된 상태에만 접근할 수 있는 라우터(rooms)를 위한 미들웨어입니다.
 
 const { isLogin, getLoginInfo } = require("../auth/login");
+const { logger } = require("../modules/logger");
 
 // const authMiddleware = (req, res, next) => {
 //   if (!isLogin(req)) {
-//     console.log("Access denied");
-//     console.log("loginCheck Middleware");
+//     logger.error("Access denied");
+//     logger.error("loginCheck Middleware");
 //     res.status("403").json({
 //       error: "not logged in",
 //     });

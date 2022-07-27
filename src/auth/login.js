@@ -1,3 +1,5 @@
+const { logger } = require("../modules/logger");
+
 const getLoginInfo = (req) => {
   if (req.session.loginInfo) {
     const { id, sid, name, time } = req.session.loginInfo;
@@ -28,7 +30,7 @@ const logout = (req, res) => {
     leaveChatRoom(req);
   }
   req.session.destroy((err) => {
-    if (err) console.log(err);
+    if (err) logger.error(err);
   });
 };
 
