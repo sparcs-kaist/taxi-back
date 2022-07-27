@@ -1,7 +1,7 @@
 const { roomModel, locationModel, userModel } = require("../db/mongo");
 const { emitChatEvent } = require("../route/chats.socket");
 const { leaveChatRoom } = require("../auth/login");
-const { logger } = require("../modules/logger");
+const logger = require("../modules/logger");
 //const taxiResponse = require('../taxiResponse')
 
 // 장소, 참가자 목록의 ObjectID 제거하기
@@ -393,14 +393,12 @@ const idSettlementHandler = async (req, res) => {
 };
 
 const getAllRoomHandler = async (_, res) => {
-  logger.info("GET ALL ROOM");
   const result = await roomModel.find({}).populate(roomPopulateQuery).exec();
   res.json(result);
   return;
 };
 
 const removeAllRoomHandler = async (_, res) => {
-  logger.info("DELETE ALL ROOM");
   await roomModel.remove({});
   res.redirect("/rooms/getAllRoom");
   return;
@@ -440,7 +438,6 @@ const idEditHandler = async (req, res) => {
       $set: changeJSON,
       new: true,
     });
-    logger.info(result);
     if (result) {
       await result.execPopulate(roomPopulateQuery);
       res.send(result);

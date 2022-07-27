@@ -8,6 +8,7 @@ const roomHandlers = require("../service/rooms");
 
 // 라우터 접근 시 로그인 필요
 router.use(require("../middleware/auth"));
+router.use(require("../middleware/apiAccessLog"));
 
 // 특정 id 방 세부사항 보기
 router.get(

@@ -6,6 +6,8 @@ const validator = require("../middleware/validator");
 const router = express.Router();
 const staticHandlers = require("../service/static");
 
+router.use(require("../middleware/apiAccessLog"));
+
 router.get(
   "/profile-images/:user_id",
   param("user_id").isLength({ min: 1, max: 30 }).isAlphanumeric(),

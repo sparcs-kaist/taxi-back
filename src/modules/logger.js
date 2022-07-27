@@ -1,10 +1,12 @@
 const { createLogger, format, transports } = require("winston");
 const path = require("path");
 
+// Define custom format for the logs
 const customFormat = format.printf(({ level, message, timestamp }) => {
   return `${timestamp} [${level}]: ${message}`;
 });
 
+// Create a new logger
 const logger = createLogger({
   level: "info",
   format: format.combine(
@@ -24,9 +26,13 @@ const logger = createLogger({
     //
     new transports.File({
       filename: path.resolve("logs/error.log"),
+      maxsize: 5242880, // 5MB
       level: "error",
     }),
-    new transports.File({ filename: path.resolve("logs/combined.log") }),
+    new transports.File({
+      filename: path.resolve("logs/combined.log"),
+      maxsize: 5242880, // 5MB
+    }),
   ],
 });
 
@@ -39,6 +45,4 @@ if (process.env.NODE_ENV !== "production" || process.env.NODE_ENV !== "test") {
   );
 }
 
-module.exports = {
-  logger,
-};
+module.exports = logger;

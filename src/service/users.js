@@ -3,7 +3,7 @@ const fs = require("fs/promises");
 const { userModel, roomModel } = require("../db/mongo");
 const { getLoginInfo } = require("../auth/login");
 const { checkProfileImage } = require("../modules/modifyProfile");
-const { logger } = require("../modules/logger");
+const logger = require("../modules/logger");
 
 const agreeOnTermsOfServiceHandler = async (req, res) => {
   try {
@@ -201,7 +201,6 @@ const idBanHandler = async (req, res) => {
       user.ban = true;
       try {
         await user.save();
-        logger.info(user);
         res.status(200).send("The user banned successfully");
       } catch (err) {
         logger.error(err);
@@ -222,7 +221,6 @@ const idUnbanHandler = async (req, res) => {
       user.ban = false;
       try {
         await user.save();
-        logger.info(user);
         res.status(200).send("The user unbanned successfully");
       } catch (err) {
         logger.error(err);
@@ -259,7 +257,6 @@ const idParticipateHandler = async (req, res) => {
       res.status(409).send("The user already entered the room");
     user.room.append(req.body.room);
     await user.save();
-    logger.info(user);
     res.status(200).send("User/participate : Successful");
   } catch (error) {
     logger.error(error);

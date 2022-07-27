@@ -2,7 +2,7 @@ const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 
 const security = require("../../security");
-const { logger } = require("../modules/logger");
+const logger = require("../modules/logger");
 
 const userSchema = Schema({
   name: { type: String, required: true }, //실명

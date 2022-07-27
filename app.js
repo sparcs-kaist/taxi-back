@@ -11,7 +11,7 @@ const startSocketServer = require("./src/modules/socket");
 
 // 내부 모듈
 const security = require("./security");
-const { logger } = require("./src/modules/logger");
+const logger = require("./src/modules/logger");
 
 // 익스프레스 서버 생성
 const app = express();

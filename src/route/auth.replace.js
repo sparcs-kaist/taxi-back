@@ -3,6 +3,8 @@ const express = require("express");
 const router = express.Router();
 const authReplaceHandlers = require("../service/auth.replace");
 
+router.use(require("../middleware/apiAccessLog"));
+
 // 로그인 시도
 router.route("/try").post(authReplaceHandlers.tryHandler);
 

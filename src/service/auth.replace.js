@@ -7,7 +7,7 @@ const {
   generateNickname,
   generateProfileImageUrl,
 } = require("../modules/modifyProfile");
-const { logger } = require("../modules/logger");
+const logger = require("../modules/logger");
 
 const loginHtml = `
 <!DOCTYPE html>
@@ -35,7 +35,6 @@ const loginHtml = `
                 }
                 $('#btn').click(() => {
                     const value = document.getElementById("input-id").value;
-                    console.log(value);
                     if(value) post('/auth/try', { id: value });
                 });
             });
