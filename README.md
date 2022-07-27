@@ -24,11 +24,12 @@ $ git clone https://github.com/sparcs-kaist/taxi-back
 
 ### Install Requirements
 ```bash
-$ npm install
+$ npm install --save
 ```
+
 ### Set Environment Configuration
 See [notion page](https://www.notion.so/sparcs/Environment-Variables-1b404bd385fa495bac6d5517b57d72bf).
-Refer to [.env.example](.env.example) and write your own `.env`.
+Refer to [.env.example](.env.example) and write your own `.env.development` and `.env.test`.
 
 ## Backend Route Information
 See [Backend Route Documentation](src/route/docs/README.md)
