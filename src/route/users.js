@@ -1,6 +1,7 @@
 const express = require("express");
 const { body } = require("express-validator");
 const validator = require("../middleware/validator");
+const patterns = require("../db/patterns");
 const uploadProfileImage = require("../middleware/uploadProfileImage");
 
 const router = express.Router();
@@ -8,11 +9,6 @@ const userHandlers = require("../service/users");
 
 // 라우터 접근 시 로그인 필요
 router.use(require("../middleware/auth"));
-
-// 입력 데이터 검증을 위한 정규 표현식들
-const patterns = {
-  nickname: RegExp("^[A-Za-z가-힣ㄱ-ㅎㅏ-ㅣ0-9-_ ]{3,25}$"),
-};
 
 // 이용 약관에 동의합니다.
 router.post(
@@ -28,7 +24,7 @@ router.get(
 // 닉네임은 알파벳, 한글, 숫자, 공백, "-", ",", "_" 기호만을 이용해 3~25자 길이로 구성되어야 합니다.
 router.post(
   "/editNickname",
-  body("nickname").matches(patterns.nickname),
+  body("nickname").matches(patterns.user.nickname),
   validator,
   userHandlers.editNicknameHandler
 );
