@@ -1,7 +1,7 @@
 // 프로필 사진을 제공하는 라우터
 const express = require("express");
 const router = express.Router();
-const { param, validationResult } = require("express-validator");
+const { param } = require("express-validator");
 const staticHandlers = require("../service/static");
 
 router.get(
