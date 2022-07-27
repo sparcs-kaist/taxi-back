@@ -26,29 +26,39 @@ const generateUser = async (id, num, isAdmin) => {
   return newUser._id;
 };
 
-const generateSampleLocations = async () => {
-  const newFrom = new locationModel({
-    name: security.fromLocation,
-  });
-  const newTo = new locationModel({
-    name: security.toLocation,
-  });
-  await newFrom.save();
-  await newTo.save();
+const generateSampleLocations = async (locations) => {
+  if (locations.length === 0) {
+    console.log("Please provide location(s)!");
+  }
 
-  return {
-    fromOid: newFrom._id,
-    toOid: newTo._id,
-  };
+  for (const location of locations) {
+    const locationDocument = new locationModel({
+      name: location,
+    });
+    await locationDocument.save();
+  }
+
+  const locationDocuments = await locationModel.find().lean();
+  console.log(locationDocuments.length);
+  return locationDocuments.map((locationDocument) => locationDocument._id);
 };
 
-const generateRoom = async (from, to, num, daysAfter, creatorId) => {
+const generateRoom = async (sampleLocationOids, num, daysAfter, creatorId) => {
   const date = new Date();
   date.setDate(date.getDate() + daysAfter);
+
+  let fromIdx = 0;
+  let toIdx = 0;
+
+  while (fromIdx === toIdx) {
+    fromIdx = Math.floor(Math.random() * sampleLocationOids.length);
+    toIdx = Math.floor(Math.random() * sampleLocationOids.length);
+  }
+
   const newRoom = new roomModel({
     name: `test-${num}`,
-    from: from,
-    to: to,
+    from: sampleLocationOids[fromIdx],
+    to: sampleLocationOids[toIdx],
     time: date,
     part: [],
     madeat: Date.now(),
@@ -56,6 +66,7 @@ const generateRoom = async (from, to, num, daysAfter, creatorId) => {
       studentId: creatorId,
       isSettlement: false,
     },
+    maxPartLength: 4,
   });
   await newRoom.save();
   return newRoom._id;

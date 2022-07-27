@@ -20,12 +20,11 @@ const main = async () => {
     userOids.push(userOid);
   }
 
-  const { fromOid, toOid } = await generateSampleLocations();
+  const sampleLocationOids = await generateSampleLocations(security.locations);
 
   for (const index of Array(numberOfRooms).keys()) {
     const roomOid = await generateRoom(
-      fromOid,
-      toOid,
+      sampleLocationOids,
       index + 1,
       7,
       userOids[0]

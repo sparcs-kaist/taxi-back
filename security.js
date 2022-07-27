@@ -3,8 +3,7 @@ require("dotenv").config();
 module.exports = {
   mongo: process.env.DB_PATH,
   users: process.env.USERS.split(", "),
-  fromLocation: process.env.FROM_LOCATION,
-  toLocation: process.env.TO_LOCATION,
+  locations: process.env.LOCATIONS.split(", "),
   numberOfRooms: parseInt(process.env.NUM_OF_ROOMS),
   numberOfChats: parseInt(process.env.NUM_OF_CHATS),
   maximumIntervalBtwChats: parseFloat(

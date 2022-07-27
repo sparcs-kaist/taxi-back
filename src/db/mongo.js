@@ -44,6 +44,7 @@ const roomSchema = Schema({
   },
   settlementTotal: { type: Number, default: 0, required: true },
   isOver: { type: Boolean, default: false, required: true },
+  maxPartLength: { type: Number, require: true, default: 4 },
   //FIXME: 결제 예정자, 정산 여부 (웹페이지에서 이를 어떻게 처리할 것인지 추가 논의가 필요함)
 });
 const locationSchema = Schema({
@@ -66,18 +67,14 @@ const roomModel = mongoose.model("Room", roomSchema);
 const locationModel = mongoose.model("Location", locationSchema);
 const chatModel = mongoose.model("Chat", chatSchema);
 
-const initializeDB = () => {
-  const models = [userModel, roomModel, locationModel, chatModel];
-  for (const model of models) {
-    if (model.collection) {
-      model.collection.drop();
-    }
-  }
+const initializeDB = async () => {
+  // drop all collections
+  await mongoose.connection.db.dropDatabase();
 };
 
 database.on("error", console.error.bind(console, "mongoose connection error."));
-database.on("open", () => {
-  initializeDB();
+database.on("open", async () => {
+  await initializeDB();
   console.log("데이터베이스와 연결되었습니다.");
 });
 database.on("error", function (err) {
