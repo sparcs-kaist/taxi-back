@@ -110,7 +110,6 @@ User {
 
 #### Errors
 
-- 405 "s3 error"
 - 500 "internal server error"
 
 ### `/editProfileImg/done` **(GET)**
@@ -131,7 +130,6 @@ User {
 
 #### Errors
 
-- 405 "s3 error"
 - 500 "internal server error"
 
 ### `/` **(GET)** (for dev)

@@ -64,7 +64,9 @@ const editProfileImgGetPUrlHandler = async (req, res) => {
     const key = `profile-img/${user._id}`;
     awsS3.getUploadPUrlPost(key, type, (err, data) => {
       if (err) {
-        return res.status(405).send("User/editProfileImg/getPUrl : s3 error");
+        return res
+          .status(500)
+          .send("User/editProfileImg/getPUrl : internal server error");
       }
       data.fields["Content-Type"] = type;
       data.fields["key"] = key;
@@ -89,7 +91,9 @@ const editProfileImgDoneHandler = async (req, res) => {
     const key = `profile-img/${user._id}`;
     awsS3.foundObject(key, async (err, data) => {
       if (err) {
-        return res.status(405).send("User/editProfileImg/done : s3 error");
+        return es
+          .status(500)
+          .send("User/editProfileImg/done : internal server error");
       }
       const userAfter = await userModel.findOneAndUpdate(
         { id: req.userId },
