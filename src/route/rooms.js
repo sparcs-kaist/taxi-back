@@ -3,17 +3,18 @@ const router = express.Router();
 const authMiddleware = require("../middleware/auth");
 const { roomModel, locationModel, userModel } = require("../db/mongo");
 const { query, param, body, validationResult } = require("express-validator");
+const { emitChatEvent } = require("../route/chats.socket");
+const { leaveChatRoom } = require("../auth/login");
 const { urlencoded } = require("body-parser");
-//const taxiResponse = require('../taxiResponse')
 
 // 라우터 접근 시 로그인 필요
 router.use(authMiddleware);
 
 // 입력 데이터 검증을 위한 정규 표현식들
 const patterns = {
-  name: RegExp("^[A-Za-z0-9가-힣ㄱ-ㅎㅏ-ㅣ,.?! _-]{1,50}$"),
-  from: RegExp("^[A-Za-z0-9가-힣 -]{1,30}$"),
-  to: RegExp("^[A-Za-z0-9가-힣 -]{1,30}$"),
+  name: RegExp("^[A-Za-z0-9가-힣ㄱ-ㅎㅏ-ㅣ,.?! _-]{1,20}$"),
+  from: RegExp("^[A-Za-z0-9가-힣 -]{1,20}$"),
+  to: RegExp("^[A-Za-z0-9가-힣 -]{1,20}$"),
 };
 
 // 장소, 참가자 목록의 ObjectID 제거하기
@@ -25,11 +26,11 @@ const roomPopulateQuery = [
 ];
 
 // 특정 id 방 세부사항 보기
-router.get("/:id/info", param("id").isMongoId(), async (req, res) => {
+router.get("/info", query("id").isMongoId(), async (req, res) => {
   const userId = req.userId;
   if (!userId) {
     res.status(403).json({
-      error: "room/info : not logged in",
+      error: "Rooms/info : not logged in",
     });
     return;
   }
@@ -45,7 +46,7 @@ router.get("/:id/info", param("id").isMongoId(), async (req, res) => {
   try {
     const user = await userModel.findOne({ id: userId });
 
-    let room = await roomModel.findById(req.params.id);
+    let room = await roomModel.findById(req.query.id);
     if (room) {
       // 사용자가 해당 룸의 구성원이 아닌 경우, 403 오류를 반환한다.
       if (room.part.indexOf(user._id) === -1) {
@@ -72,16 +73,14 @@ router.get("/:id/info", param("id").isMongoId(), async (req, res) => {
 });
 
 // JSON으로 받은 정보로 방을 생성한다.
-// FIXME: {data: JSON} -> {JSON} 로 API 단순화하기,
 router.post(
   "/create",
   [
-    body("data").exists(),
-    body("data.name").matches(patterns.name),
-    body("data.from").matches(patterns.from),
-    body("data.to").matches(patterns.to),
-    body("data.time").isISO8601(),
-    body("data.maxPartLength").isInt({ min: 1, max: 4 }),
+    body("name").matches(patterns.name),
+    body("from").matches(patterns.from),
+    body("to").matches(patterns.to),
+    body("time").isISO8601(),
+    body("maxPartLength").isInt({ min: 1, max: 4 }),
   ],
   async (req, res) => {
     const validationErrors = validationResult(req);
@@ -129,7 +128,7 @@ router.post(
       user.room.push(room._id);
       await user.save();
 
-      room.execPopulate(roomPopulateQuery);
+      await room.execPopulate(roomPopulateQuery);
       res.send(room);
       return;
     } catch (err) {
@@ -156,7 +155,7 @@ router.post(
     const validationErrors = validationResult(req);
     if (!validationErrors.isEmpty()) {
       res.status(400).json({
-        error: "Room/invite : Bad request",
+        error: "Rooms/invite : Bad request",
       });
       return;
     }
@@ -166,7 +165,7 @@ router.post(
       let room = await roomModel.findById(req.body.roomId);
       if (!room) {
         res.status(404).json({
-          error: "Room/invite : no corresponding room",
+          error: "Rooms/invite : no corresponding room",
         });
         return;
       }
@@ -179,13 +178,13 @@ router.post(
           let newUser = await userModel.findOne({ id: userID });
           if (!newUser) {
             res.status(404).json({
-              error: "Room/invite : no corresponding user",
+              error: "Rooms/invite : no corresponding user",
             });
             return;
           }
           if (room.part.includes(newUser._id)) {
             res.status(409).json({
-              error: "Room/invite : " + userID + " Already in room",
+              error: "Rooms/invite : " + userID + " Already in room",
             });
             return;
           }
@@ -210,16 +209,26 @@ router.post(
         if (req.body.users.length != 1 || req.body.users[0] !== user.id) {
           res.status(400).json({
             error:
-              "Room/invite : You cannot invite other user(s) when you are not joining the room",
+              "Rooms/invite : You cannot invite other user(s) when you are not joining the room",
           });
           return;
         }
 
+        newUsers.push(user);
         room.part.push(user._id);
         user.room.push(room._id);
         room.settlement.push({ studentId: user._id, isSettlement: false });
         await user.save();
       }
+
+      // "AAA님, BBB님" 처럼 사용자 목록을 텍스트로 가공합니다.
+      const nicknames = newUsers.map((user) => user.nickname);
+      const concatenatedNicknames = nicknames.join(" 님, ") + " 님";
+
+      // 입장 채팅을 보냅니다.
+      await emitChatEvent(req.app.get("io"), room._id, {
+        text: `${concatenatedNicknames}이 입장했습니다`,
+      });
 
       await room.save();
       await room.execPopulate(roomPopulateQuery);
@@ -232,7 +241,7 @@ router.post(
         });
       }
       res.status(500).json({
-        error: "Room/invite : internal server error",
+        error: "Rooms/invite : internal server error",
       });
     }
   }
@@ -247,7 +256,7 @@ router.post("/abort", body("roomId").isMongoId(), async (req, res) => {
   const validationErrors = validationResult(req);
   if (!validationErrors.isEmpty()) {
     res.status(400).json({
-      error: "Room/abort : Bad request",
+      error: "Rooms/abort : Bad request",
     });
     return;
   }
@@ -262,7 +271,7 @@ router.post("/abort", body("roomId").isMongoId(), async (req, res) => {
     let user = await userModel.findOne({ id: req.userId });
     if (!user) {
       res.status(400).json({
-        error: "Room/abort : Bad request",
+        error: "Rooms/abort : Bad request",
       });
       return;
     }
@@ -270,9 +279,15 @@ router.post("/abort", body("roomId").isMongoId(), async (req, res) => {
     let room = await roomModel.findById(req.body.roomId);
     if (!room) {
       res.status(404).json({
-        error: "Room/abort : no corresponding room",
+        error: "Rooms/abort : no corresponding room",
       });
       return;
+    }
+
+    // 사용자가 채팅방에 들어와있는 경우, 소켓 연결을 먼저 끊는다.
+    if (req.session.socketId && req.session.chatRoomId) {
+      req.app.get("io").in(req.session.socketId).disconnectSockets(true);
+      leaveChatRoom({ session: req.session });
     }
 
     // 사용자가 참여중인 방 목록에서 해당 방을 제거하고, 해당 방의 참여자 목록에서 사용자를 제거한다.
@@ -302,94 +317,105 @@ router.post("/abort", body("roomId").isMongoId(), async (req, res) => {
         await room.remove();
       }
     }
+
+    // 퇴장 채팅을 보냅니다.
+    await emitChatEvent(req.app.get("io"), room._id, {
+      text: `${user.nickname} 님이 퇴장했습니다.`,
+    });
     await room.execPopulate(roomPopulateQuery);
     res.send(room);
   } catch (error) {
     console.log(error);
     res.status(500).json({
-      error: "Room/abort : internal server error",
+      error: "Rooms/abort : internal server error",
     });
   }
 });
 
-// 조건(출발지, 도착지, 날짜)에 맞는 방들을 모두 반환한다.
+// 조건(이름, 출발지, 도착지, 날짜)에 맞는 방들을 모두 반환한다.
+// 어떻게 짜야 잘 짰다고 소문이 여기저기 동네방네 다 날까?
 router.get(
   "/search",
   [
-    query("from").matches(patterns.from),
-    query("to").matches(patterns.to),
+    query("name").optional().matches(patterns.name),
+    query("from").optional().matches(patterns.from),
+    query("to").optional().matches(patterns.to),
     query("time").optional().isISO8601(),
   ],
   async (req, res) => {
-    const { from, to, time } = req.query;
-    // console.log(req.query);
-
     const validationErrors = validationResult(req);
     if (!validationErrors.isEmpty()) {
       res.status(400).json({
-        error: "Room/search : Bad request",
+        error: "Rooms/search : Bad request",
       });
       return;
     }
 
-    try {
-      const fromLocation = await locationModel.findOne({ name: from });
-      const toLocation = await locationModel.findOne({ name: to });
+    const isRequestUnder1min = (date) => {
+      const oneMinuteInMilliseconds = 60 * 1000;
+      if (date.getTime() + oneMinuteInMilliseconds > Date.now()) return true;
+      else return false;
+    };
 
-      // 동명의 지역은 불가능
-      if ((from && !fromLocation) || (to && !toLocation)) {
-        res.status(404).json({
-          error: "Room/search : No corresponding location",
+    const getTomorrow5am = (date) => {
+      const tomorrowDate = new Date(date);
+      // If the minTime is over 12 AM
+      if (tomorrowDate.getUTCHours() >= 20) {
+        tomorrowDate.setUTCDate(tomorrowDate.getUTCDate() + 1);
+      }
+      tomorrowDate.setUTCHours(20, 0, 0, 0);
+      return tomorrowDate;
+    };
+
+    try {
+      const { name, from, to, time } = req.query;
+      let fromOid = null;
+      let toOid = null;
+
+      if (from && to && from === to) {
+        res.status(400).json({
+          error: "Room/search : Bad request",
         });
         return;
       }
+      if (from) {
+        const fromLocation = await locationModel.findOne({ name: from });
+        fromOid = fromLocation._id;
+      }
+
+      if (to) {
+        const toLocation = await locationModel.findOne({ name: to });
+        toOid = toLocation._id;
+      }
+
+      // 검색 쿼리를 설정합니다.
       const query = {};
-      if (fromLocation) query.from = fromLocation._id;
-      if (toLocation) query.to = toLocation._id;
-      if (time) query.time = { $gte: new Date(time) };
+      if (name) query.name = { $regex: new RegExp(name, "i") }; // 'i': 대소문자 무시
+      if (fromOid) query.from = fromOid;
+      if (toOid) query.to = toOid;
+      // 검색 시간대는 시작 시각으로부터 24시간으로 설정합니다.
+      const minTime = time ? new Date(time) : new Date();
+
+      if (!isRequestUnder1min(minTime)) {
+        return res.status(400).json({
+          error: "Room/search : Bad request",
+        });
+      }
+
+      const maxTime = getTomorrow5am(minTime);
+      query.time = { $gte: minTime, $lt: maxTime };
 
       const rooms = await roomModel
         .find(query)
+        .sort({ time: 1 })
         .populate(roomPopulateQuery)
         .exec();
+
       res.json(rooms);
     } catch (error) {
       console.log(error);
       res.status(500).json({
-        error: "Room/search : Internal server error",
-      });
-    }
-  }
-);
-
-// 해당 이름과 일치하는 방을 반환한다.
-router.get(
-  "/searchByName/",
-  query("name").matches(patterns.name),
-  async (req, res) => {
-    const validationErrors = validationResult(req);
-    if (!validationErrors.isEmpty()) {
-      res.status(400).json({
-        error: "Room/searchByName : Bad request",
-      });
-      return;
-    }
-
-    try {
-      let rooms = await roomModel
-        .find({ name: req.query.name })
-        .populate(roomPopulateQuery)
-        .exec();
-      if (!rooms) {
-        res.status(404).json({
-          error: "Room/searchByName : No matching room(s)",
-        });
-      }
-      res.json(rooms);
-    } catch (err) {
-      console.log(err);
-      res.status(500).json({
-        error: "Room/searchByName : Internal server error",
+        error: "Rooms/search : Internal server error",
       });
     }
   }

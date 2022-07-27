@@ -3,8 +3,6 @@ const express = require("express");
 const http = require("http");
 const https = require("https");
 
-const proxy = require("http-proxy-middleware").createProxyMiddleware;
-const bodyParser = require("body-parser");
 const cookieParser = require("cookie-parser");
 const expressSession = require("express-session");
 const MongoStore = require("connect-mongo");
@@ -12,16 +10,13 @@ const fs = require("fs");
 const cors = require("cors");
 const startSocketServer = require("./src/modules/socket");
 
-//const bkfd2Password = require("pbkdf2-password");
-//const hasher = bkfd2Password();
-
 // 내부 모듈
 const security = require("./security");
 
 // 익스프레스 서버 생성
 const app = express();
-app.use(bodyParser.urlencoded({ extended: false }));
-app.use(bodyParser.json());
+app.use(express.urlencoded({ extended: false }));
+app.use(express.json());
 app.use(cors({ origin: true, credentials: true }));
 
 // 세션 및 쿠키. 세션은 mongodb 데이터베이스에 저장합니다.
@@ -43,9 +38,12 @@ app.use("/users", require("./src/route/users"));
 app.use("/rooms", require("./src/route/rooms"));
 app.use("/chats", require("./src/route/chats"));
 app.use("/static", require("./src/route/static"));
+app.use("/admin", require("./src/route/admin"));
 
+// express 서버 시작
 const serverHttp = http.createServer(app).listen(security.nodePort, () => {
   console.log(`Express 서버가 ${security.nodePort}번 포트에서 시작됨.`);
 });
 
-startSocketServer(serverHttp, session);
+// socket.io 서버 시작 및 app 인스턴스에 저장
+app.set("io", startSocketServer(serverHttp, session));

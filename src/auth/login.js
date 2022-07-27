@@ -5,7 +5,7 @@ const getLoginInfo = (req) => {
     if (timeFlow > 3600000)
       return { id: undefined, sid: undefined, name: undefined };
     else {
-      req.session.time = Date.now();
+      req.session.loginInfo.time = Date.now();
       return { id, sid, name };
     }
   } else return { id: undefined, sid: undefined, name: undefined };
@@ -22,9 +22,24 @@ const login = (req, sid, id, name) => {
 };
 
 const logout = (req, res) => {
+  // 로그아웃 전 socket.io 소켓들 연결부터 끊기
+  if (req.session.socketId && req.session.chatRoomId) {
+    req.app.get("io").in(req.session.socketId).disconnectSockets(true);
+    leaveChatRoom(req);
+  }
   req.session.destroy((err) => {
     if (err) console.log(err);
   });
+};
+
+const joinChatRoom = (req, socketId, roomId) => {
+  req.session.socketId = socketId;
+  req.session.chatRoomId = roomId;
+};
+
+const leaveChatRoom = (req) => {
+  req.session.socketId = null;
+  req.session.chatRoomId = null;
 };
 
 module.exports = {
@@ -32,4 +47,6 @@ module.exports = {
   isLogin,
   login,
   logout,
+  joinChatRoom,
+  leaveChatRoom,
 };

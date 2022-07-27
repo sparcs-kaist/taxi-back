@@ -19,6 +19,7 @@ const userSchema = Schema({
     twitter: { type: String, default: "" },
   },
   email: { type: String, required: true },
+  isAdmin: { type: Boolean, default: false }, //관리자 여부
 });
 
 const settlementSchema = Schema({
@@ -63,16 +64,14 @@ const locationSchema = Schema({
   //   latitude: { type: Number, required: true },
   // longitude: { type: Number, required: true }
 });
-const chatRoomSchema = Schema({
-  _id: Number,
-  chats: [
-    {
-      author: String,
-      text: String,
-      time: Date,
-    },
-  ],
+const chatSchema = Schema({
+  roomId: { type: Schema.Types.ObjectId, required: true },
+  authorId: { type: String }, // 작성자 id (null: 전체 메시지)
+  authorName: { type: String },
+  text: { type: String, default: "" },
+  time: { type: Date, required: true },
 });
+chatSchema.index({ roomId: 1, time: -1 });
 
 mongoose.set("useFindAndModify", false);
 
@@ -106,5 +105,5 @@ module.exports = {
   userModel: mongoose.model("User", userSchema),
   roomModel: mongoose.model("Room", roomSchema),
   locationModel: mongoose.model("Location", locationSchema),
-  chatRoomModel: mongoose.model("ChatRoom", chatRoomSchema),
+  chatModel: mongoose.model("Chat", chatSchema),
 };
