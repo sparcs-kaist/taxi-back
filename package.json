@@ -29,14 +29,17 @@
     "validator": "^13.7.0"
   },
   "devDependencies": {
+    "chai": "*",
     "eslint": "^8.11.0",
-    "nodemon": "^2.0.14"
+    "mocha": "*",
+    "nodemon": "^2.0.14",
+    "supertest": "^6.2.4"
   },
   "scripts": {
     "start": "npx nodemon app.js",
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "mocha --recursive --reporter spec --exit",
     "serve": "pm2 start ecosystem.config.js --env production"
   },
   "author": "sparcs",
-  "license": "ISC"
+  "license": "MIT"
 }
