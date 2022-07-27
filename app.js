@@ -6,7 +6,6 @@ const https = require("https");
 const cookieParser = require("cookie-parser");
 const expressSession = require("express-session");
 const MongoStore = require("connect-mongo");
-const fs = require("fs");
 const cors = require("cors");
 const startSocketServer = require("./src/modules/socket");
 
