@@ -1,5 +1,3 @@
-const { validationResult } = require("express-validator");
-
 const { roomModel, locationModel, userModel } = require("../db/mongo");
 const { emitChatEvent } = require("../route/chats.socket");
 const { leaveChatRoom } = require("../auth/login");
@@ -18,14 +16,6 @@ const infoHandler = async (req, res) => {
   if (!userId) {
     res.status(403).json({
       error: "Rooms/info : not logged in",
-    });
-    return;
-  }
-
-  const validationErrors = validationResult(req);
-  if (!validationErrors.isEmpty()) {
-    res.status(404).json({
-      error: "Rooms/info : id does not exist",
     });
     return;
   }
@@ -60,14 +50,6 @@ const infoHandler = async (req, res) => {
 };
 
 const createHandler = async (req, res) => {
-  const validationErrors = validationResult(req);
-  if (!validationErrors.isEmpty()) {
-    res.status(400).json({
-      error: "Rooms/create : bad request",
-    });
-    return;
-  }
-
   const { name, from, to, time, maxPartLength } = req.body.data;
 
   try {
@@ -118,15 +100,6 @@ const createHandler = async (req, res) => {
 };
 
 const inviteHandler = async (req, res) => {
-  // Request JSON Validation
-  const validationErrors = validationResult(req);
-  if (!validationErrors.isEmpty()) {
-    res.status(400).json({
-      error: "Rooms/invite : Bad request",
-    });
-    return;
-  }
-
   try {
     let user = await userModel.findOne({ id: req.userId });
     let room = await roomModel.findById(req.body.roomId);
@@ -214,15 +187,6 @@ const inviteHandler = async (req, res) => {
 };
 
 const abortHandler = async (req, res) => {
-  // Request JSON Validation
-  const validationErrors = validationResult(req);
-  if (!validationErrors.isEmpty()) {
-    res.status(400).json({
-      error: "Rooms/abort : Bad request",
-    });
-    return;
-  }
-
   const time = Date.now();
   const isOvertime = (room, time) => {
     if (new Date(room.time) <= time) return true;
@@ -295,14 +259,6 @@ const abortHandler = async (req, res) => {
 };
 
 const searchHandler = async (req, res) => {
-  const validationErrors = validationResult(req);
-  if (!validationErrors.isEmpty()) {
-    res.status(400).json({
-      error: "Rooms/search : Bad request",
-    });
-    return;
-  }
-
   const isRequestUnder1min = (date) => {
     const oneMinuteInMilliseconds = 60 * 1000;
     if (date.getTime() + oneMinuteInMilliseconds > Date.now()) return true;
@@ -409,14 +365,6 @@ const searchByUserHandler = async (req, res) => {
 };
 
 const idSettlementHandler = async (req, res) => {
-  const validationErrors = validationResult(req);
-  if (!validationErrors.isEmpty()) {
-    res.status(400).json({
-      error: "/:id/settlement : Bad request",
-    });
-    return;
-  }
-
   try {
     const user = await userModel.findOne({ id: req.userId });
     let result = await roomModel.findOneAndUpdate(
@@ -458,14 +406,6 @@ const removeAllRoomHandler = async (_, res) => {
 };
 
 const idEditHandler = async (req, res) => {
-  const validationErrors = validationResult(req);
-  if (!validationErrors.isEmpty()) {
-    res.status(400).json({
-      error: "Rooms/edit : Bad request",
-    });
-    return;
-  }
-
   const { name, from, to, time, part } = req.body;
 
   // 수정할 값이 주어지지 않은 경우
@@ -517,14 +457,6 @@ const idEditHandler = async (req, res) => {
 };
 
 const idDeleteHandler = async (req, res) => {
-  const validationErrors = validationResult(req);
-  if (!validationErrors.isEmpty()) {
-    res.status(404).json({
-      error: "Rooms/delete : ID does not exist",
-    });
-    return;
-  }
-
   try {
     const result = await roomModel.findByIdAndRemove(req.params.id).exec();
     if (result) {

@@ -1,9 +1,9 @@
 const express = require("express");
 const security = require("../../security");
 const authReplace = require("./auth.replace");
-const router = express.Router();
-const authHandlers = require("../service/auth")
 
+const router = express.Router();
+const authHandlers = require("../service/auth");
 
 router.route("/sparcssso").get(authHandlers.sparcsssoHandler);
 router.route("/sparcssso/callback").get(authHandlers.sparcsssoCallbackHandler);

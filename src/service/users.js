@@ -1,6 +1,5 @@
 const path = require("path");
 const fs = require("fs/promises");
-const { validationResult } = require("express-validator");
 const { userModel, roomModel } = require("../db/mongo");
 const { getLoginInfo } = require("../auth/login");
 const { checkProfileImage } = require("../modules/modifyProfile");
@@ -37,13 +36,6 @@ const getAgreeOnTermsOfServiceHandler = async (req, res) => {
 };
 
 const editNicknameHandler = (req, res) => {
-  // 닉네임 유효성 확인
-  const validationErrors = validationResult(req);
-  if (!validationErrors.isEmpty()) {
-    res.status(400).send("User/editNickname : wrong nickname");
-    return;
-  }
-
   const newNickname = req.body.nickname;
 
   // 닉네임을 갱신하고 결과를 반환

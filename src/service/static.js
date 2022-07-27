@@ -1,15 +1,7 @@
 const { userModel } = require("../db/mongo");
 const path = require("path");
-const { validationResult } = require("express-validator");
 
 const profileHandler = async (req, res) => {
-  // 입력 데이터 검증
-  const validationErrors = validationResult(req);
-  if (!validationErrors.isEmpty()) {
-    res.status(404).send("image not found");
-    return;
-  }
-
   try {
     const user = await userModel.findOne({ id: req.params.user_id });
     if (user) {
