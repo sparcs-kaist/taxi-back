@@ -1,7 +1,4 @@
 const crypto = require("crypto");
-const fs = require("fs");
-const path = require("path");
-const fileType = require("file-type"); //file type을 검사하기 위해 필요한 모듈
 
 const nouns = [
   "재료역학",
@@ -46,6 +43,24 @@ const adjectives = [
   "고삐풀린 망아지 같은",
 ];
 
+const defaultProfile = [
+  "CatGeoul.png",
+  "CatGreen.png",
+  "CatJabo.png",
+  "CatOTL.png",
+  "CatTaxi.png",
+  "GooseGeoul.png",
+  "GooseGreen.png",
+  "GooseJabo.png",
+  "GooseOTL.png",
+  "GooseTaxi.png",
+  "NupjukGeoul.png",
+  "NupjukGreen.png",
+  "NupjukJabo.png",
+  "NupjukOTL.png",
+  "NupjukTaxi.png",
+];
+
 // 닉네임 규칙에 따라 새 유저의 닉네임을 생성해 반환합니다.
 // Ara의 닉네임 생성 규칙을 참고하였습니다.
 const generateNickname = (id) => {
@@ -64,27 +79,12 @@ const generateNickname = (id) => {
 };
 
 // 기존 프로필 사진의 URI 중 하나를 무작위로 선택해 반환합니다.
-const generateProfileImageUrl = (id) => {
-  const fileNames = fs.readdirSync(
-    path.resolve("public/profile-images/default/")
-  );
-  const fileIdx = crypto.randomInt(fileNames.length);
-  const fileName = fileNames[fileIdx];
-
-  const imgUrl = `public/profile-images/default/${fileName}`;
-  return imgUrl;
-};
-
-// 업로드된 파일의 경로가 주어졌을 때, 해당 파일(buffer)의 magic number를 계산해 해당 파일이 이미지인지 판별합니다.
-const checkProfileImage = async (filePath) => {
-  const imageFileType = await fileType.fromFile(filePath);
-  if (!imageFileType || imageFileType.mime.split("/")[0] != "image")
-    return false;
-  else return true;
+const generateProfileImageUrl = () => {
+  const ridx = crypto.randomInt(defaultProfile.length);
+  return `default/${defaultProfile[ridx]}`;
 };
 
 module.exports = {
   generateNickname,
   generateProfileImageUrl,
-  checkProfileImage,
 };

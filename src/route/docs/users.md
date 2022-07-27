@@ -88,41 +88,50 @@ User {
 - 403 "not logged in"
 - 500 "internal server error"
 
-### `/uploadProfileImage` **(POST)**
+### `/editProfileImg/getPUrl` **(POST)**
 
-- 해당 사용자의 프로필 사진을 업로드받아 변경.
-- 프로필 사진은 multipart/form-data를 통해 업로드되어야 함. (header의 Content-Type을 multipart/form-data로 설정)
+- 프로필 이미지를 업로드할 수 있는 Presigned-url을 발급합니다.
 - 프로필 사진은 아래 규칙을 만족해야 함.
-  1. 파일명이 100 bytes 이하
-  2. 파일 크기는 최대 2 MB
+  1. 파일 형식은 image/png, image/jpg, image/jpeg 중 하나
+  2. 파일 크기는 최대 50 MB
 
 #### URL Parameters
 
-- user_id : 사용자의 SPARCS SSO ID
+- type : 업로드할 이미지 type
 
 #### request JSON form
 
 ```javascript
 {
-    profileImage: File, // 새 프로필 사진
-}
-```
-
-#### Response
-
-```javascript
-{
-    status: 200,
-    data: "upload profile image successful",
+    url: String, // pre-signed url
+    fields: Object, // post fields
 }
 ```
 
 #### Errors
 
-- 400 "no file uploaded"
-- 400 "not an image file"
-- 400 "such user id does not exist"
-- 403 "not logged in"
+- 405 "s3 error"
+- 500 "internal server error"
+
+### `/editProfileImg/done` **(GET)**
+
+- 프로필 이미지가 S3에 정상적으로 업로드가 되었는지 확인합니다.
+
+#### URL Parameters
+
+- 없음
+
+#### request JSON form
+
+```javascript
+{
+    result: Boolean, // 정상적으로 업로드 되었으면 true
+}
+```
+
+#### Errors
+
+- 405 "s3 error"
 - 500 "internal server error"
 
 ### `/` **(GET)** (for dev)
