@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const authMiddleware = require("../middleware/auth");
 const { query, param, body } = require("express-validator");
+const validator = require("../middleware/validator");
 const roomHandlers = require("../service/rooms");
 
 // 라우터 접근 시 로그인 필요
@@ -15,7 +16,12 @@ const patterns = {
 };
 
 // 특정 id 방 세부사항 보기
-router.get("/:id/info", param("id").isMongoId(), roomHandlers.infoHandler);
+router.get(
+  "/:id/info",
+  param("id").isMongoId(),
+  validator,
+  roomHandlers.infoHandler
+);
 
 // JSON으로 받은 정보로 방을 생성한다.
 router.post(
@@ -26,8 +32,8 @@ router.post(
     body("to").matches(patterns.to),
     body("time").isISO8601(),
     body("maxPartLength").isInt({ min: 1, max: 4 }),
-    body("maxPartLength").isInt({ min: 1, max: 4 }),
   ],
+  validator,
   roomHandlers.createHandler
 );
 
@@ -40,6 +46,7 @@ router.post(
     body("users").isArray(),
     body("users.*").isLength({ min: 1, max: 30 }).isAlphanumeric(),
   ],
+  validator,
   roomHandlers.inviteHandler
 );
 
@@ -47,7 +54,12 @@ router.post(
 // request: {roomId: 나갈 방}
 // result: Room
 // 모든 사람이 나갈 경우 방 삭제.
-router.post("/abort", body("roomId").isMongoId(), roomHandlers.abortHandler);
+router.post(
+  "/abort",
+  body("roomId").isMongoId(),
+  validator,
+  roomHandlers.abortHandler
+);
 
 // 조건(이름, 출발지, 도착지, 날짜)에 맞는 방들을 모두 반환한다.
 router.get(
@@ -58,6 +70,7 @@ router.get(
     query("to").optional().matches(patterns.to),
     query("time").optional().isISO8601(),
   ],
+  validator,
   roomHandlers.searchHandler
 );
 
@@ -68,6 +81,7 @@ router.get("/searchByUser/", roomHandlers.searchByUserHandler);
 router.post(
   "/:id/settlement",
   param("id").isMongoId(),
+  validator,
   roomHandlers.idSettlementHandler
 );
 
@@ -90,6 +104,7 @@ router.post(
     body("part").isArray(),
     body("part.*").optional().isLength({ min: 1, max: 30 }).isAlphanumeric(),
   ],
+  validator,
   roomHandlers.idEditHandler
 );
 
@@ -97,6 +112,7 @@ router.post(
 router.get(
   "/:id/delete",
   param("id").isMongoId(),
+  validator,
   roomHandlers.idDeleteHandler
 );
 

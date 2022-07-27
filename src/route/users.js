@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const { body } = require("express-validator");
+const validator = require("../middleware/validator");
 const authMiddleware = require("../middleware/auth");
 const uploadProfileImage = require("../middleware/uploadProfileImage");
 
@@ -29,6 +30,7 @@ router.get(
 router.post(
   "/editNickname",
   body("nickname").matches(patterns.nickname),
+  validator,
   userHandlers.editNicknameHandler
 );
 
