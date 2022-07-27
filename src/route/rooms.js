@@ -57,6 +57,7 @@ router.get("/info", query("id").isMongoId(), async (req, res) => {
       }
       //From mongoose v6, this needs to be changed to room.populate(roomPopulateQuery)
       await room.execPopulate(roomPopulateQuery);
+
       res.status(200).send(room);
     } else {
       res.status(404).json({
@@ -79,6 +80,7 @@ router.post(
     body("from").matches(patterns.from),
     body("to").matches(patterns.to),
     body("time").isISO8601(),
+    body("maxPartLength").isInt({ min: 1, max: 4 }),
   ],
   async (req, res) => {
     const validationErrors = validationResult(req);
@@ -89,7 +91,7 @@ router.post(
       return;
     }
 
-    const { name, from, to, time } = req.body;
+    const { name, from, to, time, maxPartLength } = req.body.data;
 
     try {
       let fromLoc = await locationModel.findOneAndUpdate(
@@ -115,6 +117,7 @@ router.post(
         time: time,
         part: part,
         madeat: Date.now(),
+        maxPartLength: maxPartLength,
         settlement: { studentId: user._id, isSettlement: false },
         settlementTotal: 0,
         isOver: false,
@@ -185,6 +188,12 @@ router.post(
             });
             return;
           }
+          // if ((room.part.length+req.body.users.length)>room.maxPartLength){ // 초대할 사람 수가 방의 남은 자리 수를 초과하면 초대가 불가능합니다.
+          //   res.status(400).json({
+          //     error: "Room/invite : There are too many people to invite to the room",
+          //   });
+          //   return;
+          // }
           newUsers.push(newUser);
         }
 
@@ -204,6 +213,7 @@ router.post(
           });
           return;
         }
+
         newUsers.push(user);
         room.part.push(user._id);
         user.room.push(room._id);
@@ -225,6 +235,11 @@ router.post(
       res.send(room);
     } catch (error) {
       console.log(error);
+      if (error._message === "Room validation failed") {
+        res.status(400).json({
+          error: "Room/invite : the room is full",
+        });
+      }
       res.status(500).json({
         error: "Rooms/invite : internal server error",
       });
