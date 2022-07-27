@@ -2,13 +2,11 @@ const express = require("express");
 const AdminJS = require("adminjs");
 const AdminJSExpress = require("@adminjs/express");
 const AdminJSMongoose = require("@adminjs/mongoose");
-const adminAuthMiddleware = require("../middleware/adminAuth");
 const { userModel, roomModel, locationModel } = require("../db/mongo");
 
 let router = express.Router();
 
-// Add middleware for admin check
-router.use(adminAuthMiddleware);
+router.use(require("../middleware/adminAuth"));
 
 // Registration of the mongoose adapter
 AdminJS.registerAdapter(AdminJSMongoose);

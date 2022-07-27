@@ -1,14 +1,13 @@
 const express = require("express");
-const router = express.Router();
 const { body } = require("express-validator");
 const validator = require("../middleware/validator");
-const authMiddleware = require("../middleware/auth");
 const uploadProfileImage = require("../middleware/uploadProfileImage");
 
+const router = express.Router();
 const userHandlers = require("../service/users");
 
 // 라우터 접근 시 로그인 필요
-router.use(authMiddleware);
+router.use(require("../middleware/auth"));
 
 // 입력 데이터 검증을 위한 정규 표현식들
 const patterns = {
