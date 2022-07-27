@@ -64,6 +64,12 @@ const createHandler = async (req, res) => {
       { new: true, upsert: true }
     );
 
+    if (!fromLoc || !toLoc) {
+      return res.status(400).json({
+        error: "Rooms/create : no corresponding locations",
+      });
+    }
+
     const user = await userModel.findOne({ id: req.userId });
 
     // 방 생성 요청을 한 사용자의 ObjectID를 room의 part 리스트에 추가
@@ -288,11 +294,21 @@ const searchHandler = async (req, res) => {
     }
     if (from) {
       const fromLocation = await locationModel.findOne({ name: from });
+      if (!fromLocation) {
+        return res.status(400).json({
+          error: "Room/search : no corresponding locations",
+        });
+      }
       fromOid = fromLocation._id;
     }
 
     if (to) {
       const toLocation = await locationModel.findOne({ name: to });
+      if (!toLocation) {
+        return res.status(400).json({
+          error: "Room/search : no corresponding locations",
+        });
+      }
       toOid = toLocation._id;
     }
 
