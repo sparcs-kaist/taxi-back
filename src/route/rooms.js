@@ -26,6 +26,7 @@ router.post(
     body("to").matches(patterns.to),
     body("time").isISO8601(),
     body("maxPartLength").isInt({ min: 1, max: 4 }),
+    body("maxPartLength").isInt({ min: 1, max: 4 }),
   ],
   roomHandlers.createHandler
 );
