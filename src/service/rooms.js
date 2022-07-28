@@ -116,6 +116,14 @@ const inviteHandler = async (req, res) => {
       return;
     }
 
+    // 초대할 사람 수가 방의 남은 자리 수를 초과하면 초대가 불가능합니다.
+    if (room.part.length + req.body.users.length > room.maxPartLength) {
+      res.status(400).json({
+        error: "Room/invite : There are too many people to invite to the room",
+      });
+      return;
+    }
+
     let newUsers = [];
 
     // 사용자가 이미 참여중인 방인 경우, req.body.users의 사용자들을 방에 참여시킵니다.
@@ -134,13 +142,6 @@ const inviteHandler = async (req, res) => {
           });
           return;
         }
-        // FIXME
-        // if ((room.part.length+req.body.users.length)>room.maxPartLength){ // 초대할 사람 수가 방의 남은 자리 수를 초과하면 초대가 불가능합니다.
-        //   res.status(400).json({
-        //     error: "Room/invite : There are too many people to invite to the room",
-        //   });
-        //   return;
-        // }
         newUsers.push(newUser);
       }
     } else {
