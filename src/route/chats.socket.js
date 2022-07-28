@@ -30,6 +30,7 @@ const emitChatEvent = async (io, roomId, chat) => {
     await chatDocument.save();
 
     chat.authorName = author.nickname;
+    chat.authorProfileUrl = author.profileImageUrl;
     if (chat.type == "in" || chat.type == "out") {
       const userIds = chat.content.split("|");
       chat.names = [];
