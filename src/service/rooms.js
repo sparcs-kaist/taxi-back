@@ -50,7 +50,7 @@ const infoHandler = async (req, res) => {
 };
 
 const createHandler = async (req, res) => {
-  const { name, from, to, time, maxPartLength } = req.body.data;
+  const { name, from, to, time, maxPartLength } = req.body;
 
   try {
     let fromLoc = await locationModel.findOneAndUpdate(
