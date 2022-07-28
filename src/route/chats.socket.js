@@ -45,6 +45,38 @@ const emitChatEvent = async (io, roomId, chat) => {
   }
 };
 
+const chatsForRoom = (chats) => {
+  return new Promise(async (resolve, reject) => {
+    try {
+      const authorNames = {};
+      const authorProfileUrls = {};
+      const chatSend = [];
+      for (const chat of chats) {
+        if (!authorNames[chat.authorId]) {
+          const author = await userModel.findById(chat.authorId);
+          if (!author) {
+            throw new IllegalArgumentsException();
+          }
+          authorNames[author._id] = author.nickname;
+          authorProfileUrls[author._id] = author.profileImageUrl;
+        }
+        chatSend.push({
+          type: chat.type,
+          authorId: chat.authorId,
+          authorName: authorNames[chat.authorId],
+          authorProfileUrl: authorProfileUrls[chat.authorId],
+          content: chat.content,
+          time: chat.time,
+          isValid: chat.isValid,
+        });
+      }
+      resolve(chatSend);
+    } catch (e) {
+      resolve([]);
+    }
+  });
+};
+
 const ioListeners = (io, socket) => {
   const session = socket.handshake.session;
 
@@ -70,14 +102,15 @@ const ioListeners = (io, socket) => {
 
       const amount = 30;
       const chats = await chatModel
-        .find({ roomId: roomId, isValid: true }, "authorId text time -_id")
+        .find({ roomId: roomId, isValid: true })
         .sort({ time: -1 })
         .limit(amount);
 
       if (chats) {
         chats.reverse();
-        // FIXME : authoName 찾기
-        io.to(socket.id).emit("chats-join", { chats: chats });
+        io.to(socket.id).emit("chats-join", {
+          chats: await chatsForRoom(chats),
+        });
       }
     } catch (e) {
       io.to(socket.id).emit("chats-join", { err: true });
@@ -146,9 +179,13 @@ const ioListeners = (io, socket) => {
           .find({ roomId, time: { $lt: lastDate } }, "authorId text time -_id")
           .sort({ time: -1 })
           .limit(amount);
-        chats.reverse();
 
-        return io.to(socket.id).emit("chats-load", { chats });
+        if (chats) {
+          chats.reverse();
+          io.to(socket.id).emit("chats-load", {
+            chats: await chatsForRoom(chats),
+          });
+        }
       } else {
         return io.to(socket.id).emit("chats-load", { err: true });
       }
