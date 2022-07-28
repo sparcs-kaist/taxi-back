@@ -2,6 +2,41 @@ const { getLoginInfo, joinChatRoom, leaveChatRoom } = require("../auth/login");
 const { roomModel, userModel, chatModel } = require("../db/mongo");
 const validator = require("validator");
 
+class IllegalArgumentsException {
+  constructor() {
+    this.toString = () => {
+      return "not enough arguments for emitChatEvent";
+    };
+  }
+}
+
+// express 라우터에서 채팅 이벤트를 보낼 수 있게 함수를 분리했습니다.
+const emitChatEvent = async (io, roomId, chat) => {
+  // chat muse contain type, content and authorId
+  try {
+    if (!io || !roomId || !chat.type || !chat.content || !chat.authorId) {
+      throw new IllegalArgumentsException();
+    }
+
+    const author = await userModel.findById(chat.authorId);
+    if (!author) {
+      throw new IllegalArgumentsException();
+    }
+
+    chat.roomId = roomId;
+    chat.time = Date.now();
+
+    const chatDocument = new chatModel(chat);
+    await chatDocument.save();
+
+    chat.authorName = author.nickname;
+    io.to(`chatRoom-${roomId}`).emit("chats-receive", { chat });
+  } catch (e) {
+    console.log(e);
+    return;
+  }
+};
+
 const ioListeners = (io, socket) => {
   const session = socket.handshake.session;
 
@@ -27,12 +62,13 @@ const ioListeners = (io, socket) => {
 
       const amount = 30;
       const chats = await chatModel
-        .find({ roomId }, "authorId authorName text time -_id")
+        .find({ roomId: roomId, isValid: true }, "authorId text time -_id")
         .sort({ time: -1 })
         .limit(amount);
-      chats.reverse();
 
       if (chats) {
+        chats.reverse();
+        // FIXME : authoName 찾기
         io.to(socket.id).emit("chats-join", { chats: chats });
       }
     } catch (e) {
@@ -74,17 +110,13 @@ const ioListeners = (io, socket) => {
         return io
           .to(socket.id)
           .emit("chats-send", { err: "user not join chat room" });
-      // push chat to db
-      const chat = new chatModel({
-        roomId: roomId,
-        authorId: myUser.id,
-        authorName: myUser.nickname,
-        text: chatMessage.content,
-        time: Date.now(),
+
+      emitChatEvent(io, roomId, {
+        type: "text",
+        content: chatMessage.content,
+        authorId: myUser._id,
       });
-      await chat.save();
       io.to(socket.id).emit("chats-send", { done: true });
-      socket.to(`chatRoom-${roomId}`).emit("chats-receive", { chat });
     } catch (e) {
       io.to(socket.id).emit("chats-send", { err: true });
     }
@@ -103,10 +135,7 @@ const ioListeners = (io, socket) => {
         }
 
         const chats = await chatModel
-          .find(
-            { roomId, time: { $lt: lastDate } },
-            "authorId authorName text time -_id"
-          )
+          .find({ roomId, time: { $lt: lastDate } }, "authorId text time -_id")
           .sort({ time: -1 })
           .limit(amount);
         chats.reverse();
@@ -121,41 +150,7 @@ const ioListeners = (io, socket) => {
   });
 };
 
-class IllegalArgumentsException {
-  constructor() {
-    this.toString = () => {
-      return "not enough arguments for emitChatEvent";
-    };
-  }
-}
-
-// express 라우터에서 채팅 이벤트를 보낼 수 있게 함수를 분리했습니다.
-const emitChatEvent = async (io, roomId, chat) => {
-  try {
-    if (!io || !roomId || !chat.text) {
-      throw new IllegalArgumentsException();
-    }
-    if (!chat.authorId || !chat.authorName) {
-      chat.authorId = null;
-      chat.authorName = null;
-    }
-    if (!chat.time) {
-      chat.time = Date.now();
-    }
-    if (!chat.roomId) {
-      chat.roomId = roomId;
-    }
-
-    const chatDocument = new chatModel(chat);
-
-    await chatDocument.save();
-    io.to(`chatRoom-${roomId}`).emit("chats-receive", { chat });
-  } catch (e) {
-    return;
-  }
-};
-
 module.exports = {
-  ioListeners,
   emitChatEvent,
+  ioListeners,
 };
