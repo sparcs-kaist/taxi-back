@@ -30,6 +30,14 @@ const emitChatEvent = async (io, roomId, chat) => {
     await chatDocument.save();
 
     chat.authorName = author.nickname;
+    if (chat.type == "in" || chat.type == "out") {
+      const userIds = chat.content.split("|");
+      chat.names = [];
+      for (const userId of userIds) {
+        const user = await userModel.findOne({ id: userId });
+        chat.names.push(user.nickname);
+      }
+    }
     io.to(`chatRoom-${roomId}`).emit("chats-receive", { chat });
   } catch (e) {
     console.log(e);

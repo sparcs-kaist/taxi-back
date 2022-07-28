@@ -134,7 +134,7 @@ const inviteHandler = async (req, res) => {
           });
           return;
         }
-        // ?
+        // FIXME
         // if ((room.part.length+req.body.users.length)>room.maxPartLength){ // 초대할 사람 수가 방의 남은 자리 수를 초과하면 초대가 불가능합니다.
         //   res.status(400).json({
         //     error: "Room/invite : There are too many people to invite to the room",
@@ -163,15 +163,13 @@ const inviteHandler = async (req, res) => {
       await newUser.save();
     }
 
-    // "AAA님, BBB님" 처럼 사용자 목록을 텍스트로 가공합니다.
-    const nicknames = newUsers.map((user) => user.nickname);
-    const concatenatedNicknames = nicknames.join("|");
+    const userIds = newUsers.map((user) => user.id);
+    const concatenatedIds = userIds.join("|");
 
     // 입장 채팅을 보냅니다.
     await emitChatEvent(req.app.get("io"), room._id, {
       type: "in",
-      // FIXME : 닉네임 변경되면?
-      content: concatenatedNicknames,
+      content: concatenatedIds,
       authorId: user._id,
     });
 
@@ -253,7 +251,7 @@ const abortHandler = async (req, res) => {
     await emitChatEvent(req.app.get("io"), room._id, {
       type: "out",
       // FIXME 닉네임 변경되면?
-      content: user.nickname,
+      content: user.id,
       authorId: user._id,
     });
     await room.execPopulate(roomPopulateQuery);
