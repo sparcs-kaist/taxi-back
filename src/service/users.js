@@ -1,9 +1,8 @@
-const path = require("path");
-const fs = require("fs/promises");
 const { userModel, roomModel } = require("../db/mongo");
 const { getLoginInfo } = require("../auth/login");
 const { checkProfileImage } = require("../modules/modifyProfile");
 const logger = require("../modules/logger");
+const awsS3 = require("../db/awsS3");
 
 const agreeOnTermsOfServiceHandler = async (req, res) => {
   try {
@@ -56,76 +55,65 @@ const editNicknameHandler = (req, res) => {
     });
 };
 
-const uploadProfileImageHandler = async (req, res) => {
-  // 빈 파일이 아닌지 검사.
-  if (!req.file) {
-    return res.status(400).send("User/uploadProfileImage : no file uploaded");
-  }
-
-  // 사용자 검증
-  const { id, sid, name } = getLoginInfo(req);
-  if (!id || !sid || !name) {
-    await fs.unlink(path.resolve(req.file.path));
-    return res.status(403).send("User/uploadProfileImage : not logged in");
-  }
-
-  // 이미지 파일 유효성 검사
-  const isImage = await checkProfileImage(req.file.path);
-  if (!isImage) {
-    await fs.unlink(path.resolve(req.file.path));
-    return res.status(400).send("User/uploadProfileImage : not an image file");
-  }
-
-  // 기존 프로필 사진의 url 갱신
-  const newFilename = req.file.filename;
-  let oldFilename = "";
-  let needToRemove = false;
-
-  let user = await userModel.findOne({ id: id });
-  if (user) {
-    try {
-      const parsedOldImageUrl = user.profileImageUrl.split("/");
-      oldFilename = parsedOldImageUrl[parsedOldImageUrl.length - 1];
-      needToRemove =
-        parsedOldImageUrl[parsedOldImageUrl.length - 2] === "user-upload";
-      user.profileImageUrl = `public/profile-images/user-upload/${newFilename}`;
-      await user.save();
-    } catch (err) {
-      // 기존 프로필 사진의 url 갱신에 실패한 경우, 새로 업로드된 파일을 삭제합니다.
-      console.log(err);
-      try {
-        await fs.unlink(req.file.path);
+const editProfileImgGetPUrlHandler = async (req, res) => {
+  try {
+    const type = req.body.type;
+    const user = await userModel.findOne({ id: req.userId }, "_id");
+    if (!user) {
+      return res
+        .status(500)
+        .send("User/editProfileImg/getPUrl : internal server error");
+    }
+    const key = `profile-img/${user._id}`;
+    awsS3.getUploadPUrlPost(key, type, (err, data) => {
+      if (err) {
         return res
           .status(500)
-          .send("User/uploadProfileImage : internal server error");
-      } catch (err) {
-        // 새로 업로드된 파일 삭제에도 실패한 경우
-        return res
-          .status(500)
-          .send("User/uploadProfileImage : internal server error");
+          .send("User/editProfileImg/getPUrl : internal server error");
       }
-    }
-  } else {
-    return res
-      .status(400)
-      .send("User/uploadProfileImage : such user id does not exist");
+      data.fields["Content-Type"] = type;
+      data.fields["key"] = key;
+      res.json({
+        url: data.url,
+        fields: data.fields,
+      });
+    });
+  } catch (e) {
+    res.status(500).send("User/editProfileImg/getPUrl : internal server error");
   }
+};
 
-  // 기존 파일 삭제
-  if (oldFilename !== "" && needToRemove) {
-    try {
-      await fs.unlink(
-        path.resolve("public/profile-images/user-upload", oldFilename)
-      );
-      res
-        .status(200)
-        .send("User/uploadProfileImage : upload profile image successful");
-    } catch (err) {
-      console.log(err);
-      res
-        .status(200)
-        .send("User/uploadProfileImage : upload profile image successful");
+const editProfileImgDoneHandler = async (req, res) => {
+  try {
+    const user = await userModel.findOne({ id: req.userId }, "_id");
+    if (!user) {
+      return res
+        .status(500)
+        .send("User/editProfileImg/done : internal server error");
     }
+    const key = `profile-img/${user._id}`;
+    awsS3.foundObject(key, async (err, data) => {
+      if (err) {
+        return es
+          .status(500)
+          .send("User/editProfileImg/done : internal server error");
+      }
+      const userAfter = await userModel.findOneAndUpdate(
+        { id: req.userId },
+        { profileImageUrl: user._id },
+        { new: true }
+      );
+      if (!userAfter) {
+        return res
+          .status(500)
+          .send("User/editProfileImg/done : internal server error");
+      }
+      res.json({
+        result: true,
+      });
+    });
+  } catch (e) {
+    res.status(500).send("User/editProfileImg/done : internal server error");
   }
 };
 
@@ -268,7 +256,8 @@ module.exports = {
   agreeOnTermsOfServiceHandler,
   getAgreeOnTermsOfServiceHandler,
   editNicknameHandler,
-  uploadProfileImageHandler,
+  editProfileImgGetPUrlHandler,
+  editProfileImgDoneHandler,
   listAllUsersHandler,
   listRoomsOfUserHandler,
   idHandler,

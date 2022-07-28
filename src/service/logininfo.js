@@ -12,7 +12,7 @@ const detailHandler = (req, res) => {
   if (user.id) {
     userModel.findOne(
       { id: user.id },
-      "id nickname withdraw ban joinat agreeOnTermsOfService subinfo email",
+      "id nickname withdraw ban joinat agreeOnTermsOfService subinfo email profileImageUrl",
       (err, result) => {
         if (err) res.json({ err: true });
         else if (!result) res.json({ err: true });
@@ -26,6 +26,7 @@ const detailHandler = (req, res) => {
             agreeOnTermsOfService: result.agreeOnTermsOfService,
             subinfo: result.subinfo,
             email: result.email,
+            profileImgUrl: result.profileImageUrl,
           });
         }
       }

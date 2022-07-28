@@ -2,7 +2,6 @@ const express = require("express");
 const { body } = require("express-validator");
 const validator = require("../middleware/validator");
 const patterns = require("../db/patterns");
-const uploadProfileImage = require("../middleware/uploadProfileImage");
 
 const router = express.Router();
 const userHandlers = require("../service/users");
@@ -22,7 +21,6 @@ router.get(
 );
 
 // 새 닉네임을 받아 로그인된 유저의 닉네임을 변경합니다.
-// 닉네임은 알파벳, 한글, 숫자, 공백, "-", ",", "_" 기호만을 이용해 3~25자 길이로 구성되어야 합니다.
 router.post(
   "/editNickname",
   body("nickname").matches(patterns.user.nickname),
@@ -30,12 +28,16 @@ router.post(
   userHandlers.editNicknameHandler
 );
 
-// multipart form으로 프로필 사진을 업로드 받아 변경합니다.
+// 프로필 이미지를 업로드할 수 있는 Presigned-url을 발급합니다.
 router.post(
-  "/uploadProfileImage",
-  uploadProfileImage,
-  userHandlers.uploadProfileImageHandler
+  "/editProfileImg/getPUrl",
+  body("type").matches(patterns.user.profileImgType),
+  validator,
+  userHandlers.editProfileImgGetPUrlHandler
 );
+
+// 프로필 이미지가 S3에 정상적으로 업로드가 되었는지 확인합니다.
+router.get("/editProfileImg/done", userHandlers.editProfileImgDoneHandler);
 
 // 아래 라우트 메서드들은 테스트 용도로만 사용 가능
 /* GET users listing. */

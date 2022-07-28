@@ -1,8 +1,6 @@
-const ejs = require("ejs");
-
 const security = require("../../security");
 const { userModel } = require("../db/mongo");
-const { logout, getLoginInfo, login } = require("../auth/login");
+const { logout, login } = require("../auth/login");
 const {
   generateNickname,
   generateProfileImageUrl,
@@ -54,7 +52,7 @@ const makeInfo = (id) => {
     sid: id + "-sid",
     name: id + "-name",
     nickname: generateNickname(id),
-    profileImageUrl: generateProfileImageUrl(id),
+    profileImageUrl: generateProfileImageUrl(),
     facebook: id + "-facebook",
     twitter: id + "-twitter",
     kaist: "20220411",
