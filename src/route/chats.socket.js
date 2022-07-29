@@ -33,10 +33,13 @@ const emitChatEvent = async (io, roomId, chat) => {
     chat.authorProfileUrl = author.profileImageUrl;
     if (chat.type == "in" || chat.type == "out") {
       const userIds = chat.content.split("|");
-      chat.names = [];
+      chat.inOutNames = [];
       for (const userId of userIds) {
         const user = await userModel.findOne({ id: userId });
-        chat.names.push(user.nickname);
+        if (!user) {
+          throw new IllegalArgumentsException();
+        }
+        chat.inOutNames.push(user.nickname);
       }
     }
     io.to(`chatRoom-${roomId}`).emit("chats-receive", { chat });
@@ -56,7 +59,7 @@ const chatsForRoom = (chats) => {
         if (!authorNames[chat.authorId]) {
           const author = await userModel.findById(chat.authorId);
           if (!author) {
-            throw new IllegalArgumentsException();
+            return reject();
           }
           authorNames[author._id] = author.nickname;
           authorProfileUrls[author._id] = author.profileImageUrl;
@@ -73,7 +76,7 @@ const chatsForRoom = (chats) => {
       }
       resolve(chatSend);
     } catch (e) {
-      resolve([]);
+      return reject();
     }
   });
 };
@@ -177,7 +180,7 @@ const ioListeners = (io, socket) => {
         }
 
         const chats = await chatModel
-          .find({ roomId, time: { $lt: lastDate } }, "authorId text time -_id")
+          .find({ roomId, time: { $lt: lastDate } })
           .sort({ time: -1 })
           .limit(amount);
 

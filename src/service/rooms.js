@@ -242,16 +242,15 @@ const abortHandler = async (req, res) => {
       await user.save();
       await room.save();
       if (room.part.length <= 0) {
-        //남은 사용자가 없는 경우.
-        // FIXME: 채팅을 지워야 하고, 남은 뒷부분 코드 때문에 문제가 될 수 있을 것 같음
-        //await room.remove();
+        // 남은 사용자가 없는 경우.
+        // FIXME : 채팅을 지워야 하고, 남은 뒷부분 코드 때문에 문제가 될 수 있을 것 같음
+        // await room.remove();
       }
     }
 
     // 퇴장 채팅을 보냅니다.
     await emitChatEvent(req.app.get("io"), room._id, {
       type: "out",
-      // FIXME 닉네임 변경되면?
       content: user.id,
       authorId: user._id,
     });
