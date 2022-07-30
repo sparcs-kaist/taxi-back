@@ -12,9 +12,9 @@ class IllegalArgumentsException {
 
 // express 라우터에서 채팅 이벤트를 보낼 수 있게 함수를 분리했습니다.
 const emitChatEvent = async (io, roomId, chat) => {
-  // chat muse contain type, content and authorId
   try {
-    if (!io || !roomId || !chat.type || !chat.content || !chat.authorId) {
+    // chat must contain type, content and authorId
+    if (!io || !roomId || !chat?.type || !chat?.content || !chat?.authorId) {
       throw new IllegalArgumentsException();
     }
 
