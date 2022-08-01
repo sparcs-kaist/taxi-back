@@ -1,6 +1,4 @@
 const { userModel, roomModel } = require("../db/mongo");
-const { getLoginInfo } = require("../auth/login");
-const { checkProfileImage } = require("../modules/modifyProfile");
 const logger = require("../modules/logger");
 const awsS3 = require("../db/awsS3");
 
@@ -94,7 +92,7 @@ const editProfileImgDoneHandler = async (req, res) => {
     const key = `profile-img/${user._id}`;
     awsS3.foundObject(key, async (err, data) => {
       if (err) {
-        return es
+        return res
           .status(500)
           .send("User/editProfileImg/done : internal server error");
       }
