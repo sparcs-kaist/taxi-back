@@ -174,9 +174,9 @@ const inviteHandler = async (req, res) => {
     await room.save();
     await room.execPopulate(roomPopulateQuery);
     res.send(room);
-  } catch (error) {
-    logger.error(error);
-    if (error._message === "Room validation failed") {
+  } catch (err) {
+    logger.error(err);
+    if (err._message === "Room validation failed") {
       res.status(400).json({
         error: "Room/invite : the room is full",
       });
@@ -251,8 +251,8 @@ const abortHandler = async (req, res) => {
     });
     await room.execPopulate(roomPopulateQuery);
     res.send(room);
-  } catch (error) {
-    logger.error(error);
+  } catch (err) {
+    logger.error(err);
     res.status(500).json({
       error: "Rooms/abort : internal server error",
     });
@@ -321,8 +321,8 @@ const searchHandler = async (req, res) => {
       .exec();
 
     res.json(rooms);
-  } catch (error) {
-    logger.error(error);
+  } catch (err) {
+    logger.error(err);
     res.status(500).json({
       error: "Rooms/search : Internal server error",
     });

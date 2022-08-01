@@ -81,7 +81,7 @@ const joinus = (req, res, userData) => {
   });
   newUser.save((err) => {
     if (err) {
-      logger.error("login > usersave error");
+      logger.error(err);
       return;
     }
     loginDone(req, res, userData);
@@ -96,7 +96,7 @@ const loginDone = (req, res, userData) => {
     { id: userData.id },
     "name id withdraw ban",
     (err, result) => {
-      if (err) logger.error("login > done error");
+      if (err) logger.error(logger.error(err));
       else if (!result) joinus(req, res, userData);
       else {
         login(req, userData.sid, result.id, result.name);

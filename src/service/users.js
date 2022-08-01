@@ -137,8 +137,8 @@ const listRoomsOfUserHandler = async (req, res) => {
         error: "user/rooms : such id does not exist",
       });
     }
-  } catch (error) {
-    logger.error(error);
+  } catch (err) {
+    logger.error(err);
     res.status(500).json({
       error: "user/rooms : internal server error",
     });
@@ -155,8 +155,8 @@ const idHandler = async (req, res) => {
         error: "user/:id : such id does not exist",
       });
     }
-  } catch (error) {
-    logger.error(error);
+  } catch (err) {
+    logger.error(err);
     res.status(500).json({
       error: "user/:id : internal server error",
     });
@@ -170,13 +170,11 @@ const idEditHandler = (req, res) => {
       if (result) {
         res.status(200).send("edit user successful");
       } else {
-        logger.error("user delete error : id does not exist");
         res.status(400).send("such id does not exist");
       }
     })
-    .catch((error) => {
-      logger.error("user edit error : " + error);
-      throw error;
+    .catch((err) => {
+      logger.error(err);
     });
 };
 
@@ -231,8 +229,8 @@ const idParticipateHandler = async (req, res) => {
     if (!room) res.status(400).send("User/participate : No corresponding room");
     room.part.append(req.params.id);
     await room.save();
-  } catch (error) {
-    logger.error(error);
+  } catch (err) {
+    logger.error(err);
     res.status(500).send("User/participate : Error 500");
   }
 
@@ -244,8 +242,8 @@ const idParticipateHandler = async (req, res) => {
     user.room.append(req.body.room);
     await user.save();
     res.status(200).send("User/participate : Successful");
-  } catch (error) {
-    logger.error(error);
+  } catch (err) {
+    logger.error(err);
     res.status(500).send("User/participate : Error 500");
   }
 };
