@@ -1,10 +1,13 @@
 const { createLogger, format, transports } = require("winston");
+const dailyRotateFileTransport = require("winston-daily-rotate-file");
 const path = require("path");
 
 // Define custom format for the logs
 const customFormat = format.printf(({ level, message, timestamp }) => {
   return `${timestamp} [${level}]: ${message}`;
 });
+
+const datePattern = "YYYY-MM-DD-HH:MM";
 
 // Create a new logger
 const logger = createLogger({
@@ -24,13 +27,15 @@ const logger = createLogger({
     // - Write to all logs with level `info` and below to `combined.log`
     // - Write all logs error (and below) to `error.log`.
     //
-    new transports.File({
-      filename: path.resolve("logs/error.log"),
+    new dailyRotateFileTransport({
+      filename: path.resolve("logs/error-%DATE%.log"),
+      datePattern,
       maxsize: 5242880, // 5MB
       level: "error",
     }),
-    new transports.File({
-      filename: path.resolve("logs/combined.log"),
+    new dailyRotateFileTransport({
+      filename: path.resolve("logs/combined-%DATE%.log"),
+      datePattern,
       maxsize: 5242880, // 5MB
     }),
   ],
