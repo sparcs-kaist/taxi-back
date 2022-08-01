@@ -8,7 +8,6 @@ const userHandlers = require("../service/users");
 
 // 라우터 접근 시 로그인 필요
 router.use(require("../middleware/auth"));
-router.use(require("../middleware/apiAccessLog"));
 
 // 이용 약관에 동의합니다.
 router.post(

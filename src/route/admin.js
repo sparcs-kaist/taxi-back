@@ -6,7 +6,6 @@ const { userModel, roomModel, locationModel } = require("../db/mongo");
 
 let router = express.Router();
 
-router.use(require("../middleware/apiAccessLog"));
 router.use(require("../middleware/adminAuth"));
 
 // Registration of the mongoose adapter

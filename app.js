@@ -19,6 +19,10 @@ app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
 app.use(cors({ origin: true, credentials: true }));
 
+// API 접근 기록 및 응답 시간을 http response의 헤더에 기록
+const responseTimeMiddleware = require("response-time");
+app.use(responseTimeMiddleware(require("./src/modules/apiAccessLog")));
+
 // 세션 및 쿠키. 세션은 mongodb 데이터베이스에 저장합니다.
 const session = expressSession({
   secret: security.session,
