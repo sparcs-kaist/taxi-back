@@ -8,7 +8,7 @@ const {
 
 // SPARCS SSO
 const Client = require("../auth/sparcsso");
-const client = new Client(security.sparcssso_id, security.sparcssso_key);
+const client = new Client(security.sparcssso?.id, security.sparcssso?.key);
 
 const transUserData = (userData) => {
   const info = {
