@@ -54,16 +54,8 @@ const createHandler = async (req, res) => {
   const { name, from, to, time, maxPartLength } = req.body;
 
   try {
-    let fromLoc = await locationModel.findOneAndUpdate(
-      { name: from },
-      {},
-      { new: true, upsert: true }
-    );
-    let toLoc = await locationModel.findOneAndUpdate(
-      { name: to },
-      {},
-      { new: true, upsert: true }
-    );
+    let fromLoc = await locationModel.findById(from);
+    let toLoc = await locationModel.findById(to);
 
     if (!fromLoc || !toLoc) {
       return res.status(400).json({
