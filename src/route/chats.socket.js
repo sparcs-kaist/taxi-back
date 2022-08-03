@@ -77,7 +77,6 @@ const chatsForRoom = (chats) => {
         }
         chatSend.push({
           type: chat.type,
-          _id: chat._id,
           authorId: chat.authorId,
           authorName: authorNames[chat.authorId],
           authorProfileUrl: authorProfileUrls[chat.authorId],

@@ -79,7 +79,10 @@ const uploadChatImgDoneHandler = async (req, res) => {
       }
       const chatAfter = await chatModel.findOneAndUpdate(
         { _id: chat._id },
-        { isValid: true },
+        {
+          isValid: true,
+          content: chat._id.toString(),
+        },
         { new: true }
       );
       if (!chatAfter) {
