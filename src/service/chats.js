@@ -61,7 +61,7 @@ const uploadChatImgDoneHandler = async (req, res) => {
     if (
       chat.type != "s3img" ||
       chat.isValid != false ||
-      chat.authorId != user._id
+      chat.authorId.toString() != user._id.toString()
     ) {
       return res.status(404).json({
         error: "Chat/uploadChatImg/done : no corresponding chat",
@@ -86,9 +86,12 @@ const uploadChatImgDoneHandler = async (req, res) => {
       }
 
       chat.authorName = user.nickname;
-      io.to(`chatRoom-${chatAfter.roomId}`).emit("chats-receive", {
-        chatAfter,
-      });
+      req.app
+        .get("io")
+        .to(`chatRoom-${chatAfter.roomId}`)
+        .emit("chats-receive", {
+          chatAfter,
+        });
 
       res.json({
         result: true,
