@@ -8,7 +8,7 @@ const {
 
 // SPARCS SSO
 const Client = require("../auth/sparcsso");
-const client = new Client(security.sparcssso_id, security.sparcssso_key);
+const client = new Client(security.sparcssso?.id, security.sparcssso?.key);
 
 const transUserData = (userData) => {
   const info = {
@@ -31,7 +31,7 @@ const joinus = (req, res, userData) => {
     id: userData.id,
     name: userData.name,
     nickname: generateNickname(userData.id),
-    profileImageUrl: generateProfileImageUrl(userData.id),
+    profileImageUrl: generateProfileImageUrl(),
     joinat: Date.now(),
     subinfo: {
       kaist: userData.kaist,

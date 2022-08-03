@@ -1,11 +1,11 @@
-const ejs = require("ejs");
 const security = require("../../security");
 const { userModel } = require("../db/mongo");
-const { logout, getLoginInfo, login } = require("../auth/login");
+const { logout, login } = require("../auth/login");
 const {
   generateNickname,
   generateProfileImageUrl,
 } = require("../modules/modifyProfile");
+const logger = require("../modules/logger");
 
 const loginHtml = `
 <!DOCTYPE html>
@@ -33,7 +33,6 @@ const loginHtml = `
                 }
                 $('#btn').click(() => {
                     const value = document.getElementById("input-id").value;
-                    console.log(value);
                     if(value) post('/auth/try', { id: value });
                 });
             });
@@ -53,7 +52,7 @@ const makeInfo = (id) => {
     sid: id + "-sid",
     name: id + "-name",
     nickname: generateNickname(id),
-    profileImageUrl: generateProfileImageUrl(id),
+    profileImageUrl: generateProfileImageUrl(),
     facebook: id + "-facebook",
     twitter: id + "-twitter",
     kaist: "20220411",
@@ -82,7 +81,7 @@ const joinus = (req, res, userData) => {
   });
   newUser.save((err) => {
     if (err) {
-      console.log("login > usersave error");
+      logger.error(err);
       return;
     }
     loginDone(req, res, userData);
@@ -97,7 +96,7 @@ const loginDone = (req, res, userData) => {
     { id: userData.id },
     "name id withdraw ban",
     (err, result) => {
-      if (err) console.log("login > done error");
+      if (err) logger.error(logger.error(err));
       else if (!result) joinus(req, res, userData);
       else {
         login(req, userData.sid, result.id, result.name);

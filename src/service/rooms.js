@@ -1,6 +1,7 @@
 const { roomModel, locationModel, userModel } = require("../db/mongo");
 const { emitChatEvent } = require("../route/chats.socket");
 const { leaveChatRoom } = require("../auth/login");
+const logger = require("../modules/logger");
 //const taxiResponse = require('../taxiResponse')
 
 // 장소, 참가자 목록의 ObjectID 제거하기
@@ -42,7 +43,7 @@ const infoHandler = async (req, res) => {
       });
     }
   } catch (err) {
-    console.log(err);
+    logger.error(err);
     res.status(500).json({
       error: "Rooms/info : internal server error",
     });
@@ -97,7 +98,7 @@ const createHandler = async (req, res) => {
     res.send(room);
     return;
   } catch (err) {
-    console.log(err);
+    logger.error(err);
     res.status(500).json({
       error: "Rooms/create : internal server error",
     });
@@ -179,13 +180,8 @@ const inviteHandler = async (req, res) => {
     await room.save();
     await room.execPopulate(roomPopulateQuery);
     res.send(room);
-  } catch (error) {
-    console.log(error);
-    if (error._message === "Room validation failed") {
-      res.status(400).json({
-        error: "Room/invite : the room is full",
-      });
-    }
+  } catch (err) {
+    logger.error(err);
     res.status(500).json({
       error: "Rooms/invite : internal server error",
     });
@@ -256,8 +252,8 @@ const abortHandler = async (req, res) => {
     });
     await room.execPopulate(roomPopulateQuery);
     res.send(room);
-  } catch (error) {
-    console.log(error);
+  } catch (err) {
+    logger.error(err);
     res.status(500).json({
       error: "Rooms/abort : internal server error",
     });
@@ -336,8 +332,8 @@ const searchHandler = async (req, res) => {
       .exec();
 
     res.json(rooms);
-  } catch (error) {
-    console.log(error);
+  } catch (err) {
+    logger.error(err);
     res.status(500).json({
       error: "Rooms/search : Internal server error",
     });
@@ -373,7 +369,7 @@ const searchByUserHandler = async (req, res) => {
     });
     res.json(response);
   } catch (err) {
-    console.log(err);
+    logger.error(err);
     res.status(500).json({
       error: "Rooms/searchByUser : internal server error",
     });
@@ -400,7 +396,7 @@ const idSettlementHandler = async (req, res) => {
       });
     }
   } catch (err) {
-    console.log(err);
+    logger.error(err);
     res.status(500).json({
       error: "/:id/settlement : internal server error",
     });
@@ -408,14 +404,12 @@ const idSettlementHandler = async (req, res) => {
 };
 
 const getAllRoomHandler = async (_, res) => {
-  console.log("GET ALL ROOM");
   const result = await roomModel.find({}).populate(roomPopulateQuery).exec();
   res.json(result);
   return;
 };
 
 const removeAllRoomHandler = async (_, res) => {
-  console.log("DELETE ALL ROOM");
   await roomModel.remove({});
   res.redirect("/rooms/getAllRoom");
   return;
@@ -455,7 +449,6 @@ const idEditHandler = async (req, res) => {
       $set: changeJSON,
       new: true,
     });
-    console.log(result);
     if (result) {
       await result.execPopulate(roomPopulateQuery);
       res.send(result);
@@ -465,7 +458,7 @@ const idEditHandler = async (req, res) => {
       });
     }
   } catch (err) {
-    console.log(err);
+    logger.error(err);
     res.status(500).json({
       error: "Rooms/edit : internal server error",
     });
@@ -488,7 +481,7 @@ const idDeleteHandler = async (req, res) => {
       return;
     }
   } catch (err) {
-    console.log(err);
+    logger.error(err);
     res.status(500).json({
       error: "Rooms/delete : internal server error",
     });
