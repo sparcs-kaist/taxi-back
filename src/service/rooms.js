@@ -176,11 +176,6 @@ const inviteHandler = async (req, res) => {
     res.send(room);
   } catch (err) {
     logger.error(err);
-    if (err._message === "Room validation failed") {
-      res.status(400).json({
-        error: "Room/invite : the room is full",
-      });
-    }
     res.status(500).json({
       error: "Rooms/invite : internal server error",
     });
