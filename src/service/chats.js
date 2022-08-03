@@ -91,8 +91,8 @@ const uploadChatImgDoneHandler = async (req, res) => {
           .send("User/editProfileImg/done : internal server error");
       }
 
-      chat.authorName = user.nickname;
-      chat.authorProfileUrl = user.profileImageUrl;
+      chatAfter.authorName = user.nickname;
+      chatAfter.authorProfileUrl = user.profileImageUrl;
       req.app
         .get("io")
         .to(`chatRoom-${chatAfter.roomId}`)
