@@ -64,8 +64,20 @@ const chatsForRoom = (chats) => {
           authorNames[author._id] = author.nickname;
           authorProfileUrls[author._id] = author.profileImageUrl;
         }
+        chat.inOutNames = [];
+        if (chat.type == "in" || chat.type == "out") {
+          const userIds = chat.content.split("|");
+          for (const userId of userIds) {
+            const user = await userModel.findOne({ id: userId });
+            if (!user) {
+              throw new IllegalArgumentsException();
+            }
+            chat.inOutNames.push(user.nickname);
+          }
+        }
         chatSend.push({
           type: chat.type,
+          _id: chat._id,
           authorId: chat.authorId,
           authorName: authorNames[chat.authorId],
           authorProfileUrl: authorProfileUrls[chat.authorId],

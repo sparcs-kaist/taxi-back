@@ -46,7 +46,10 @@ const uploadChatImgGetPUrlHandler = async (req, res) => {
 
 const uploadChatImgDoneHandler = async (req, res) => {
   try {
-    const user = await userModel.findOne({ id: req.userId }, "_id");
+    const user = await userModel.findOne(
+      { id: req.userId },
+      "_id nickname profileImageUrl"
+    );
     const chat = await chatModel.findById(req.body.id);
     if (!user) {
       return res
@@ -86,6 +89,7 @@ const uploadChatImgDoneHandler = async (req, res) => {
       }
 
       chat.authorName = user.nickname;
+      chat.authorProfileUrl = user.profileImageUrl;
       req.app
         .get("io")
         .to(`chatRoom-${chatAfter.roomId}`)
