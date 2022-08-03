@@ -33,13 +33,13 @@ const generateSampleLocations = async (locations) => {
 
   for (const location of locations) {
     const locationDocument = new locationModel({
-      name: location,
+      koName: location.koName,
+      enName: location.enName,
     });
     await locationDocument.save();
   }
 
   const locationDocuments = await locationModel.find().lean();
-  console.log(locationDocuments.length);
   return locationDocuments.map((locationDocument) => locationDocument._id);
 };
 

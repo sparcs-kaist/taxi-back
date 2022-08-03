@@ -32,7 +32,19 @@ const roomSchema = Schema({
   from: { type: Schema.Types.ObjectId, ref: "Location", required: true },
   to: { type: Schema.Types.ObjectId, ref: "Location", required: true },
   time: { type: Date, required: true }, // 출발 시간
-  part: [{ type: Schema.Types.ObjectId, ref: "User" }], // 참여 멤버
+  part: {
+    type: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: "User",
+      },
+    ],
+    validate: [
+      function (value) {
+        return value.length <= this.maxPartLength;
+      },
+    ],
+  }, // 참여 멤버
   madeat: { type: Date, required: true }, // 생성 날짜
   settlement: {
     type: [settlementSchema],
@@ -48,7 +60,8 @@ const roomSchema = Schema({
   //FIXME: 결제 예정자, 정산 여부 (웹페이지에서 이를 어떻게 처리할 것인지 추가 논의가 필요함)
 });
 const locationSchema = Schema({
-  name: { type: String, required: true },
+  enName: { type: String, required: true },
+  koName: { type: String, required: true },
   //   latitude: { type: Number, required: true },
   // longitude: { type: Number, required: true }
 });

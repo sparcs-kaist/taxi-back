@@ -5,22 +5,23 @@ const {
   generateChats,
 } = require("./src/testData");
 
-const security = require("./security");
+const {
+  users,
+  numberOfRooms,
+  numberOfChats,
+  locations,
+} = require("./security");
 
 const main = async () => {
-  const userIds = security.users;
-  const numberOfRooms = security.numberOfRooms;
-  const numberOfChats = security.numberOfChats;
   const userOids = [];
   const roomOids = [];
 
-  for (const [index, userId] of userIds.entries()) {
-    const isAdmin = index === 0;
-    const userOid = await generateUser(userId, index + 1, isAdmin);
+  for (const [index, user] of users.entries()) {
+    const userOid = await generateUser(user.id, index + 1, user.isAdmin);
     userOids.push(userOid);
   }
 
-  const sampleLocationOids = await generateSampleLocations(security.locations);
+  const sampleLocationOids = await generateSampleLocations(locations);
 
   for (const index of Array(numberOfRooms).keys()) {
     const roomOid = await generateRoom(
@@ -36,6 +37,7 @@ const main = async () => {
     await generateChats(roomOid, userOids, numberOfChats);
   }
   console.log("끝! 스크립트 실행을 중단하셔도 됩니다.");
+  process.exit(0);
 };
 
 main();

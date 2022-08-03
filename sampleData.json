@@ -1,0 +1,42 @@
+{
+  "users": [
+    {
+      "id": "sunday",
+      "isAdmin": true
+    },
+    {
+      "id": "monday",
+      "isAdmin": true
+    },
+    {
+      "id": "tuesday",
+      "isAdmin": true
+    },
+    {
+      "id": "wednesday",
+      "isAdmin": true
+    }
+  ],
+  "locations": [
+    {
+      "koName": "택시승강장",
+      "enName": "Taxi Stand"
+    },
+    {
+      "koName": "갤러리아 타임월드",
+      "enName": "Galleria Timeworld"
+    },
+    {
+      "koName": "서대전역",
+      "enName": "Seodaejeon Station"
+    },
+    {
+      "koName": "대전역",
+      "enName": "Daejeon Station"
+    },
+    {
+      "koName": "정부청사",
+      "enName": "Government Complex Daejeon"
+    }
+  ]
+}
