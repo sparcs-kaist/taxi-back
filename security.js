@@ -3,10 +3,12 @@ require("dotenv").config({ path: `./.env.${process.env.NODE_ENV}` }); // 환경 
 module.exports = {
   mongo: process.env.DB_PATH,
   session: process.env.SESSION_KEY,
-  sparcssso_id: process.env.SPARCSSSO_CLIENT_ID,
-  sparcssso_key: process.env.SPARCSSSO_CLIENT_KEY,
-  sparcssso_replace: process.env.SPARCSSSO_REPLACE,
-  nodePort: process.env.NODE_PORT,
+  redis: process.env.REDIS_PATH,
+  sparcssso: {
+    id: process.env.SPARCSSSO_CLIENT_ID,
+    key: process.env.SPARCSSSO_CLIENT_KEY,
+  },
+  port: process.env.PORT,
   frontUrl: process.env.FRONT_URL,
   aws: {
     accessKeyId: process.env.AWS_ACCESS_KEY_ID,
