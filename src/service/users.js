@@ -1,4 +1,5 @@
 const { userModel, roomModel } = require("../db/mongo");
+const logger = require("../modules/logger");
 const awsS3 = require("../db/awsS3");
 
 const agreeOnTermsOfServiceHandler = async (req, res) => {
@@ -91,7 +92,7 @@ const editProfileImgDoneHandler = async (req, res) => {
     const key = `profile-img/${user._id}`;
     awsS3.foundObject(key, async (err, data) => {
       if (err) {
-        return es
+        return res
           .status(500)
           .send("User/editProfileImg/done : internal server error");
       }
@@ -136,8 +137,8 @@ const listRoomsOfUserHandler = async (req, res) => {
         error: "user/rooms : such id does not exist",
       });
     }
-  } catch (error) {
-    console.log(error);
+  } catch (err) {
+    logger.error(err);
     res.status(500).json({
       error: "user/rooms : internal server error",
     });
@@ -154,8 +155,8 @@ const idHandler = async (req, res) => {
         error: "user/:id : such id does not exist",
       });
     }
-  } catch (error) {
-    console.log(error);
+  } catch (err) {
+    logger.error(err);
     res.status(500).json({
       error: "user/:id : internal server error",
     });
@@ -169,13 +170,11 @@ const idEditHandler = (req, res) => {
       if (result) {
         res.status(200).send("edit user successful");
       } else {
-        console.log("user delete error : id does not exist");
         res.status(400).send("such id does not exist");
       }
     })
-    .catch((error) => {
-      console.log("user edit error : " + error);
-      throw error;
+    .catch((err) => {
+      logger.error(err);
     });
 };
 
@@ -186,10 +185,9 @@ const idBanHandler = async (req, res) => {
       user.ban = true;
       try {
         await user.save();
-        console.log(user);
         res.status(200).send("The user banned successfully");
       } catch (err) {
-        console.log(err);
+        logger.error(err);
         res.status(500).send("User/ban : Error 500");
       }
     } else {
@@ -207,10 +205,9 @@ const idUnbanHandler = async (req, res) => {
       user.ban = false;
       try {
         await user.save();
-        console.log(user);
         res.status(200).send("The user unbanned successfully");
       } catch (err) {
-        console.log(err);
+        logger.error(err);
         res.status(500).send("User/unban : Error 500");
       }
     } else {
@@ -232,8 +229,8 @@ const idParticipateHandler = async (req, res) => {
     if (!room) res.status(400).send("User/participate : No corresponding room");
     room.part.append(req.params.id);
     await room.save();
-  } catch (error) {
-    console.log(error);
+  } catch (err) {
+    logger.error(err);
     res.status(500).send("User/participate : Error 500");
   }
 
@@ -244,10 +241,9 @@ const idParticipateHandler = async (req, res) => {
       res.status(409).send("The user already entered the room");
     user.room.append(req.body.room);
     await user.save();
-    console.log(user);
     res.status(200).send("User/participate : Successful");
-  } catch (error) {
-    console.log(error);
+  } catch (err) {
+    logger.error(err);
     res.status(500).send("User/participate : Error 500");
   }
 };

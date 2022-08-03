@@ -22,8 +22,11 @@
     "express-validator": "^6.14.0",
     "mongoose": "^5.12.1",
     "querystring": "^0.2.1",
+    "response-time": "^2.3.2",
     "socket.io": "^4.3.1",
-    "validator": "^13.7.0"
+    "validator": "^13.7.0",
+    "winston": "^3.8.1",
+    "winston-daily-rotate-file": "^4.7.1"
   },
   "devDependencies": {
     "chai": "*",
