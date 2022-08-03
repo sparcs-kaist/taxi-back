@@ -22,8 +22,8 @@ router.post(
   "/create",
   [
     body("name").matches(patterns.room.name),
-    body("from").matches(patterns.room.from),
-    body("to").matches(patterns.room.to),
+    body("from").isMongoId(),
+    body("to").isMongoId(),
     body("time").isISO8601(),
     body("maxPartLength").isInt({ min: 1, max: 4 }),
   ],
@@ -60,8 +60,8 @@ router.get(
   "/search",
   [
     query("name").optional().matches(patterns.room.name),
-    query("from").optional().matches(patterns.room.from),
-    query("to").optional().matches(patterns.room.to),
+    query("from").optional().isMongoId(),
+    query("to").optional().isMongoId(),
     query("time").optional().isISO8601(),
   ],
   validator,
@@ -92,8 +92,8 @@ router.post(
   "/:id/edit",
   [
     body("name").optional().matches(patterns.room.name),
-    body("from").optional().matches(patterns.room.from),
-    body("to").optional().matches(patterns.room.to),
+    body("from").optional().isMongoId(),
+    body("to").optional().isMongoId(),
     body("time").optional().isISO8601(),
     body("part").isArray(),
     body("part.*").optional().isLength({ min: 1, max: 30 }).isAlphanumeric(),

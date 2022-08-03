@@ -62,7 +62,8 @@ const roomSchema = Schema({
   //FIXME: 결제 예정자, 정산 여부 (웹페이지에서 이를 어떻게 처리할 것인지 추가 논의가 필요함)
 });
 const locationSchema = Schema({
-  name: { type: String, required: true },
+  enName: { type: String, required: true },
+  koName: { type: String, required: true },
   //   latitude: { type: Number, required: true },
   // longitude: { type: Number, required: true }
 });

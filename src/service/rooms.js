@@ -51,7 +51,7 @@ const infoHandler = async (req, res) => {
 };
 
 const createHandler = async (req, res) => {
-  const { name, from, to, time, maxPartLength } = req.body.data;
+  const { name, from, to, time, maxPartLength } = req.body;
 
   try {
     let fromLoc = await locationModel.findOneAndUpdate(
@@ -289,7 +289,7 @@ const searchHandler = async (req, res) => {
       return;
     }
     if (from) {
-      const fromLocation = await locationModel.findOne({ name: from });
+      const fromLocation = await locationModel.findById(from);
       if (!fromLocation) {
         return res.status(400).json({
           error: "Room/search : no corresponding locations",
@@ -299,7 +299,7 @@ const searchHandler = async (req, res) => {
     }
 
     if (to) {
-      const toLocation = await locationModel.findOne({ name: to });
+      const toLocation = await locationModel.findById(to);
       if (!toLocation) {
         return res.status(400).json({
           error: "Room/search : no corresponding locations",
@@ -426,16 +426,13 @@ const idEditHandler = async (req, res) => {
     return;
   }
 
-  let fromLoc = await locationModel.findOneAndUpdate(
-    { name: from },
-    {},
-    { new: true, upsert: true }
-  );
-  let toLoc = await locationModel.findOneAndUpdate(
-    { name: to },
-    {},
-    { new: true, upsert: true }
-  );
+  let fromLoc = await locationModel.findById(from);
+  let toLoc = await locationModel.findById(to);
+  if (!fromLoc || !toLoc) {
+    res.status(400).json({
+      error: "Rooms/edit : Bad request",
+    });
+  }
   const changeJSON = {
     name: name,
     from: fromLoc._id,
