@@ -51,7 +51,7 @@ const infoHandler = async (req, res) => {
 };
 
 const createHandler = async (req, res) => {
-  const { name, from, to, time, maxPartLength } = req.body.data;
+  const { name, from, to, time, maxPartLength } = req.body;
 
   try {
     let fromLoc = await locationModel.findOneAndUpdate(
@@ -104,9 +104,23 @@ const inviteHandler = async (req, res) => {
   try {
     let user = await userModel.findOne({ id: req.userId });
     let room = await roomModel.findById(req.body.roomId);
+    if (!user) {
+      res.status(400).json({
+        error: "Rooms/invite : Bad request",
+      });
+      return;
+    }
     if (!room) {
       res.status(404).json({
         error: "Rooms/invite : no corresponding room",
+      });
+      return;
+    }
+
+    // 초대할 사람 수가 방의 남은 자리 수를 초과하면 초대가 불가능합니다.
+    if (room.part.length + req.body.users.length > room.maxPartLength) {
+      res.status(400).json({
+        error: "Room/invite : There are too many people to invite to the room",
       });
       return;
     }
@@ -129,20 +143,7 @@ const inviteHandler = async (req, res) => {
           });
           return;
         }
-        // if ((room.part.length+req.body.users.length)>room.maxPartLength){ // 초대할 사람 수가 방의 남은 자리 수를 초과하면 초대가 불가능합니다.
-        //   res.status(400).json({
-        //     error: "Room/invite : There are too many people to invite to the room",
-        //   });
-        //   return;
-        // }
         newUsers.push(newUser);
-      }
-
-      for (let newUser of newUsers) {
-        room.part.push(newUser._id);
-        newUser.room.push(room._id);
-        room.settlement.push({ studentId: newUser._id, isSettlement: false });
-        await newUser.save();
       }
     } else {
       // 사용자가 참여하지 않은 방의 경우, 사용자 자신만 참여하도록 요청했을 때에만 사용자를 방에 참여시킵니다.
@@ -154,21 +155,24 @@ const inviteHandler = async (req, res) => {
         });
         return;
       }
-
       newUsers.push(user);
-      room.part.push(user._id);
-      user.room.push(room._id);
-      room.settlement.push({ studentId: user._id, isSettlement: false });
-      await user.save();
+    }
+    // update room in newUsers
+    for (let newUser of newUsers) {
+      room.part.push(newUser._id);
+      newUser.room.push(room._id);
+      room.settlement.push({ studentId: newUser._id, isSettlement: false });
+      await newUser.save();
     }
 
-    // "AAA님, BBB님" 처럼 사용자 목록을 텍스트로 가공합니다.
-    const nicknames = newUsers.map((user) => user.nickname);
-    const concatenatedNicknames = nicknames.join(" 님, ") + " 님";
+    const userIds = newUsers.map((user) => user.id);
+    const concatenatedIds = userIds.join("|");
 
     // 입장 채팅을 보냅니다.
     await emitChatEvent(req.app.get("io"), room._id, {
-      text: `${concatenatedNicknames}이 입장했습니다`,
+      type: "in",
+      content: concatenatedIds,
+      authorId: user._id,
     });
 
     await room.save();
@@ -191,14 +195,13 @@ const abortHandler = async (req, res) => {
 
   try {
     let user = await userModel.findOne({ id: req.userId });
+    let room = await roomModel.findById(req.body.roomId);
     if (!user) {
       res.status(400).json({
         error: "Rooms/abort : Bad request",
       });
       return;
     }
-
-    let room = await roomModel.findById(req.body.roomId);
     if (!room) {
       res.status(404).json({
         error: "Rooms/abort : no corresponding room",
@@ -233,16 +236,19 @@ const abortHandler = async (req, res) => {
       room.settlement.splice(roomPartIndex, 1);
       user.room.splice(userRoomIndex, 1);
       await user.save();
-      if (room.part.length !== 0) await room.save();
-      else {
-        //남은 사용자가 없는 경우.
-        await room.remove();
+      await room.save();
+      if (room.part.length <= 0) {
+        // 남은 사용자가 없는 경우.
+        // FIXME : 채팅을 지워야 하고, 남은 뒷부분 코드 때문에 문제가 될 수 있을 것 같음
+        // await room.remove();
       }
     }
 
     // 퇴장 채팅을 보냅니다.
     await emitChatEvent(req.app.get("io"), room._id, {
-      text: `${user.nickname} 님이 퇴장했습니다.`,
+      type: "out",
+      content: user.id,
+      authorId: user._id,
     });
     await room.execPopulate(roomPopulateQuery);
     res.send(room);

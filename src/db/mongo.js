@@ -63,15 +63,16 @@ const roomSchema = Schema({
 });
 const locationSchema = Schema({
   name: { type: String, required: true },
-  //   latitude: { type: Number, required: true },
+  // latitude: { type: Number, required: true },
   // longitude: { type: Number, required: true }
 });
 const chatSchema = Schema({
   roomId: { type: Schema.Types.ObjectId, required: true },
-  authorId: { type: String }, // 작성자 id (null: 전체 메시지)
-  authorName: { type: String },
-  text: { type: String, default: "" },
+  type: { type: String }, // 메시지 종류 (text|in|out|s3img)
+  authorId: { type: Schema.Types.ObjectId, ref: "User", required: true }, // 작성자 id
+  content: { type: String, default: "" },
   time: { type: Date, required: true },
+  isValid: { type: Boolean, default: true },
 });
 chatSchema.index({ roomId: 1, time: -1 });
 
