@@ -21,11 +21,12 @@ jobs:
         mongodb-version: ['5.0']
 
     steps:
-    - name: MongoDB in GitHub Actions
-      uses: supercharge/mongodb-github-action@1.7.0
+    - name: Create mongo Docker container
+      id: build_mongo_docker
+      uses: DigiPie/mongo-action@v1.0.1
       with:
-        mongodb-version: ${{ matrix.mongodb-version }}
-        mongodb-db: taxi-test
+        image-version: latest
+        port: 27017
     
     - name: Use Node.js ${{ matrix.node-version }}
       uses: actions/checkout@v3
@@ -48,5 +49,7 @@ jobs:
         pwd
         ls -al
     
-    - run: npm ci
+    - name: Install dependencies
+      run: npm ci
+    - name: Run unit tests
     - run: npm test
