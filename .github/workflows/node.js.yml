@@ -18,13 +18,13 @@ jobs:
       matrix:
         # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
         node-version: [16.x]
+        mongodb-version: ['5.0']
 
     steps:
-    - name: Create mongo Docker container
-      uses: DigiPie/mongo-action@v1.0.1
+    - name: Start MongoDB
+      uses: supercharge/mongodb-github-action@1.7.0
       with:
-        image-version: latest
-        port: 27017
+        mongodb-version: ${{ matrix.mongodb-version }}
     - name: Use Node.js ${{ matrix.node-version }}
       uses: actions/checkout@v3
     - name: Install npm packages
