@@ -14,17 +14,18 @@ Taxi의 채팅 기능은 Socket.IO 라이브러리를 이용해 구현되어 있
 
 ```javascript
 Chat {
-    roomId: ObjectId, //방의 objectId
-    authorName: String, //작성자 닉네임 (사용자 입,퇴장 알림 등 전체 메시지일 때: null)
-    authorId: String, //작성자 id (!==ObjectId) (전체 메시지일 때: null)
-    text: String, //채팅 내용
-    time: Date, //UTC 시각
+  roomId: ObjectId, //방의 objectId
+  type: String, // 메시지 종류("text": 일반 메시지, "in": 입장 메시지, "out": 퇴장 메시지", "s3img": S3에 업로드된 이미지
+  authorId: ObejctId, //작성자의 objectId
+  content: String, // 메시지 내용(메시지 종류에 따라 포맷이 상이하며, 하단 참조)
+  time: String(ISO 8601), // ex) '2022-01-12T13:58:20.180Z'
+  isValid: Boolean, // 클라이언트가 보낸 메시지가 유효한 지 여부. 클라이언트가 이미지를 업로드했을 때, 해당 이미지가 제대로 업로드됐는지 확인하기 전까지 이미지를 보여주지 않기 위해 사용됨.
 }
 ```
 
 ### 1. `chats-join`
 
-채팅방에 접속할 때 이 이벤트를 발생시키세요.  
+방에 새 사용자가 참여할 때 이 이벤트를 발생시키세요.  
 필요한 인자는 `roomId`입니다.
 
 - `roomId`: 방의 ObjectID (`String`), Socket.IO 서버와 연결을 시도할 때 사용자는 로그인이 되어 있어야 하며, 들어가려는 채팅방에 참여자로 참여하고 있어야 합니다.
