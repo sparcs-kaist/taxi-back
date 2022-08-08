@@ -1,0 +1,51 @@
+# This workflow will do a clean installation of node dependencies, cache/restore them, build the source code and run tests across different versions of node
+# For more information see: https://help.github.com/actions/language-and-framework-guides/using-nodejs-with-github-actions
+
+name: Node.js CI
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
+        node-version: [16.x]
+        mongodb-version: ['4.2', '4.4', '5.0']
+
+    steps:
+    - name: MongoDB in GitHub Actions
+      uses: supercharge/mongodb-github-action@1.7.0
+      with:
+        mongodb-version: ${{ matrix.mongodb-version }}
+    
+    
+    - name: Create .env.test file
+      run: |
+        touch .env.test
+        echo AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }}  >> .env.test
+        echo AWS_S3_BUCKET_NAME=${{ secrets.AWS_S3_BUCKET_NAME }} >> .env.test
+        echo AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }} >> .env.test
+        echo DB_PATH=${{ secrets.DB_PATH }} >> .env.test
+        echo FRONT_URL=${{ secrets.FRONT_URL }} >> .env.test
+        echo PORT=${{ secrets.PORT }} >> .env
+        echo SESSION_KEY=${{ secrets.SESSION_KEY }} >> .env.test
+        cat .env.test
+    
+    - name: Use Node.js ${{ matrix.node-version }}
+      uses: actions/checkout@v3
+    - uses: actions/setup-node@v3
+      with:
+        node-version: ${{ matrix.node-version }}
+        cache: 'npm'   
+    
+    - run: npm ci
+    - run: npm run build --if-present
+    - run: npm test
