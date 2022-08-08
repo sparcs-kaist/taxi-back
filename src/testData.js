@@ -76,10 +76,11 @@ const generateNormalChat = async (i, roomId, userOid, time) => {
   const user = await userModel.findById(userOid);
   const newChat = new chatModel({
     roomId: roomId,
-    authorId: user.id,
-    authorName: user.nickname,
-    text: `안녕하세요! (${i}번째 메시지)`,
+    type: "text",
+    authorId: user._id,
+    content: `안녕하세요! (${i}번째 메시지)`,
     time: time,
+    inValid: false,
   });
   await newChat.save();
 };
@@ -88,10 +89,11 @@ const generateJoinAbortChat = async (roomId, userOid, isJoining, time) => {
   const user = await userModel.findById(userOid);
   const newChat = new chatModel({
     roomId: roomId,
-    authorId: null,
-    authorName: null,
-    text: `${user.nickname}님이 ${isJoining ? "입장" : "퇴장"}했습니다.`,
+    type: isJoining ? "in" : "out",
+    authorId: user._id,
+    content: user.id,
     time: time,
+    isValid: false,
   });
   await newChat.save();
 };
