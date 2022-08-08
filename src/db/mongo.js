@@ -35,12 +35,7 @@ const roomSchema = Schema({
   to: { type: Schema.Types.ObjectId, ref: "Location", required: true },
   time: { type: Date, required: true }, // 출발 시간
   part: {
-    type: [
-      {
-        type: Schema.Types.ObjectId,
-        ref: "User",
-      },
-    ],
+    type: [{ type: Schema.Types.ObjectId, ref: "User" }],
     validate: [
       function (value) {
         return value.length <= this.maxPartLength;
@@ -67,7 +62,7 @@ const locationSchema = Schema({
   // longitude: { type: Number, required: true }
 });
 const chatSchema = Schema({
-  roomId: { type: Schema.Types.ObjectId, required: true },
+  roomId: { type: Schema.Types.ObjectId, ref: "Room", required: true },
   type: { type: String }, // 메시지 종류 (text|in|out|s3img)
   authorId: { type: Schema.Types.ObjectId, ref: "User", required: true }, // 작성자 id
   content: { type: String, default: "" },
