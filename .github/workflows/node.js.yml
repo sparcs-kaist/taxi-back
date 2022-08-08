@@ -11,9 +11,7 @@ on:
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
-
     strategy:
       matrix:
         # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
