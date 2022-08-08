@@ -88,15 +88,16 @@ database.on("error", function (err) {
   mongoose.disconnect();
 });
 database.on("disconnected", function () {
+  // 데이터베이스 연결이 끊어지면 5초 후 재연결을 시도합니다.
   logger.error("데이터베이스와 연결이 끊어졌습니다!");
-  logger.error("데이터베이스 주소: " + security.mongo);
-
-  mongoose.connect(security.mongo, {
-    auto_reconnect: true,
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-    useCreateIndex: true,
-  });
+  setTimeout(() => {
+    mongoose.connect(security.mongo, {
+      auto_reconnect: true,
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+      useCreateIndex: true,
+    });
+  }, 5000);
 });
 
 mongoose.connect(security.mongo, {
