@@ -25,6 +25,7 @@ jobs:
       uses: supercharge/mongodb-github-action@1.7.0
       with:
         mongodb-version: ${{ matrix.mongodb-version }}
+        mongodb-db: taxi-test
     
     - name: Use Node.js ${{ matrix.node-version }}
       uses: actions/checkout@v3
@@ -48,5 +49,4 @@ jobs:
         ls -al
     
     - run: npm ci
-    - run: pwd
     - run: npm test
