@@ -26,6 +26,12 @@ jobs:
       with:
         mongodb-version: ${{ matrix.mongodb-version }}
     
+    - name: Use Node.js ${{ matrix.node-version }}
+      uses: actions/checkout@v3
+    - uses: actions/setup-node@v3
+      with:
+        node-version: ${{ matrix.node-version }}
+        cache: 'npm'   
     
     - name: Create .env.test file
       run: |
@@ -40,13 +46,6 @@ jobs:
         cat .env.test
         pwd
         ls -al
-    
-    - name: Use Node.js ${{ matrix.node-version }}
-      uses: actions/checkout@v3
-    - uses: actions/setup-node@v3
-      with:
-        node-version: ${{ matrix.node-version }}
-        cache: 'npm'   
     
     - run: npm ci
     - run: pwd
