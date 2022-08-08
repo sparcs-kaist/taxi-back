@@ -25,14 +25,13 @@ jobs:
       with:
         image-version: latest
         port: 27017
-    
     - name: Use Node.js ${{ matrix.node-version }}
       uses: actions/checkout@v3
-    - uses: actions/setup-node@v3
+    - name: Install npm packages
+      uses: actions/setup-node@v3
       with:
         node-version: ${{ matrix.node-version }}
         cache: 'npm'   
-    
     - name: Create .env.test file
       run: |
         touch .env.test
@@ -46,7 +45,6 @@ jobs:
         cat .env.test
         pwd
         ls -al
-    
     - name: Install dependencies
       run: npm ci
     - name: Run unit tests
