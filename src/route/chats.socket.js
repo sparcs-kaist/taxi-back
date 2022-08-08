@@ -83,6 +83,7 @@ const chatsForRoom = (chats) => {
           content: chat.content,
           time: chat.time,
           isValid: chat.isValid,
+          inOutNames: chat.inOutNames,
         });
       }
       resolve(chatSend);
