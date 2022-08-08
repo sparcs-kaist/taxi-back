@@ -38,6 +38,7 @@ jobs:
         echo PORT=${{ secrets.PORT }} >> .env.test
         echo SESSION_KEY=${{ secrets.SESSION_KEY }} >> .env.test
         cat .env.test
+        pwd
         ls -al
     
     - name: Use Node.js ${{ matrix.node-version }}
