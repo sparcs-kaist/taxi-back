@@ -89,6 +89,8 @@ database.on("error", function (err) {
 });
 database.on("disconnected", function () {
   logger.error("데이터베이스와 연결이 끊어졌습니다!");
+  logger.error("데이터베이스 주소: " + security.mongo);
+
   mongoose.connect(security.mongo, {
     auto_reconnect: true,
     useNewUrlParser: true,
