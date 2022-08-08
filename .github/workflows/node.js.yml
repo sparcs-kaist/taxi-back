@@ -38,6 +38,7 @@ jobs:
         echo PORT=${{ secrets.PORT }} >> .env.test
         echo SESSION_KEY=${{ secrets.SESSION_KEY }} >> .env.test
         cat .env.test
+        ls -al
     
     - name: Use Node.js ${{ matrix.node-version }}
       uses: actions/checkout@v3
@@ -47,4 +48,5 @@ jobs:
         cache: 'npm'   
     
     - run: npm ci
+    - run: pwd
     - run: npm test
