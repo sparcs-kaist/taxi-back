@@ -77,14 +77,16 @@ const uploadChatImgDoneHandler = async (req, res) => {
           .status(500)
           .send("Chat/uploadChatImg/getPUrl : internal server error");
       }
-      const chatAfter = await chatModel.findOneAndUpdate(
-        { _id: chat._id },
-        {
-          isValid: true,
-          content: chat._id.toString(),
-        },
-        { new: true }
-      );
+      const chatAfter = await chatModel
+        .findOneAndUpdate(
+          { _id: chat._id },
+          {
+            isValid: true,
+            content: chat._id.toString(),
+          },
+          { new: true }
+        )
+        .lean();
       if (!chatAfter) {
         return res
           .status(500)
@@ -97,7 +99,7 @@ const uploadChatImgDoneHandler = async (req, res) => {
         .get("io")
         .to(`chatRoom-${chatAfter.roomId}`)
         .emit("chats-receive", {
-          chatAfter,
+          chat: chatAfter,
         });
 
       res.json({
