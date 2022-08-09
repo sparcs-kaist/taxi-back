@@ -58,6 +58,7 @@ ID를 parameter로 받아 해당 ID의 room의 정보 출력
 #### Errors
 
 - 400 "bad request"
+- 400 "locations are same"
 - 400 "no corresponding locations"
 - 500 "internal server error"
 

@@ -54,18 +54,21 @@ const createHandler = async (req, res) => {
   const { name, from, to, time, maxPartLength } = req.body;
 
   try {
+    if (from === to) {
+      return res.status(400).json({
+        error: "Room/create : locations are same",
+      });
+    }
     let fromLoc = await locationModel.findById(from);
     let toLoc = await locationModel.findById(to);
-
     if (!fromLoc || !toLoc) {
       return res.status(400).json({
         error: "Rooms/create : no corresponding locations",
       });
     }
 
-    const user = await userModel.findOne({ id: req.userId });
-
     // 방 생성 요청을 한 사용자의 ObjectID를 room의 part 리스트에 추가
+    const user = await userModel.findOne({ id: req.userId });
     const part = [user._id];
 
     let room = new roomModel({
