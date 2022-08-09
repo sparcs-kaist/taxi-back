@@ -88,6 +88,13 @@ const createHandler = async (req, res) => {
     user.room.push(room._id);
     await user.save();
 
+    // 입장 채팅을 보냅니다.
+    await emitChatEvent(req.app.get("io"), room._id, {
+      type: "in",
+      content: user.id,
+      authorId: user._id,
+    });
+
     await room.execPopulate(roomPopulateQuery);
     res.send(room);
     return;
