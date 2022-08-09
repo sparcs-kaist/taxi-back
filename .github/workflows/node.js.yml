@@ -49,6 +49,8 @@ jobs:
       run: aws s3 cp --recursive s3://${{ secrets.AWS_S3_BUCKET_NAME }}/dump dump
     - name: Copy to mongodb container
       run: docker cp dump mongodb:/dump
+    - name: LS
+      run: docker exec -it mongodb "ls -al /dump"
     - name: Restore DB from dump file
       run: docker exec mongodb "mongorestore ${{ secrets.DB_PATH }} /dump/${{ secrets.DB_NAME }}"
     - name: Install dependencies from package-lock.json
