@@ -15,10 +15,8 @@ jobs:
         node-version: [16.x]
         mongodb-version: ['5.0']
     steps:
-    - name: Start MongoDB
-      uses: supercharge/mongodb-github-action@1.7.0
-      with:
-        mongodb-version: ${{ matrix.mongodb-version }}
+    - name: Start MongoDB  
+      run: sudo docker run --name mongodb -d -p 27017:27017 mongo:${{ matrix.mongo-version }}
     - name: Use Node.js ${{ matrix.node-version }}
       uses: actions/checkout@v3
     - name: Install npm packages
@@ -28,6 +26,11 @@ jobs:
         cache: 'npm'   
     - name: Install dependencies from package-lock.json
       run: npm ci
+    # - name: Download mongoDB dump file
+    #   run: aws s3 cp --recursive s3://{{ secrets.AWS_S3_BUCKET_NAME }}/dump dump
+    # - name: Restore DB from dump file
+    #   run: mongorestore 
+    #   run: 
     - name: Run unit tests
       run: npm test
       env:
