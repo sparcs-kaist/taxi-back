@@ -3,7 +3,6 @@
 .env.production
 .env.development
 .DS_store
-package-lock.json
 *.code-workspace
 *.swp
 /logs/*.log

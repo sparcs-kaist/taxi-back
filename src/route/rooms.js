@@ -11,8 +11,8 @@ router.use(require("../middleware/auth"));
 
 // 특정 id 방 세부사항 보기
 router.get(
-  "/:id/info",
-  param("id").isMongoId(),
+  "/info",
+  query("id").isMongoId(),
   validator,
   roomHandlers.infoHandler
 );
