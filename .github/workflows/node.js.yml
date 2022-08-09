@@ -46,8 +46,10 @@ jobs:
       run: aws s3 cp --recursive s3://${{ secrets.AWS_S3_BUCKET_NAME }}/dump dump
     - name: Copy to mongodb container
       run: docker cp dump mongodb:/dump
+    - name: Run tmate
+      uses: mxschmitt/action-tmate@v2
     - name: Restore DB from dump file
-      run: docker exec mongodb "mongorestore ${{ secrets.DB_PATH }} /dump/${{ secrets.DB_NAME }}"
+      run: docker exec mongodb mongorestore ${{ secrets.DB_PATH }} dump/${{ secrets.DB_NAME }}
     - name: Install dependencies from package-lock.json
       run: npm ci
     - name: Run unit tests
