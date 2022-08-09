@@ -16,7 +16,7 @@ jobs:
         mongodb-version: ['5.0']
     steps:
     - name: Start MongoDB  
-      run: sudo docker run --name mongodb -d -p 27017:27017 mongo:${{ matrix.mongo-version }}
+      run: sudo docker run --name mongodb -d -p 27017:27017 mongo:${{ matrix.mongodb-version }}
     - name: Use Node.js ${{ matrix.node-version }}
       uses: actions/checkout@v3
     - name: Install npm packages
