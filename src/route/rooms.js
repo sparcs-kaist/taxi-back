@@ -22,13 +22,27 @@ router.post(
   "/create",
   [
     body("name").matches(patterns.room.name),
+    body("from").matches(patterns.room.from),
+    body("to").matches(patterns.room.to),
+    body("time").isISO8601(),
+    body("maxPartLength").isInt({ min: 1, max: 4 }),
+  ],
+  validator,
+  roomHandlers.createHandler
+);
+
+// JSON으로 받은 정보로 방을 생성한다.
+router.post(
+  "/v2/create",
+  [
+    body("name").matches(patterns.room.name),
     body("from").isMongoId(),
     body("to").isMongoId(),
     body("time").isISO8601(),
     body("maxPartLength").isInt({ min: 1, max: 4 }),
   ],
   validator,
-  roomHandlers.createHandler
+  roomHandlers.v2CreateHandler
 );
 
 // 새로운 사용자를 방에 참여시킨다.
@@ -60,12 +74,25 @@ router.get(
   "/search",
   [
     query("name").optional().matches(patterns.room.name),
+    body("from").matches(patterns.room.from),
+    body("to").matches(patterns.room.to),
+    query("time").optional().isISO8601(),
+  ],
+  validator,
+  roomHandlers.searchHandler
+);
+
+// 조건(이름, 출발지, 도착지, 날짜)에 맞는 방들을 모두 반환한다.
+router.get(
+  "/v2/search",
+  [
+    query("name").optional().matches(patterns.room.name),
     query("from").optional().isMongoId(),
     query("to").optional().isMongoId(),
     query("time").optional().isISO8601(),
   ],
   validator,
-  roomHandlers.searchHandler
+  roomHandlers.v2SearchHandler
 );
 
 // 로그인된 사용자의 모든 방들을 반환한다.

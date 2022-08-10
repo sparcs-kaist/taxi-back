@@ -5,7 +5,7 @@ const logger = require("../modules/logger");
 //const taxiResponse = require('../taxiResponse')
 
 // 장소, 참가자 목록의 ObjectID 제거하기
-const extractLocationName = (location) => location.name;
+const extractLocationName = (location) => location.koName;
 const roomPopulateQuery = [
   { path: "part", select: "id name nickname -_id" },
   { path: "from", transform: extractLocationName },
@@ -59,16 +59,19 @@ const createHandler = async (req, res) => {
         error: "Room/create : locations are same",
       });
     }
-    let fromLoc = await locationModel.findById(from);
-    let toLoc = await locationModel.findById(to);
+
+    let fromLoc = await locationModel.findOne({ koName: from });
+    let toLoc = await locationModel.findOne({ koName: to });
+
     if (!fromLoc || !toLoc) {
       return res.status(400).json({
-        error: "Rooms/create : no corresponding locations",
+        error: "Room/create : no corresponding location(s)",
       });
     }
 
-    // 방 생성 요청을 한 사용자의 ObjectID를 room의 part 리스트에 추가
     const user = await userModel.findOne({ id: req.userId });
+
+    // 방 생성 요청을 한 사용자의 ObjectID를 room의 part 리스트에 추가
     const part = [user._id];
 
     let room = new roomModel({
@@ -297,20 +300,20 @@ const searchHandler = async (req, res) => {
       return;
     }
     if (from) {
-      const fromLocation = await locationModel.findById(from);
+      const fromLocation = await locationModel.findOne({ koName: from });
       if (!fromLocation) {
         return res.status(400).json({
-          error: "Room/search : no corresponding locations",
+          error: "Room/search : no corresponding location(s)",
         });
       }
       fromOid = fromLocation._id;
     }
 
     if (to) {
-      const toLocation = await locationModel.findById(to);
+      const toLocation = await locationModel.findOne({ koName: to });
       if (!toLocation) {
         return res.status(400).json({
-          error: "Room/search : no corresponding locations",
+          error: "Room/search : no corresponding location(s)",
         });
       }
       toOid = toLocation._id;
@@ -496,6 +499,153 @@ const idDeleteHandler = async (req, res) => {
   // catch는 반환값이 없을 경우(result == undefined일 때)는 처리하지 않는다.
 };
 
+const v2ExtractLocationName = (location) => {
+  return { _id: location._id, ko: location.koName, en: location.enName };
+};
+const v2RoomPopulateQuery = [
+  { path: "part", select: "id name nickname -_id" },
+  { path: "from", transform: v2ExtractLocationName },
+  { path: "to", transform: v2ExtractLocationName },
+];
+
+const v2CreateHandler = async (req, res) => {
+  const { name, from, to, time, maxPartLength } = req.body;
+
+  try {
+    if (from === to) {
+      return res.status(400).json({
+        error: "Room/create : locations are same",
+      });
+    }
+    let fromLoc = await locationModel.findById(from);
+    let toLoc = await locationModel.findById(to);
+    if (!fromLoc || !toLoc) {
+      return res.status(400).json({
+        error: "Rooms/create : no corresponding locations",
+      });
+    }
+
+    // 방 생성 요청을 한 사용자의 ObjectID를 room의 part 리스트에 추가
+    const user = await userModel.findOne({ id: req.userId });
+    const part = [user._id];
+
+    let room = new roomModel({
+      name: name,
+      from: fromLoc._id,
+      to: toLoc._id,
+      time: time,
+      part: part,
+      madeat: Date.now(),
+      maxPartLength: maxPartLength,
+      settlement: { studentId: user._id, isSettlement: false },
+      settlementTotal: 0,
+      isOver: false,
+    });
+    await room.save();
+
+    // 방의 ObjectID를 방 생성 요청을 한 사용자의 room 배열에 추가
+    user.room.push(room._id);
+    await user.save();
+
+    // 입장 채팅을 보냅니다.
+    await emitChatEvent(req.app.get("io"), room._id, {
+      type: "in",
+      content: user.id,
+      authorId: user._id,
+    });
+
+    await room.execPopulate(v2RoomPopulateQuery);
+    res.send(room);
+    return;
+  } catch (err) {
+    logger.error(err);
+    res.status(500).json({
+      error: "Rooms/create : internal server error",
+    });
+    return;
+  }
+};
+
+const v2SearchHandler = async (req, res) => {
+  const isRequestUnder1min = (date) => {
+    const oneMinuteInMilliseconds = 60 * 1000;
+    if (date.getTime() + oneMinuteInMilliseconds > Date.now()) return true;
+    else return false;
+  };
+
+  const getTomorrow5am = (date) => {
+    const tomorrowDate = new Date(date);
+    // If the minTime is over 12 AM
+    if (tomorrowDate.getUTCHours() >= 20) {
+      tomorrowDate.setUTCDate(tomorrowDate.getUTCDate() + 1);
+    }
+    tomorrowDate.setUTCHours(20, 0, 0, 0);
+    return tomorrowDate;
+  };
+
+  try {
+    const { name, from, to, time } = req.query;
+    let fromOid = null;
+    let toOid = null;
+
+    if (from && to && from === to) {
+      res.status(400).json({
+        error: "Room/search : Bad request",
+      });
+      return;
+    }
+    if (from) {
+      const fromLocation = await locationModel.findById(from);
+      if (!fromLocation) {
+        return res.status(400).json({
+          error: "Room/search : no corresponding locations",
+        });
+      }
+      fromOid = fromLocation._id;
+    }
+
+    if (to) {
+      const toLocation = await locationModel.findById(to);
+      if (!toLocation) {
+        return res.status(400).json({
+          error: "Room/search : no corresponding locations",
+        });
+      }
+      toOid = toLocation._id;
+    }
+
+    // 검색 쿼리를 설정합니다.
+    const query = {};
+    if (name) query.name = { $regex: new RegExp(name, "i") }; // 'i': 대소문자 무시
+    if (fromOid) query.from = fromOid;
+    if (toOid) query.to = toOid;
+    // 검색 시간대는 시작 시각으로부터 24시간으로 설정합니다.
+    const minTime = time ? new Date(time) : new Date();
+
+    if (!isRequestUnder1min(minTime)) {
+      return res.status(400).json({
+        error: "Room/search : Bad request",
+      });
+    }
+
+    const maxTime = getTomorrow5am(minTime);
+    query.time = { $gte: minTime, $lt: maxTime };
+
+    const rooms = await roomModel
+      .find(query)
+      .sort({ time: 1 })
+      .populate(v2RoomPopulateQuery)
+      .exec();
+
+    res.json(rooms);
+  } catch (err) {
+    logger.error(err);
+    res.status(500).json({
+      error: "Rooms/search : Internal server error",
+    });
+  }
+};
+
 module.exports = {
   infoHandler,
   createHandler,
@@ -508,4 +658,6 @@ module.exports = {
   idSettlementHandler,
   idEditHandler,
   idDeleteHandler,
+  v2CreateHandler,
+  v2SearchHandler,
 };
