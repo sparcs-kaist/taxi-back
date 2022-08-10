@@ -64,5 +64,49 @@ describe("logininfo handler", () => {
   });
 });
 
-// describe("detail info handler", () => {
-// });
+describe("detail info handler", () => {
+  it("should return { id: undefined } when no user is logged in", () => {
+    const req = { session: {} };
+    const res = {
+      json: (data) => {
+        expect(data).to.deep.equal({
+          id: undefined,
+        });
+      },
+    };
+    logininfoHandlers.detailHandler(req, res);
+  });
+
+  it("should return { id: undefined } when no user is logged in", () => {
+    const req = { session: {} };
+    const res = {
+      json: (data) => {
+        expect(data).to.deep.equal({
+          id: undefined,
+        });
+      },
+    };
+    logininfoHandlers.detailHandler(req, res);
+  });
+
+  it("should return {id: undefined} when the session is expired", () => {
+    const req = {
+      session: {
+        loginInfo: {
+          id: "hello-id",
+          sid: "hello-sid",
+          name: "hello-name",
+          time: new Date(Date.now() - (3600 * 1000 + 1)).getTime(), // the session should expire after 1 hour
+        },
+      },
+    };
+    const res = {
+      json: (data) => {
+        expect(data).to.deep.equal({
+          id: undefined,
+        });
+      },
+    };
+    logininfoHandlers.detailHandler(req, res);
+  });
+});
