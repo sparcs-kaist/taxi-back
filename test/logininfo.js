@@ -77,12 +77,32 @@ describe("detail info handler", () => {
     logininfoHandlers.detailHandler(req, res);
   });
 
-  it("should return { id: undefined } when no user is logged in", () => {
-    const req = { session: {} };
+  it("should return correct information as same as user's when user is logged in", () => {
+    const req = {
+      session: {
+        loginInfo: {
+          id: "sunday",
+          sid: "sunday-sid",
+          name: "sunday-name",
+          time: Date.now(),
+        },
+      },
+    };
+
+    result = userModel.findOne({ id: "sunday" });
     const res = {
       json: (data) => {
         expect(data).to.deep.equal({
-          id: undefined,
+          oid: result._id,
+          id: result.id,
+          nickname: result.nickname,
+          withdraw: result.withdraw,
+          ban: result.ban,
+          joinat: result.joinat,
+          agreeOnTermsOfService: result.agreeOnTermsOfService,
+          subinfo: result.subinfo,
+          email: result.email,
+          profileImgUrl: result.profileImageUrl,
         });
       },
     };
