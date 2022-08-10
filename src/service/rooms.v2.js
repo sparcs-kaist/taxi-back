@@ -89,16 +89,8 @@ const createHandler = async (req, res) => {
 };
 
 const infoHandler = async (req, res) => {
-  const userId = req.userId;
-  if (!userId) {
-    res.status(403).json({
-      error: "Rooms/info : not logged in",
-    });
-    return;
-  }
-
   try {
-    const user = await userModel.findOne({ id: userId });
+    const user = await userModel.findOne({ id: req.userId });
 
     let room = await roomModel.findById(req.query.id);
     if (room) {
@@ -128,8 +120,8 @@ const infoHandler = async (req, res) => {
 
 const inviteHandler = async (req, res) => {
   try {
-    let user = await userModel.findOne({ id: req.userId });
-    let room = await roomModel.findById(req.body.roomId);
+    const user = await userModel.findOne({ id: req.userId });
+    const room = await roomModel.findById(req.body.roomId);
     if (!user) {
       res.status(400).json({
         error: "Rooms/invite : Bad request",
@@ -220,8 +212,8 @@ const abortHandler = async (req, res) => {
   };
 
   try {
-    let user = await userModel.findOne({ id: req.userId });
-    let room = await roomModel.findById(req.body.roomId);
+    const user = await userModel.findOne({ id: req.userId });
+    const room = await roomModel.findById(req.body.roomId);
     if (!user) {
       res.status(400).json({
         error: "Rooms/abort : Bad request",
@@ -359,7 +351,6 @@ const searchHandler = async (req, res) => {
       .exec();
     res.json(rooms.map((room) => formatSettlement(room)));
   } catch (err) {
-    console.error(err);
     res.status(500).json({
       error: "Rooms/search : Internal server error",
     });
@@ -367,16 +358,9 @@ const searchHandler = async (req, res) => {
 };
 
 const searchByUserHandler = async (req, res) => {
-  const userId = req.userId;
-  if (!userId) {
-    res.status(403).json({
-      error: "Rooms/searchByUser : not logged in",
-    });
-  }
-
   try {
     const user = await userModel
-      .findOne({ id: userId })
+      .findOne({ id: req.userId })
       .populate({
         path: "room",
         populate: roomPopulateQuery,
