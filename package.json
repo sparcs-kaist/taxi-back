@@ -33,6 +33,7 @@
   "devDependencies": {
     "chai": "*",
     "eslint": "^8.11.0",
+    "eslint-plugin-mocha": "^10.1.0",
     "mocha": "*",
     "nodemon": "^2.0.14",
     "supertest": "^6.2.4"

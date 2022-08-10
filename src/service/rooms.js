@@ -77,7 +77,7 @@ const createHandler = async (req, res) => {
       to: toLoc._id,
       time: time,
       part: part,
-      madeat: Date.now(),
+      madeat: req.timestamp,
       maxPartLength: maxPartLength,
       settlement: { studentId: user._id, isSettlement: false },
       settlementTotal: 0,
@@ -195,7 +195,7 @@ const inviteHandler = async (req, res) => {
 };
 
 const abortHandler = async (req, res) => {
-  const time = Date.now();
+  const time = new Date(req.timestamp);
   const isOvertime = (room, time) => {
     if (new Date(room.time) <= time) return true;
     else return false;
@@ -271,7 +271,11 @@ const abortHandler = async (req, res) => {
 const searchHandler = async (req, res) => {
   const isRequestUnder1min = (date) => {
     const oneMinuteInMilliseconds = 60 * 1000;
-    if (date.getTime() + oneMinuteInMilliseconds > Date.now()) return true;
+    if (
+      date.getTime() + oneMinuteInMilliseconds >
+      new Date(req.timestamp).getTime()
+    )
+      return true;
     else return false;
   };
 
