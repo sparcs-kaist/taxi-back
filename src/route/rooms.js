@@ -31,20 +31,6 @@ router.post(
   roomHandlers.createHandler
 );
 
-// JSON으로 받은 정보로 방을 생성한다.
-router.post(
-  "/v2/create",
-  [
-    body("name").matches(patterns.room.name),
-    body("from").isMongoId(),
-    body("to").isMongoId(),
-    body("time").isISO8601(),
-    body("maxPartLength").isInt({ min: 1, max: 4 }),
-  ],
-  validator,
-  roomHandlers.v2CreateHandler
-);
-
 // 새로운 사용자를 방에 참여시킨다.
 // FIXME: req.body.users 검증할 때 SSO ID 규칙 반영하기
 router.post(
@@ -74,25 +60,12 @@ router.get(
   "/search",
   [
     query("name").optional().matches(patterns.room.name),
-    body("from").matches(patterns.room.from),
-    body("to").matches(patterns.room.to),
+    query("from").optional().matches(patterns.room.from),
+    query("to").optional().matches(patterns.room.to),
     query("time").optional().isISO8601(),
   ],
   validator,
   roomHandlers.searchHandler
-);
-
-// 조건(이름, 출발지, 도착지, 날짜)에 맞는 방들을 모두 반환한다.
-router.get(
-  "/v2/search",
-  [
-    query("name").optional().matches(patterns.room.name),
-    query("from").optional().isMongoId(),
-    query("to").optional().isMongoId(),
-    query("time").optional().isISO8601(),
-  ],
-  validator,
-  roomHandlers.v2SearchHandler
 );
 
 // 로그인된 사용자의 모든 방들을 반환한다.
@@ -135,6 +108,101 @@ router.get(
   param("id").isMongoId(),
   validator,
   roomHandlers.idDeleteHandler
+);
+
+// ########################################################
+// ############# Version 2 APIS FROM HERE #################
+// ########################################################
+
+// 특정 id 방 세부사항 보기
+router.get(
+  "/v2/info",
+  query("id").isMongoId(),
+  validator,
+  roomHandlers.v2InfoHandler
+);
+
+// JSON으로 받은 정보로 방을 생성한다.
+router.post(
+  "/v2/create",
+  [
+    body("name").matches(patterns.room.name),
+    body("from").isMongoId(),
+    body("to").isMongoId(),
+    body("time").isISO8601(),
+    body("maxPartLength").isInt({ min: 1, max: 4 }),
+  ],
+  validator,
+  roomHandlers.v2CreateHandler
+);
+
+// 새로운 사용자를 방에 참여시킨다.
+// FIXME: req.body.users 검증할 때 SSO ID 규칙 반영하기
+router.post(
+  "/v2/invite",
+  [
+    body("roomId").isMongoId(),
+    body("users").isArray(),
+    body("users.*").isLength({ min: 1, max: 30 }).isAlphanumeric(),
+  ],
+  validator,
+  roomHandlers.v2InviteHandler
+);
+
+// 기존 방에서 나간다. (채팅 이벤트 연동 안됨: 방 주인이 바뀌는 경우.)
+// request: {roomId: 나갈 방}
+// result: Room
+// 모든 사람이 나갈 경우 방 삭제.
+router.post(
+  "/v2/abort",
+  body("roomId").isMongoId(),
+  validator,
+  roomHandlers.v2AbortHandler
+);
+
+// 조건(이름, 출발지, 도착지, 날짜)에 맞는 방들을 모두 반환한다.
+router.get(
+  "/v2/search",
+  [
+    query("name").optional().matches(patterns.room.name),
+    query("from").optional().isMongoId(),
+    query("to").optional().isMongoId(),
+    query("time").optional().isISO8601(),
+  ],
+  validator,
+  roomHandlers.v2SearchHandler
+);
+
+// 로그인된 사용자의 모든 방들을 반환한다.
+router.get("/v2/searchByUser/", roomHandlers.v2SearchByUserHandler);
+
+// THE ROUTES BELOW ARE ONLY FOR TEST
+router.get("/v2/getAllRoom", roomHandlers.v2GetAllRoomHandler);
+
+// 해당 룸의 요청을 보낸 유저의 정산을 완료로 처리한다.
+router.post(
+  "/v2/:id/settlement",
+  param("id").isMongoId(),
+  validator,
+  roomHandlers.v2IdSettlementHandler
+);
+
+// json으로 수정할 값들을 받아 방의 정보를 수정합니다.
+// request JSON
+// name, from, to, time, part
+// FIXME: req.body.users 검증할 때 SSO ID 규칙 반영하기
+router.post(
+  "/v2/:id/edit",
+  [
+    body("name").optional().matches(patterns.room.name),
+    body("from").optional().isMongoId(),
+    body("to").optional().isMongoId(),
+    body("time").optional().isISO8601(),
+    body("part").isArray(),
+    body("part.*").optional().isLength({ min: 1, max: 30 }).isAlphanumeric(),
+  ],
+  validator,
+  roomHandlers.v2IdEditHandler
 );
 
 module.exports = router;

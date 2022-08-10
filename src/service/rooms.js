@@ -400,6 +400,7 @@ const idSettlementHandler = async (req, res) => {
         room.isOver = true;
         await room.save();
       }
+      await result.populate(roomPopulateQuery).exec();
       res.send(result);
     } else {
       res.status(404).json({
@@ -499,6 +500,10 @@ const idDeleteHandler = async (req, res) => {
   // catch는 반환값이 없을 경우(result == undefined일 때)는 처리하지 않는다.
 };
 
+// ########################################################
+// ############# Version 2 APIS FROM HERE #################
+// ########################################################
+
 const v2ExtractLocationName = (location) => {
   return { _id: location._id, ko: location.koName, en: location.enName };
 };
@@ -563,6 +568,204 @@ const v2CreateHandler = async (req, res) => {
       error: "Rooms/create : internal server error",
     });
     return;
+  }
+};
+
+const v2InfoHandler = async (req, res) => {
+  const userId = req.userId;
+  if (!userId) {
+    res.status(403).json({
+      error: "Rooms/info : not logged in",
+    });
+    return;
+  }
+
+  try {
+    const user = await userModel.findOne({ id: userId });
+
+    let room = await roomModel.findById(req.query.id);
+    if (room) {
+      // 사용자가 해당 룸의 구성원이 아닌 경우, 403 오류를 반환한다.
+      if (room.part.indexOf(user._id) === -1) {
+        res.status(403).json({
+          error: "Rooms/info : did not joined the room",
+        });
+        return;
+      }
+      //From mongoose v6, this needs to be changed to room.populate(roomPopulateQuery)
+      await room.execPopulate(v2RoomPopulateQuery);
+
+      res.status(200).send(room);
+    } else {
+      res.status(404).json({
+        error: "Rooms/info : id does not exist",
+      });
+    }
+  } catch (err) {
+    logger.error(err);
+    res.status(500).json({
+      error: "Rooms/info : internal server error",
+    });
+  }
+};
+
+const v2InviteHandler = async (req, res) => {
+  try {
+    let user = await userModel.findOne({ id: req.userId });
+    let room = await roomModel.findById(req.body.roomId);
+    if (!user) {
+      res.status(400).json({
+        error: "Rooms/invite : Bad request",
+      });
+      return;
+    }
+    if (!room) {
+      res.status(404).json({
+        error: "Rooms/invite : no corresponding room",
+      });
+      return;
+    }
+
+    // 초대할 사람 수가 방의 남은 자리 수를 초과하면 초대가 불가능합니다.
+    if (room.part.length + req.body.users.length > room.maxPartLength) {
+      res.status(400).json({
+        error: "Room/invite : There are too many people to invite to the room",
+      });
+      return;
+    }
+
+    let newUsers = [];
+
+    // 사용자가 이미 참여중인 방인 경우, req.body.users의 사용자들을 방에 참여시킵니다.
+    if (room.part.includes(user._id)) {
+      for (const userID of req.body.users) {
+        let newUser = await userModel.findOne({ id: userID });
+        if (!newUser) {
+          res.status(404).json({
+            error: "Rooms/invite : no corresponding user",
+          });
+          return;
+        }
+        if (room.part.includes(newUser._id)) {
+          res.status(409).json({
+            error: "Rooms/invite : " + userID + " Already in room",
+          });
+          return;
+        }
+        newUsers.push(newUser);
+      }
+    } else {
+      // 사용자가 참여하지 않은 방의 경우, 사용자 자신만 참여하도록 요청했을 때에만 사용자를 방에 참여시킵니다.
+      // 아닌 경우, 400 오류를 발생시킵니다.
+      if (req.body.users.length != 1 || req.body.users[0] !== user.id) {
+        res.status(400).json({
+          error:
+            "Rooms/invite : You cannot invite other user(s) when you are not joining the room",
+        });
+        return;
+      }
+      newUsers.push(user);
+    }
+    // update room in newUsers
+    for (let newUser of newUsers) {
+      room.part.push(newUser._id);
+      newUser.room.push(room._id);
+      room.settlement.push({ studentId: newUser._id, isSettlement: false });
+      await newUser.save();
+    }
+
+    const userIds = newUsers.map((user) => user.id);
+    const concatenatedIds = userIds.join("|");
+
+    // 입장 채팅을 보냅니다.
+    await emitChatEvent(req.app.get("io"), room._id, {
+      type: "in",
+      content: concatenatedIds,
+      authorId: user._id,
+    });
+
+    await room.save();
+    await room.execPopulate(v2RoomPopulateQuery);
+    res.send(room);
+  } catch (err) {
+    logger.error(err);
+    res.status(500).json({
+      error: "Rooms/invite : internal server error",
+    });
+  }
+};
+
+const v2AbortHandler = async (req, res) => {
+  const time = Date.now();
+  const isOvertime = (room, time) => {
+    if (new Date(room.time) <= time) return true;
+    else return false;
+  };
+
+  try {
+    let user = await userModel.findOne({ id: req.userId });
+    let room = await roomModel.findById(req.body.roomId);
+    if (!user) {
+      res.status(400).json({
+        error: "Rooms/abort : Bad request",
+      });
+      return;
+    }
+    if (!room) {
+      res.status(404).json({
+        error: "Rooms/abort : no corresponding room",
+      });
+      return;
+    }
+
+    // 사용자가 채팅방에 들어와있는 경우, 소켓 연결을 먼저 끊는다.
+    if (req.session.socketId && req.session.chatRoomId) {
+      req.app.get("io").in(req.session.socketId).disconnectSockets(true);
+      leaveChatRoom({ session: req.session });
+    }
+
+    // 사용자가 참여중인 방 목록에서 해당 방을 제거하고, 해당 방의 참여자 목록에서 사용자를 제거한다.
+    // 사용자가 해당 룸의 구성원이 아닌 경우, 403 오류를 반환한다.
+    const roomPartIndex = room.part.indexOf(user._id);
+    const userRoomIndex = user.room.indexOf(room._id);
+    if (roomPartIndex === -1 || userRoomIndex === -1) {
+      res.status(403).json({
+        error: "Rooms/info : did not joined the room",
+      });
+      return;
+    } else {
+      // 방의 출발시간이 지나고 정산이 되지 않으면 나갈 수 없음
+      if (isOvertime(room, time) && !room.isOver) {
+        res.status(403).json({
+          error: "Rooms/info : cannot exit room. Settlement is not done",
+        });
+        return;
+      }
+      room.part.splice(roomPartIndex, 1);
+      room.settlement.splice(roomPartIndex, 1);
+      user.room.splice(userRoomIndex, 1);
+      await user.save();
+      await room.save();
+      if (room.part.length <= 0) {
+        // 남은 사용자가 없는 경우.
+        // FIXME : 채팅을 지워야 하고, 남은 뒷부분 코드 때문에 문제가 될 수 있을 것 같음
+        // await room.remove();
+      }
+    }
+
+    // 퇴장 채팅을 보냅니다.
+    await emitChatEvent(req.app.get("io"), room._id, {
+      type: "out",
+      content: user.id,
+      authorId: user._id,
+    });
+    await room.execPopulate(roomPopulateQuery);
+    res.send(room);
+  } catch (err) {
+    logger.error(err);
+    res.status(500).json({
+      error: "Rooms/abort : internal server error",
+    });
   }
 };
 
@@ -646,6 +849,123 @@ const v2SearchHandler = async (req, res) => {
   }
 };
 
+const v2SearchByUserHandler = async (req, res) => {
+  const userId = req.userId;
+  if (!userId) {
+    res.status(403).json({
+      error: "Rooms/searchByUser : not logged in",
+    });
+  }
+
+  try {
+    const user = await userModel
+      .findOne({ id: userId })
+      .populate({
+        path: "room",
+        populate: v2RoomPopulateQuery,
+      })
+      .lean()
+      .exec();
+
+    // 정산완료여부 기준으로 진행중인 방과 완료된 방을 분리해서 응답을 전송합니다.
+    const response = {
+      ongoing: [],
+      done: [],
+    };
+    user.room.map((room) => {
+      if (room.isOver) response.done.push(room);
+      else response.ongoing.push(room);
+    });
+    res.json(response);
+  } catch (err) {
+    logger.error(err);
+    res.status(500).json({
+      error: "Rooms/searchByUser : internal server error",
+    });
+  }
+};
+
+const v2GetAllRoomHandler = async (_, res) => {
+  const result = await roomModel.find({}).populate(v2RoomPopulateQuery).exec();
+  res.json(result);
+  return;
+};
+
+const v2IdSettlementHandler = async (req, res) => {
+  try {
+    const user = await userModel.findOne({ id: req.userId });
+    let result = await roomModel.findOneAndUpdate(
+      { _id: req.params.id, "settlement.studentId": user._id },
+      { "settlement.$.isSettlement": true, $inc: { settlementTotal: 1 } }
+    );
+    if (result) {
+      let room = await roomModel.findById(req.params.id);
+      if (room.settlementTotal === room.part.length) {
+        room.isOver = true;
+        await room.save();
+      }
+      await result.populate(v2RoomPopulateQuery).exec();
+      res.send(result);
+    } else {
+      res.status(404).json({
+        error: " cannot find settlement info",
+      });
+    }
+  } catch (err) {
+    logger.error(err);
+    res.status(500).json({
+      error: "/:id/settlement : internal server error",
+    });
+  }
+};
+
+const v2IdEditHandler = async (req, res) => {
+  const { name, from, to, time, part } = req.body;
+
+  // 수정할 값이 주어지지 않은 경우
+  if (!name && !from && !to && !time && !part) {
+    res.status(400).json({
+      error: "Rooms/edit : Bad request",
+    });
+    return;
+  }
+
+  let fromLoc = await locationModel.findById(from);
+  let toLoc = await locationModel.findById(to);
+  if (!fromLoc || !toLoc) {
+    res.status(400).json({
+      error: "Rooms/edit : Bad request",
+    });
+  }
+  const changeJSON = {
+    name: name,
+    from: fromLoc._id,
+    to: toLoc._id,
+    time: time,
+    part: part,
+  };
+
+  try {
+    let result = await roomModel.findByIdAndUpdate(req.params.id, {
+      $set: changeJSON,
+      new: true,
+    });
+    if (result) {
+      await result.execPopulate(v2RoomPopulateQuery);
+      res.send(result);
+    } else {
+      res.status(404).json({
+        error: "Rooms/edit : id does not exist",
+      });
+    }
+  } catch (err) {
+    logger.error(err);
+    res.status(500).json({
+      error: "Rooms/edit : internal server error",
+    });
+  }
+};
+
 module.exports = {
   infoHandler,
   createHandler,
@@ -658,6 +978,13 @@ module.exports = {
   idSettlementHandler,
   idEditHandler,
   idDeleteHandler,
+  v2InfoHandler,
   v2CreateHandler,
+  v2InviteHandler,
+  v2AbortHandler,
   v2SearchHandler,
+  v2SearchByUserHandler,
+  v2GetAllRoomHandler,
+  v2IdSettlementHandler,
+  v2IdEditHandler,
 };
