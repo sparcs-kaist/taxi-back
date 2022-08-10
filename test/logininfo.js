@@ -1,5 +1,6 @@
 const expect = require("chai").expect;
 const logininfoHandlers = require("../src/service/logininfo");
+const { userModel } = require("../src/db/mongo");
 
 describe("logininfo handler", () => {
   it("should return {id: undefined, sid: undefined, name: undefined } when no user is logged in", () => {
@@ -15,9 +16,7 @@ describe("logininfo handler", () => {
     };
     logininfoHandlers.logininfoHandler(req, res);
   });
-});
 
-describe("logininfo request for logged user", () => {
   it("should return {id: 'hello-id', sid: 'hello-sid', 'name': 'hello-name'} when user is logged in", () => {
     const req = {
       session: {
@@ -40,9 +39,7 @@ describe("logininfo request for logged user", () => {
     };
     logininfoHandlers.logininfoHandler(req, res);
   });
-});
 
-describe("logininfo request for expired session", () => {
   it("should return {id: undefined, sid: undefined, name: undefined } when the session is expired", () => {
     const req = {
       session: {
@@ -66,3 +63,6 @@ describe("logininfo request for expired session", () => {
     logininfoHandlers.logininfoHandler(req, res);
   });
 });
+
+// describe("detail info handler", () => {
+// });
