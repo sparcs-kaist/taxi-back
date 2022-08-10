@@ -25,7 +25,7 @@ router.post(
     body("from").matches(patterns.room.from),
     body("to").matches(patterns.room.to),
     body("time").isISO8601(),
-    body("maxPartLength").isInt({ min: 1, max: 4 }),
+    body("maxPartLength").isInt({ min: 2, max: 4 }),
   ],
   validator,
   roomHandlers.createHandler
@@ -63,6 +63,7 @@ router.get(
     query("from").optional().matches(patterns.room.from),
     query("to").optional().matches(patterns.room.to),
     query("time").optional().isISO8601(),
+    query("maxPartLength").optional().isInt({ min: 2, max: 4 }),
   ],
   validator,
   roomHandlers.searchHandler

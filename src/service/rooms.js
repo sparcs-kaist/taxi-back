@@ -285,7 +285,7 @@ const searchHandler = async (req, res) => {
   };
 
   try {
-    const { name, from, to, time } = req.query;
+    const { name, from, to, time, maxPartLength } = req.query;
     let fromOid = null;
     let toOid = null;
 
@@ -305,22 +305,23 @@ const searchHandler = async (req, res) => {
       toOid = toLocation._id;
     }
 
-    // 검색 쿼리를 설정합니다.
-    const query = {};
-    if (name) query.name = { $regex: new RegExp(name, "i") }; // 'i': 대소문자 무시
-    if (fromOid) query.from = fromOid;
-    if (toOid) query.to = toOid;
-    // 검색 시간대는 시작 시각으로부터 24시간으로 설정합니다.
     const minTime = time ? new Date(time) : new Date();
-
+    // 요청이 서버 시각 기준 1분 전에 왔으면 해당 요청을 유효하지 않은 것으로 처리합니다.
     if (!isRequestUnder1min(minTime)) {
       return res.status(400).json({
         error: "Room/search : Bad request",
       });
     }
-
+    // 검색 시간대는 시작 시각으로부터 다음으로 찾아오는 오전 5시까지로 설정합니다.
     const maxTime = getTomorrow5am(minTime);
+
+    // 검색 쿼리를 설정합니다.
+    const query = {};
+    if (name) query.name = { $regex: new RegExp(name, "i") }; // 'i': 대소문자 무시
+    if (fromOid) query.from = fromOid;
+    if (toOid) query.to = toOid;
     query.time = { $gte: minTime, $lt: maxTime };
+    if (maxPartLength) query.maxPartLength = maxPartLength;
 
     const rooms = await roomModel
       .find(query)
