@@ -16,7 +16,7 @@ Room {
     {
       id: String, // 참여 중인 사용자 id
       name: String, // 참여 중인 사용자 이름
-      nickname: String // 참여 중인 사용자 닉네임
+      nickname: String, // 참여 중인 사용자 닉네임
     }
   ], 
   madeat: String(ISO 8601), // ex) 방 생성 시각. '2022-01-12T13:58:20.180Z'
