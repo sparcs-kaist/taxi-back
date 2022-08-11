@@ -39,8 +39,8 @@
   },
   "scripts": {
     "start": "npx nodemon app.js",
-    "test": "cross-env NODE_ENV=test mocha --recursive --reporter spec --exit",
-    "serve": "cross-env NODE_ENV=production node app.js"
+    "test": "cross-env TZ='Asia/Seoul' NODE_ENV=test mocha --recursive --reporter spec --exit",
+    "serve": "cross-env TZ='Asia/Seoul' NODE_ENV=production node app.js"
   },
   "author": "sparcs/taxi",
   "license": "MIT"
