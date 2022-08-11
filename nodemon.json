@@ -1,6 +1,7 @@
 {
     "ignore": ["node_modules/*"],
     "env": {
+        "TZ": "Asia/Seoul",
         "NODE_ENV": "development"
     } 
 }
