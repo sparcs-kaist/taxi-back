@@ -77,7 +77,7 @@ describe("detail info handler", () => {
     logininfoHandlers.detailHandler(req, res);
   });
 
-  it("should return correct information as same as user's when user is logged in", () => {
+  it("should return correct information as same as user's when user is logged in", async () => {
     const req = {
       session: {
         loginInfo: {
@@ -89,7 +89,9 @@ describe("detail info handler", () => {
       },
     };
 
-    result = userModel.findOne({ id: "sunday" });
+    result = await userModel.findOne({ id: "sunday" });
+    expect(result).to.not.equal(null);
+
     const res = {
       json: (data) => {
         expect(data).to.deep.equal({

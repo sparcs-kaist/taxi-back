@@ -6,13 +6,12 @@ const { userModel } = require("../src/db/mongo");
 const security = require("../security");
 
 describe("auth.replace handler", () => {
-  const cleanUpUserCollection = async () => {
+  const removeTestUser = async () => {
     // drop all collections
-    const allUsers = await userModel.find().lean();
-    if (allUsers.length != 0) await userModel.collection.drop();
+    await userModel.deleteOne({ id: "test" });
   };
 
-  before(cleanUpUserCollection);
+  before(removeTestUser);
 
   it("should redirect to security.frontUrl after successful user creation", () => {
     request(authHandlers.sparcsssoHandler)
@@ -24,5 +23,5 @@ describe("auth.replace handler", () => {
       .expect("Location", security.frontUrl);
   });
 
-  after(cleanUpUserCollection);
+  after(removeTestUser);
 });
