@@ -93,11 +93,12 @@ router.post(
   "/:id/edit",
   [
     body("name").optional().matches(patterns.room.name),
-    body("from").optional().isMongoId(),
-    body("to").optional().isMongoId(),
+    body("from").optional().matches(patterns.room.from),
+    body("to").optional().matches(patterns.room.to),
     body("time").optional().isISO8601(),
     body("part").isArray(),
     body("part.*").optional().isLength({ min: 1, max: 30 }).isAlphanumeric(),
+    body("maxPartLength").isInt({ min: 2, max: 4 }),
   ],
   validator,
   roomHandlers.idEditHandler

@@ -429,30 +429,43 @@ const removeAllRoomHandler = async (_, res) => {
 };
 
 const idEditHandler = async (req, res) => {
-  const { name, from, to, time, part } = req.body;
+  const { name, from, to, time, part, maxPartLength } = req.body;
 
   // 수정할 값이 주어지지 않은 경우
-  if (!name && !from && !to && !time && !part) {
-    res.status(400).json({
+  if (!name && !from && !to && !time && !part && !maxPartLength) {
+    return res.status(400).json({
       error: "Rooms/edit : Bad request",
     });
-    return;
   }
 
-  let fromLoc = await locationModel.findById(from);
-  let toLoc = await locationModel.findById(to);
-  if (!fromLoc || !toLoc) {
-    res.status(400).json({
+  // 출발지와 도착지가 같은 경우
+  if (from && to && from === to) {
+    return res.status(400).json({
       error: "Rooms/edit : Bad request",
     });
   }
-  const changeJSON = {
-    name: name,
-    from: fromLoc._id,
-    to: toLoc._id,
-    time: time,
-    part: part,
-  };
+
+  const changeJSON = {};
+  if (name) changeJSON.name = name;
+  if (from) {
+    const fromLoc = await locationModel.findOne({ koName: from });
+    if (!fromLoc)
+      return res.status(400).json({
+        error: "Rooms/edit : Bad request",
+      });
+    changeJSON.from = fromLoc._id;
+  }
+  if (to) {
+    const toLoc = await locationModel.findOne({ koName: to });
+    if (!toLoc)
+      return res.status(400).json({
+        error: "Rooms/edit : Bad request",
+      });
+    changeJSON.to = toLoc._id;
+  }
+  if (time) changeJSON.time = time;
+  if (part) changeJSON.part = part;
+  if (maxPartLength) changeJSON.maxPartLength = maxPartLength;
 
   try {
     let result = await roomModel.findByIdAndUpdate(req.params.id, {
