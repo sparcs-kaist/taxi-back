@@ -1,53 +1,33 @@
+// ########################################################
+// ############# Version 2 APIS FROM HERE #################
+// ########################################################
+
 const { roomModel, locationModel, userModel } = require("../db/mongo");
 const { emitChatEvent } = require("../route/chats.socket");
 const { leaveChatRoom } = require("../auth/login");
 const logger = require("../modules/logger");
-//const taxiResponse = require('../taxiResponse')
 
-// 장소, 참가자 목록의 ObjectID 제거하기
-const extractLocationName = (location) => location.koName;
 const roomPopulateQuery = [
   { path: "part", select: "id name nickname -_id" },
-  { path: "from", transform: extractLocationName },
-  { path: "to", transform: extractLocationName },
+  { path: "from", select: "_id koName enName" },
+  { path: "to", select: "_id koName enName" },
+  {
+    path: "settlement.studentId",
+    select: "id name nickname -_id",
+  },
 ];
 
-const infoHandler = async (req, res) => {
-  const userId = req.userId;
-  if (!userId) {
-    res.status(403).json({
-      error: "Rooms/info : not logged in",
-    });
-    return;
-  }
-
-  try {
-    const user = await userModel.findOne({ id: userId });
-
-    let room = await roomModel.findById(req.query.id);
-    if (room) {
-      // 사용자가 해당 룸의 구성원이 아닌 경우, 403 오류를 반환한다.
-      if (room.part.indexOf(user._id) === -1) {
-        res.status(403).json({
-          error: "Rooms/info : did not joined the room",
-        });
-        return;
-      }
-      //From mongoose v6, this needs to be changed to room.populate(roomPopulateQuery)
-      await room.execPopulate(roomPopulateQuery);
-
-      res.status(200).send(room);
-    } else {
-      res.status(404).json({
-        error: "Rooms/info : id does not exist",
-      });
-    }
-  } catch (err) {
-    logger.error(err);
-    res.status(500).json({
-      error: "Rooms/info : internal server error",
-    });
-  }
+const formatSettlement = (room) => {
+  room.settlement = room.settlement.map((settlement) => {
+    const { name, nickname, id } = settlement.studentId;
+    return {
+      name,
+      nickname,
+      id,
+      isSettlement: settlement.isSettlement,
+    };
+  });
+  return room;
 };
 
 const createHandler = async (req, res) => {
@@ -59,19 +39,16 @@ const createHandler = async (req, res) => {
         error: "Room/create : locations are same",
       });
     }
-
-    let fromLoc = await locationModel.findOne({ koName: from });
-    let toLoc = await locationModel.findOne({ koName: to });
-
+    let fromLoc = await locationModel.findById(from);
+    let toLoc = await locationModel.findById(to);
     if (!fromLoc || !toLoc) {
       return res.status(400).json({
-        error: "Room/create : no corresponding location(s)",
+        error: "Rooms/create : no corresponding locations",
       });
     }
 
-    const user = await userModel.findOne({ id: req.userId });
-
     // 방 생성 요청을 한 사용자의 ObjectID를 room의 part 리스트에 추가
+    const user = await userModel.findOne({ id: req.userId });
     const part = [user._id];
 
     let room = new roomModel({
@@ -100,7 +77,7 @@ const createHandler = async (req, res) => {
     });
 
     await room.execPopulate(roomPopulateQuery);
-    res.send(room);
+    res.send(formatSettlement(room));
     return;
   } catch (err) {
     logger.error(err);
@@ -111,10 +88,40 @@ const createHandler = async (req, res) => {
   }
 };
 
+const infoHandler = async (req, res) => {
+  try {
+    const user = await userModel.findOne({ id: req.userId });
+
+    let room = await roomModel.findById(req.query.id);
+    if (room) {
+      // 사용자가 해당 룸의 구성원이 아닌 경우, 403 오류를 반환한다.
+      if (room.part.indexOf(user._id) === -1) {
+        res.status(403).json({
+          error: "Rooms/info : did not joined the room",
+        });
+        return;
+      }
+      //From mongoose v6, this needs to be changed to room.populate(roomPopulateQuery)
+      await room.execPopulate(roomPopulateQuery);
+
+      res.status(200).send(formatSettlement(room));
+    } else {
+      res.status(404).json({
+        error: "Rooms/info : id does not exist",
+      });
+    }
+  } catch (err) {
+    logger.error(err);
+    res.status(500).json({
+      error: "Rooms/info : internal server error",
+    });
+  }
+};
+
 const inviteHandler = async (req, res) => {
   try {
-    let user = await userModel.findOne({ id: req.userId });
-    let room = await roomModel.findById(req.body.roomId);
+    const user = await userModel.findOne({ id: req.userId });
+    const room = await roomModel.findById(req.body.roomId);
     if (!user) {
       res.status(400).json({
         error: "Rooms/invite : Bad request",
@@ -188,7 +195,7 @@ const inviteHandler = async (req, res) => {
 
     await room.save();
     await room.execPopulate(roomPopulateQuery);
-    res.send(room);
+    res.send(formatSettlement(room));
   } catch (err) {
     logger.error(err);
     res.status(500).json({
@@ -205,8 +212,8 @@ const abortHandler = async (req, res) => {
   };
 
   try {
-    let user = await userModel.findOne({ id: req.userId });
-    let room = await roomModel.findById(req.body.roomId);
+    const user = await userModel.findOne({ id: req.userId });
+    const room = await roomModel.findById(req.body.roomId);
     if (!user) {
       res.status(400).json({
         error: "Rooms/abort : Bad request",
@@ -262,7 +269,7 @@ const abortHandler = async (req, res) => {
       authorId: user._id,
     });
     await room.execPopulate(roomPopulateQuery);
-    res.send(room);
+    res.send(formatSettlement(room));
   } catch (err) {
     logger.error(err);
     res.status(500).json({
@@ -289,7 +296,7 @@ const searchHandler = async (req, res) => {
   };
 
   try {
-    const { name, from, to, time, maxPartLength } = req.query;
+    const { name, from, to, time } = req.query;
     let fromOid = null;
     let toOid = null;
 
@@ -300,52 +307,50 @@ const searchHandler = async (req, res) => {
       return;
     }
     if (from) {
-      const fromLocation = await locationModel.findOne({ koName: from });
+      const fromLocation = await locationModel.findById(from);
       if (!fromLocation) {
         return res.status(400).json({
-          error: "Room/search : no corresponding location(s)",
+          error: "Room/search : no corresponding locations",
         });
       }
       fromOid = fromLocation._id;
     }
 
     if (to) {
-      const toLocation = await locationModel.findOne({ koName: to });
+      const toLocation = await locationModel.findById(to);
       if (!toLocation) {
         return res.status(400).json({
-          error: "Room/search : no corresponding location(s)",
+          error: "Room/search : no corresponding locations",
         });
       }
       toOid = toLocation._id;
     }
-
-    const minTime = time ? new Date(time) : new Date();
-    // 요청이 서버 시각 기준 1분 전에 왔으면 해당 요청을 유효하지 않은 것으로 처리합니다.
-    if (!isRequestUnder1min(minTime)) {
-      return res.status(400).json({
-        error: "Room/search : Bad request",
-      });
-    }
-    // 검색 시간대는 시작 시각으로부터 다음으로 찾아오는 오전 5시까지로 설정합니다.
-    const maxTime = getTomorrow5am(minTime);
 
     // 검색 쿼리를 설정합니다.
     const query = {};
     if (name) query.name = { $regex: new RegExp(name, "i") }; // 'i': 대소문자 무시
     if (fromOid) query.from = fromOid;
     if (toOid) query.to = toOid;
+    // 검색 시간대는 시작 시각으로부터 24시간으로 설정합니다.
+    const minTime = time ? new Date(time) : new Date();
+
+    if (!isRequestUnder1min(minTime)) {
+      return res.status(400).json({
+        error: "Room/search : Bad request",
+      });
+    }
+
+    const maxTime = getTomorrow5am(minTime);
     query.time = { $gte: minTime, $lt: maxTime };
-    if (maxPartLength) query.maxPartLength = maxPartLength;
 
     const rooms = await roomModel
       .find(query)
       .sort({ time: 1 })
       .populate(roomPopulateQuery)
+      .lean()
       .exec();
-
-    res.json(rooms);
+    res.json(rooms.map((room) => formatSettlement(room)));
   } catch (err) {
-    logger.error(err);
     res.status(500).json({
       error: "Rooms/search : Internal server error",
     });
@@ -353,16 +358,9 @@ const searchHandler = async (req, res) => {
 };
 
 const searchByUserHandler = async (req, res) => {
-  const userId = req.userId;
-  if (!userId) {
-    res.status(403).json({
-      error: "Rooms/searchByUser : not logged in",
-    });
-  }
-
   try {
     const user = await userModel
-      .findOne({ id: userId })
+      .findOne({ id: req.userId })
       .populate({
         path: "room",
         populate: roomPopulateQuery,
@@ -376,6 +374,7 @@ const searchByUserHandler = async (req, res) => {
       done: [],
     };
     user.room.map((room) => {
+      room = formatSettlement(room);
       if (room.isOver) response.done.push(room);
       else response.ongoing.push(room);
     });
@@ -386,6 +385,12 @@ const searchByUserHandler = async (req, res) => {
       error: "Rooms/searchByUser : internal server error",
     });
   }
+};
+
+const getAllRoomHandler = async (_, res) => {
+  const rooms = await roomModel.find({}).populate(roomPopulateQuery).exec();
+  res.json(rooms.map((room) => formatSettlement(room)));
+  return;
 };
 
 const idSettlementHandler = async (req, res) => {
@@ -402,7 +407,7 @@ const idSettlementHandler = async (req, res) => {
         await room.save();
       }
       await result.populate(roomPopulateQuery).exec();
-      res.send(result);
+      res.send(formatSettlement(result));
     } else {
       res.status(404).json({
         error: " cannot find settlement info",
@@ -414,18 +419,6 @@ const idSettlementHandler = async (req, res) => {
       error: "/:id/settlement : internal server error",
     });
   }
-};
-
-const getAllRoomHandler = async (_, res) => {
-  const result = await roomModel.find({}).populate(roomPopulateQuery).exec();
-  res.json(result);
-  return;
-};
-
-const removeAllRoomHandler = async (_, res) => {
-  await roomModel.remove({});
-  res.redirect("/rooms/getAllRoom");
-  return;
 };
 
 const idEditHandler = async (req, res) => {
@@ -461,7 +454,7 @@ const idEditHandler = async (req, res) => {
     });
     if (result) {
       await result.execPopulate(roomPopulateQuery);
-      res.send(result);
+      res.send(formatSettlement(result));
     } else {
       res.status(404).json({
         error: "Rooms/edit : id does not exist",
@@ -475,32 +468,6 @@ const idEditHandler = async (req, res) => {
   }
 };
 
-const idDeleteHandler = async (req, res) => {
-  try {
-    const result = await roomModel.findByIdAndRemove(req.params.id).exec();
-    if (result) {
-      res.send({
-        id: req.params.id,
-        isDeleted: true,
-      });
-      return;
-    } else {
-      res.status(404).json({
-        error: "Rooms/delete : ID does not exist",
-      });
-      return;
-    }
-  } catch (err) {
-    logger.error(err);
-    res.status(500).json({
-      error: "Rooms/delete : internal server error",
-    });
-    return;
-  }
-
-  // catch는 반환값이 없을 경우(result == undefined일 때)는 처리하지 않는다.
-};
-
 module.exports = {
   infoHandler,
   createHandler,
@@ -509,8 +476,6 @@ module.exports = {
   searchHandler,
   searchByUserHandler,
   getAllRoomHandler,
-  removeAllRoomHandler,
   idSettlementHandler,
   idEditHandler,
-  idDeleteHandler,
 };
