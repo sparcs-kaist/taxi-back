@@ -335,7 +335,7 @@ const searchHandler = async (req, res) => {
     if (fromOid) query.from = fromOid;
     if (toOid) query.to = toOid;
     query.time = { $gte: minTime, $lt: maxTime };
-    if (maxPartLength) query.maxPartLength = maxPartLength;
+    if (maxPartLength) query.maxPartLength = { $eq: maxPartLength };
 
     const rooms = await roomModel
       .find(query)

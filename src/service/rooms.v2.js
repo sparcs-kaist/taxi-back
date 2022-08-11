@@ -340,7 +340,7 @@ const searchHandler = async (req, res) => {
     if (from) query.from = from;
     if (to) query.to = to;
     query.time = { $gte: minTime, $lt: maxTime };
-    if (maxPartLength) query.maxPartLength = maxPartLength;
+    if (maxPartLength) query.maxPartLength = { $eq: maxPartLength };
 
     const rooms = await roomModel
       .find(query)
