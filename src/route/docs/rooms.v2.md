@@ -118,11 +118,11 @@ room의 ID와 user들의 ID list를 받아 해당 room의 participants에 추가
 
 #### URL parameters
 
-- name: String, //검색할 방의 이름. 주어진 경우 해당 텍스트가 방의 이름에 포함된 방들만 반환. 주어지지 않은 경우 임의의 이름을 가지는 방들을 검색.
-- from : String, // 출발지. 주어진 경우 출발지가 일치하는 방들만 반환. 주어지지 않은 경우 임의의 출발지를 가지는 방들을 검색.
-- to : String, // 도착지. 주어진 경우 도착지가 일치하는 방들만 반환. 주어지지 않은 경우 임의의 도착지를 가지는 방들을 검색.
+- name?: String, //검색할 방의 이름. 주어진 경우 해당 텍스트가 방의 이름에 포함된 방들만 반환. 주어지지 않은 경우 임의의 이름을 가지는 방들을 검색.
+- from? : ObjectId, // 출발지 Document의 ObjectId. 주어진 경우 출발지가 일치하는 방들만 반환. 주어지지 않은 경우 임의의 출발지를 가지는 방들을 검색.
+- to? : ObjectId, // 도착지 Document의 ObjectId. 주어진 경우 도착지가 일치하는 방들만 반환. 주어지지 않은 경우 임의의 도착지를 가지는 방들을 검색.
 - time? : Date, // 출발 시각. 주어진 경우 주어진 시간부터 주어진 시간부터 그 다음에 찾아오는 오전 5시 전에 출발하는 방들만 반환. 주어지지 않은 경우 현재 시각부터 그 다음으로 찾아오는 오전 5시 전까지의 방들을 반환.
-- maxPartLength: Number(2~4), // 방의 최대 인원 수. 주어진 경우 최대 인원 수가 일치하는 방들만 반환. 주어지지 않은 경우 임의의 최대 인원 수를 가지는 방들을 검색.
+- maxPartLength?: Number(2~4), // 방의 최대 인원 수. 주어진 경우 최대 인원 수가 일치하는 방들만 반환. 주어지지 않은 경우 임의의 최대 인원 수를 가지는 방들을 검색.
 
 
 #### Response
@@ -171,12 +171,12 @@ room의 ID와 user들의 ID list를 받아 해당 room의 participants에 추가
 
 ```javascript
 {
-  name : String, // 방 이름. 문서 상단에 명시된 규칙을 만족시켜야 함
-  from : ObjectId, // 출발지 Document의 ObjectId
-  to : ObjectId, // 도착지 Document의 ObjectId
-  time : Date, // 방 출발 시각. 현재 이후여야 함.
+  name? : String, // 방 이름. 문서 상단에 명시된 규칙을 만족시켜야 함
+  from? : ObjectId, // 출발지 Document의 ObjectId
+  to? : ObjectId, // 도착지 Document의 ObjectId
+  time? : Date, // 방 출발 시각. 현재 이후여야 함.
   part? : String[]  // 방 사람들의 ObjectId. 따라서 빈 배열로 요청하시면 됩니다.
-  maxPartLength: Number(2~4), // 방의 최대 인원 수.
+  maxPartLength?: Number(2~4), // 방의 최대 인원 수.
 }
 ```
 
