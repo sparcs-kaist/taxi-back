@@ -7,7 +7,7 @@ const customFormat = format.printf(({ level, message, timestamp }) => {
   return `${timestamp} [${level}]: ${message}`;
 });
 
-const datePattern = "YYYY-MM-DD-HH-MM";
+const datePattern = "YYYY-MM-DD-HH-mm";
 
 // Create a new logger
 const logger = createLogger({
