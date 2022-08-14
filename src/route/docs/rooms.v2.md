@@ -20,18 +20,20 @@ Room {
     enName: String, // 도착지의 영어 명칭
   }, 
   time: String(ISO 8601), // ex) 방 출발 시각. '2022-01-12T13:58:20.180Z'
-  departed: Boolean, // (주의: /rooms/info에서만 반환함) 이미 출발한 택시인지 여부 (출발했으면 true)
+  isDeparted: Boolean, // 이미 출발한 택시인지 여부 (출발했으면 true)
   part: [
     {
+      _id: ObjectId, // 참여 중인 사용자 Document의 ObjectId
       id: String, // 참여 중인 사용자 id
       name: String, // 참여 중인 사용자 이름
       nickname: String, // 참여 중인 사용자 닉네임
-      profileImageUrl: String, // (주의: /rooms/info에서만 반환함) 프로필 사진 url 
+      profileImageUrl: String, // 프로필 사진 url 
     }
   ], 
   madeat: String(ISO 8601), // ex) 방 생성 시각. '2022-01-12T13:58:20.180Z'
   settlement: [
     {
+      _id: ObjectId, // 참여 중인 사용자 Document의 ObjectId
       id: String, // 참여 중인 사용자 id
       name: String, // 참여 중인 사용자 이름
       nickname: String, // 참여 중인 사용자 닉네임

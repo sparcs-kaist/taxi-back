@@ -7,27 +7,41 @@ const { emitChatEvent } = require("../route/chats.socket");
 const { leaveChatRoom } = require("../auth/login");
 const logger = require("../modules/logger");
 
-const roomPopulateQuery = [
-  { path: "part", select: "id name nickname -_id" },
+/** 쿼리를 통해 얻은 Room Document를 populate할 설정값을 정의합니다.
+ */
+const roomPopulateOption = [
+  { path: "part", select: "_id id name nickname profileImageUrl" },
   { path: "from", select: "_id koName enName" },
   { path: "to", select: "_id koName enName" },
   {
-    path: "settlement.studentId",
-    select: "id name nickname -_id",
+    path: "settlement",
+    select: "-_id studentId isSettlement",
+    populate: { path: "studentId", select: "_id id name nickname" },
   },
 ];
 
-const formatSettlement = (room) => {
-  room.settlement = room.settlement.map((settlement) => {
-    const { name, nickname, id } = settlement.studentId;
-    return {
-      name,
-      nickname,
-      id,
-      isSettlement: settlement.isSettlement,
-    };
-  });
-  return room;
+/**
+ * Room Object가 주어졌을 때 정산 여부를 클라이언트에서 읽기 쉬운 형태로 가공하고, 방이 현재 출발했는지 유무인 isDeparted 속성을 추가합니다.
+ * @param {Object} roomObject - 정산 정보를 가공할 room Object로, Mongoose Document가 아닌 순수 Javascript Object여야 합니다.
+ * @param {Boolean} [includeSettlement] - 반환 결과에 정산 정보를 포함할 지 여부로, 기본값은 true입니다.
+ * @return {Obejct} 정산 여부가 처리하기 쉬운 형태로 가공되고, isDeparted 속성이 추가된 Room Object가 반환됩니다.
+ */
+const formatSettlement = (roomObject, includeSettlement = true) => {
+  if (includeSettlement) {
+    roomObject.settlement = roomObject.settlement.map((settlement) => {
+      const { name, nickname, id } = settlement.studentId;
+      return {
+        name,
+        nickname,
+        id,
+        isSettlement: settlement.isSettlement,
+      };
+    });
+  } else {
+    roomObject.settlement = undefined;
+  }
+  roomObject.isDeparted = new Date(roomObject.time) < new Date() ? true : false;
+  return roomObject;
 };
 
 const createHandler = async (req, res) => {
@@ -76,8 +90,8 @@ const createHandler = async (req, res) => {
       authorId: user._id,
     });
 
-    await room.execPopulate(roomPopulateQuery);
-    res.send(formatSettlement(room));
+    const roomObject = (await room.populate(roomPopulateOption)).toObject();
+    res.status(200).json(formatSettlement(roomObject));
     return;
   } catch (err) {
     logger.error(err);
@@ -91,20 +105,12 @@ const createHandler = async (req, res) => {
 const infoHandler = async (req, res) => {
   try {
     const user = await userModel.findOne({ id: req.userId });
-
-    let room = await roomModel.findById(req.query.id);
-    if (room) {
-      // 사용자가 해당 룸의 구성원이 아닌 경우, 403 오류를 반환한다.
-      if (room.part.indexOf(user._id) === -1) {
-        res.status(403).json({
-          error: "Rooms/info : did not joined the room",
-        });
-        return;
-      }
-      //From mongoose v6, this needs to be changed to room.populate(roomPopulateQuery)
-      await room.execPopulate(roomPopulateQuery);
-
-      res.status(200).send(formatSettlement(room));
+    const roomObject = await roomModel
+      .findOne({ _id: req.query.id, part: { $elemMatch: { $eq: user._id } } })
+      .lean()
+      .populate(roomPopulateOption);
+    if (roomObject) {
+      res.status(200).send(formatSettlement(roomObject));
     } else {
       res.status(404).json({
         error: "Rooms/info : id does not exist",
@@ -194,8 +200,8 @@ const inviteHandler = async (req, res) => {
     });
 
     await room.save();
-    await room.execPopulate(roomPopulateQuery);
-    res.send(formatSettlement(room));
+    const roomObject = (await room.populate(roomPopulateOption)).toObject();
+    res.send(formatSettlement(roomObject));
   } catch (err) {
     logger.error(err);
     res.status(500).json({
@@ -268,8 +274,8 @@ const abortHandler = async (req, res) => {
       content: user.id,
       authorId: user._id,
     });
-    await room.execPopulate(roomPopulateQuery);
-    res.send(formatSettlement(room));
+    const roomObject = (await room.populate(roomPopulateOption)).toObject();
+    res.send(formatSettlement(roomObject));
   } catch (err) {
     logger.error(err);
     res.status(500).json({
@@ -338,9 +344,8 @@ const searchHandler = async (req, res) => {
     const rooms = await roomModel
       .find(query)
       .sort({ time: 1 })
-      .populate(roomPopulateQuery)
-      .lean()
-      .exec();
+      .populate(roomPopulateOption)
+      .lean();
     res.json(rooms.map((room) => formatSettlement(room)));
   } catch (err) {
     res.status(500).json({
@@ -355,10 +360,9 @@ const searchByUserHandler = async (req, res) => {
       .findOne({ id: req.userId })
       .populate({
         path: "room",
-        populate: roomPopulateQuery,
+        populate: roomPopulateOption,
       })
-      .lean()
-      .exec();
+      .lean();
 
     // 정산완료여부 기준으로 진행중인 방과 완료된 방을 분리해서 응답을 전송합니다.
     const response = {
@@ -380,7 +384,7 @@ const searchByUserHandler = async (req, res) => {
 };
 
 const getAllRoomHandler = async (_, res) => {
-  const rooms = await roomModel.find({}).populate(roomPopulateQuery).exec();
+  const rooms = await roomModel.find({}).populate(roomPopulateOption).lean();
   res.json(rooms.map((room) => formatSettlement(room)));
   return;
 };
@@ -398,8 +402,8 @@ const idSettlementHandler = async (req, res) => {
         room.isOver = true;
         await room.save();
       }
-      await result.populate(roomPopulateQuery).exec();
-      res.send(formatSettlement(result));
+      const roomObject = (await result.populate(roomPopulateOption)).toObject();
+      res.send(formatSettlement(roomObject));
     } else {
       res.status(404).json({
         error: " cannot find settlement info",
@@ -445,8 +449,8 @@ const idEditHandler = async (req, res) => {
       new: true,
     });
     if (result) {
-      await result.execPopulate(roomPopulateQuery);
-      res.send(formatSettlement(result));
+      const roomObject = (await result.populate(roomPopulateOption)).toObject();
+      res.send(formatSettlement(roomObject));
     } else {
       res.status(404).json({
         error: "Rooms/edit : id does not exist",
