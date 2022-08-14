@@ -1,11 +1,10 @@
 const request = require("supertest");
-const expect = require("chai").expect;
 
 const authHandlers = require("../src/service/auth.replace");
 const { userModel } = require("../src/db/mongo");
 const security = require("../security");
 
-describe("auth.replace handler", () => {
+describe("auth.replace handler", function () {
   const removeTestUser = async () => {
     // drop all collections
     await userModel.deleteOne({ id: "test" });
@@ -13,7 +12,7 @@ describe("auth.replace handler", () => {
 
   before(removeTestUser);
 
-  it("should redirect to security.frontUrl after successful user creation", () => {
+  it("should redirect to security.frontUrl after successful user creation", function () {
     request(authHandlers.sparcsssoHandler)
       .post("/auth/sparcssso")
       .send({
