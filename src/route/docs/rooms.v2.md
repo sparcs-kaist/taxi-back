@@ -9,8 +9,16 @@
 Room {
   _id: ObjectId, //ObjectID
   name: String, // 1~50글자로 구성되며 영어 대소문자, 숫자, 한글, "-", ",", ".", "?", "!", "_"로만 이루어져야 함.
-  from: String, // 출발지
-  to: String, // 도착지
+  from: {
+    _id: ObjectId // 출발지 document의 ObjectId
+    koName: String, // 출발지의 한국어 명칭
+    enName: String, // 출발지의 영어 명칭
+  }, 
+  to: {
+    _id: ObjectId // 도착지 document의 ObjectId
+    koName: String, // 도착지의 한국어 명칭
+    enName: String, // 도착지의 영어 명칭
+  }, 
   time: String(ISO 8601), // ex) 방 출발 시각. '2022-01-12T13:58:20.180Z'
   part: [
     {
@@ -61,10 +69,10 @@ ID를 parameter로 받아 해당 ID의 room의 정보 출력
 
 ```javascript
 {
-  name : String,
-  from : String,
-  to : String,
-  time : Date,
+  name : String, // 방 이름. 문서 상단에 명시된 규칙을 만족시켜야 함
+  from : ObjectId, // 출발지 Document의 ObjectId
+  to : ObjectId, // 도착지 Document의 ObjectId
+  time : Date, // 방 출발 시각. 현재 이후여야 함.
   part? : String[]  // 방 사람들의 ObjectId. 따라서 빈 배열로 요청하시면 됩니다.
 }
 ```
@@ -88,8 +96,8 @@ room의 ID와 user들의 ID list를 받아 해당 room의 participants에 추가
 
 ```javascript
 {
-    roomId : ObjectID,
-    users : List[userID], //user.id (not ObjectID)
+    roomId : ObjectId, // 초대 혹은 참여하려는 방 Document의 ObjectId
+    users : [String(userId)], // user.id (not ObjectID)
 }
 ```
 
@@ -157,11 +165,11 @@ room의 ID와 user들의 ID list를 받아 해당 room의 participants에 추가
 
 ```javascript
 {
-    name : String,
-    from : String,
-    to : String,
-    time : Date,
-    part : String[]
+  name : String, // 방 이름. 문서 상단에 명시된 규칙을 만족시켜야 함
+  from : ObjectId, // 출발지 Document의 ObjectId
+  to : ObjectId, // 도착지 Document의 ObjectId
+  time : Date, // 방 출발 시각. 현재 이후여야 함.
+  part? : String[]  // 방 사람들의 ObjectId. 따라서 빈 배열로 요청하시면 됩니다.
 }
 ```
 
@@ -187,7 +195,7 @@ ID를 받아 해당 ID의 room을 제거
 
 ```javascript
 {
-  id: String,
+  id: ObjectId, // 삭제할 방 Document의 ObjectId
   isDeleted: true
 }
 ```
