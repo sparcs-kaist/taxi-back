@@ -285,16 +285,6 @@ const searchHandler = async (req, res) => {
     else return false;
   };
 
-  const getTomorrow5am = (date) => {
-    const tomorrowDate = new Date(date);
-    // If the minTime is over 12 AM
-    if (tomorrowDate.getUTCHours() >= 20) {
-      tomorrowDate.setUTCDate(tomorrowDate.getUTCDate() + 1);
-    }
-    tomorrowDate.setUTCHours(20, 0, 0, 0);
-    return tomorrowDate;
-  };
-
   try {
     const { name, from, to, time } = req.query;
     let fromOid = null;
@@ -340,7 +330,9 @@ const searchHandler = async (req, res) => {
       });
     }
 
-    const maxTime = getTomorrow5am(minTime);
+    const maxTime = new Date(minTime).setTime(
+      minTime.getTime() + 24 * 60 * 60 * 1000
+    );
     query.time = { $gte: minTime, $lt: maxTime };
 
     const rooms = await roomModel
