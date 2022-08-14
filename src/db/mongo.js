@@ -72,8 +72,6 @@ const chatSchema = Schema({
 });
 chatSchema.index({ roomId: 1, time: -1 });
 
-mongoose.set("useFindAndModify", false);
-
 const database = mongoose.connection;
 database.on("error", console.error.bind(console, "mongoose connection error."));
 database.on("open", () => {
@@ -88,19 +86,15 @@ database.on("disconnected", function () {
   logger.error("데이터베이스와 연결이 끊어졌습니다!");
   setTimeout(() => {
     mongoose.connect(security.mongo, {
-      auto_reconnect: true,
       useNewUrlParser: true,
       useUnifiedTopology: true,
-      useCreateIndex: true,
     });
   }, 5000);
 });
 
 mongoose.connect(security.mongo, {
-  auto_reconnect: true,
   useNewUrlParser: true,
   useUnifiedTopology: true,
-  useCreateIndex: true,
 });
 
 module.exports = {
