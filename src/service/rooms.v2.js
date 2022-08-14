@@ -285,16 +285,6 @@ const searchHandler = async (req, res) => {
     else return false;
   };
 
-  const getTomorrow5am = (date) => {
-    const tomorrowDate = new Date(date);
-    // If the minTime is over 12 AM
-    if (tomorrowDate.getUTCHours() >= 20) {
-      tomorrowDate.setUTCDate(tomorrowDate.getUTCDate() + 1);
-    }
-    tomorrowDate.setUTCHours(20, 0, 0, 0);
-    return tomorrowDate;
-  };
-
   try {
     const { name, from, to, time, maxPartLength } = req.query;
 
@@ -331,14 +321,18 @@ const searchHandler = async (req, res) => {
         error: "Room/search : Bad request",
       });
     }
-    // 검색 시간대는 시작 시각으로부터 다음으로 찾아오는 오전 5시까지로 설정합니다.
-    const maxTime = getTomorrow5am(minTime);
+
+    // 검색 시간대는 시작 시각으로부터 24시간으로 설정합니다.
+    const maxTime = new Date(minTime).setTime(
+      minTime.getTime() + 24 * 60 * 60 * 1000
+    );
 
     // 검색 쿼리를 설정합니다.
     const query = {};
     if (name) query.name = { $regex: new RegExp(name, "i") }; // 'i': 대소문자 무시
     if (from) query.from = from;
     if (to) query.to = to;
+
     query.time = { $gte: minTime, $lt: maxTime };
     if (maxPartLength) query.maxPartLength = { $eq: maxPartLength };
 
