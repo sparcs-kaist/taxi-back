@@ -21,25 +21,19 @@ const roomPopulateOption = [
 ];
 
 /**
- * Room Object가 주어졌을 때 정산 여부를 클라이언트에서 읽기 쉬운 형태로 가공하고, 방이 현재 출발했는지 유무인 isDeparted 속성을 추가합니다.
+ * Room Object가 주어졌을 때 정산 여부를 room의 part array의 각 user에 추가하고, 방이 현재 출발했는지 유무인 isDeparted 속성을 추가합니다.
  * @param {Object} roomObject - 정산 정보를 가공할 room Object로, Mongoose Document가 아닌 순수 Javascript Object여야 합니다.
  * @param {Boolean} [includeSettlement] - 반환 결과에 정산 정보를 포함할 지 여부로, 기본값은 true입니다.
- * @return {Object} 정산 여부가 처리하기 쉬운 형태로 가공되고, isDeparted 속성이 추가된 Room Object가 반환됩니다.
+ * @return {Object} 정산 여부가 위와 같이 가공되고 isDeparted 속성이 추가된 Room Object가 반환됩니다.
  */
 const formatSettlement = (roomObject, includeSettlement = true) => {
   if (includeSettlement) {
-    roomObject.settlement = roomObject.settlement.map((settlement) => {
-      const { name, nickname, id } = settlement.studentId;
-      return {
-        name,
-        nickname,
-        id,
-        isSettlement: settlement.isSettlement,
-      };
+    roomObject.part = roomObject.part.map((user, index) => {
+      user.isSettlement = roomObject.settlement[index].isSettlement;
+      return user;
     });
-  } else {
-    roomObject.settlement = undefined;
   }
+  delete roomObject.settlement;
   roomObject.isDeparted = new Date(roomObject.time) < new Date() ? true : false;
   return roomObject;
 };
@@ -146,7 +140,7 @@ const joinHandler = async (req, res) => {
     // 사용자가 이미 참여중인 방인 경우, req.body.users의 사용자들을 방에 참여시킵니다.
     if (room.part.includes(user._id)) {
       return res.status(409).json({
-        error: "Rooms/join : " + user._id + " Already in room",
+        error: "Rooms/join : " + user.id + " Already in room",
       });
     }
 
@@ -311,7 +305,7 @@ const searchHandler = async (req, res) => {
       .sort({ time: 1 })
       .populate(roomPopulateOption)
       .lean();
-    res.json(rooms.map((room) => formatSettlement(room)));
+    res.json(rooms.map((room) => formatSettlement(room, false)));
   } catch (err) {
     res.status(500).json({
       error: "Rooms/search : Internal server error",
@@ -482,9 +476,9 @@ module.exports = {
   abortHandler,
   searchHandler,
   searchByUserHandler,
+  idSettlementHandler,
   getAllRoomHandler,
   removeAllRoomHandler,
-  idSettlementHandler,
   idEditHandler,
   idDeleteHandler,
 };

@@ -28,19 +28,11 @@ Room {
       name: String, // 참여 중인 사용자 이름
       nickname: String, // 참여 중인 사용자 닉네임
       profileImageUrl: String, // 프로필 사진 url 
+      isSettlement: Boolean, //해당 사용자의 정산이 완료됐는지 여부 (주의: rooms/search에서는 isSettlement 속성을 반환하지 않음(undefined를 반환함).
     }
   ], 
   maxPartLength: Number(2~4), //방의 최대 인원 수
   madeat: String(ISO 8601), // ex) 방 생성 시각. '2022-01-12T13:58:20.180Z'
-  settlement: [
-    {
-      _id: ObjectId, // 참여 중인 사용자 Document의 ObjectId
-      id: String, // 참여 중인 사용자 id
-      name: String, // 참여 중인 사용자 이름
-      nickname: String, // 참여 중인 사용자 닉네임
-      isSettlement: Boolean //해당 사용자의 정산이 완료됐는지 여부
-    }
-  ],
   settlementTotal: Number(2~4), // 정산이 완료된 사용자 수
   isOver: Boolean, // 해당 방의 정산이 완료됐는지 여부(완료 시 true)
   __v: Number, // 문서 버전. mongoDB 내부적으로 사용됨.
@@ -112,8 +104,8 @@ room의 ID를 받아 해당 room의 참가자 목록에 요청을 보낸 사용�
 
 - 400 "Bad request"
 - 400 "no corresponding room"
-- 400 "{userID} Already in room"
 - 400 "The room is full"
+- 409 "{userID} Already in room"
 - 500 "internal server error"
 
 ### `/search` **(GET)**
