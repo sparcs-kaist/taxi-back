@@ -48,7 +48,8 @@ const editNicknameHandler = (req, res) => {
         res.status(400).send("User/editNickname : such user id does not exist");
       }
     })
-    .catch((error) => {
+    .catch((err) => {
+      logger.error(err);
       res.status(500).send("User/editNickname : internal server error");
     });
 };
@@ -90,8 +91,9 @@ const editProfileImgDoneHandler = async (req, res) => {
         .send("User/editProfileImg/done : internal server error");
     }
     const key = `profile-img/${user._id}`;
-    awsS3.foundObject(key, async (err, data) => {
+    awsS3.foundObject(key, async (err) => {
       if (err) {
+        logger.error(err);
         return res
           .status(500)
           .send("User/editProfileImg/done : internal server error");

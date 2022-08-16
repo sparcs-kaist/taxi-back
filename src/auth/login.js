@@ -23,7 +23,7 @@ const login = (req, sid, id, name) => {
   req.session.loginInfo = { sid, id, name, time: Date.now() };
 };
 
-const logout = (req, res) => {
+const logout = (req) => {
   // 로그아웃 전 socket.io 소켓들 연결부터 끊기
   if (req.session.socketId && req.session.chatRoomId) {
     req.app.get("io").in(req.session.socketId).disconnectSockets(true);
