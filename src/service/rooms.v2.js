@@ -286,16 +286,17 @@ const searchHandler = async (req, res) => {
   };
 
   try {
-    const { name, from, to, time } = req.query;
-    let fromOid = null;
-    let toOid = null;
+    const { name, from, to, time, maxPartLength } = req.query;
 
+    // 출발지와 도착지가 같은 경우
     if (from && to && from === to) {
       res.status(400).json({
         error: "Room/search : Bad request",
       });
       return;
     }
+
+    // 출발지나 도착지가 존재하지 않는 장소일 경우
     if (from) {
       const fromLocation = await locationModel.findById(from);
       if (!fromLocation) {
@@ -303,9 +304,7 @@ const searchHandler = async (req, res) => {
           error: "Room/search : no corresponding locations",
         });
       }
-      fromOid = fromLocation._id;
     }
-
     if (to) {
       const toLocation = await locationModel.findById(to);
       if (!toLocation) {
@@ -313,27 +312,29 @@ const searchHandler = async (req, res) => {
           error: "Room/search : no corresponding locations",
         });
       }
-      toOid = toLocation._id;
     }
 
-    // 검색 쿼리를 설정합니다.
-    const query = {};
-    if (name) query.name = { $regex: new RegExp(name, "i") }; // 'i': 대소문자 무시
-    if (fromOid) query.from = fromOid;
-    if (toOid) query.to = toOid;
-    // 검색 시간대는 시작 시각으로부터 24시간으로 설정합니다.
     const minTime = time ? new Date(time) : new Date();
-
+    // 요청이 서버 시각 기준 1분 전에 왔으면 해당 요청을 유효하지 않은 것으로 처리합니다.
     if (!isRequestUnder1min(minTime)) {
       return res.status(400).json({
         error: "Room/search : Bad request",
       });
     }
 
+    // 검색 시간대는 시작 시각으로부터 24시간으로 설정합니다.
     const maxTime = new Date(minTime).setTime(
       minTime.getTime() + 24 * 60 * 60 * 1000
     );
+
+    // 검색 쿼리를 설정합니다.
+    const query = {};
+    if (name) query.name = { $regex: new RegExp(name, "i") }; // 'i': 대소문자 무시
+    if (from) query.from = from;
+    if (to) query.to = to;
+
     query.time = { $gte: minTime, $lt: maxTime };
+    if (maxPartLength) query.maxPartLength = { $eq: maxPartLength };
 
     const rooms = await roomModel
       .find(query)
@@ -341,6 +342,7 @@ const searchHandler = async (req, res) => {
       .populate(roomPopulateQuery)
       .lean()
       .exec();
+
     res.json(rooms.map((room) => formatSettlement(room)));
   } catch (err) {
     res.status(500).json({
@@ -379,12 +381,6 @@ const searchByUserHandler = async (req, res) => {
   }
 };
 
-const getAllRoomHandler = async (_, res) => {
-  const rooms = await roomModel.find({}).populate(roomPopulateQuery).exec();
-  res.json(rooms.map((room) => formatSettlement(room)));
-  return;
-};
-
 const idSettlementHandler = async (req, res) => {
   try {
     const user = await userModel.findOne({ id: req.userId });
@@ -413,31 +409,57 @@ const idSettlementHandler = async (req, res) => {
   }
 };
 
+const getAllRoomHandler = async (_, res) => {
+  const rooms = await roomModel.find({}).populate(roomPopulateQuery).exec();
+  res.json(rooms.map((room) => formatSettlement(room)));
+  return;
+};
+
+const removeAllRoomHandler = async (_, res) => {
+  await roomModel.remove({});
+  res.redirect("/rooms/getAllRoom");
+  return;
+};
+
 const idEditHandler = async (req, res) => {
-  const { name, from, to, time, part } = req.body;
+  const { name, from, to, time, part, maxPartLength } = req.body;
 
   // 수정할 값이 주어지지 않은 경우
-  if (!name && !from && !to && !time && !part) {
+  if (!name && !from && !to && !time && !part && !maxPartLength) {
     res.status(400).json({
       error: "Rooms/edit : Bad request",
     });
     return;
   }
 
-  let fromLoc = await locationModel.findById(from);
-  let toLoc = await locationModel.findById(to);
-  if (!fromLoc || !toLoc) {
-    res.status(400).json({
+  // 출발지와 도착지가 같은 경우
+  if (from && to && from === to) {
+    return res.status(400).json({
       error: "Rooms/edit : Bad request",
     });
   }
-  const changeJSON = {
-    name: name,
-    from: fromLoc._id,
-    to: toLoc._id,
-    time: time,
-    part: part,
-  };
+
+  const changeJSON = {};
+  if (name) changeJSON.name = name;
+  if (from) {
+    const fromLoc = await locationModel.findById(from);
+    if (!fromLoc)
+      return res.status(400).json({
+        error: "Rooms/edit : Bad request",
+      });
+    changeJSON.from = from;
+  }
+  if (to) {
+    const toLoc = await locationModel.findById(to);
+    if (!toLoc)
+      return res.status(400).json({
+        error: "Rooms/edit : Bad request",
+      });
+    changeJSON.to = to;
+  }
+  if (time) changeJSON.time = time;
+  if (part) changeJSON.part = part;
+  if (maxPartLength) changeJSON.maxPartLength = maxPartLength;
 
   try {
     let result = await roomModel.findByIdAndUpdate(req.params.id, {
@@ -460,6 +482,32 @@ const idEditHandler = async (req, res) => {
   }
 };
 
+const idDeleteHandler = async (req, res) => {
+  try {
+    const result = await roomModel.findByIdAndRemove(req.params.id).exec();
+    if (result) {
+      res.send({
+        id: req.params.id,
+        isDeleted: true,
+      });
+      return;
+    } else {
+      res.status(404).json({
+        error: "Rooms/delete : ID does not exist",
+      });
+      return;
+    }
+  } catch (err) {
+    logger.error(err);
+    res.status(500).json({
+      error: "Rooms/delete : internal server error",
+    });
+    return;
+  }
+
+  // catch는 반환값이 없을 경우(result == undefined일 때)는 처리하지 않는다.
+};
+
 module.exports = {
   infoHandler,
   createHandler,
@@ -468,6 +516,8 @@ module.exports = {
   searchHandler,
   searchByUserHandler,
   getAllRoomHandler,
+  removeAllRoomHandler,
   idSettlementHandler,
   idEditHandler,
+  idDeleteHandler,
 };
