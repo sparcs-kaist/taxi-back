@@ -1,5 +1,6 @@
 const express = require("express");
 const { query, param, body } = require("express-validator");
+const setTimestamp = require("../middleware/setTimestamp");
 const validator = require("../middleware/validator");
 const patterns = require("../db/patterns");
 
@@ -28,6 +29,7 @@ router.post(
     body("maxPartLength").isInt({ min: 2, max: 4 }),
   ],
   validator,
+  setTimestamp,
   roomHandlers.createHandler
 );
 
@@ -52,6 +54,7 @@ router.post(
   "/abort",
   body("roomId").isMongoId(),
   validator,
+  setTimestamp,
   roomHandlers.abortHandler
 );
 
@@ -66,6 +69,7 @@ router.get(
     query("maxPartLength").optional().isInt({ min: 2, max: 4 }),
   ],
   validator,
+  setTimestamp,
   roomHandlers.searchHandler
 );
 
