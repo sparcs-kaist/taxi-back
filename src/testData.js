@@ -187,6 +187,9 @@ const generateChats = async (roomId, userOids, numOfChats) => {
   }
   // 현재 참여중인 사용자 기준으로 방의 part 리스트를 업데이트함
   room.part = userIdsInRoom;
+  room.settlement = userIdsInRoom.map((userOid) => {
+    return { studentId: userOid, isSettlement: false };
+  });
   await room.save();
   return;
 };
