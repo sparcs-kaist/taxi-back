@@ -24,7 +24,7 @@ const roomPopulateOption = [
  * Room Object가 주어졌을 때 정산 여부를 클라이언트에서 읽기 쉬운 형태로 가공하고, 방이 현재 출발했는지 유무인 isDeparted 속성을 추가합니다.
  * @param {Object} roomObject - 정산 정보를 가공할 room Object로, Mongoose Document가 아닌 순수 Javascript Object여야 합니다.
  * @param {Boolean} [includeSettlement] - 반환 결과에 정산 정보를 포함할 지 여부로, 기본값은 true입니다.
- * @return {Obejct} 정산 여부가 처리하기 쉬운 형태로 가공되고, isDeparted 속성이 추가된 Room Object가 반환됩니다.
+ * @return {Object} 정산 여부가 처리하기 쉬운 형태로 가공되고, isDeparted 속성이 추가된 Room Object가 반환됩니다.
  */
 const formatSettlement = (roomObject, includeSettlement = true) => {
   if (includeSettlement) {
