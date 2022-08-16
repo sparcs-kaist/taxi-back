@@ -10,7 +10,7 @@ const customFormat = {
       level === "error" ? stack : ""
     }`;
   }), // 메시지 포맷
-  fileDate: "YYYY-MM-DD-HH-mm", // 파일명에 포함되는 시각
+  fileDate: "YYYY-MM-DD-HH", // 파일명에 포함되는 시각
 };
 
 /**

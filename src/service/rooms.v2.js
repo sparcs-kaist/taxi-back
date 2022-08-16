@@ -136,7 +136,7 @@ const joinHandler = async (req, res) => {
     }
 
     // 초대할 사람 수가 방의 남은 자리 수를 초과하면 초대가 불가능합니다.
-    if (room.part.length + req.body.users.length > room.maxPartLength) {
+    if (room.part.length + 1 > room.maxPartLength) {
       res.status(400).json({
         error: "Room/join : There are too many people to invite to the room",
       });
