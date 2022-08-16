@@ -96,16 +96,15 @@ ID를 parameter로 받아 해당 ID의 room의 정보 출력
 
 - 새로이 만들어진 방
 
-### `/invite` (POST)
+### `/join` (POST)
 
-room의 ID와 user들의 ID list를 받아 해당 room의 participants에 추가한다.
+room의 ID를 받아 해당 room의 참가자 목록에 요청을 보낸 사용자를 추가한다.
 
 #### request JSON form
 
 ```javascript
 {
     roomId : ObjectId, // 초대 혹은 참여하려는 방 Document의 ObjectId
-    users : [String(userId)], // user.id (not ObjectID)
 }
 ```
 
@@ -114,7 +113,6 @@ room의 ID와 user들의 ID list를 받아 해당 room의 participants에 추가
 - 400 "Bad request"
 - 400 "no corresponding room"
 - 400 "{userID} Already in room"
-- 400 "You cannot invite other user(s) when you are not joining the room"
 - 400 "The room is full"
 - 500 "internal server error"
 
@@ -163,7 +161,7 @@ room의 ID와 user들의 ID list를 받아 해당 room의 participants에 추가
 - 403 "not logged in"
 - 500 "internal server error"
 
-### `:id/edit/` **(POST)** **(for dev)**
+### `/:id/edit/` **(POST)** **(for dev)**
 
 - ID와 수정할 데이터를 JSON으로 받아 해당 ID의 room을 수정
 - 주의 : 주어진 데이터로 그 방 데이터를 모두 덮어씌움, 특정 property를 주지 않으면 Undefined로 씌움
@@ -196,7 +194,7 @@ room의 ID와 user들의 ID list를 받아 해당 room의 participants에 추가
 - 404 "id does not exist"
 - 500 "internal server error"
 
-### `:id/delete/` **(GET)** **(for dev)**
+### `/:id/delete/` **(GET)** **(for dev)**
 
 ID를 받아 해당 ID의 room을 제거
 
@@ -243,7 +241,7 @@ ID를 받아 해당 ID의 room을 제거
 
 모든 방 삭제
 
-### `:id/settlement/` **(POST)**
+### `/:id/settlement/` **(POST)**
 
 - ID를 받아 해당 룸의 요청을 보낸 유저의 정산을 완료로 처리
 - 방에 참여한 멤버들이 모두 정산완료를 하면 방은 과거방으로 변경됨

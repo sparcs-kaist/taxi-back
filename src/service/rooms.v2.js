@@ -124,19 +124,13 @@ const infoHandler = async (req, res) => {
   }
 };
 
-const inviteHandler = async (req, res) => {
+const joinHandler = async (req, res) => {
   try {
     const user = await userModel.findOne({ id: req.userId });
     const room = await roomModel.findById(req.body.roomId);
-    if (!user) {
-      res.status(400).json({
-        error: "Rooms/invite : Bad request",
-      });
-      return;
-    }
     if (!room) {
       res.status(404).json({
-        error: "Rooms/invite : no corresponding room",
+        error: "Rooms/join : no corresponding room",
       });
       return;
     }
@@ -144,68 +138,38 @@ const inviteHandler = async (req, res) => {
     // 초대할 사람 수가 방의 남은 자리 수를 초과하면 초대가 불가능합니다.
     if (room.part.length + req.body.users.length > room.maxPartLength) {
       res.status(400).json({
-        error: "Room/invite : There are too many people to invite to the room",
+        error: "Room/join : There are too many people to invite to the room",
       });
       return;
     }
 
-    let newUsers = [];
-
     // 사용자가 이미 참여중인 방인 경우, req.body.users의 사용자들을 방에 참여시킵니다.
     if (room.part.includes(user._id)) {
-      for (const userID of req.body.users) {
-        let newUser = await userModel.findOne({ id: userID });
-        if (!newUser) {
-          res.status(404).json({
-            error: "Rooms/invite : no corresponding user",
-          });
-          return;
-        }
-        if (room.part.includes(newUser._id)) {
-          res.status(409).json({
-            error: "Rooms/invite : " + userID + " Already in room",
-          });
-          return;
-        }
-        newUsers.push(newUser);
-      }
-    } else {
-      // 사용자가 참여하지 않은 방의 경우, 사용자 자신만 참여하도록 요청했을 때에만 사용자를 방에 참여시킵니다.
-      // 아닌 경우, 400 오류를 발생시킵니다.
-      if (req.body.users.length != 1 || req.body.users[0] !== user.id) {
-        res.status(400).json({
-          error:
-            "Rooms/invite : You cannot invite other user(s) when you are not joining the room",
-        });
-        return;
-      }
-      newUsers.push(user);
-    }
-    // update room in newUsers
-    for (let newUser of newUsers) {
-      room.part.push(newUser._id);
-      newUser.room.push(room._id);
-      room.settlement.push({ studentId: newUser._id, isSettlement: false });
-      await newUser.save();
+      return res.status(409).json({
+        error: "Rooms/join : " + user._id + " Already in room",
+      });
     }
 
-    const userIds = newUsers.map((user) => user.id);
-    const concatenatedIds = userIds.join("|");
+    // update room in newUsers
+    room.part.push(user._id);
+    user.room.push(room._id);
+    room.settlement.push({ studentId: user._id, isSettlement: false });
+    await user.save();
+    await room.save();
 
     // 입장 채팅을 보냅니다.
     await emitChatEvent(req.app.get("io"), room._id, {
       type: "in",
-      content: concatenatedIds,
+      content: user.id,
       authorId: user._id,
     });
 
-    await room.save();
     const roomObject = (await room.populate(roomPopulateOption)).toObject();
     res.send(formatSettlement(roomObject));
   } catch (err) {
     logger.error(err);
     res.status(500).json({
-      error: "Rooms/invite : internal server error",
+      error: "Rooms/join : internal server error",
     });
   }
 };
@@ -413,7 +377,7 @@ const idSettlementHandler = async (req, res) => {
 };
 
 const getAllRoomHandler = async (_, res) => {
-  const rooms = await roomModel.find({}).populate(roomPopulateQuery).exec();
+  const rooms = await roomModel.find({}).lean().populate(roomPopulateOption);
   res.json(rooms.map((room) => formatSettlement(room)));
   return;
 };
@@ -514,7 +478,7 @@ const idDeleteHandler = async (req, res) => {
 module.exports = {
   infoHandler,
   createHandler,
-  inviteHandler,
+  joinHandler,
   abortHandler,
   searchHandler,
   searchByUserHandler,
