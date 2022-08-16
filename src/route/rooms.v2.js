@@ -1,3 +1,7 @@
+// ########################################################
+// ############# Version 2 ROUTER FROM HERE #################
+// ########################################################
+
 const express = require("express");
 const { query, param, body } = require("express-validator");
 const validator = require("../middleware/validator");
@@ -25,7 +29,7 @@ router.post(
     body("from").isMongoId(),
     body("to").isMongoId(),
     body("time").isISO8601(),
-    body("maxPartLength").isInt({ min: 1, max: 4 }),
+    body("maxPartLength").isInt({ min: 2, max: 4 }),
   ],
   validator,
   roomHandlers.createHandler
@@ -63,6 +67,7 @@ router.get(
     query("from").optional().isMongoId(),
     query("to").optional().isMongoId(),
     query("time").optional().isISO8601(),
+    query("maxPartLength").optional().isInt({ min: 2, max: 4 }),
   ],
   validator,
   roomHandlers.searchHandler
@@ -71,9 +76,6 @@ router.get(
 // 로그인된 사용자의 모든 방들을 반환한다.
 router.get("/searchByUser/", roomHandlers.searchByUserHandler);
 
-// THE ROUTES BELOW ARE ONLY FOR TEST
-router.get("/getAllRoom", roomHandlers.getAllRoomHandler);
-
 // 해당 룸의 요청을 보낸 유저의 정산을 완료로 처리한다.
 router.post(
   "/:id/settlement",
@@ -81,6 +83,11 @@ router.post(
   validator,
   roomHandlers.idSettlementHandler
 );
+
+// THE ROUTES BELOW ARE ONLY FOR TEST
+router.get("/getAllRoom", roomHandlers.getAllRoomHandler);
+
+router.get("/removeAllRoom", roomHandlers.removeAllRoomHandler);
 
 // json으로 수정할 값들을 받아 방의 정보를 수정합니다.
 // request JSON
@@ -95,9 +102,18 @@ router.post(
     body("time").optional().isISO8601(),
     body("part").isArray(),
     body("part.*").optional().isLength({ min: 1, max: 30 }).isAlphanumeric(),
+    body("maxPartLength").isInt({ min: 2, max: 4 }),
   ],
   validator,
   roomHandlers.idEditHandler
+);
+
+// FIXME: 방장만 삭제 가능.
+router.get(
+  "/:id/delete",
+  param("id").isMongoId(),
+  validator,
+  roomHandlers.idDeleteHandler
 );
 
 module.exports = router;

@@ -79,7 +79,7 @@ const createHandler = async (req, res) => {
       to: toLoc._id,
       time: time,
       part: part,
-      madeat: Date.now(),
+      madeat: req.timestamp,
       maxPartLength: maxPartLength,
       settlement: { studentId: user._id, isSettlement: false },
       settlementTotal: 0,
@@ -197,7 +197,7 @@ const inviteHandler = async (req, res) => {
 };
 
 const abortHandler = async (req, res) => {
-  const time = Date.now();
+  const time = new Date(req.timestamp);
   const isOvertime = (room, time) => {
     if (new Date(room.time) <= time) return true;
     else return false;
@@ -273,7 +273,11 @@ const abortHandler = async (req, res) => {
 const searchHandler = async (req, res) => {
   const isRequestUnder1min = (date) => {
     const oneMinuteInMilliseconds = 60 * 1000;
-    if (date.getTime() + oneMinuteInMilliseconds > Date.now()) return true;
+    if (
+      date.getTime() + oneMinuteInMilliseconds >
+      new Date(req.timestamp).getTime()
+    )
+      return true;
     else return false;
   };
 
@@ -288,7 +292,7 @@ const searchHandler = async (req, res) => {
   };
 
   try {
-    const { name, from, to, time } = req.query;
+    const { name, from, to, time, maxPartLength } = req.query;
     let fromOid = null;
     let toOid = null;
 
@@ -318,22 +322,23 @@ const searchHandler = async (req, res) => {
       toOid = toLocation._id;
     }
 
-    // 검색 쿼리를 설정합니다.
-    const query = {};
-    if (name) query.name = { $regex: new RegExp(name, "i") }; // 'i': 대소문자 무시
-    if (fromOid) query.from = fromOid;
-    if (toOid) query.to = toOid;
-    // 검색 시간대는 시작 시각으로부터 24시간으로 설정합니다.
     const minTime = time ? new Date(time) : new Date();
-
+    // 요청이 서버 시각 기준 1분 전에 왔으면 해당 요청을 유효하지 않은 것으로 처리합니다.
     if (!isRequestUnder1min(minTime)) {
       return res.status(400).json({
         error: "Room/search : Bad request",
       });
     }
-
+    // 검색 시간대는 시작 시각으로부터 다음으로 찾아오는 오전 5시까지로 설정합니다.
     const maxTime = getTomorrow5am(minTime);
+
+    // 검색 쿼리를 설정합니다.
+    const query = {};
+    if (name) query.name = { $regex: new RegExp(name, "i") }; // 'i': 대소문자 무시
+    if (fromOid) query.from = fromOid;
+    if (toOid) query.to = toOid;
     query.time = { $gte: minTime, $lt: maxTime };
+    if (maxPartLength) query.maxPartLength = { $eq: maxPartLength };
 
     const rooms = await roomModel
       .find(query)
@@ -427,30 +432,43 @@ const removeAllRoomHandler = async (_, res) => {
 };
 
 const idEditHandler = async (req, res) => {
-  const { name, from, to, time, part } = req.body;
+  const { name, from, to, time, part, maxPartLength } = req.body;
 
   // 수정할 값이 주어지지 않은 경우
-  if (!name && !from && !to && !time && !part) {
-    res.status(400).json({
+  if (!name && !from && !to && !time && !part && !maxPartLength) {
+    return res.status(400).json({
       error: "Rooms/edit : Bad request",
     });
-    return;
   }
 
-  let fromLoc = await locationModel.findById(from);
-  let toLoc = await locationModel.findById(to);
-  if (!fromLoc || !toLoc) {
-    res.status(400).json({
+  // 출발지와 도착지가 같은 경우
+  if (from && to && from === to) {
+    return res.status(400).json({
       error: "Rooms/edit : Bad request",
     });
   }
-  const changeJSON = {
-    name: name,
-    from: fromLoc._id,
-    to: toLoc._id,
-    time: time,
-    part: part,
-  };
+
+  const changeJSON = {};
+  if (name) changeJSON.name = name;
+  if (from) {
+    const fromLoc = await locationModel.findOne({ koName: from });
+    if (!fromLoc)
+      return res.status(400).json({
+        error: "Rooms/edit : Bad request",
+      });
+    changeJSON.from = fromLoc._id;
+  }
+  if (to) {
+    const toLoc = await locationModel.findOne({ koName: to });
+    if (!toLoc)
+      return res.status(400).json({
+        error: "Rooms/edit : Bad request",
+      });
+    changeJSON.to = toLoc._id;
+  }
+  if (time) changeJSON.time = time;
+  if (part) changeJSON.part = part;
+  if (maxPartLength) changeJSON.maxPartLength = maxPartLength;
 
   try {
     let result = await roomModel.findByIdAndUpdate(req.params.id, {

@@ -1,5 +1,6 @@
 const express = require("express");
 const { query, param, body } = require("express-validator");
+const setTimestamp = require("../middleware/setTimestamp");
 const validator = require("../middleware/validator");
 const patterns = require("../db/patterns");
 
@@ -25,9 +26,10 @@ router.post(
     body("from").matches(patterns.room.from),
     body("to").matches(patterns.room.to),
     body("time").isISO8601(),
-    body("maxPartLength").isInt({ min: 1, max: 4 }),
+    body("maxPartLength").isInt({ min: 2, max: 4 }),
   ],
   validator,
+  setTimestamp,
   roomHandlers.createHandler
 );
 
@@ -52,6 +54,7 @@ router.post(
   "/abort",
   body("roomId").isMongoId(),
   validator,
+  setTimestamp,
   roomHandlers.abortHandler
 );
 
@@ -63,8 +66,10 @@ router.get(
     query("from").optional().matches(patterns.room.from),
     query("to").optional().matches(patterns.room.to),
     query("time").optional().isISO8601(),
+    query("maxPartLength").optional().isInt({ min: 2, max: 4 }),
   ],
   validator,
+  setTimestamp,
   roomHandlers.searchHandler
 );
 
@@ -92,11 +97,12 @@ router.post(
   "/:id/edit",
   [
     body("name").optional().matches(patterns.room.name),
-    body("from").optional().isMongoId(),
-    body("to").optional().isMongoId(),
+    body("from").optional().matches(patterns.room.from),
+    body("to").optional().matches(patterns.room.to),
     body("time").optional().isISO8601(),
     body("part").isArray(),
     body("part.*").optional().isLength({ min: 1, max: 30 }).isAlphanumeric(),
+    body("maxPartLength").isInt({ min: 2, max: 4 }),
   ],
   validator,
   roomHandlers.idEditHandler
