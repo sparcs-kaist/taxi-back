@@ -70,7 +70,7 @@ const joinus = (req, res, userData) => {
     name: userData.name,
     nickname: userData.nickname,
     profileImageUrl: userData.profileImageUrl,
-    joinat: Date.now(),
+    joinat: req.timestamp,
     subinfo: {
       kaist: userData.kaist,
       sparcs: userData.sparcs,
