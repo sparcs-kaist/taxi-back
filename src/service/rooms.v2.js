@@ -7,7 +7,8 @@ const { emitChatEvent } = require("../route/chats.socket");
 const { leaveChatRoom } = require("../auth/login");
 const logger = require("../modules/logger");
 
-/** 쿼리를 통해 얻은 Room Document를 populate할 설정값을 정의합니다.
+/** @global
+ * 쿼리를 통해 얻은 Room Document를 populate할 설정값을 정의합니다.
  */
 const roomPopulateOption = [
   { path: "part", select: "_id id name nickname profileImageUrl" },

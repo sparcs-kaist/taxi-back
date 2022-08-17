@@ -10,6 +10,13 @@ class IllegalArgumentsException {
   }
 }
 
+/** @global
+ * 쿼리를 통해 얻은 Chat Document를 populate할 설정값을 정의합니다.
+ */
+const chatPopulateOption = [
+  { path: "authorId", select: "_id nickname profileImageUrl" },
+];
+
 // express 라우터에서 채팅 이벤트를 보낼 수 있게 함수를 분리했습니다.
 const emitChatEvent = async (io, roomId, chat) => {
   try {
@@ -50,50 +57,37 @@ const emitChatEvent = async (io, roomId, chat) => {
 };
 
 /**
- * @todo no-async-promise-executor 오류 해결하기
+ * Chat Object의 array가 주어졌을 때 클라이언트에서 처리하기 편한 형태로 Chat Object를 가공합니다.
+ * @param {[Mongoose.Model]} chats - Chats Document에 lean과 populate(chatPopulateOption)을 차례로 적용한 Chat Object의 배열입니다.
+ * @return {Promise} {type: String, authorId: String, authorName: String, authorProfileUrl: String, content: string, time: Date}로 이루어진 chat 객체의 배열입니다.
  */
-const chatsForRoom = (chats) => {
-  return new Promise(async (resolve, reject) => {
-    try {
-      const authorNames = {};
-      const authorProfileUrls = {};
-      const chatSend = [];
-      for (const chat of chats) {
-        if (!authorNames[chat.authorId]) {
-          const author = await userModel.findById(chat.authorId);
-          if (!author) {
-            return reject();
-          }
-          authorNames[author._id] = author.nickname;
-          authorProfileUrls[author._id] = author.profileImageUrl;
-        }
-        chat.inOutNames = [];
-        if (chat.type == "in" || chat.type == "out") {
-          const userIds = chat.content.split("|");
-          for (const userId of userIds) {
-            const user = await userModel.findOne({ id: userId });
-            if (!user) {
-              throw new IllegalArgumentsException();
-            }
-            chat.inOutNames.push(user.nickname);
-          }
-        }
-        chatSend.push({
-          type: chat.type,
-          authorId: chat.authorId,
-          authorName: authorNames[chat.authorId],
-          authorProfileUrl: authorProfileUrls[chat.authorId],
-          content: chat.content,
-          time: chat.time,
-          isValid: chat.isValid,
-          inOutNames: chat.inOutNames,
-        });
-      }
-      resolve(chatSend);
-    } catch (e) {
-      return reject();
+const transformChatsForRoom = async (chats) => {
+  const chatsToSend = [];
+
+  for (const chat of chats) {
+    // inOutNames 배열(들어오거나 나간 사용자들의 닉네임으로 이루어진 배열)을 생성합니다.
+    chat.inOutNames = [];
+    if (chat.type === "in" || chat.type === "out") {
+      const inOutUserIds = chat.content.split("|");
+      chat.inOutNames = await Promise.all(
+        inOutUserIds.map(async (userId) => {
+          const user = await userModel.findOne({ id: userId }, "nickname");
+          return user.nickname;
+        })
+      );
     }
-  });
+    chatsToSend.push({
+      type: chat.type,
+      authorId: chat.authorId._id,
+      authorName: chat.authorId.nickname,
+      authorProfileUrl: chat.authorId.profileImageUrl,
+      content: chat.content,
+      time: chat.time,
+      isValid: chat.isValid,
+      inOutNames: chat.inOutNames,
+    });
+  }
+  return chatsToSend;
 };
 
 const ioListeners = (io, socket) => {
@@ -124,12 +118,14 @@ const ioListeners = (io, socket) => {
       const chats = await chatModel
         .find({ roomId: roomId, isValid: true })
         .sort({ time: -1 })
-        .limit(amount);
+        .limit(amount)
+        .lean()
+        .populate(chatPopulateOption);
 
       if (chats) {
         chats.reverse();
         io.to(socket.id).emit("chats-join", {
-          chats: await chatsForRoom(chats),
+          chats: await transformChatsForRoom(chats),
         });
       }
     } catch (e) {
@@ -198,12 +194,14 @@ const ioListeners = (io, socket) => {
         const chats = await chatModel
           .find({ roomId, time: { $lt: lastDate } })
           .sort({ time: -1 })
-          .limit(amount);
+          .limit(amount)
+          .lean()
+          .populate(chatPopulateOption);
 
         if (chats) {
           chats.reverse();
           io.to(socket.id).emit("chats-load", {
-            chats: await chatsForRoom(chats),
+            chats: await transformChatsForRoom(chats),
           });
         }
       } else {
