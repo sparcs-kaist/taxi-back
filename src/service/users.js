@@ -48,7 +48,8 @@ const editNicknameHandler = (req, res) => {
         res.status(400).send("User/editNickname : such user id does not exist");
       }
     })
-    .catch((error) => {
+    .catch((err) => {
+      logger.error(err);
       res.status(500).send("User/editNickname : internal server error");
     });
 };
@@ -90,8 +91,9 @@ const editProfileImgDoneHandler = async (req, res) => {
         .send("User/editProfileImg/done : internal server error");
     }
     const key = `profile-img/${user._id}`;
-    awsS3.foundObject(key, async (err, data) => {
+    awsS3.foundObject(key, async (err) => {
       if (err) {
+        logger.error(err);
         return res
           .status(500)
           .send("User/editProfileImg/done : internal server error");
@@ -115,6 +117,9 @@ const editProfileImgDoneHandler = async (req, res) => {
   }
 };
 
+/**
+ * @todo Unused -> Remove
+ */
 const listAllUsersHandler = function (_, res) {
   userModel.find({}, function (err, result) {
     if (err) throw err;
@@ -124,6 +129,9 @@ const listAllUsersHandler = function (_, res) {
   });
 };
 
+/**
+ * @todo Unused -> Remove
+ */
 const listRoomsOfUserHandler = async (req, res) => {
   try {
     const user = await userModel.findById(req.params.id).exec();
@@ -145,6 +153,9 @@ const listRoomsOfUserHandler = async (req, res) => {
   }
 };
 
+/**
+ * @todo Unused -> Remove
+ */
 const idHandler = async (req, res) => {
   try {
     let usr = await userModel.findById(req.params.id);
@@ -163,6 +174,9 @@ const idHandler = async (req, res) => {
   }
 };
 
+/**
+ * @todo Unused -> Remove
+ */
 const idEditHandler = (req, res) => {
   userModel
     .findByIdAndUpdate(req.params.id, { $set: req.body })
@@ -178,6 +192,9 @@ const idEditHandler = (req, res) => {
     });
 };
 
+/**
+ * @todo Unused -> Refactor
+ */
 const idBanHandler = async (req, res) => {
   let user = await userModel.findById(req.params.id);
   if (user) {
@@ -198,6 +215,9 @@ const idBanHandler = async (req, res) => {
   }
 };
 
+/**
+ * @todo Unused -> Refactor
+ */
 const idUnbanHandler = async (req, res) => {
   let user = await userModel.findById(req.params.id);
   if (user) {
@@ -218,6 +238,9 @@ const idUnbanHandler = async (req, res) => {
   }
 };
 
+/**
+ * @todo Unused -> Remove
+ */
 const idParticipateHandler = async (req, res) => {
   // request JSON validation
   if (!req.body.room) res.status(400).send("User/participate : Bad request");

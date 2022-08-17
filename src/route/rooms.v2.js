@@ -38,14 +38,10 @@ router.post(
 // 새로운 사용자를 방에 참여시킨다.
 // FIXME: req.body.users 검증할 때 SSO ID 규칙 반영하기
 router.post(
-  "/invite",
-  [
-    body("roomId").isMongoId(),
-    body("users").isArray(),
-    body("users.*").isLength({ min: 1, max: 30 }).isAlphanumeric(),
-  ],
+  "/join",
+  [body("roomId").isMongoId()],
   validator,
-  roomHandlers.inviteHandler
+  roomHandlers.joinHandler
 );
 
 // 기존 방에서 나간다. (채팅 이벤트 연동 안됨: 방 주인이 바뀌는 경우.)

@@ -33,8 +33,7 @@ const infoHandler = async (req, res) => {
         });
         return;
       }
-      //From mongoose v6, this needs to be changed to room.populate(roomPopulateQuery)
-      await room.execPopulate(roomPopulateQuery);
+      await room.populate(roomPopulateQuery);
 
       res.status(200).send(room);
     } else {
@@ -99,7 +98,7 @@ const createHandler = async (req, res) => {
       authorId: user._id,
     });
 
-    await room.execPopulate(roomPopulateQuery);
+    await room.populate(roomPopulateQuery);
     res.send(room);
     return;
   } catch (err) {
@@ -187,7 +186,7 @@ const inviteHandler = async (req, res) => {
     });
 
     await room.save();
-    await room.execPopulate(roomPopulateQuery);
+    await room.populate(roomPopulateQuery);
     res.send(room);
   } catch (err) {
     logger.error(err);
@@ -261,7 +260,7 @@ const abortHandler = async (req, res) => {
       content: user.id,
       authorId: user._id,
     });
-    await room.execPopulate(roomPopulateQuery);
+    await room.populate(roomPopulateQuery);
     res.send(room);
   } catch (err) {
     logger.error(err);
@@ -477,7 +476,7 @@ const idEditHandler = async (req, res) => {
       new: true,
     });
     if (result) {
-      await result.execPopulate(roomPopulateQuery);
+      await result.populate(roomPopulateQuery);
       res.send(result);
     } else {
       res.status(404).json({

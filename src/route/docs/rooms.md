@@ -16,7 +16,7 @@ Room {
     {
       id: String, // 참여 중인 사용자 id
       name: String, // 참여 중인 사용자 이름
-      nickname: String // 참여 중인 사용자 닉네임
+      nickname: String, // 참여 중인 사용자 닉네임
     }
   ], 
   maxPartLength: Number(2~4), //방의 최대 인원 수

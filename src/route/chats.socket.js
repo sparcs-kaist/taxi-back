@@ -49,6 +49,9 @@ const emitChatEvent = async (io, roomId, chat) => {
   }
 };
 
+/**
+ * @todo no-async-promise-executor 오류 해결하기
+ */
 const chatsForRoom = (chats) => {
   return new Promise(async (resolve, reject) => {
     try {

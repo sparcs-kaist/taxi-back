@@ -73,7 +73,7 @@ const uploadChatImgDoneHandler = async (req, res) => {
     const key = `chat-img/${chat._id}`;
     awsS3.foundObject(key, async (err, data) => {
       if (err) {
-        return es
+        return res
           .status(500)
           .send("Chat/uploadChatImg/getPUrl : internal server error");
       }

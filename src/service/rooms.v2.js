@@ -7,27 +7,35 @@ const { emitChatEvent } = require("../route/chats.socket");
 const { leaveChatRoom } = require("../auth/login");
 const logger = require("../modules/logger");
 
-const roomPopulateQuery = [
-  { path: "part", select: "id name nickname -_id" },
+/** 쿼리를 통해 얻은 Room Document를 populate할 설정값을 정의합니다.
+ */
+const roomPopulateOption = [
+  { path: "part", select: "_id id name nickname profileImageUrl" },
   { path: "from", select: "_id koName enName" },
   { path: "to", select: "_id koName enName" },
   {
-    path: "settlement.studentId",
-    select: "id name nickname -_id",
+    path: "settlement",
+    select: "-_id studentId isSettlement",
+    populate: { path: "studentId", select: "_id id name nickname" },
   },
 ];
 
-const formatSettlement = (room) => {
-  room.settlement = room.settlement.map((settlement) => {
-    const { name, nickname, id } = settlement.studentId;
-    return {
-      name,
-      nickname,
-      id,
-      isSettlement: settlement.isSettlement,
-    };
-  });
-  return room;
+/**
+ * Room Object가 주어졌을 때 정산 여부를 room의 part array의 각 user에 추가하고, 방이 현재 출발했는지 유무인 isDeparted 속성을 추가합니다.
+ * @param {Object} roomObject - 정산 정보를 가공할 room Object로, Mongoose Document가 아닌 순수 Javascript Object여야 합니다.
+ * @param {Boolean} [includeSettlement] - 반환 결과에 정산 정보를 포함할 지 여부로, 기본값은 true입니다.
+ * @return {Object} 정산 여부가 위와 같이 가공되고 isDeparted 속성이 추가된 Room Object가 반환됩니다.
+ */
+const formatSettlement = (roomObject, includeSettlement = true) => {
+  if (includeSettlement) {
+    roomObject.part = roomObject.part.map((user, index) => {
+      user.isSettlement = roomObject.settlement[index].isSettlement;
+      return user;
+    });
+  }
+  delete roomObject.settlement;
+  roomObject.isDeparted = new Date(roomObject.time) < new Date() ? true : false;
+  return roomObject;
 };
 
 const createHandler = async (req, res) => {
@@ -76,9 +84,8 @@ const createHandler = async (req, res) => {
       authorId: user._id,
     });
 
-    await room.execPopulate(roomPopulateQuery);
-    res.send(formatSettlement(room));
-    return;
+    const roomObject = (await room.populate(roomPopulateOption)).toObject();
+    return res.send(formatSettlement(roomObject));
   } catch (err) {
     logger.error(err);
     res.status(500).json({
@@ -91,20 +98,12 @@ const createHandler = async (req, res) => {
 const infoHandler = async (req, res) => {
   try {
     const user = await userModel.findOne({ id: req.userId });
-
-    let room = await roomModel.findById(req.query.id);
-    if (room) {
-      // 사용자가 해당 룸의 구성원이 아닌 경우, 403 오류를 반환한다.
-      if (room.part.indexOf(user._id) === -1) {
-        res.status(403).json({
-          error: "Rooms/info : did not joined the room",
-        });
-        return;
-      }
-      //From mongoose v6, this needs to be changed to room.populate(roomPopulateQuery)
-      await room.execPopulate(roomPopulateQuery);
-
-      res.status(200).send(formatSettlement(room));
+    const roomObject = await roomModel
+      .findOne({ _id: req.query.id, part: { $elemMatch: { $eq: user._id } } })
+      .lean()
+      .populate(roomPopulateOption);
+    if (roomObject) {
+      res.send(formatSettlement(roomObject));
     } else {
       res.status(404).json({
         error: "Rooms/info : id does not exist",
@@ -118,88 +117,51 @@ const infoHandler = async (req, res) => {
   }
 };
 
-const inviteHandler = async (req, res) => {
+const joinHandler = async (req, res) => {
   try {
     const user = await userModel.findOne({ id: req.userId });
     const room = await roomModel.findById(req.body.roomId);
-    if (!user) {
-      res.status(400).json({
-        error: "Rooms/invite : Bad request",
-      });
-      return;
-    }
     if (!room) {
       res.status(404).json({
-        error: "Rooms/invite : no corresponding room",
+        error: "Rooms/join : no corresponding room",
       });
       return;
     }
 
-    // 초대할 사람 수가 방의 남은 자리 수를 초과하면 초대가 불가능합니다.
-    if (room.part.length + req.body.users.length > room.maxPartLength) {
+    // 방의 인원이 모두 찬 경우, 400 오류를 반환합니다.
+    if (room.part.length + 1 > room.maxPartLength) {
       res.status(400).json({
-        error: "Room/invite : There are too many people to invite to the room",
+        error: "Room/join : There are too many people to invite to the room",
       });
       return;
     }
 
-    let newUsers = [];
-
-    // 사용자가 이미 참여중인 방인 경우, req.body.users의 사용자들을 방에 참여시킵니다.
+    // 사용자가 이미 참여중인 방인 경우, 409 Conflict 오류를 반환합니다.
     if (room.part.includes(user._id)) {
-      for (const userID of req.body.users) {
-        let newUser = await userModel.findOne({ id: userID });
-        if (!newUser) {
-          res.status(404).json({
-            error: "Rooms/invite : no corresponding user",
-          });
-          return;
-        }
-        if (room.part.includes(newUser._id)) {
-          res.status(409).json({
-            error: "Rooms/invite : " + userID + " Already in room",
-          });
-          return;
-        }
-        newUsers.push(newUser);
-      }
-    } else {
-      // 사용자가 참여하지 않은 방의 경우, 사용자 자신만 참여하도록 요청했을 때에만 사용자를 방에 참여시킵니다.
-      // 아닌 경우, 400 오류를 발생시킵니다.
-      if (req.body.users.length != 1 || req.body.users[0] !== user.id) {
-        res.status(400).json({
-          error:
-            "Rooms/invite : You cannot invite other user(s) when you are not joining the room",
-        });
-        return;
-      }
-      newUsers.push(user);
-    }
-    // update room in newUsers
-    for (let newUser of newUsers) {
-      room.part.push(newUser._id);
-      newUser.room.push(room._id);
-      room.settlement.push({ studentId: newUser._id, isSettlement: false });
-      await newUser.save();
+      return res.status(409).json({
+        error: "Rooms/join : " + user.id + " Already in room",
+      });
     }
 
-    const userIds = newUsers.map((user) => user.id);
-    const concatenatedIds = userIds.join("|");
+    room.part.push(user._id);
+    user.room.push(room._id);
+    room.settlement.push({ studentId: user._id, isSettlement: false });
+    await user.save();
+    await room.save();
 
     // 입장 채팅을 보냅니다.
     await emitChatEvent(req.app.get("io"), room._id, {
       type: "in",
-      content: concatenatedIds,
+      content: user.id,
       authorId: user._id,
     });
 
-    await room.save();
-    await room.execPopulate(roomPopulateQuery);
-    res.send(formatSettlement(room));
+    const roomObject = (await room.populate(roomPopulateOption)).toObject();
+    res.send(formatSettlement(roomObject));
   } catch (err) {
     logger.error(err);
     res.status(500).json({
-      error: "Rooms/invite : internal server error",
+      error: "Rooms/join : internal server error",
     });
   }
 };
@@ -268,8 +230,8 @@ const abortHandler = async (req, res) => {
       content: user.id,
       authorId: user._id,
     });
-    await room.execPopulate(roomPopulateQuery);
-    res.send(formatSettlement(room));
+    const roomObject = (await room.populate(roomPopulateOption)).toObject();
+    res.send(formatSettlement(roomObject));
   } catch (err) {
     logger.error(err);
     res.status(500).json({
@@ -339,11 +301,9 @@ const searchHandler = async (req, res) => {
     const rooms = await roomModel
       .find(query)
       .sort({ time: 1 })
-      .populate(roomPopulateQuery)
-      .lean()
-      .exec();
-
-    res.json(rooms.map((room) => formatSettlement(room)));
+      .populate(roomPopulateOption)
+      .lean();
+    res.json(rooms.map((room) => formatSettlement(room, false)));
   } catch (err) {
     res.status(500).json({
       error: "Rooms/search : Internal server error",
@@ -357,10 +317,9 @@ const searchByUserHandler = async (req, res) => {
       .findOne({ id: req.userId })
       .populate({
         path: "room",
-        populate: roomPopulateQuery,
+        populate: roomPopulateOption,
       })
-      .lean()
-      .exec();
+      .lean();
 
     // 정산완료여부 기준으로 진행중인 방과 완료된 방을 분리해서 응답을 전송합니다.
     const response = {
@@ -394,8 +353,8 @@ const idSettlementHandler = async (req, res) => {
         room.isOver = true;
         await room.save();
       }
-      await result.populate(roomPopulateQuery).exec();
-      res.send(formatSettlement(result));
+      const roomObject = (await result.populate(roomPopulateOption)).toObject();
+      res.send(formatSettlement(roomObject));
     } else {
       res.status(404).json({
         error: " cannot find settlement info",
@@ -404,21 +363,33 @@ const idSettlementHandler = async (req, res) => {
   } catch (err) {
     logger.error(err);
     res.status(500).json({
-      error: "/:id/settlement : internal server error",
+      error: "Rooms/:id/settlement : internal server error",
     });
   }
 };
 
 const getAllRoomHandler = async (_, res) => {
-  const rooms = await roomModel.find({}).populate(roomPopulateQuery).exec();
-  res.json(rooms.map((room) => formatSettlement(room)));
-  return;
+  try {
+    const rooms = await roomModel.find({}).lean().populate(roomPopulateOption);
+    return res.json(rooms.map((room) => formatSettlement(room)));
+  } catch (err) {
+    logger.error(err);
+    res.status(500).json({
+      error: "Rooms/getAllRoom : internal server error",
+    });
+  }
 };
 
 const removeAllRoomHandler = async (_, res) => {
-  await roomModel.remove({});
-  res.redirect("/rooms/getAllRoom");
-  return;
+  try {
+    await roomModel.remove({});
+    return res.redirect("/rooms/getAllRoom");
+  } catch (err) {
+    logger.log(err);
+    res.status(500).json({
+      error: "Rooms/getAllRoom : internal server error",
+    });
+  }
 };
 
 const idEditHandler = async (req, res) => {
@@ -467,8 +438,8 @@ const idEditHandler = async (req, res) => {
       new: true,
     });
     if (result) {
-      await result.execPopulate(roomPopulateQuery);
-      res.send(formatSettlement(result));
+      const roomObject = (await result.populate(roomPopulateOption)).toObject();
+      res.send(formatSettlement(roomObject));
     } else {
       res.status(404).json({
         error: "Rooms/edit : id does not exist",
@@ -511,13 +482,13 @@ const idDeleteHandler = async (req, res) => {
 module.exports = {
   infoHandler,
   createHandler,
-  inviteHandler,
+  joinHandler,
   abortHandler,
   searchHandler,
   searchByUserHandler,
+  idSettlementHandler,
   getAllRoomHandler,
   removeAllRoomHandler,
-  idSettlementHandler,
   idEditHandler,
   idDeleteHandler,
 };
