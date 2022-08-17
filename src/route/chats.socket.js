@@ -1,6 +1,7 @@
 const { getLoginInfo, joinChatRoom, leaveChatRoom } = require("../auth/login");
 const { roomModel, userModel, chatModel } = require("../db/mongo");
 const validator = require("validator");
+const logger = require("../modules/logger");
 
 class IllegalArgumentsException {
   constructor() {
@@ -50,8 +51,8 @@ const emitChatEvent = async (io, roomId, chat) => {
       }
     }
     io.to(`chatRoom-${roomId}`).emit("chats-receive", { chat });
-  } catch (e) {
-    console.log(e);
+  } catch (err) {
+    logger.error(err);
     return;
   }
 };
@@ -128,7 +129,8 @@ const ioListeners = (io, socket) => {
           chats: await transformChatsForRoom(chats),
         });
       }
-    } catch (e) {
+    } catch (err) {
+      logger.error(err);
       io.to(socket.id).emit("chats-join", { err: true });
     }
   });
@@ -151,7 +153,8 @@ const ioListeners = (io, socket) => {
       // leave chat room
       leaveChatRoom({ session: session });
       socket.leave(`chatRoom-${roomId}`);
-    } catch (e) {
+    } catch (err) {
+      logger.error(err);
       io.to(socket.id).emit("chats-disconnect", { err: true });
     }
   });
@@ -174,7 +177,8 @@ const ioListeners = (io, socket) => {
         authorId: myUser._id,
       });
       io.to(socket.id).emit("chats-send", { done: true });
-    } catch (e) {
+    } catch (err) {
+      logger.error(err);
       io.to(socket.id).emit("chats-send", { err: true });
     }
   });
@@ -207,7 +211,8 @@ const ioListeners = (io, socket) => {
       } else {
         return io.to(socket.id).emit("chats-load", { err: true });
       }
-    } catch (e) {
+    } catch (err) {
+      logger.error(err);
       io.to(socket.id).emit("chats-load", { err: true });
     }
   });
