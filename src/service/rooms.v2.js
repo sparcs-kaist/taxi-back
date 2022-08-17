@@ -7,7 +7,7 @@ const { emitChatEvent } = require("../route/chats.socket");
 const { leaveChatRoom } = require("../auth/login");
 const logger = require("../modules/logger");
 
-/** @global
+/** @constant {{path: string, select: string, populate?: {path: string, select: string}}[]}
  * 쿼리를 통해 얻은 Room Document를 populate할 설정값을 정의합니다.
  */
 const roomPopulateOption = [
