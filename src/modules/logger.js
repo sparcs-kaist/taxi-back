@@ -2,6 +2,8 @@ const { createLogger, format, transports } = require("winston");
 const dailyRotateFileTransport = require("winston-daily-rotate-file");
 const path = require("path");
 
+const { nodeEnv } = require("../../security");
+
 // 로깅에 사용하기 위한 포맷을 추가로 정의합니다.
 const customFormat = {
   time: "YYYY-MM-DD HH:mm:ss", // 로깅 시각
@@ -52,8 +54,8 @@ const logger = createLogger({
   ],
 });
 
-// If the environment is neither production nor test, the log is also recorded on console
-if (process.env.NODE_ENV !== "production" || process.env.NODE_ENV !== "test") {
+// If the environment is development, the log is also recorded on console
+if (nodeEnv === "development") {
   logger.add(
     new transports.Console({
       format: format.combine(
