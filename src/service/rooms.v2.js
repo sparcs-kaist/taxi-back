@@ -85,8 +85,7 @@ const createHandler = async (req, res) => {
     });
 
     const roomObject = (await room.populate(roomPopulateOption)).toObject();
-    res.status(200).json(formatSettlement(roomObject));
-    return;
+    return res.send(formatSettlement(roomObject));
   } catch (err) {
     logger.error(err);
     res.status(500).json({
@@ -104,7 +103,7 @@ const infoHandler = async (req, res) => {
       .lean()
       .populate(roomPopulateOption);
     if (roomObject) {
-      res.status(200).send(formatSettlement(roomObject));
+      res.send(formatSettlement(roomObject));
     } else {
       res.status(404).json({
         error: "Rooms/info : id does not exist",
@@ -129,7 +128,7 @@ const joinHandler = async (req, res) => {
       return;
     }
 
-    // 초대할 사람 수가 방의 남은 자리 수를 초과하면 초대가 불가능합니다.
+    // 방의 인원이 모두 찬 경우, 400 오류를 반환합니다.
     if (room.part.length + 1 > room.maxPartLength) {
       res.status(400).json({
         error: "Room/join : There are too many people to invite to the room",
@@ -137,14 +136,13 @@ const joinHandler = async (req, res) => {
       return;
     }
 
-    // 사용자가 이미 참여중인 방인 경우, req.body.users의 사용자들을 방에 참여시킵니다.
+    // 사용자가 이미 참여중인 방인 경우, 409 Conflict 오류를 반환합니다.
     if (room.part.includes(user._id)) {
       return res.status(409).json({
         error: "Rooms/join : " + user.id + " Already in room",
       });
     }
 
-    // update room in newUsers
     room.part.push(user._id);
     user.room.push(room._id);
     room.settlement.push({ studentId: user._id, isSettlement: false });
@@ -365,21 +363,33 @@ const idSettlementHandler = async (req, res) => {
   } catch (err) {
     logger.error(err);
     res.status(500).json({
-      error: "/:id/settlement : internal server error",
+      error: "Rooms/:id/settlement : internal server error",
     });
   }
 };
 
 const getAllRoomHandler = async (_, res) => {
-  const rooms = await roomModel.find({}).lean().populate(roomPopulateOption);
-  res.json(rooms.map((room) => formatSettlement(room)));
-  return;
+  try {
+    const rooms = await roomModel.find({}).lean().populate(roomPopulateOption);
+    return res.json(rooms.map((room) => formatSettlement(room)));
+  } catch (err) {
+    logger.error(err);
+    res.status(500).json({
+      error: "Rooms/getAllRoom : internal server error",
+    });
+  }
 };
 
 const removeAllRoomHandler = async (_, res) => {
-  await roomModel.remove({});
-  res.redirect("/rooms/getAllRoom");
-  return;
+  try {
+    await roomModel.remove({});
+    return res.redirect("/rooms/getAllRoom");
+  } catch (err) {
+    logger.log(err);
+    res.status(500).json({
+      error: "Rooms/getAllRoom : internal server error",
+    });
+  }
 };
 
 const idEditHandler = async (req, res) => {
