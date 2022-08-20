@@ -11,31 +11,35 @@ const logger = require("../modules/logger");
  * 쿼리를 통해 얻은 Room Document를 populate할 설정값을 정의합니다.
  */
 const roomPopulateOption = [
-  { path: "part", select: "_id id name nickname profileImageUrl" },
   { path: "from", select: "_id koName enName" },
   { path: "to", select: "_id koName enName" },
   {
-    path: "settlement",
-    select: "-_id studentId isSettlement",
-    populate: { path: "studentId", select: "_id id name nickname" },
+    path: "part",
+    select: "-_id user settlementStatus",
+    populate: { path: "user", select: "_id id name nickname profileImageUrl" },
   },
 ];
 
 /**
- * Room Object가 주어졌을 때 정산 여부를 room의 part array의 각 user에 추가하고, 방이 현재 출발했는지 유무인 isDeparted 속성을 추가합니다.
+ * Room Object가 주어졌을 때 room의 part array의 각 요소를 API 명세에서와 같이 {userId: String, ... , settlementStatus: String}으로 가공합니다.
+ * 또한, 방이 현재 출발했는지 유무인 isDeparted 속성을 추가합니다.
  * @param {Object} roomObject - 정산 정보를 가공할 room Object로, Mongoose Document가 아닌 순수 Javascript Object여야 합니다.
- * @param {Boolean} [includeSettlement] - 반환 결과에 정산 정보를 포함할 지 여부로, 기본값은 true입니다.
+ * @param {Boolean} includeSettlement - 반환 결과에 정산 정보를 포함할 지 여부로, 기본값은 true입니다.
  * @return {Object} 정산 여부가 위와 같이 가공되고 isDeparted 속성이 추가된 Room Object가 반환됩니다.
  */
 const formatSettlement = (roomObject, includeSettlement = true) => {
-  if (includeSettlement) {
-    roomObject.part = roomObject.part.map((user, index) => {
-      user.isSettlement = roomObject.settlement[index].isSettlement;
-      return user;
-    });
-  }
-  delete roomObject.settlement;
-  roomObject.isDeparted = new Date(roomObject.time) < new Date() ? true : false;
+  roomObject.part = roomObject.part.map((participantSubDocument) => {
+    const { _id, name, nickname, profileImageUrl } =
+      participantSubDocument.user;
+    const { settlementStatus: isSettlement } = participantSubDocument;
+    return {
+      _id,
+      name,
+      nickname,
+      profileImageUrl,
+      isSettlement: includeSettlement ? isSettlement : undefined,
+    };
+  });
   return roomObject;
 };
 
@@ -58,7 +62,7 @@ const createHandler = async (req, res) => {
 
     // 방 생성 요청을 한 사용자의 ObjectID를 room의 part 리스트에 추가
     const user = await userModel.findOne({ id: req.userId });
-    const part = [user._id];
+    const part = [{ user: user._id }]; // settlementStatus는 기본적으로 "not-departed"로 설정됨
 
     let room = new roomModel({
       name: name,
@@ -68,7 +72,6 @@ const createHandler = async (req, res) => {
       part: part,
       madeat: Date.now(),
       maxPartLength: maxPartLength,
-      settlement: { studentId: user._id, isSettlement: false },
       settlementTotal: 0,
       isOver: false,
     });
@@ -100,7 +103,7 @@ const infoHandler = async (req, res) => {
   try {
     const user = await userModel.findOne({ id: req.userId });
     const roomObject = await roomModel
-      .findOne({ _id: req.query.id, part: { $elemMatch: { $eq: user._id } } })
+      .findOne({ _id: req.query.id, "part.user": user._id })
       .lean()
       .populate(roomPopulateOption);
     if (roomObject) {
@@ -144,9 +147,8 @@ const joinHandler = async (req, res) => {
       });
     }
 
-    room.part.push(user._id);
+    room.part.push({ user: user._id });
     user.room.push(room._id);
-    room.settlement.push({ studentId: user._id, isSettlement: false });
     await user.save();
     await room.save();
 
@@ -167,6 +169,9 @@ const joinHandler = async (req, res) => {
   }
 };
 
+/**
+ * @todo 삭제할 유저 인덱스 더 쉽게 파악하기
+ */
 const abortHandler = async (req, res) => {
   const time = Date.now();
   const isOvertime = (room, time) => {
@@ -198,7 +203,9 @@ const abortHandler = async (req, res) => {
 
     // 사용자가 참여중인 방 목록에서 해당 방을 제거하고, 해당 방의 참여자 목록에서 사용자를 제거한다.
     // 사용자가 해당 룸의 구성원이 아닌 경우, 403 오류를 반환한다.
-    const roomPartIndex = room.part.indexOf(user._id);
+    const roomPartIndex = room.part
+      .map((part) => part.user.toString())
+      .indexOf(user._id.toString());
     const userRoomIndex = user.room.indexOf(room._id);
     if (roomPartIndex === -1 || userRoomIndex === -1) {
       res.status(403).json({
@@ -214,7 +221,6 @@ const abortHandler = async (req, res) => {
         return;
       }
       room.part.splice(roomPartIndex, 1);
-      room.settlement.splice(roomPartIndex, 1);
       user.room.splice(userRoomIndex, 1);
       await user.save();
       await room.save();
@@ -327,7 +333,7 @@ const searchByUserHandler = async (req, res) => {
       ongoing: [],
       done: [],
     };
-    user.room.map((room) => {
+    user.room.forEach((room) => {
       room = formatSettlement(room);
       if (room.isOver) response.done.push(room);
       else response.ongoing.push(room);
@@ -341,24 +347,87 @@ const searchByUserHandler = async (req, res) => {
   }
 };
 
-const idSettlementHandler = async (req, res) => {
+const commitPaymentByIdHandler = async (req, res) => {
   try {
     const user = await userModel.findOne({ id: req.userId });
-    let result = await roomModel.findOneAndUpdate(
-      { _id: req.params.id, "settlement.studentId": user._id },
-      { "settlement.$.isSettlement": true, $inc: { settlementTotal: 1 } }
-    );
-    if (result) {
-      let room = await roomModel.findById(req.params.id);
-      if (room.settlementTotal === room.part.length) {
-        room.isOver = true;
-        await room.save();
+    const roomObject = await roomModel
+      .findOneAndUpdate(
+        {
+          _id: req.params.id,
+          part: {
+            $elemMatch: {
+              user: user._id,
+              settlementStatus: "not-departed",
+            },
+          },
+        },
+        {
+          "part.$[payer].settlementStatus": "paid",
+          "part.$[rests].settlementStatus": "send-required",
+          settlementTotal: 1,
+        },
+        {
+          new: true,
+          arrayFilters: [
+            { "payer.user": { $eq: user._id } },
+            { "rests.user": { $ne: user._id } },
+          ],
+        }
+      )
+      .lean()
+      .populate(roomPopulateOption);
+
+    if (roomObject) {
+      res.send(formatSettlement(roomObject));
+    } else {
+      return res.status(404).json({
+        error: "Rooms/:id/commitPayment : cannot find settlement info",
+      });
+    }
+  } catch (err) {
+    logger.error(err);
+    res.status(500).json({
+      error: "Rooms/:id/commitPayment : internal server error",
+    });
+  }
+};
+
+const settlementByIdHandler = async (req, res) => {
+  try {
+    const roomId = req.params.id;
+    const user = await userModel.findOne({ id: req.userId });
+    let roomObject = await roomModel
+      .findOneAndUpdate(
+        {
+          _id: roomId,
+          part: {
+            $elemMatch: {
+              user: user._id,
+              settlementStatus: "send-required",
+            },
+          },
+        },
+        {
+          $set: { "part.$.settlementStatus": "sent" },
+          $inc: { settlementTotal: 1 },
+        },
+        {
+          new: true,
+        }
+      )
+      .lean()
+      .populate(roomPopulateOption);
+    if (roomObject) {
+      if (roomObject.settlementTotal === roomObject.part.length) {
+        roomObject = await roomModel
+          .findByIdAndUpdate(roomId, { isOver: true }, { new: true })
+          .lean()
+          .populate(roomPopulateOption);
       }
-      const roomObject = (await result.populate(roomPopulateOption)).toObject();
       res.send(formatSettlement(roomObject));
     } else {
       res.status(404).json({
-        error: " cannot find settlement info",
+        error: "Rooms/:id/settlement : cannot find settlement info",
       });
     }
   } catch (err) {
@@ -369,35 +438,10 @@ const idSettlementHandler = async (req, res) => {
   }
 };
 
-const getAllRoomHandler = async (_, res) => {
-  try {
-    const rooms = await roomModel.find({}).lean().populate(roomPopulateOption);
-    return res.json(rooms.map((room) => formatSettlement(room)));
-  } catch (err) {
-    logger.error(err);
-    res.status(500).json({
-      error: "Rooms/getAllRoom : internal server error",
-    });
-  }
-};
-
-const removeAllRoomHandler = async (_, res) => {
-  try {
-    await roomModel.remove({});
-    return res.redirect("/rooms/getAllRoom");
-  } catch (err) {
-    logger.log(err);
-    res.status(500).json({
-      error: "Rooms/getAllRoom : internal server error",
-    });
-  }
-};
-
-const idEditHandler = async (req, res) => {
-  const { name, from, to, time, part, maxPartLength } = req.body;
-
+const editByIdHandler = async (req, res) => {
+  const { name, from, to, time, maxPartLength } = req.body;
   // 수정할 값이 주어지지 않은 경우
-  if (!name && !from && !to && !time && !part && !maxPartLength) {
+  if (!name && !from && !to && !time && !maxPartLength) {
     res.status(400).json({
       error: "Rooms/edit : Bad request",
     });
@@ -410,6 +454,18 @@ const idEditHandler = async (req, res) => {
       error: "Rooms/edit : Bad request",
     });
   }
+
+  // Room update query에 사용할 filter입니다.
+  // 방에 참여중인 인원만 방 정보를 수정할 수 있습니다.
+  const user = await userModel.findOne({ id: req.userId }, "_id");
+  const roomFilter = {
+    _id: req.params.id,
+    part: {
+      $elemMatch: {
+        user: user._id,
+      },
+    },
+  };
 
   const changeJSON = {};
   if (name) changeJSON.name = name;
@@ -430,12 +486,16 @@ const idEditHandler = async (req, res) => {
     changeJSON.to = to;
   }
   if (time) changeJSON.time = time;
-  if (part) changeJSON.part = part;
-  if (maxPartLength) changeJSON.maxPartLength = maxPartLength;
+  if (maxPartLength) {
+    changeJSON.maxPartLength = maxPartLength;
+
+    // 현재 참여 인원보다 최대 인원 수를 작게 설정할 수 없습니다.
+    roomFilter[`part.${maxPartLength}`] = { $exists: false };
+  }
 
   try {
-    let result = await roomModel.findByIdAndUpdate(req.params.id, {
-      $set: changeJSON,
+    // 방 정보를 요청받은 것과 같이 수정합니다.
+    let result = await roomModel.findOneAndUpdate(roomFilter, changeJSON, {
       new: true,
     });
     if (result) {
@@ -443,7 +503,7 @@ const idEditHandler = async (req, res) => {
       res.send(formatSettlement(roomObject));
     } else {
       res.status(404).json({
-        error: "Rooms/edit : id does not exist",
+        error: "Rooms/edit : such room not exist",
       });
     }
   } catch (err) {
@@ -454,7 +514,40 @@ const idEditHandler = async (req, res) => {
   }
 };
 
-const idDeleteHandler = async (req, res) => {
+/**
+ * @todo Unused -> Remove
+ */
+const getAllRoomHandler = async (_, res) => {
+  try {
+    const rooms = await roomModel.find({}).lean().populate(roomPopulateOption);
+    return res.json(rooms.map((room) => formatSettlement(room)));
+  } catch (err) {
+    logger.error(err);
+    res.status(500).json({
+      error: "Rooms/getAllRoom : internal server error",
+    });
+  }
+};
+
+/**
+ * @todo Unused -> Remove
+ */
+const removeAllRoomHandler = async (_, res) => {
+  try {
+    await roomModel.remove({});
+    return res.redirect("/rooms/getAllRoom");
+  } catch (err) {
+    logger.log(err);
+    res.status(500).json({
+      error: "Rooms/getAllRoom : internal server error",
+    });
+  }
+};
+
+/**
+ * @todo Unused -> Remove
+ */
+const deleteByIdHandler = async (req, res) => {
   try {
     const result = await roomModel.findByIdAndRemove(req.params.id).exec();
     if (result) {
@@ -476,7 +569,6 @@ const idDeleteHandler = async (req, res) => {
     });
     return;
   }
-
   // catch는 반환값이 없을 경우(result == undefined일 때)는 처리하지 않는다.
 };
 
@@ -487,9 +579,10 @@ module.exports = {
   abortHandler,
   searchHandler,
   searchByUserHandler,
-  idSettlementHandler,
+  commitPaymentByIdHandler,
+  settlementByIdHandler,
+  editByIdHandler,
   getAllRoomHandler,
   removeAllRoomHandler,
-  idEditHandler,
-  idDeleteHandler,
+  deleteByIdHandler,
 };

@@ -24,9 +24,14 @@ const userSchema = Schema({
   isAdmin: { type: Boolean, default: false }, //관리자 여부
 });
 
-const settlementSchema = Schema({
-  studentId: { type: Schema.Types.ObjectId, ref: "User", required: true },
-  isSettlement: { type: Boolean, required: true },
+const participantSchema = Schema({
+  user: { type: Schema.Types.ObjectId, ref: "User", required: true },
+  settlementStatus: {
+    type: String,
+    required: true,
+    enum: ["not-departed", "paid", "send-required", "sent"],
+    default: "not-departed",
+  },
 });
 
 const roomSchema = Schema({
@@ -35,27 +40,19 @@ const roomSchema = Schema({
   to: { type: Schema.Types.ObjectId, ref: "Location", required: true },
   time: { type: Date, required: true }, // 출발 시간
   part: {
-    type: [{ type: Schema.Types.ObjectId, ref: "User" }],
+    type: [participantSchema],
     validate: [
       function (value) {
         return value.length <= this.maxPartLength;
       },
     ],
-  }, // 참여 멤버
+  }, // 참여 멤버 및 정산 여부
   madeat: { type: Date, required: true }, // 생성 날짜
-  settlement: {
-    type: [settlementSchema],
-    default: [
-      {
-        isSettlement: false,
-      },
-    ],
-  },
   settlementTotal: { type: Number, default: 0, required: true },
   isOver: { type: Boolean, default: false, required: true },
   maxPartLength: { type: Number, require: true, default: 4 },
-  //FIXME: 결제 예정자, 정산 여부 (웹페이지에서 이를 어떻게 처리할 것인지 추가 논의가 필요함)
 });
+
 const locationSchema = Schema({
   enName: { type: String, required: true },
   koName: { type: String, required: true },
@@ -64,7 +61,7 @@ const locationSchema = Schema({
 });
 const chatSchema = Schema({
   roomId: { type: Schema.Types.ObjectId, ref: "Room", required: true },
-  type: { type: String }, // 메시지 종류 (text|in|out|s3img)
+  type: { type: String, enum: ["text", "in", "out", "s3img"] }, // 메시지 종류
   authorId: { type: Schema.Types.ObjectId, ref: "User", required: true }, // 작성자 id
   content: { type: String, default: "" },
   time: { type: Date, required: true },
