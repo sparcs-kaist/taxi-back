@@ -75,7 +75,7 @@ Room {
       name: String, // 참여 중인 사용자 이름
       nickname: String, // 참여 중인 사용자 닉네임
       profileImageUrl: String, // 프로필 사진 url 
-      isSettlement: String, //해당 사용자의 정산이 완료됐는지 여부("not-departed" | "paid" | "send-required" | "sent") (주의: rooms/search에서는 isSettlement 속성을 반환하지 않음(undefined를 반환함).
+      isSettlement: String, //해당 사용자의 정산 상태 (주의: rooms/search에서는 isSettlement 속성을 반환하지 않음(undefined를 반환함).
     }
   ], 
   maxPartLength: Number(2~4), //방의 최대 인원 수
@@ -85,6 +85,13 @@ Room {
   __v: Number, // 문서 버전. mongoDB 내부적으로 사용됨.
 }
 ```
+
+`isSettlement` 속성은 아래 네 가지 값들 중 하나를 가진다.
+
+1. `"not-departed"` :  아무도 결제/정산하지 않은 상태
+2. `"paid"` : 택시비를 결제한 참가가 "결제하기" 버튼을 누르면 해당 참가자에게 설정되는 정산 상태.
+3. `"send-required"` : 특정 참가자가 "결제하기" 버튼을 눌렀을 때 그 방의 나머지 참가자에게 설정되는 정산 상태.
+4. `"sent"` : 정산 상태가`"send-required"`인 사용자가 "정산하기" 버튼을 눌렀을 때 그 사용자에게 설정되는 정산 상태.
 
 ## Available endpoints
 
