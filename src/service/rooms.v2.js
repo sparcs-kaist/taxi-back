@@ -185,7 +185,6 @@ const joinHandler = async (req, res) => {
  * @todo 삭제할 유저 인덱스 더 쉽게 파악하기
  */
 const abortHandler = async (req, res) => {
-  const time = Date.now();
   const isOvertime = (room, time) => {
     if (new Date(room.time) <= time) return true;
     else return false;
@@ -203,14 +202,6 @@ const abortHandler = async (req, res) => {
     if (!room) {
       res.status(404).json({
         error: "Rooms/abort : no corresponding room",
-      });
-      return;
-    }
-
-    // 방이 이미 출발한 경우, 400 오류를 반환합니다.
-    if (req.timestamp >= room.time) {
-      res.status(400).json({
-        error: "Room/join : The room has already departed",
       });
       return;
     }
@@ -234,8 +225,8 @@ const abortHandler = async (req, res) => {
       return;
     } else {
       // 방의 출발시간이 지나고 정산이 되지 않으면 나갈 수 없음
-      if (isOvertime(room, time) && !room.isOver) {
-        res.status(403).json({
+      if (isOvertime(room, req.timestamp) && !room.isOver) {
+        res.status(400).json({
           error: "Rooms/info : cannot exit room. Settlement is not done",
         });
         return;

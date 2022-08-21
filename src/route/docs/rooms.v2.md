@@ -17,33 +17,36 @@
     - [`/join` (POST)](#join-post)
       - [request JSON form](#request-json-form)
       - [Errors](#errors-2)
+    - [`/abort` (POST)](#abort-post)
+      - [request JSON form](#request-json-form-1)
+      - [Errors](#errors-3)
     - [`/search` **(GET)**](#search-get)
       - [URL parameters](#url-parameters-1)
       - [Response](#response-2)
-      - [Errors](#errors-3)
+      - [Errors](#errors-4)
     - [`/searchByUser` **(GET)**](#searchbyuser-get)
       - [URL parameters](#url-parameters-2)
       - [Response](#response-3)
-      - [Errors](#errors-4)
+      - [Errors](#errors-5)
     - [`/:id/commitPayment` **(POST)**](#idcommitpayment-post)
       - [URL Parameters](#url-parameters-3)
       - [Response](#response-4)
-      - [Errors](#errors-5)
+      - [Errors](#errors-6)
     - [`/:id/settlement/` **(POST)**](#idsettlement-post)
       - [URL Parameters](#url-parameters-4)
       - [Response](#response-5)
-      - [Errors](#errors-6)
+      - [Errors](#errors-7)
     - [`/:id/edit/` **(POST)** **(for dev)**](#idedit-post-for-dev)
       - [URL Parameters](#url-parameters-5)
       - [POST request form](#post-request-form-1)
       - [Response](#response-6)
-      - [Errors](#errors-7)
+      - [Errors](#errors-8)
     - [`/getAllRoom` **(GET)** (for dev)](#getallroom-get-for-dev)
     - [`/removeAllRoom` **(GET)** (for dev)](#removeallroom-get-for-dev)
     - [`/:id/delete/` **(GET)** **(for dev)**](#iddelete-get-for-dev)
       - [URL Parameters](#url-parameters-6)
       - [Response](#response-7)
-      - [Errors](#errors-8)
+      - [Errors](#errors-9)
 
 ## Description
 
@@ -147,6 +150,7 @@ ID를 parameter로 받아 해당 ID의 room의 정보 출력
 ### `/join` (POST)
 
 room의 ID를 받아 해당 room의 참가자 목록에 요청을 보낸 사용자를 추가한다.
+아직 출발하지 않은 방에만 참여할 수 있다.
 
 #### request JSON form
 
@@ -159,10 +163,32 @@ room의 ID를 받아 해당 room의 참가자 목록에 요청을 보낸 사용�
 #### Errors
 
 - 400 "Bad request"
-- 400 "no corresponding room"
 - 400 "The room is full"
+- 400 "The room has already departed"
+- 404 "no corresponding room"
 - 409 "{userID} Already in room"
 - 500 "internal server error"
+
+### `/abort` (POST)
+
+room의 ID를 받아 해당 room의 참가자 목록에서 요청을 보낸 사용자를 삭제한다.
+출발했지만 정산이 완료되지 않은 방에서는 나갈 수 없다.
+
+#### request JSON form
+
+```javascript
+{
+    roomId : ObjectId, // 초대 혹은 참여하려는 방 Document의 ObjectId
+}
+```
+
+#### Errors
+
+- 400 "Bad request"
+- 400 "cannot exit room. Settlement is not done"
+- 404 "no corresponding room"
+- 500 "internal server error"
+
 
 ### `/search` **(GET)**
 
@@ -180,6 +206,7 @@ room의 ID를 받아 해당 room의 참가자 목록에 요청을 보낸 사용�
 #### Response
 
 조건에 맞는 방**들**의 정보: `Room[]`
+조건에 일치하는 방이 없더라도 빈 배열을 반환함.
 
 #### Errors
 
