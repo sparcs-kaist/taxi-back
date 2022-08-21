@@ -454,6 +454,9 @@ const settlementByIdHandler = async (req, res) => {
   }
 };
 
+/**
+ * @todo Unused -> Remove
+ */
 const editByIdHandler = async (req, res) => {
   const { name, from, to, time, maxPartLength } = req.body;
   // 수정할 값이 주어지지 않은 경우
