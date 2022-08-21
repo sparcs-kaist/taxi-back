@@ -113,7 +113,7 @@ const ioListeners = (io, socket) => {
       // join chat room
       joinChatRoom({ session: session }, socket.id, roomId);
       socket.join(`chatRoom-${roomId}`);
-      // session.save(); // Socket.io 세션의 변경 사항을 Express 세션에 반영.
+      session.save(); // Socket.io 세션의 변경 사항을 Express 세션에 반영.
 
       const amount = 30;
       const chats = await chatModel
