@@ -40,6 +40,10 @@ const formatSettlement = (roomObject, includeSettlement = true) => {
       isSettlement: includeSettlement ? isSettlement : undefined,
     };
   });
+  roomObject.settlementTotal = includeSettlement
+    ? roomObject.settlementTotal
+    : undefined;
+  roomObject.isOver = includeSettlement ? roomObject.isOver : undefined;
   return roomObject;
 };
 

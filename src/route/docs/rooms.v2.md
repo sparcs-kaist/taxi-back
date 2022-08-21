@@ -78,13 +78,13 @@ Room {
       name: String, // 참여 중인 사용자 이름
       nickname: String, // 참여 중인 사용자 닉네임
       profileImageUrl: String, // 프로필 사진 url 
-      isSettlement: String, //해당 사용자의 정산 상태 (주의: rooms/search에서는 isSettlement 속성을 반환하지 않음(undefined를 반환함).
+      isSettlement: String, //해당 사용자의 정산 상태 (주의: rooms/search에서는 isSettlement 속성을 반환하지 않고 undefined를 반환함).
     }
   ], 
   maxPartLength: Number(2~4), //방의 최대 인원 수
   madeat: String(ISO 8601), // ex) 방 생성 시각. '2022-01-12T13:58:20.180Z'
-  settlementTotal: Number(2~4), // 정산이 완료된 사용자 수
-  isOver: Boolean, // 해당 방의 정산이 완료됐는지 여부(완료 시 true)
+  settlementTotal: Number(2~4), // 정산이 완료된 사용자 수 (주의: rooms/search에서는 settlementTotal 속성을 반환하지 않고 undefined를 반환함).
+  isOver: Boolean, // 해당 방의 정산이 완료됐는지 여부(완료 시 true) (주의: rooms/search에서는 isOver 속성을 반환하지 않고 undefined를 반환함).
   __v: Number, // 문서 버전. mongoDB 내부적으로 사용됨.
 }
 ```
