@@ -213,6 +213,7 @@ room의 ID를 받아 해당 room의 참가자 목록에 요청을 보낸 사용�
 ### `/:id/commitPayment` **(POST)**
 
 - ID를 받아 해당 방에 요청을 보낸 유저를 결제자로 처리
+- 이미 출발한 방(현재 시각이 출발 시각 이후인 경우)에 대해서만 요청을 처리함
 - 방의 part 배열에서 요청을 보낸 유저의 isSettlement 속성을 `paid`로 설정하고, 나머지 유저들의 isSettlement 속성을 `"send-required"`로 설정함.
 
 #### URL Parameters
@@ -226,7 +227,7 @@ room의 ID를 받아 해당 room의 참가자 목록에 요청을 보낸 사용�
 #### Errors
 
 - 400 "Bad request": 로그인이 되어있지 않은 경우
-- 404 "cannot find settlement info": 사용자가 참여 중인 방이 아니거나, 이미 다른 사람이 결제자인 경우
+- 404 "cannot find settlement info": 사용자가 참여 중인 방이 아니거나, 이미 다른 사람이 결제자이거나, 아직 방이 출발하지 않은 경우
 - 500 "internal server error"
 
 

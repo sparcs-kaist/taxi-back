@@ -132,19 +132,31 @@ const joinHandler = async (req, res) => {
       return;
     }
 
-    // 방의 인원이 모두 찬 경우, 400 오류를 반환합니다.
-    if (room.part.length + 1 > room.maxPartLength) {
+    // 사용자가 이미 참여중인 방인 경우, 409 Conflict 오류를 반환합니다.
+    if (
+      room.part
+        .map((part) => part.user.toString())
+        .includes(user._id.toString())
+    ) {
+      return res.status(409).json({
+        error: "Rooms/join : " + user.id + " Already in room",
+      });
+    }
+
+    // 방이 이미 출발한 경우, 400 오류를 반환합니다.
+    if (req.timestamp >= room.time) {
       res.status(400).json({
-        error: "Room/join : There are too many people to invite to the room",
+        error: "Room/join : The room has already departed",
       });
       return;
     }
 
-    // 사용자가 이미 참여중인 방인 경우, 409 Conflict 오류를 반환합니다.
-    if (room.part.includes(user._id)) {
-      return res.status(409).json({
-        error: "Rooms/join : " + user.id + " Already in room",
+    // 방의 인원이 모두 찬 경우, 400 오류를 반환합니다.
+    if (room.part.length + 1 > room.maxPartLength) {
+      res.status(400).json({
+        error: "Room/join : The room is already full",
       });
+      return;
     }
 
     room.part.push({ user: user._id });
@@ -195,14 +207,22 @@ const abortHandler = async (req, res) => {
       return;
     }
 
-    // 사용자가 채팅방에 들어와있는 경우, 소켓 연결을 먼저 끊는다.
+    // 방이 이미 출발한 경우, 400 오류를 반환합니다.
+    if (req.timestamp >= room.time) {
+      res.status(400).json({
+        error: "Room/join : The room has already departed",
+      });
+      return;
+    }
+
+    // 사용자가 채팅방에 들어와있는 경우, 소켓 연결을 먼저 끊습니다.
     if (req.session.socketId && req.session.chatRoomId) {
       req.app.get("io").in(req.session.socketId).disconnectSockets(true);
       leaveChatRoom({ session: req.session });
     }
 
-    // 사용자가 참여중인 방 목록에서 해당 방을 제거하고, 해당 방의 참여자 목록에서 사용자를 제거한다.
-    // 사용자가 해당 룸의 구성원이 아닌 경우, 403 오류를 반환한다.
+    // 사용자가 참여중인 방 목록에서 해당 방을 제거하고, 해당 방의 참여자 목록에서 사용자를 제거합니다.
+    // 사용자가 해당 룸의 구성원이 아닌 경우, 403 오류를 반환합니다.
     const roomPartIndex = room.part
       .map((part) => part.user.toString())
       .indexOf(user._id.toString());
@@ -360,6 +380,7 @@ const commitPaymentByIdHandler = async (req, res) => {
               settlementStatus: "not-departed",
             },
           },
+          time: { $lte: req.timestamp },
         },
         {
           "part.$[payer].settlementStatus": "paid",
