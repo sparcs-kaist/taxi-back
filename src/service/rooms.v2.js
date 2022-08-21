@@ -31,13 +31,13 @@ const formatSettlement = (roomObject, includeSettlement = true) => {
   roomObject.part = roomObject.part.map((participantSubDocument) => {
     const { _id, name, nickname, profileImageUrl } =
       participantSubDocument.user;
-    const { settlementStatus: isSettlement } = participantSubDocument;
+    const { settlementStatus } = participantSubDocument;
     return {
       _id,
       name,
       nickname,
       profileImageUrl,
-      isSettlement: includeSettlement ? isSettlement : undefined,
+      isSettlement: includeSettlement ? settlementStatus : undefined,
     };
   });
   roomObject.settlementTotal = includeSettlement
