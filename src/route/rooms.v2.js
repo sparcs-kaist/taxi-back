@@ -4,11 +4,12 @@
 
 const express = require("express");
 const { query, param, body } = require("express-validator");
+const router = express.Router();
+
+const roomHandlers = require("../service/rooms.v2");
 const validator = require("../middleware/validator");
 const patterns = require("../db/patterns");
-
-const router = express.Router();
-const roomHandlers = require("../service/rooms.v2");
+const setTimestamp = require("../middleware/setTimestamp");
 
 // 라우터 접근 시 로그인 필요
 router.use(require("../middleware/auth"));
@@ -41,6 +42,7 @@ router.post(
   "/join",
   [body("roomId").isMongoId()],
   validator,
+  setTimestamp,
   roomHandlers.joinHandler
 );
 
@@ -52,6 +54,7 @@ router.post(
   "/abort",
   body("roomId").isMongoId(),
   validator,
+  setTimestamp,
   roomHandlers.abortHandler
 );
 
@@ -72,23 +75,29 @@ router.get(
 // 로그인된 사용자의 모든 방들을 반환한다.
 router.get("/searchByUser/", roomHandlers.searchByUserHandler);
 
+router.post(
+  "/:id/commitPayment",
+  param("id").isMongoId(),
+  validator,
+  setTimestamp,
+  roomHandlers.commitPaymentByIdHandler
+);
+
 // 해당 룸의 요청을 보낸 유저의 정산을 완료로 처리한다.
 router.post(
   "/:id/settlement",
   param("id").isMongoId(),
   validator,
-  roomHandlers.idSettlementHandler
+  roomHandlers.settlementByIdHandler
 );
-
-// THE ROUTES BELOW ARE ONLY FOR TEST
-router.get("/getAllRoom", roomHandlers.getAllRoomHandler);
-
-router.get("/removeAllRoom", roomHandlers.removeAllRoomHandler);
 
 // json으로 수정할 값들을 받아 방의 정보를 수정합니다.
 // request JSON
 // name, from, to, time, part
 // FIXME: req.body.users 검증할 때 SSO ID 규칙 반영하기
+/**
+ * @todo Unused -> Remove
+ */
 router.post(
   "/:id/edit",
   [
@@ -96,20 +105,30 @@ router.post(
     body("from").optional().isMongoId(),
     body("to").optional().isMongoId(),
     body("time").optional().isISO8601(),
-    body("part").isArray(),
-    body("part.*").optional().isLength({ min: 1, max: 30 }).isAlphanumeric(),
-    body("maxPartLength").isInt({ min: 2, max: 4 }),
+    body("maxPartLength").optional().isInt({ min: 2, max: 4 }),
   ],
   validator,
-  roomHandlers.idEditHandler
+  roomHandlers.editByIdHandler
 );
 
-// FIXME: 방장만 삭제 가능.
+/**
+ * @todo Unused -> Remove
+ */
+router.get("/getAllRoom", roomHandlers.getAllRoomHandler);
+
+/**
+ * @todo Unused -> Remove
+ */
+router.get("/removeAllRoom", roomHandlers.removeAllRoomHandler);
+
+/**
+ * @todo Unused -> Remove
+ */
 router.get(
   "/:id/delete",
   param("id").isMongoId(),
   validator,
-  roomHandlers.idDeleteHandler
+  roomHandlers.deleteByIdHandler
 );
 
 module.exports = router;

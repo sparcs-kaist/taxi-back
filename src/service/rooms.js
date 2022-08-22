@@ -1,3 +1,7 @@
+/**
+ * @todo 바뀐 roomSchema에 대응하기. 더 이상 안 쓰는 코드들이니까 완벽하게 짤 필요는 없을 것 같다.
+ */
+
 const { roomModel, locationModel, userModel } = require("../db/mongo");
 const { emitChatEvent } = require("../route/chats.socket");
 const { leaveChatRoom } = require("../auth/login");
