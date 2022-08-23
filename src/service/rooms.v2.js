@@ -362,13 +362,14 @@ const searchByUserHandler = async (req, res) => {
   }
 };
 
-const commitPaymentByIdHandler = async (req, res) => {
+const commitPaymentHandler = async (req, res) => {
   try {
     const user = await userModel.findOne({ id: req.userId });
+    const { roomId } = req.body;
     const roomObject = await roomModel
       .findOneAndUpdate(
         {
-          _id: req.params.id,
+          _id: roomId,
           part: {
             $elemMatch: {
               user: user._id,
@@ -408,9 +409,9 @@ const commitPaymentByIdHandler = async (req, res) => {
   }
 };
 
-const settlementByIdHandler = async (req, res) => {
+const settlementHandler = async (req, res) => {
   try {
-    const roomId = req.params.id;
+    const { roomId } = req.body;
     const user = await userModel.findOne({ id: req.userId });
     let roomObject = await roomModel
       .findOneAndUpdate(
@@ -454,6 +455,85 @@ const settlementByIdHandler = async (req, res) => {
   }
 };
 
+/**
+ * @todo Unused -> Maybe used in the future?
+ */
+// const editHandler = async (req, res) => {
+//   const { roomId, name, from, to, time, maxPartLength } = req.body;
+//   // 수정할 값이 주어지지 않은 경우
+//   if (!name && !from && !to && !time && !maxPartLength) {
+//     res.status(400).json({
+//       error: "Rooms/edit : Bad request",
+//     });
+//     return;
+//   }
+
+//   // 출발지와 도착지가 같은 경우
+//   if (from && to && from === to) {
+//     return res.status(400).json({
+//       error: "Rooms/edit : Bad request",
+//     });
+//   }
+
+//   // Room update query에 사용할 filter입니다.
+//   // 방에 참여중인 인원만 방 정보를 수정할 수 있습니다.
+//   const user = await userModel.findOne({ id: req.userId }, "_id");
+//   const roomFilter = {
+//     _id: roomId,
+//     part: {
+//       $elemMatch: {
+//         user: user._id,
+//       },
+//     },
+//   };
+
+//   const changeJSON = {};
+//   if (name) changeJSON.name = name;
+//   if (from) {
+//     const fromLoc = await locationModel.findById(from);
+//     if (!fromLoc)
+//       return res.status(400).json({
+//         error: "Rooms/edit : Bad request",
+//       });
+//     changeJSON.from = from;
+//   }
+//   if (to) {
+//     const toLoc = await locationModel.findById(to);
+//     if (!toLoc)
+//       return res.status(400).json({
+//         error: "Rooms/edit : Bad request",
+//       });
+//     changeJSON.to = to;
+//   }
+//   if (time) changeJSON.time = time;
+//   if (maxPartLength) {
+//     changeJSON.maxPartLength = maxPartLength;
+
+//     // 현재 참여 인원보다 최대 인원 수를 작게 설정할 수 없습니다.
+//     roomFilter[`part.${maxPartLength}`] = { $exists: false };
+//   }
+
+//   try {
+//     // 방 정보를 요청받은 것과 같이 수정합니다.
+//     let result = await roomModel.findOneAndUpdate(roomFilter, changeJSON, {
+//       new: true,
+//     });
+//     if (result) {
+//       const roomObject = (await result.populate(roomPopulateOption)).toObject();
+//       res.send(formatSettlement(roomObject));
+//     } else {
+//       res.status(404).json({
+//         error: "Rooms/edit : such room not exist",
+//       });
+//     }
+//   } catch (err) {
+//     logger.error(err);
+//     res.status(500).json({
+//       error: "Rooms/edit : internal server error",
+//     });
+//   }
+// };
+
 module.exports = {
   infoHandler,
   createHandler,
@@ -461,6 +541,7 @@ module.exports = {
   abortHandler,
   searchHandler,
   searchByUserHandler,
-  commitPaymentByIdHandler,
-  settlementByIdHandler,
+  commitPaymentHandler,
+  settlementHandler,
+  // editHandler,
 };
