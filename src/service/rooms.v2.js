@@ -48,8 +48,7 @@ const formatSettlement = (
     ? roomObject.settlementTotal
     : undefined;
   roomObject.isOver = includeSettlement ? roomObject.isOver : undefined;
-  roomObject.isDeparted =
-    new Date(roomObject.time) < new Date(timestamp) ? true : false;
+  roomObject.isDeparted = new Date(roomObject.time) < new Date(timestamp);
   return roomObject;
 };
 
