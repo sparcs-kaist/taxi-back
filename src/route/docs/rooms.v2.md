@@ -32,7 +32,7 @@
       - [Request Body](#request-body)
       - [Response](#response-4)
       - [Errors](#errors-6)
-    - [`/settlement/` **(POST)**](#settlement-post)
+    - [`/commitSettlement/` **(POST)**](#commitsettlement-post)
       - [Request Body](#request-body-1)
       - [Response](#response-5)
       - [Errors](#errors-7)
@@ -258,7 +258,7 @@ room의 ID를 받아 해당 room의 참가자 목록에서 요청을 보낸 사�
 
 
 
-### `/settlement/` **(POST)**
+### `/commitSettlement/` **(POST)**
 
 - ID를 받아 해당 방에 요청을 보낸 유저의 정산을 완료로 처리
 - 방의 part 배열에서 요청을 보낸 유저의 isSettlement 속성을 `send-required`에서 `"sent"`로 변경함.

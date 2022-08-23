@@ -77,7 +77,7 @@ router.get("/searchByUser", roomHandlers.searchByUserHandler);
 
 router.post(
   "/commitPayment",
-  body("id").isMongoId(),
+  body("roomId").isMongoId(),
   validator,
   setTimestamp,
   roomHandlers.commitPaymentHandler
@@ -86,7 +86,7 @@ router.post(
 // 해당 룸의 요청을 보낸 유저의 정산을 완료로 처리한다.
 router.post(
   "/commitSettlement",
-  body("id").isMongoId(),
+  body("roomId").isMongoId(),
   validator,
   roomHandlers.settlementHandler
 );
