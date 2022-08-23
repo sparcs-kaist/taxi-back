@@ -91,44 +91,4 @@ router.post(
   roomHandlers.settlementByIdHandler
 );
 
-// json으로 수정할 값들을 받아 방의 정보를 수정합니다.
-// request JSON
-// name, from, to, time, part
-// FIXME: req.body.users 검증할 때 SSO ID 규칙 반영하기
-/**
- * @todo Unused -> Remove
- */
-router.post(
-  "/:id/edit",
-  [
-    body("name").optional().matches(patterns.room.name),
-    body("from").optional().isMongoId(),
-    body("to").optional().isMongoId(),
-    body("time").optional().isISO8601(),
-    body("maxPartLength").optional().isInt({ min: 2, max: 4 }),
-  ],
-  validator,
-  roomHandlers.editByIdHandler
-);
-
-/**
- * @todo Unused -> Remove
- */
-router.get("/getAllRoom", roomHandlers.getAllRoomHandler);
-
-/**
- * @todo Unused -> Remove
- */
-router.get("/removeAllRoom", roomHandlers.removeAllRoomHandler);
-
-/**
- * @todo Unused -> Remove
- */
-router.get(
-  "/:id/delete",
-  param("id").isMongoId(),
-  validator,
-  roomHandlers.deleteByIdHandler
-);
-
 module.exports = router;

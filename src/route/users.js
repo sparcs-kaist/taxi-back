@@ -38,26 +38,4 @@ router.post(
 // 프로필 이미지가 S3에 정상적으로 업로드가 되었는지 확인합니다.
 router.get("/editProfileImg/done", userHandlers.editProfileImgDoneHandler);
 
-// 아래 라우트 메서드들은 테스트 용도로만 사용 가능
-/* GET users listing. */
-router.get("/", userHandlers.listAllUsersHandler);
-
-router.get("/rooms", userHandlers.listRoomsOfUserHandler);
-
-router.get("/:id", userHandlers.idHandler);
-
-// json으로 수정할 값들을 받는다
-// replace/overwrite all user informations with given JSON
-router.post("/:id/edit", userHandlers.idEditHandler);
-
-// 409 Conflict
-// This response is sent when a request conflicts with the current state of the server.
-router.get("/:id/ban", userHandlers.idBanHandler);
-
-router.get("/:id/unban", userHandlers.idUnbanHandler);
-
-// Request JSON form
-// { room : [ObjectID] }
-router.post("/:id/participate", userHandlers.idParticipateHandler);
-
 module.exports = router;
