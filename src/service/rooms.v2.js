@@ -27,7 +27,11 @@ const roomPopulateOption = [
  * @param {Boolean} includeSettlement - 반환 결과에 정산 정보를 포함할 지 여부로, 기본값은 true입니다.
  * @return {Object} 정산 여부가 위와 같이 가공되고 isDeparted 속성이 추가된 Room Object가 반환됩니다.
  */
-const formatSettlement = (roomObject, includeSettlement = true) => {
+const formatSettlement = (
+  roomObject,
+  includeSettlement = true,
+  timestamp = Date.now()
+) => {
   roomObject.part = roomObject.part.map((participantSubDocument) => {
     const { _id, name, nickname, profileImageUrl } =
       participantSubDocument.user;
@@ -44,6 +48,7 @@ const formatSettlement = (roomObject, includeSettlement = true) => {
     ? roomObject.settlementTotal
     : undefined;
   roomObject.isOver = includeSettlement ? roomObject.isOver : undefined;
+  roomObject.isDeparted = new Date(roomObject.time) < new Date(timestamp);
   return roomObject;
 };
 
