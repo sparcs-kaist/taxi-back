@@ -97,7 +97,7 @@ router.post(
 /**
  * @todo Unused -> Maybe used in the future?
  */
-// router.post(
+// router.patch(
 //   "/edit",
 //   [
 //     body("roomId").isMongoId(),
