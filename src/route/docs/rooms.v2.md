@@ -28,23 +28,22 @@
       - [URL parameters](#url-parameters-2)
       - [Response](#response-3)
       - [Errors](#errors-5)
-    - [`/:id/commitPayment` **(POST)**](#idcommitpayment-post)
-      - [URL Parameters](#url-parameters-3)
+    - [`/commitPayment` **(POST)**](#commitpayment-post)
+      - [Request Body](#request-body)
       - [Response](#response-4)
       - [Errors](#errors-6)
-    - [`/:id/settlement/` **(POST)**](#idsettlement-post)
-      - [URL Parameters](#url-parameters-4)
+    - [`/commitSettlement/` **(POST)**](#commitsettlement-post)
+      - [Request Body](#request-body-1)
       - [Response](#response-5)
       - [Errors](#errors-7)
-    - [`/:id/edit/` **(POST)** **(for dev)**](#idedit-post-for-dev)
-      - [URL Parameters](#url-parameters-5)
+    - [`/edit/` **(POST)** **(for dev)**](#edit-post-for-dev)
       - [POST request form](#post-request-form-1)
       - [Response](#response-6)
       - [Errors](#errors-8)
     - [`/getAllRoom` **(GET)** (for dev)](#getallroom-get-for-dev)
     - [`/removeAllRoom` **(GET)** (for dev)](#removeallroom-get-for-dev)
     - [`/:id/delete/` **(GET)** **(for dev)**](#iddelete-get-for-dev)
-      - [URL Parameters](#url-parameters-6)
+      - [URL Parameters](#url-parameters-3)
       - [Response](#response-7)
       - [Errors](#errors-9)
 
@@ -237,15 +236,15 @@ room의 ID를 받아 해당 room의 참가자 목록에서 요청을 보낸 사�
 - 500 "internal server error"
 
 
-### `/:id/commitPayment` **(POST)**
+### `/commitPayment` **(POST)**
 
 - ID를 받아 해당 방에 요청을 보낸 유저를 결제자로 처리
 - 이미 출발한 방(현재 시각이 출발 시각 이후인 경우)에 대해서만 요청을 처리함
 - 방의 part 배열에서 요청을 보낸 유저의 isSettlement 속성을 `paid`로 설정하고, 나머지 유저들의 isSettlement 속성을 `"send-required"`로 설정함.
 
-#### URL Parameters
+#### Request Body
 
-- id : 정산할 room의 ID
+- roomId : 정산할 room의 ID
 
 #### Response
 
@@ -259,15 +258,15 @@ room의 ID를 받아 해당 room의 참가자 목록에서 요청을 보낸 사�
 
 
 
-### `/:id/settlement/` **(POST)**
+### `/commitSettlement/` **(POST)**
 
 - ID를 받아 해당 방에 요청을 보낸 유저의 정산을 완료로 처리
 - 방의 part 배열에서 요청을 보낸 유저의 isSettlement 속성을 `send-required`에서 `"sent"`로 변경함.
 - 방에 참여한 멤버들이 모두 정산완료를 하면 방의 `isDone` 속성이 `true`로 변경되며, 과거 방으로 취급됨
 
-#### URL Parameters
+#### Request Body
 
-- id : 정산할 room의 ID
+- roomId : 정산할 room의 ID
 
 #### Response
 
@@ -279,20 +278,17 @@ room의 ID를 받아 해당 room의 참가자 목록에서 요청을 보낸 사�
 - 404 "cannot find settlement info": 사용자가 참여중인 방이 아니거나, 사용자가 결제를 했거나 이미 정산한 경우
 - 500 "internal server error"
 
-### `/:id/edit/` **(POST)** **(for dev)**
+### `/edit/` **(POST)** **(for dev)**
 
 - ID와 수정할 데이터를 JSON으로 받아 해당 ID의 room을 수정
 - 방에 참여중인 사용자만 정보를 수정할 수 있음.
 - 프론트엔드에서 쓰일 일은 없어 보임.
 
-#### URL Parameters
-
-- id : 수정할 room의 ID
-
 #### POST request form
 
 ```javascript
 {
+  roomId : String, // 수정할 room의 ID
   name? : String, // 방 이름. 문서 상단에 명시된 규칙을 만족시켜야 함
   from? : ObjectId, // 출발지 Document의 ObjectId
   to? : ObjectId, // 도착지 Document의 ObjectId

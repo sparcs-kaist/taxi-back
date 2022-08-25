@@ -30,9 +30,8 @@ app.use("/auth", require("./src/route/auth"));
 app.use("/json/logininfo", require("./src/route/logininfo"));
 app.use("/users", require("./src/route/users"));
 app.use("/rooms/v2", require("./src/route/rooms.v2"));
-app.use("/rooms", require("./src/route/rooms"));
+app.use("/rooms", require("./src/route/rooms.v2"));
 app.use("/chats", require("./src/route/chats"));
-app.use("/static", require("./src/route/static"));
 app.use("/locations", require("./src/route/locations"));
 app.use("/admin", require("./src/route/admin"));
 
