@@ -1,15 +1,19 @@
 const util = require("util");
+const path = require("path");
 const exec = util.promisify(require("child_process").exec);
-const security = require("./security");
+const security = require("../security");
 
 const main = async () => {
-  const { stdout, stderr } = await exec(`mongodump ${security.mongo}`);
+  const { stdout, stderr } = await exec(
+    `mongodump ${security.mongo} --out ${path.resolve("dump")}`
+  );
+  console.log("dump 디렉토리에 데이터베이스 데이터를 덤프했습니다.");
   process.exit(0);
 };
 
 try {
   main();
-} catch (_) {
+} catch {
   console.log(
     "DB 연결 주소가 올바르지 않습니다. DB 연결 주소를 다시 한 번 확인해주세요."
   );

@@ -6,8 +6,8 @@
   "scripts": {
     "start": "node index.js",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dumpDB": "node dump.js",
-    "restoreDB": "node restore.js"
+    "dumpDB": "node tools/dump.js",
+    "restoreDB": "node tools/restore.js"
   },
   "repository": {
     "type": "git",

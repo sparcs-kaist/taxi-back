@@ -86,16 +86,42 @@ const generateRoom = async (sampleLocationOids, num, daysAfter, creatorId) => {
     from: sampleLocationOids[fromIdx],
     to: sampleLocationOids[toIdx],
     time: date,
-    part: [],
+    part: [{ user: creatorId }],
     madeat: Date.now(),
-    settlement: {
-      studentId: creatorId,
-      isSettlement: false,
-    },
     maxPartLength: 4,
   });
   await newRoom.save();
   return newRoom._id;
+};
+
+const joinUserToRoom = async (userIdsInRoom, userIdsOutRoom, roomId) => {
+  // 들어올 사용자를 무작위로 선택
+  const authorIdx = Math.floor(Math.random() * userIdsOutRoom.length);
+  const userOid = userIdsOutRoom[authorIdx];
+
+  // 방, 유저 상태 갱신
+  userIdsInRoom.push(userOid);
+  userIdsOutRoom.splice(authorIdx, 1);
+  const user = await userModel.findById(userOid, "room");
+  user.room.push(roomId);
+  await user.save();
+
+  return { userIdsInRoom, userIdsOutRoom, userOid };
+};
+
+const abortUserfromRoom = async (userIdsInRoom, userIdsOutRoom, roomId) => {
+  // 나갈 사용자를 무작위로 선택
+  const authorIdx = Math.floor(Math.random() * userIdsInRoom.length);
+  const userOid = userIdsInRoom[authorIdx];
+
+  // 방, 유저 상태 갱신
+  userIdsOutRoom.push(userOid);
+  userIdsInRoom.splice(authorIdx, 1);
+  const user = await userModel.findById(userOid, "room");
+  user.room.splice(user.room.indexOf(roomId), 1);
+  await user.save();
+
+  return { userIdsInRoom, userIdsOutRoom, userOid };
 };
 
 const generateNormalChat = async (i, roomId, userOid, time) => {
@@ -128,8 +154,8 @@ const generateChats = async (roomId, userOids, numOfChats) => {
   const roomPopulateQuery = [{ path: "part", select: "id name nickname -_id" }];
   const room = await roomModel.findById(roomId).populate(roomPopulateQuery);
 
-  const userIdsInRoom = [];
-  const userIdsOutRoom = userOids.map((userOid) => userOid);
+  let userIdsInRoom = [];
+  let userIdsOutRoom = userOids.map((userOid) => userOid);
   let lastTime = Date.now();
   const maximumIntervalBtwChats = 1000 * security.maximumIntervalBtwChats; //Default: 20,000 milliseconds
   let occurenceOfJoin = security.occurenceOfJoin; //Default: 10%
@@ -144,38 +170,30 @@ const generateChats = async (roomId, userOids, numOfChats) => {
       (event < occurenceOfJoin && userIdsOutRoom.length !== 0)
     ) {
       // 더 들어올 사용자가 있을 경우, 더 들어옴
-      // 들어올 사용자를 무작위로 선택
-      const authorIdx = Math.floor(Math.random() * userIdsOutRoom.length);
-      const userOid = userIdsOutRoom[authorIdx];
-
+      // 방, 유저 상태 갱신
+      let userOid;
+      ({ userIdsInRoom, userIdsOutRoom, userOid } = await joinUserToRoom(
+        userIdsInRoom,
+        userIdsOutRoom,
+        roomId
+      ));
       // 입장 메시지 생성
       await generateJoinAbortChat(roomId, userOid, true, lastTime);
-
-      // 방, 유저 상태 갱신
-      userIdsInRoom.push(userOid);
-      userIdsOutRoom.splice(authorIdx, 1);
-      const user = await userModel.findById(userOid, "room");
-      user.room.push(roomId);
-      await user.save();
     } else if (
       occurenceOfJoin <= event &&
       event < occurenceOfJoin + occurenceOfAbort &&
       userIdsInRoom.length > 1
     ) {
       // 나갈 사용자가 있을 경우, 나감
-      // 나갈 사용자를 무작위로 선택
-      const authorIdx = Math.floor(Math.random() * userIdsInRoom.length);
-      const userOid = userIdsInRoom[authorIdx];
-
+      // 방, 유저 상태 갱신
+      let userOid;
+      ({ userIdsInRoom, userIdsOutRoom, userOid } = await abortUserfromRoom(
+        userIdsInRoom,
+        userIdsOutRoom,
+        roomId
+      ));
       // 퇴장 메시지 생성
       await generateJoinAbortChat(roomId, userOid, false, lastTime);
-
-      // 방, 유저 상태 갱신
-      userIdsOutRoom.push(userOid);
-      userIdsInRoom.splice(authorIdx, 1);
-      const user = await userModel.findById(userOid, "room");
-      user.room.splice(user.room.indexOf(roomId), 1);
-      await user.save();
     } else {
       // 방이 비어있지 않을 경우, 일반 채팅 메시지를 만듦
       if (userIdsInRoom.length !== 0) {
@@ -186,9 +204,8 @@ const generateChats = async (roomId, userOids, numOfChats) => {
     }
   }
   // 현재 참여중인 사용자 기준으로 방의 part 리스트를 업데이트함
-  room.part = userIdsInRoom;
-  room.settlement = userIdsInRoom.map((userOid) => {
-    return { studentId: userOid, isSettlement: false };
+  room.part = userIdsInRoom.map((userOid) => {
+    return { user: userOid };
   });
   await room.save();
   return;
