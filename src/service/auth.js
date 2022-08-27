@@ -17,7 +17,7 @@ const transUserData = (userData) => {
     name: userData.first_name + userData.last_name,
     facebook: userData.facebook_id || "",
     twitter: userData.twitter_id || "",
-    kaist: userData.kaist_info?.ku_std_no || "",
+    kaist: JSON.parse(userData.kaist_info)?.ku_std_no || "",
     sparcs: userData.sparcs_id || "",
     email: userData.email,
   };
