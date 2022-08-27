@@ -11,17 +11,17 @@ const Client = require("../auth/sparcsso");
 const client = new Client(security.sparcssso?.id, security.sparcssso?.key);
 
 const transUserData = (userData) => {
+  const kaistInfo = userData.kaist_info ? JSON.parse(userData.kaist_info) : {};
   const info = {
     id: userData.uid,
     sid: userData.sid,
     name: userData.first_name + userData.last_name,
     facebook: userData.facebook_id || "",
     twitter: userData.twitter_id || "",
-    kaist: JSON.parse(userData.kaist_info)?.ku_std_no || "",
+    kaist: kaistInfo?.ku_std_no || "",
     sparcs: userData.sparcs_id || "",
     email: userData.email,
   };
-
   return info;
 };
 
