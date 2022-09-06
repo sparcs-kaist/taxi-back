@@ -70,12 +70,16 @@ const chatSchema = Schema({
 chatSchema.index({ roomId: 1, time: -1 });
 
 const reportSchema = Schema({
-  reporterId: { type: Schema.Types.ObjectId, ref: "User", required: true}, // 신고한 사람 id
-  reportedId: { type: Schema.Types.ObjectId, ref: "User", required: true}, // 신고받은 사람 id
-  type: { type: String, enum: ["정산안함", "노쇼", "기타사유"], required: true},
-  etcReason: { type:String, default: ""}, // 기타 세부 사유 
-  time: { type:Date, required: true}
-})
+  reporterId: { type: Schema.Types.ObjectId, ref: "User", required: true }, // 신고한 사람 id
+  reportedId: { type: Schema.Types.ObjectId, ref: "User", required: true }, // 신고받은 사람 id
+  type: {
+    type: String,
+    enum: ["no-settlement", "no-show", "etc-reason"],
+    required: true,
+  },
+  etcDetail: { type: String, default: "" }, // 기타 세부 사유
+  time: { type: Date, required: true },
+});
 
 const database = mongoose.connection;
 database.on("error", console.error.bind(console, "mongoose connection error."));
@@ -107,4 +111,5 @@ module.exports = {
   roomModel: mongoose.model("Room", roomSchema),
   locationModel: mongoose.model("Location", locationSchema),
   chatModel: mongoose.model("Chat", chatSchema),
+  reportModel: mongoose.model("Report", reportSchema),
 };
