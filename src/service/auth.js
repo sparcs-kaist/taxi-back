@@ -15,7 +15,7 @@ const transUserData = (userData) => {
   const info = {
     id: userData.uid,
     sid: userData.sid,
-    name: userData.first_name + userData.last_name,
+    name: `${userData.last_name} ${userData.first_name}`,
     facebook: userData.facebook_id || "",
     twitter: userData.twitter_id || "",
     kaist: kaistInfo?.ku_std_no || "",
