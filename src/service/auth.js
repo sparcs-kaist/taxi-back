@@ -4,6 +4,7 @@ const { getLoginInfo, logout, login } = require("../auth/login");
 const {
   generateNickname,
   generateProfileImageUrl,
+  getFullUsername,
 } = require("../modules/modifyProfile");
 
 // SPARCS SSO
@@ -15,7 +16,7 @@ const transUserData = (userData) => {
   const info = {
     id: userData.uid,
     sid: userData.sid,
-    name: userData.first_name + userData.last_name,
+    name: getFullUsername(userData.first_name, userData.last_name),
     facebook: userData.facebook_id || "",
     twitter: userData.twitter_id || "",
     kaist: kaistInfo?.ku_std_no || "",
