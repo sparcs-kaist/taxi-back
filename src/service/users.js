@@ -1,4 +1,4 @@
-const { userModel, roomModel } = require("../db/mongo");
+const { userModel, roomModel, reportModel } = require("../db/mongo");
 const logger = require("../modules/logger");
 const awsS3 = require("../db/awsS3");
 
@@ -117,10 +117,41 @@ const editProfileImgDoneHandler = async (req, res) => {
   }
 };
 
+const reportHandler = async (req, res) => {
+  try {
+    const { name, type, etcDetail, time } = req.body;
+    const user = await userModel.findOne({ id: req.userId });
+    const creatorId = user._id;
+
+    const reportedUser = await userModel.findOne({ id: name });
+    const reportedId = reportedUser._id;
+
+    if (!reportedId) {
+      res.status(404).json({ error: "User/report: cannot find user" });
+    }
+
+    let report = new reportModel({
+      creatorId: creatorId,
+      reportedId: reportedId,
+      type: type,
+      etcDetail: etcDetail,
+      time: time,
+    });
+
+    await report.save();
+  } catch (err) {
+    logger.error(err);
+    res.status(500).json({
+      error: "User/report : internal server error",
+    });
+  }
+};
+
 module.exports = {
   agreeOnTermsOfServiceHandler,
   getAgreeOnTermsOfServiceHandler,
   editNicknameHandler,
   editProfileImgGetPUrlHandler,
   editProfileImgDoneHandler,
+  reportHandler,
 };
