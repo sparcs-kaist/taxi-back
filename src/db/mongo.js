@@ -70,7 +70,7 @@ const chatSchema = Schema({
 chatSchema.index({ roomId: 1, time: -1 });
 
 const reportSchema = Schema({
-  reporterId: { type: Schema.Types.ObjectId, ref: "User", required: true }, // 신고한 사람 id
+  creatorId: { type: Schema.Types.ObjectId, ref: "User", required: true }, // 신고한 사람 id
   reportedId: { type: Schema.Types.ObjectId, ref: "User", required: true }, // 신고받은 사람 id
   type: {
     type: String,
