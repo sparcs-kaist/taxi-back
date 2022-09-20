@@ -119,16 +119,9 @@ const editProfileImgDoneHandler = async (req, res) => {
 
 const reportHandler = async (req, res) => {
   try {
-    const { name, type, etcDetail, time } = req.body;
+    const { reportedId, type, etcDetail, time } = req.body;
     const user = await userModel.findOne({ id: req.userId });
     const creatorId = user._id;
-
-    const reportedUser = await userModel.findOne({ id: name });
-    const reportedId = reportedUser._id;
-
-    if (!reportedId) {
-      res.status(404).json({ error: "User/report: cannot find user" });
-    }
 
     let report = new reportModel({
       creatorId: creatorId,
