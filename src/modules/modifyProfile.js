@@ -92,8 +92,13 @@ const getFullUsername = (firstName, lastName) => {
   else return `${firstName} ${lastName}`;
 };
 
+const replaceSpaceInNickname = (nickname) => {
+  return nickname.replace(/\s+/g, " ");
+};
+
 module.exports = {
   generateNickname,
   generateProfileImageUrl,
   getFullUsername,
+  replaceSpaceInNickname,
 };

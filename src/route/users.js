@@ -6,6 +6,8 @@ const patterns = require("../db/patterns");
 const router = express.Router();
 const userHandlers = require("../service/users");
 
+const { replaceSpaceInNickname } = require("../modules/modifyProfile");
+
 // 라우터 접근 시 로그인 필요
 router.use(require("../middleware/auth"));
 
@@ -22,7 +24,9 @@ router.get(
 // 새 닉네임을 받아 로그인된 유저의 닉네임을 변경합니다.
 router.post(
   "/editNickname",
-  body("nickname").matches(patterns.user.nickname),
+  body("nickname")
+    .customSanitizer((value) => replaceSpaceInNickname(value))
+    .matches(patterns.user.nickname),
   validator,
   userHandlers.editNicknameHandler
 );
