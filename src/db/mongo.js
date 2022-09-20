@@ -34,6 +34,17 @@ const participantSchema = Schema({
   },
 });
 
+const authTokenSchema = Schema({
+  user: { type: Schema.Types.ObjectId, ref: "User", required: true },
+  token: { type: String, required: true },
+  expireAt: { type: Date, required: true },
+});
+
+const deviceTokenSchema = Schema({
+  user: { type: Schema.Types.ObjectId, ref: "User", required: true },
+  deviceToken: { type: String, required: true },
+});
+
 const roomSchema = Schema({
   name: { type: String, required: true, default: "이름 없음", text: true },
   from: { type: Schema.Types.ObjectId, ref: "Location", required: true },
@@ -96,6 +107,8 @@ mongoose.connect(security.mongo, {
 
 module.exports = {
   userModel: mongoose.model("User", userSchema),
+  deviceTokenModel: mongoose.model("Token", deviceTokenSchema),
+  authTokenModel: mongoose.model("AuthToken", authTokenSchema),
   roomModel: mongoose.model("Room", roomSchema),
   locationModel: mongoose.model("Location", locationSchema),
   chatModel: mongoose.model("Chat", chatSchema),
