@@ -1,5 +1,6 @@
 const security = require("../../security");
 const { userModel } = require("../db/mongo");
+const { deviceTokenModel, authTokenModel } = require('../db/mongo');
 const { getLoginInfo, logout, login } = require("../auth/login");
 const {
   generateNickname,
@@ -77,6 +78,50 @@ const loginDone = (req, res, userData) => {
 const loginFalse = (req, res) => {
   res.redirect(security.frontUrl + "/login/false"); // 리엑트로 연결되나?
 };
+
+const loginWithToken = async (req, res) => {
+  const { token } = req.body;
+  const { user, expireAt } = await authTokenModel.findOne({ token: token });
+  if (!user) return;
+  if (expireAt < Date.now()) return res.status(401).send('expired token');
+  const userInfo = await userModel.findOne({ id: user });
+  if (!userInfo) return;
+  else{
+    login(req, userInfo.sid, userInfo.id, userInfo.name);
+    res.status(200).send("success");
+  }
+}
+
+const createAuthTokenHandler = async (req, res, userData) => {
+  userModel.findOne(
+    { id: userData.id },
+    "name id withdraw ban",
+    (err, result) => {
+      if (err) loginFalse(req, res);
+      else if (!result) joinus(req, res, userData);
+      else if (result.name != userData.name) update(req, res, userData);
+      else {
+        
+        res.redirect("org.sparcs.taxi_app://login?token=" + authTokenModel.createToken(result.id));
+      }
+    }
+  );
+}
+
+const registerDeviceTokenHandler = async (req, res) => {
+  const { token } = req.body;
+  const { id } = getLoginInfo(req);
+  if (!token || !id) return;
+  try {
+    await deviceTokenModel.updateOne({
+      user: id,
+    }, 
+    {user : id, deviceTokenModel: token}, {upsert: true, new: true});
+    res.status(200).send("success");
+  } catch (e) {
+    res.status(500).send(e);
+  }
+}
 
 const sparcsssoHandler = (req, res) => {
   const userInfo = getLoginInfo(req);
