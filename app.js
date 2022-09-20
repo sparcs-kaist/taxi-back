@@ -5,6 +5,8 @@ const http = require("http");
 const cookieParser = require("cookie-parser");
 const cors = require("cors");
 
+const { initializeApp } = require('firebase-admin/app');
+
 // 내부 모듈
 const security = require("./security");
 const logger = require("./src/modules/logger");
@@ -17,10 +19,13 @@ app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
 app.use(cors({ origin: true, credentials: true }));
 
-// 세션 및 쿠키
+// 세션 및 쿠키 및 파이어베이스 초기화
 const session = require("./src/middleware/session");
 app.use(session);
 app.use(cookieParser());
+initializeApp({
+
+});
 
 // API 접근 기록 및 응답 시간을 http response의 헤더에 기록합니다.
 app.use(require("response-time")(logAPIAccess));
