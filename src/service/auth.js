@@ -7,6 +7,7 @@ const {
   generateProfileImageUrl,
   getFullUsername,
 } = require("../modules/modifyProfile");
+const jwt = require('../modules/jwt');
 
 // SPARCS SSO
 const Client = require("../auth/sparcsso");
@@ -92,26 +93,41 @@ const loginWithToken = async (req, res) => {
   }
 }
 
-const createAuthTokenHandler = async (req, res, userData) => {
+const createNewTokenHandler = async (req, res, userData) => {
   userModel.findOne(
     { id: userData.id },
     "name id withdraw ban",
-    (err, result) => {
+    async (err, result) => {
       if (err) loginFalse(req, res);
       else if (!result) joinus(req, res, userData);
       else if (result.name != userData.name) update(req, res, userData);
       else {
-        
-        res.redirect("org.sparcs.taxi_app://login?token=" + authTokenModel.createToken(result.id));
+        const accessToken = await jwt.sign({ user: userData, deviceToken: req.body.deviceToken ,type: 'access' });
+        const refreshToken = await jwt.sign({ user: userData,  deviceToken: req.body.deviceToken ,type: 'refresh' });
+        res.redirect("org.sparcs.taxi_app://login?accessToken=" + accessToken + "&refreshToken=" + refreshToken);
       }
     }
   );
 }
 
+const refreshAccessToken = async (req, res) => {
+  const { accessToken, refreshToken } = req.body;
+  if (!accessToken || !refreshToken) return res.status(400).send("invalid request");
+  
+  try {
+    const { user, deviceToken } = await jwt.verify(refreshToken);
+    const newAccessToken = await jwt.sign({ user, deviceToken, type: 'access' });
+    res.status(200).send({ accessToken: newAccessToken });
+  }
+  catch (e) {
+    res.status(401).send("invalid token");
+  }
+}
+
 const registerDeviceTokenHandler = async (req, res) => {
   const { token } = req.body;
   const { id } = getLoginInfo(req);
-  if (!token || !id) return;
+  if (!token || !id) return res.status(400).send("invalid request");
   try {
     await deviceTokenModel.updateOne({
       user: id,

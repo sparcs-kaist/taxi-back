@@ -34,14 +34,18 @@ const participantSchema = Schema({
   },
 });
 
+// Access token : 7일
+// Refresh token : 30일
 const authTokenSchema = Schema({
-  user: { type: Schema.Types.ObjectId, ref: "User", required: true },
-  token: { type: String, required: true },
-  expireAt: { type: Date, required: true },
+  user: { type: Schema.Types.ObjectId, ref: "User", required: true, unique: true },
+  accessToken: { type: String, required: true },
+  accessTokenExpireAt: { type: Date, required: true },
+  refreshToken: { type: String, required: true },
+  refreshTokenExpireAt: { type: Date, required: true },
 });
 
 const deviceTokenSchema = Schema({
-  user: { type: Schema.Types.ObjectId, ref: "User", required: true },
+  user: { type: Schema.Types.ObjectId, ref: "User", required: true, unique: true },
   deviceToken: { type: String, required: true },
 });
 
