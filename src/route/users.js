@@ -25,7 +25,7 @@ router.get(
 router.post(
   "/editNickname",
   body("nickname")
-    .customSanitizer((value) => replaceSpaceInNickname(value))
+    .customSanitizer(replaceSpaceInNickname)
     .matches(patterns.user.nickname),
   validator,
   userHandlers.editNicknameHandler
