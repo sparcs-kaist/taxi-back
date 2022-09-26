@@ -38,6 +38,16 @@ router.post(
 // 프로필 이미지가 S3에 정상적으로 업로드가 되었는지 확인합니다.
 router.get("/editProfileImg/done", userHandlers.editProfileImgDoneHandler);
 
-router.post("/report", userHandlers.reportHandler);
+router.post(
+  "/report",
+  [
+    body("reportedId").isMongoId(),
+    body("type").isIn(["no-settlement", "no-show", "etc-reason"]),
+    body("etcDetail").isString(),
+    body("time").isISO8601(),
+  ],
+  validator,
+  userHandlers.reportHandler
+);
 
 module.exports = router;
