@@ -183,4 +183,8 @@ module.exports = {
   sparcsssoHandler,
   sparcsssoCallbackHandler,
   logoutHandler,
+  loginWithToken,
+  createNewTokenHandler,
+  refreshAccessToken,
+  registerDeviceTokenHandler,
 };
