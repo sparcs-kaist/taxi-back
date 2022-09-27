@@ -14,7 +14,7 @@ const loginHtml = `
         <title>replace Login</title>
         <meta charset="utf-8" />
         <meta name="viewport" content="width=device-width,initial-scale=1.0,minium-scale=1.0,maxinum-scale=1.0,user-scalable=no" />
-        <script  src="http://code.jquery.com/jquery-latest.min.js"></script>
+        <script src="https://code.jquery.com/jquery-latest.min.js"></script>
         <script>
             $(document).ready(function(){
                 function post(path, params){
