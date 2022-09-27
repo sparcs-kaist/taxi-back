@@ -14,8 +14,7 @@ router.route("/logout").get(authHandlers.logoutHandler);
 
 router.route("/refreshToken").get(authHandlers.refreshAccessToken);
 router.route("/device").post(authHandlers.registerDeviceTokenHandler);
-router.route("/loginApp").get(authHandlers.createNewTokenHandler);
-router.route("/token").get(authHandlers.loginWithToken);
+router.route("/generateToken").get(authHandlers.createNewTokenHandler);
 
 // 환경변수 SPARCSSSO_CLIENT_ID 유무에 따라 로그인 방식이 변경됩니다.
 module.exports = security.sparcssso?.id ? router : authReplace;

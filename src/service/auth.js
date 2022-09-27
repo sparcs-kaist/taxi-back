@@ -88,10 +88,6 @@ const loginWithToken = async (req, res) => {
     res.status(401).json({ message: 'Invalid token' });
     return;
   }
-  if (!await checkDeviceToken(user, deviceToken)) {
-    res.status(401).json({ message: 'Other Device' });
-    return;
-  }
 
   const userInfo = await userModel.findOne({ id: user });
   if (!userInfo) return;
@@ -106,7 +102,10 @@ const createNewTokenHandler = async (req, res, userData) => {
     { id: userData.id },
     "name id withdraw ban",
     async (err, result) => {
-      if (err) loginFalse(req, res);
+      if (err) {
+        console.log(err);
+        loginFalse(req, res);
+      }
       else if (!result) joinus(req, res, userData);
       else if (result.name != userData.name) update(req, res, userData);
       else {
@@ -146,11 +145,6 @@ const registerDeviceTokenHandler = async (req, res) => {
   } catch (e) {
     res.status(500).send(e);
   }
-}
-
-const checkDeviceToken = async (id, deviceToken) => {
-  const result = await deviceTokenModel.findOne({ user: id });
-  return result.deviceToken == deviceToken ? true : false;
 }
 
 const sparcsssoHandler = (req, res) => {
