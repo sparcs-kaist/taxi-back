@@ -31,10 +31,15 @@ const loginHtml = `
                     document.body.appendChild(form);
                     form.submit();
                 }
-                $('#btn').click(() => {
+                const submitHandler = () => {
                     const value = document.getElementById("input-id").value;
                     if(value) post('/auth/try', { id: value });
-                });
+                }
+                const enterHandler = (e) => {
+                    if (e.keyCode === 13) submitHandler();
+                }
+                $('#btn').click(submitHandler);
+                $('#input-id').on("keyup", enterHandler);
             });
         </script>
     </head>
