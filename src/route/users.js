@@ -43,7 +43,7 @@ router.post(
   [
     body("reportedId").isMongoId(),
     body("type").isIn(["no-settlement", "no-show", "etc-reason"]),
-    body("etcDetail").optional().isString(),
+    body("etcDetail").optional().isString().isLength({ max: 30 }),
     body("time").isISO8601(),
   ],
   validator,
