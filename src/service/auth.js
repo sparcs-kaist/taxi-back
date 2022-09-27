@@ -82,9 +82,17 @@ const loginFalse = (req, res) => {
 
 const loginWithToken = async (req, res) => {
   const { token } = req.body;
-  const { user, expireAt } = await authTokenModel.findOne({ token: token });
-  if (!user) return;
-  if (expireAt < Date.now()) return res.status(401).send('expired token');
+  try{
+    const { user, deviceToken } = await jwt.verify(token);
+  } catch (e) {
+    res.status(401).json({ message: 'Invalid token' });
+    return;
+  }
+  if (!await checkDeviceToken(user, deviceToken)) {
+    res.status(401).json({ message: 'Other Device' });
+    return;
+  }
+
   const userInfo = await userModel.findOne({ id: user });
   if (!userInfo) return;
   else{
@@ -117,7 +125,8 @@ const refreshAccessToken = async (req, res) => {
   try {
     const { user, deviceToken } = await jwt.verify(refreshToken);
     const newAccessToken = await jwt.sign({ user, deviceToken, type: 'access' });
-    res.status(200).send({ accessToken: newAccessToken });
+    const newRefreshToken = await jwt.sign({user, deviceToken, type: 'refresh' });
+    res.status(200).send({ accessToken: newAccessToken, refreshToken: newRefreshToken });
   }
   catch (e) {
     res.status(401).send("invalid token");
@@ -137,6 +146,11 @@ const registerDeviceTokenHandler = async (req, res) => {
   } catch (e) {
     res.status(500).send(e);
   }
+}
+
+const checkDeviceToken = async (id, deviceToken) => {
+  const result = await deviceTokenModel.findOne({ user: id });
+  return result.deviceToken == deviceToken ? true : false;
 }
 
 const sparcsssoHandler = (req, res) => {
