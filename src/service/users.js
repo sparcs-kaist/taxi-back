@@ -122,6 +122,7 @@ const reportHandler = async (req, res) => {
     const { reportedId, type, etcDetail, time } = req.body;
     const user = await userModel.findOne({ id: req.userId });
     const creatorId = user._id;
+    console.log(creatorId, reportedId);
 
     let report = new reportModel({
       creatorId: creatorId,
@@ -132,6 +133,7 @@ const reportHandler = async (req, res) => {
     });
 
     await report.save();
+    res.send(200).send("User/report : report successful");
   } catch (err) {
     logger.error(err);
     res.status(500).json({
