@@ -328,6 +328,7 @@ const searchHandler = async (req, res) => {
     const rooms = await roomModel
       .find(query)
       .sort({ time: 1 })
+      .limit(1000)
       .populate(roomPopulateOption)
       .lean();
     res.json(rooms.map((room) => formatSettlement(room, false)));
