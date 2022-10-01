@@ -25,7 +25,7 @@ jobs:
         node-version: ${{ matrix.node-version }}
         cache: 'npm'   
     - name: Install aws cli
-      run: sudo apt install awscli
+      run: sudo apt update && sudo apt install awscli
     - name: create AWS configuration file and copy
       run: |
         mkdir -p ~/.aws
@@ -40,8 +40,6 @@ jobs:
         echo "[default]" >> config
         echo "region = ap-northeast-2" >> config
         echo "output = json" >> config
-        cat config
-        ls -al
     - name: Download mongoDB dump file
       run: aws s3 cp --recursive s3://${{ secrets.AWS_S3_BUCKET_NAME }}/dump dump
     - name: Copy to mongodb container
