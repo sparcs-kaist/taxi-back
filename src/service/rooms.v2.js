@@ -345,6 +345,7 @@ const searchByUserHandler = async (req, res) => {
       .findOne({ id: req.userId })
       .populate({
         path: "room",
+        options: { limit: 1000 },
         populate: roomPopulateOption,
       })
       .lean();
