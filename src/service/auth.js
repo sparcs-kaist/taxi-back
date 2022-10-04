@@ -117,8 +117,6 @@ const loginWithToken = async (req, res) => {
     console.log(e);
     return res.status(500).send("server error");
   }
-
-  
 }
 
 const createNewTokenHandler = async (req, res) => {
@@ -149,13 +147,29 @@ const refreshAccessToken = async (req, res) => {
   if (!accessToken || !refreshToken) return res.status(400).send("invalid request");
   
   try {
-    const { id } = await jwt.verify(refreshToken);
+    const data = await jwt.verify(refreshToken);
+
+    if (data == TOKEN_INVALID) {
+      res.status(401).json({ message: 'Invalid token' });
+      return;
+    }
+
+    if (data == TOKEN_EXPIRED) {
+      res.status(401).json({ message: 'Expired token' });
+      return;
+    }
+
+    if (!(data.type == 'refresh')) {
+      res.status(401).json({ message: 'Not Access token' });
+      return;
+    }
+
     const newAccessToken = await jwt.sign({ id: id, type: 'access' });
     const newRefreshToken = await jwt.sign({ id: id, type: 'refresh' });
     res.status(200).send({ accessToken: newAccessToken, refreshToken: newRefreshToken });
   }
   catch (e) {
-    res.status(401).send("invalid token");
+    res.status(501).send("server error");
   }
 }
 
