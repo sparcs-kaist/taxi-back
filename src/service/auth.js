@@ -1,6 +1,6 @@
 const security = require("../../security");
 const { userModel } = require("../db/mongo");
-const { deviceTokenModel, authTokenModel } = require('../db/mongo');
+const { deviceTokenModel } = require('../db/mongo');
 const { getLoginInfo, logout, login } = require("../auth/login");
 const {
   generateNickname,
@@ -160,15 +160,21 @@ const refreshAccessToken = async (req, res) => {
 }
 
 const registerDeviceTokenHandler = async (req, res) => {
-  const { token } = req.body;
-  const { id } = getLoginInfo(req);
-  if (!token || !id) return res.status(400).send("invalid request");
-  try {
-    await deviceTokenModel.updateOne({
-      user: id,
-    }, 
-    {user : id, deviceTokenModel: token}, {upsert: true, new: true});
-    res.status(200).send("success");
+  try{
+    const { token } = req.body;
+    const { id } = getLoginInfo(req);
+    console.log(id, token);
+
+    if (!token || !id) return res.status(400).send("invalid request");
+    try {
+      await deviceTokenModel.updateOne({
+        user: id,
+      }, 
+      {user : id, deviceTokenModel: token}, {upsert: true, new: true});
+      res.status(200).send("success");
+    } catch (e) {
+      res.status(500).send(e);
+    }
   } catch (e) {
     res.status(500).send(e);
   }
