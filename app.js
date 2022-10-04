@@ -25,6 +25,9 @@ app.use(cookieParser());
 // API 접근 기록 및 응답 시간을 http response의 헤더에 기록합니다.
 app.use(require("response-time")(logAPIAccess));
 
+// Apply the rate limiting middleware to all requests
+app.use(require("./src/middleware/limitRate"));
+
 // 라우터 및 리액트
 app.use("/auth", require("./src/route/auth"));
 app.use("/json/logininfo", require("./src/route/logininfo"));
