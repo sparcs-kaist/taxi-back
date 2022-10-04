@@ -9,11 +9,12 @@ User {
     name: String,
     nickname: String, // 3글자 이상 25글자 이하로 구성되며 영어 대소문자, 한글, " ", 0~9, "-", "_" 으로만 이루어져야 함.
     id: String,
+    profileImageUrl: String,
+    room: [Room],
     withdraw: Boolean,
     ban: Boolean,
     joinat: Date,
     agreeOnTermsOfService: { type: Boolean, default: false }, //이용약관 동의 여부
-    room: [Room],
     subinfo: {
         kaist: String,
         sparcs: String,
@@ -21,9 +22,27 @@ User {
         twitter: String,
     },
     email: String,
+    isAdmin: Boolean,
     __v: Number,
 }
 ```
+
+### `../middleware/auth` (Middleware)
+
+- 로그인된 상태에서만 접근 가능
+- API request 하자마자 실행됨
+
+#### Response
+
+```javascript
+{
+    userId: String
+}
+```
+
+#### Errors
+
+- 403 "not logged in"
 
 ### `/agreeOnTermsOfService` **(POST)**
 
@@ -36,6 +55,9 @@ User {
 #### Response
 
 - 200 "agree on Terms of Service successful"
+
+#### Errors
+
 - 400 "already agreed"
 - 500 "internal server error"
 
@@ -51,9 +73,14 @@ User {
 
 ```javascript
 {
+    status: 200,
     agreeOnTermsOfService: Boolean
 },
 ```
+
+#### Errors
+
+- 500 "internal server error"
 
 ### `/editNickname` **(POST)**
 
@@ -87,6 +114,7 @@ User {
 - 400 "such user id does not exist"
 - 403 "not logged in"
 - 500 "internal server error"
+(새로운 nickname의 공백을 변환하면 정규식을 만족하지 못할 때에도 500 에러를 반환)
 
 ### `/editProfileImg/getPUrl` **(POST)**
 
@@ -97,9 +125,17 @@ User {
 
 #### URL Parameters
 
-- type : 업로드할 이미지 type
+- 없음
 
 #### request JSON form
+
+```javascript
+{
+    type : String // 업로드할 이미지 type
+}
+```
+
+#### Response
 
 ```javascript
 {
@@ -131,174 +167,3 @@ User {
 #### Errors
 
 - 500 "internal server error"
-
-### `/` **(GET)** (for dev)
-
-- 사용자 전체 리스트를 반환함.
-
-#### URL Parameters
-
-- 없음
-
-#### Response
-
-```javascript
-{
-    status: 200,
-    data: User[], // 전체 사용자 리스트
-}
-```
-
-#### Errors
-
-- 없음
-
-### `/rooms` **(GET)** (for dev)
-
-- 사용자의 방 리스트를 반환함.
-
-#### URL Parameters
-
-- id : User document의 id
-
-#### Response
-
-```javascript
-{
-    id: String, // 요청된 id
-    rooms: Room[], // 방 리스트
-}
-```
-
-#### Errors
-
-- 404 "user/rooms : such id does not exist"
-- 500 "user/rooms : internal server error"
-
-### `/:id` **(GET)** (for dev)
-
-- 사용자 정보를 반환함.
-
-#### URL Parameters
-
-- id : User document의 id
-
-#### Response
-
-```javascript
-{
-    status: 200,
-    data: User, //id에 대응되는 사용자 정보
-}
-```
-
-#### Errors
-
-- 404 "user/:id : such id does not exist"
-- 500 "user/:id : internal server error"
-
-### `/:id/edit` **(POST)** (for dev)
-
-- 새 사용자 정보를 받아 업데이트함.
-
-#### URL Parameters
-
-- id : User document의 id
-
-#### request JSON form
-
-```javascript
-User; //수정할 사용자 정보
-```
-
-#### Response
-
-```javascript
-{
-    status: 200,
-    data: "edit user successful",
-}
-```
-
-#### Errors
-
-- 400 "such id does not exist"
-
-### `/:id/ban` **(GET)** (for dev)
-
-- 해당 사용자를 밴함.
-
-#### URL Parameters
-
-- id : User document의 id
-
-#### Response
-
-```javascript
-{
-    status: 200,
-    data: "The user banned successfully",
-}
-```
-
-#### Errors
-
-- 400 "The user does not exist"
-- 409 "The user is already banned"
-- 500 "User/ban : Error 500"
-
-### `/:id/unban` **(GET)** (for dev)
-
-- 해당 사용자를 밴 해제함.
-
-#### URL Parameters
-
-- id : User document의 id
-
-#### Response
-
-```javascript
-{
-    status: 200,
-    data: "The user unbanned successfully",
-}
-```
-
-#### Errors
-
-- 400 "The user does not exist"
-- 409 "The user is already banned"
-- 500 "User/unban : Error 500"
-
-### `/:id/participate` **(POST)** (for dev)
-
-- 해당 사용자를 특정 방에 참여시킴.
-
-#### URL Parameters
-
-- id : User document의 id
-
-#### request JSON form
-
-```javascript
-{
-    room: String, // Room document의 id
-}
-```
-
-#### Response
-
-```javascript
-{
-    status: 200,
-    data: "User/participate : Successful",
-}
-```
-
-#### Errors
-
-- 400 "User/participate : Bad request"
-- 400 "User/participate : No corresponding room"
-- 400 "The user does not exist"
-- 409 "The user already entered the room"
-- 500 "User/participate : Error 500"
