@@ -123,6 +123,13 @@ const reportHandler = async (req, res) => {
     const user = await userModel.findOne({ id: req.userId });
     const creatorId = user._id;
 
+    const reported = await userModel.findById(reportedId);
+    if (!reported) {
+      return res.status(400).json({
+        error: "User/report: no corresponding user",
+      });
+    }
+
     const report = new reportModel({
       creatorId: creatorId,
       reportedId: reportedId,
