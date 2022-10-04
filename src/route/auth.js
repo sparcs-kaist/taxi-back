@@ -12,6 +12,7 @@ router
   .get(setTimestamp, authHandlers.sparcsssoCallbackHandler);
 router.route("/logout").get(authHandlers.logoutHandler);
 
+router.route("/loginwithtoken").get(authHandlers.loginWithToken);
 router.route("/refreshToken").get(authHandlers.refreshAccessToken);
 router.route("/device").post(authHandlers.registerDeviceTokenHandler);
 router.route("/generateToken").get(authHandlers.createNewTokenHandler);
