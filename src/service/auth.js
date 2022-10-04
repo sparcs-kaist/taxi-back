@@ -149,6 +149,12 @@ const refreshAccessToken = async (req, res) => {
   try {
     const data = await jwt.verify(refreshToken);
 
+    const accessTokenStatus = await jwt.verify(accessToken);
+
+    if (accessTokenStatus == TOKEN_INVALID) {
+      res.status(401).json({ message: 'Invalid access token' });
+    }
+    
     if (data == TOKEN_INVALID) {
       res.status(401).json({ message: 'Invalid token' });
       return;
