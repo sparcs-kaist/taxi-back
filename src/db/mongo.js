@@ -34,18 +34,8 @@ const participantSchema = Schema({
   },
 });
 
-// Access token : 7일
-// Refresh token : 30일
-const authTokenSchema = Schema({
-  user: { type: Schema.Types.ObjectId, ref: "User", required: true, unique: true },
-  accessToken: { type: String, required: true },
-  accessTokenExpireAt: { type: Date, required: true },
-  refreshToken: { type: String, required: true },
-  refreshTokenExpireAt: { type: Date, required: true },
-});
-
 const deviceTokenSchema = Schema({
-  user: { type: Schema.Types.ObjectId, ref: "User", required: true, unique: true },
+  user: { type: String, ref: "User", required: true, unique: true },
   deviceToken: { type: String, required: true },
 });
 
@@ -112,7 +102,6 @@ mongoose.connect(security.mongo, {
 module.exports = {
   userModel: mongoose.model("User", userSchema),
   deviceTokenModel: mongoose.model("Token", deviceTokenSchema),
-  authTokenModel: mongoose.model("AuthToken", authTokenSchema),
   roomModel: mongoose.model("Room", roomSchema),
   locationModel: mongoose.model("Location", locationSchema),
   chatModel: mongoose.model("Chat", chatSchema),
