@@ -136,7 +136,7 @@ const createNewTokenHandler = async (req, res) => {
         const accessToken = await jwt.sign({ id: result._id, deviceToken: req.body.deviceToken ,type: 'access' });
         const refreshToken = await jwt.sign({ id: result._id,  deviceToken: req.body.deviceToken ,type: 'refresh' });
         console.log(accessToken, refreshToken);
-        res.writeHead(301, {"Location" : "org.sparcs.taxi_app://login?accessToken=" + accessToken.token + "&refreshToken=" + refreshToken.token}).end;
+        res.writeHead(302, {"Location" : "org.sparcs.taxi_app://login?accessToken=" + accessToken.token + "&refreshToken=" + refreshToken.token}).end();
       }
     }
   );
@@ -153,8 +153,9 @@ const refreshAccessToken = async (req, res) => {
 
     if (accessTokenStatus == TOKEN_INVALID) {
       res.status(401).json({ message: 'Invalid access token' });
+      return;
     }
-    
+
     if (data == TOKEN_INVALID) {
       res.status(401).json({ message: 'Invalid token' });
       return;
@@ -170,11 +171,12 @@ const refreshAccessToken = async (req, res) => {
       return;
     }
 
-    const newAccessToken = await jwt.sign({ id: id, type: 'access' });
-    const newRefreshToken = await jwt.sign({ id: id, type: 'refresh' });
-    res.status(200).send({ accessToken: newAccessToken, refreshToken: newRefreshToken });
+    const newAccessToken = await jwt.sign({ id: data.id, type: 'access' });
+    const newRefreshToken = await jwt.sign({ id: data.id, type: 'refresh' });
+    res.status(200).send({ accessToken: newAccessToken.token, refreshToken: newRefreshToken.token });
   }
   catch (e) {
+    console.log(e);
     res.status(501).send("server error");
   }
 }
