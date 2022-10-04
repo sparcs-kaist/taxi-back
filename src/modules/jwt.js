@@ -6,22 +6,22 @@ const TOKEN_EXPIRED = -3;
 const TOKEN_INVALID = -2;
 
 module.exports = {
-    sign: async (user, type) => {
+    sign: async ({id, type}) => {
         const payload = {
-            idx: user.idx 
+            id: id,
+            type: type
         };
         if (type === 'refresh') {
-            payload.type = 'refresh';
             option.expiresIn = '30d';
         }
         if (type === 'access') {
-            payload.type = 'access';
             option.expiresIn = '7d';
         }
         
+        console.log(payload);
+
         const result = {
             token: jwt.sign(payload, secretKey, option),
-            refreshToken: randToken.uid(256)
         };
         return result;
         },
