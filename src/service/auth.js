@@ -9,6 +9,9 @@ const {
 } = require("../modules/modifyProfile");
 const jwt = require('../modules/jwt');
 
+const TOKEN_EXPIRED = -3;
+const TOKEN_INVALID = -2;
+
 // SPARCS SSO
 const Client = require("../auth/sparcsso");
 const client = new Client(security.sparcssso?.id, security.sparcssso?.key);
@@ -81,25 +84,46 @@ const loginFalse = (req, res) => {
 };
 
 const loginWithToken = async (req, res) => {
-  const { token } = req.body;
+  const { token } = req.query;
   try{
-    const { user, deviceToken } = await jwt.verify(token);
+    if (!token) return res.status(400).send("invalid request");
+    const data = await jwt.verify(token);
+
+    if (data == TOKEN_INVALID) {
+      res.status(401).json({ message: 'Invalid token' });
+      return;
+    }
+
+    if (data == TOKEN_EXPIRED) {
+      res.status(401).json({ message: 'Expired token' });
+      return;
+    }
+
+    console.log(data);
+
+    if (!(data.type == 'access')) {
+      res.status(401).json({ message: 'Not Access token' });
+      return;
+    }
+
+    const userInfo = await userModel.findOne({ _id: data.id });
+
+    if (!userInfo) return res.status(401).json({ message: 'Invalid token' });
+    else{
+      login(req, userInfo.sid, userInfo.id, userInfo.name);
+      res.redirect(security.frontUrl + "/");
+    }
   } catch (e) {
-    res.status(401).json({ message: 'Invalid token' });
-    return;
+    console.log(e);
+    return res.status(500).send("server error");
   }
 
-  const userInfo = await userModel.findOne({ id: user });
-  if (!userInfo) return;
-  else{
-    login(req, userInfo.sid, userInfo.id, userInfo.name);
-    res.status(200).send("success");
-  }
+  
 }
 
 const createNewTokenHandler = async (req, res) => {
   const userData = getLoginInfo(req);
-  
+
   userModel.findOne(
     { id: userData.id },
     "name id withdraw ban",
@@ -111,9 +135,10 @@ const createNewTokenHandler = async (req, res) => {
       else if (!result) joinus(req, res, userData);
       else if (result.name != userData.name) update(req, res, userData);
       else {
-        const accessToken = await jwt.sign({ user: userData, deviceToken: req.body.deviceToken ,type: 'access' });
-        const refreshToken = await jwt.sign({ user: userData,  deviceToken: req.body.deviceToken ,type: 'refresh' });
-        res.redirect("org.sparcs.taxi_app://login?accessToken=" + accessToken + "&refreshToken=" + refreshToken);
+        const accessToken = await jwt.sign({ id: result._id, deviceToken: req.body.deviceToken ,type: 'access' });
+        const refreshToken = await jwt.sign({ id: result._id,  deviceToken: req.body.deviceToken ,type: 'refresh' });
+        console.log(accessToken, refreshToken);
+        res.writeHead(301, {"Location" : "org.sparcs.taxi_app://login?accessToken=" + accessToken.token + "&refreshToken=" + refreshToken.token}).end;
       }
     }
   );
@@ -124,9 +149,9 @@ const refreshAccessToken = async (req, res) => {
   if (!accessToken || !refreshToken) return res.status(400).send("invalid request");
   
   try {
-    const { user, deviceToken } = await jwt.verify(refreshToken);
-    const newAccessToken = await jwt.sign({ user, deviceToken, type: 'access' });
-    const newRefreshToken = await jwt.sign({user, deviceToken, type: 'refresh' });
+    const { id } = await jwt.verify(refreshToken);
+    const newAccessToken = await jwt.sign({ id: id, type: 'access' });
+    const newRefreshToken = await jwt.sign({ id: id, type: 'refresh' });
     res.status(200).send({ accessToken: newAccessToken, refreshToken: newRefreshToken });
   }
   catch (e) {
