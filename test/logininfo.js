@@ -101,6 +101,7 @@ describe("detail info handler", function () {
           withdraw: result.withdraw,
           ban: result.ban,
           joinat: result.joinat,
+          name: result.name,
           agreeOnTermsOfService: result.agreeOnTermsOfService,
           subinfo: result.subinfo,
           email: result.email,

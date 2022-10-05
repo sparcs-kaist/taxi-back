@@ -84,7 +84,21 @@ const generateProfileImageUrl = () => {
   return `default/${defaultProfile[ridx]}`;
 };
 
+// 사용자의 이름과 성을 받아, 한글인지 영어인지에 따라 전체 이름을 반환합니다.
+const getFullUsername = (firstName, lastName) => {
+  const koPattern = new RegExp("[가-힣]+");
+  if (koPattern.test(firstName) && koPattern.test(lastName))
+    return `${lastName}${firstName}`;
+  else return `${firstName} ${lastName}`;
+};
+
+const replaceSpaceInNickname = (nickname) => {
+  return nickname.replace(/\s+/g, " ");
+};
+
 module.exports = {
   generateNickname,
   generateProfileImageUrl,
+  getFullUsername,
+  replaceSpaceInNickname,
 };
