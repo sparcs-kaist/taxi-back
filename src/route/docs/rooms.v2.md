@@ -119,6 +119,7 @@ ID를 parameter로 받아 해당 ID의 room의 정보 출력
 ### `/create` **(POST)**
 
 요청을 받아 room을 생성
+하나의 User는 최대 5개의 진행중인 방에 참여할 수 있다.
 
 #### POST request form
 
@@ -138,6 +139,7 @@ ID를 parameter로 받아 해당 ID의 room의 정보 출력
 #### Errors
 
 - 400 "bad request"
+- 400 "participating in too many rooms"
 - 400 "locations are same"
 - 400 "no corresponding locations"
 - 500 "internal server error"
@@ -149,7 +151,8 @@ ID를 parameter로 받아 해당 ID의 room의 정보 출력
 ### `/join` (POST)
 
 room의 ID를 받아 해당 room의 참가자 목록에 요청을 보낸 사용자를 추가한다.
-아직 출발하지 않은 방에만 참여할 수 있다.
+하나의 User는 최대 5개의 진행중인 방에 참여할 수 있다.
+아직 정원이 차지 않은 방과 아직 출발하지 않은 방에만 참여할 수 있다.
 
 #### request JSON form
 
@@ -162,6 +165,7 @@ room의 ID를 받아 해당 room의 참가자 목록에 요청을 보낸 사용�
 #### Errors
 
 - 400 "Bad request"
+- 400 "participating in too many rooms"
 - 400 "The room is full"
 - 400 "The room has already departed"
 - 404 "no corresponding room"
