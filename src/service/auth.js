@@ -13,6 +13,7 @@ const client = new Client(security.sparcssso?.id, security.sparcssso?.key);
 
 const transUserData = (userData) => {
   const kaistInfo = userData.kaist_info ? JSON.parse(userData.kaist_info) : {};
+  const allowedEmployeeTypes = ["P", "S", "ES"];
   const info = {
     id: userData.uid,
     sid: userData.sid,
@@ -22,6 +23,7 @@ const transUserData = (userData) => {
     kaist: kaistInfo?.ku_std_no || "",
     sparcs: userData.sparcs_id || "",
     email: userData.email,
+    isEligible: allowedEmployeeTypes.includes(kaistInfo?.employeeType),
   };
   return info;
 };
@@ -94,7 +96,9 @@ const sparcsssoCallbackHandler = (req, res) => {
     const code = req.body.code || req.query.code;
     client.getUserInfo(code).then((userDataBefore) => {
       const userData = transUserData(userDataBefore);
-      loginDone(req, res, userData);
+      if (userData.isEligible || security.nodeEnv !== "production")
+        loginDone(req, res, userData);
+      else loginFalse(req, res);
     });
   }
 };
