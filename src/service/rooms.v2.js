@@ -70,7 +70,19 @@ const createHandler = async (req, res) => {
     }
 
     // 방 생성 요청을 한 사용자의 ObjectID를 room의 part 리스트에 추가
-    const user = await userModel.findOne({ id: req.userId });
+    const user = await userModel.findOne({ id: req.userId }).populate("room");
+
+    // 사용자의 참여중인 진행중인 방이 5개 이상이면 오류를 반환합니다.
+    const ongoingRoomsOfUser = user.room.filter(
+      (roomOfUser) => !roomOfUser.isOver
+    );
+
+    if (ongoingRoomsOfUser.length >= 5) {
+      return res.status(400).json({
+        error: "Rooms/create : participating in too many rooms",
+      });
+    }
+
     const part = [{ user: user._id }]; // settlementStatus는 기본적으로 "not-departed"로 설정됨
 
     let room = new roomModel({
@@ -132,7 +144,19 @@ const infoHandler = async (req, res) => {
 
 const joinHandler = async (req, res) => {
   try {
-    const user = await userModel.findOne({ id: req.userId });
+    const user = await userModel.findOne({ id: req.userId }).populate("room");
+
+    // 사용자의 참여중인 진행중인 방이 5개 이상이면 오류를 반환합니다.
+    const ongoingRoomsOfUser = user.room.filter(
+      (roomOfUser) => !roomOfUser.isOver
+    );
+
+    if (ongoingRoomsOfUser.length >= 5) {
+      return res.status(400).json({
+        error: "Rooms/create : participating in too many rooms",
+      });
+    }
+
     const room = await roomModel.findById(req.body.roomId);
     if (!room) {
       res.status(404).json({
