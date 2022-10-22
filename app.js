@@ -39,6 +39,7 @@ app.use("/rooms/v2", require("./src/route/rooms.v2"));
 app.use("/rooms", require("./src/route/rooms.v2"));
 app.use("/chats", require("./src/route/chats"));
 app.use("/locations", require("./src/route/locations"));
+app.use("/reports", require("./src/route/reports"));
 
 // express 서버 시작
 const serverHttp = http.createServer(app).listen(security.port, () => {

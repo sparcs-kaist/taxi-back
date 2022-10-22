@@ -59,12 +59,12 @@ Room {
   _id: ObjectId, //ObjectID
   name: String, // 1~50글자로 구성되며 영어 대소문자, 숫자, 한글, "-", ",", ".", "?", "!", "_"로만 이루어져야 함.
   from: {
-    _id: ObjectId // 출발지 document의 ObjectId
+    _id: ObjectId, // 출발지 document의 ObjectId
     koName: String, // 출발지의 한국어 명칭
     enName: String, // 출발지의 영어 명칭
   }, 
   to: {
-    _id: ObjectId // 도착지 document의 ObjectId
+    _id: ObjectId, // 도착지 document의 ObjectId
     koName: String, // 도착지의 한국어 명칭
     enName: String, // 도착지의 영어 명칭
   }, 
