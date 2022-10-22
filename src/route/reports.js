@@ -3,10 +3,13 @@ const { body } = require("express-validator");
 const validator = require("../middleware/validator");
 
 const router = express.Router();
-const reportHandlers = express.Router("../service/reports");
+const reportHandlers = require("../service/reports");
+
+// 라우터 접근 시 로그인 필요
+router.use(require("../middleware/auth"));
 
 router.post(
-  "/report",
+  "/create",
   [
     body("reportedId").isMongoId(),
     body("type").isIn(["no-settlement", "no-show", "etc-reason"]),
@@ -14,9 +17,9 @@ router.post(
     body("time").isISO8601(),
   ],
   validator,
-  reportHandlers.reportHandler
+  reportHandlers.createHandler
 );
 
-// router.get("/getReportByUser");
+router.get("/searchByUser", reportHandlers.searchByUserHandler);
 
 module.exports = router;
