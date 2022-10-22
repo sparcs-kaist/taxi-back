@@ -47,6 +47,7 @@ const roomSchema = Schema({
   }, // 참여 멤버 및 정산 여부
   madeat: { type: Date, required: true }, // 생성 날짜
   settlementTotal: { type: Number, default: 0, required: true },
+  isOver: { type: Boolean, default: false, required: true },
   maxPartLength: { type: Number, require: true, default: 4 },
 });
 
