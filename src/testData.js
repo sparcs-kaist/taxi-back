@@ -102,8 +102,8 @@ const joinUserToRoom = async (userIdsInRoom, userIdsOutRoom, roomId) => {
   // 방, 유저 상태 갱신
   userIdsInRoom.push(userOid);
   userIdsOutRoom.splice(authorIdx, 1);
-  const user = await userModel.findById(userOid, "room");
-  user.room.push(roomId);
+  const user = await userModel.findById(userOid, "ongoingRoom");
+  user.ongoingRoom.push(roomId);
   await user.save();
 
   return { userIdsInRoom, userIdsOutRoom, userOid };
@@ -117,8 +117,8 @@ const abortUserfromRoom = async (userIdsInRoom, userIdsOutRoom, roomId) => {
   // 방, 유저 상태 갱신
   userIdsOutRoom.push(userOid);
   userIdsInRoom.splice(authorIdx, 1);
-  const user = await userModel.findById(userOid, "room");
-  user.room.splice(user.room.indexOf(roomId), 1);
+  const user = await userModel.findById(userOid, "ongoingRoom");
+  user.ongoingRoom.splice(user.ongoingRoom.indexOf(roomId), 1);
   await user.save();
 
   return { userIdsInRoom, userIdsOutRoom, userOid };
