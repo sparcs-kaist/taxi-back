@@ -28,11 +28,11 @@ const createHandler = async (req, res) => {
     }
 
     const report = new reportModel({
-      creatorId: creatorId,
-      reportedId: reportedId,
-      type: type,
-      etcDetail: etcDetail,
-      time: time,
+      creatorId,
+      reportedId,
+      type,
+      etcDetail,
+      time,
     });
 
     await report.save();
