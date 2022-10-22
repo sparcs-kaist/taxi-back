@@ -83,7 +83,7 @@ Room {
   maxPartLength: Number(2~4), //방의 최대 인원 수
   madeat: String(ISO 8601), // ex) 방 생성 시각. '2022-01-12T13:58:20.180Z'
   settlementTotal: Number(2~4), // 정산이 완료된 사용자 수 (주의: rooms/search에서는 settlementTotal 속성을 반환하지 않고 undefined를 반환함).
-  isOver: Boolean, // 해당 방의 정산이 완료됐는지 여부(완료 시 true) (주의: rooms/search에서는 isOver 속성을 반환하지 않고 undefined를 반환함).
+  isOver: Boolean, // 요청을 보낸 사용자가 해당 방의 정산을 완료됐는지 여부(완료 시 true) (주의: rooms/search에서는 isOver 속성을 반환하지 않고 undefined를 반환함).
   __v: Number, // 문서 버전. mongoDB 내부적으로 사용됨.
 }
 ```
