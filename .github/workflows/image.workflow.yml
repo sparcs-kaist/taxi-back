@@ -2,16 +2,17 @@ name: Push to Amazon ECR
 
 # when branch is merge to main 
 on:
-  pull_request:
-    types:
-      - closed
+  push
+  # pull_request:
+  #   types:
+  #     - closed
 
 env:
   AWS_REGION: ap-northeast-2
 
 jobs:
   if_merged:
-    if: github.event.pull_request.merged == true
+    # if: github.event.pull_request.merged == true
     name: Build and Push
     runs-on: ubuntu-latest
 
