@@ -229,8 +229,8 @@ room의 ID를 받아 해당 room의 참가자 목록에서 요청을 보낸 사�
 
 ```javascript
 {
-  ongoing: [Room], // 정산이 완료되지 않은 방 (방의 isDone 속성이 false인 방)
-  done: [Room], // 정산이 완료된 방 (방의 isDone 속성이 true인 방)
+  ongoing: [Room], // 정산이 완료되지 않은 방 (방의 isOver 속성이 false인 방)
+  done: [Room], // 정산이 완료된 방 (방의 isOver 속성이 true인 방)
 }
 ```
 
@@ -266,7 +266,7 @@ room의 ID를 받아 해당 room의 참가자 목록에서 요청을 보낸 사�
 
 - ID를 받아 해당 방에 요청을 보낸 유저의 정산을 완료로 처리
 - 방의 part 배열에서 요청을 보낸 유저의 isSettlement 속성을 `send-required`에서 `"sent"`로 변경함.
-- 방에 참여한 멤버들이 모두 정산완료를 하면 방의 `isDone` 속성이 `true`로 변경되며, 과거 방으로 취급됨
+- 방에 참여한 멤버들이 모두 정산완료를 하면 방의 `isOver` 속성이 `true`로 변경되며, 과거 방으로 취급됨
 
 #### Request Body
 

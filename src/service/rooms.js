@@ -2,7 +2,11 @@ const { roomModel, locationModel, userModel } = require("../db/mongo");
 const { emitChatEvent } = require("../route/chats.socket");
 const { leaveChatRoom } = require("../auth/login");
 const logger = require("../modules/logger");
-const { roomPopulateOption, formatSettlement } = require("../db/rooms");
+const {
+  roomPopulateOption,
+  formatSettlement,
+  getIsOver,
+} = require("../db/rooms");
 
 const createHandler = async (req, res) => {
   const { name, from, to, time, maxPartLength } = req.body;
@@ -59,7 +63,7 @@ const createHandler = async (req, res) => {
     });
 
     const roomObject = (await room.populate(roomPopulateOption)).toObject();
-    return res.send(formatSettlement(roomObject, { isOver: false }));
+    return res.send(formatSettlement(roomObject));
   } catch (err) {
     logger.error(err);
     res.status(500).json({
@@ -77,12 +81,7 @@ const infoHandler = async (req, res) => {
       .lean()
       .populate(roomPopulateOption);
     if (roomObject) {
-      const participantSubDocument = roomObject.part.filter((part) => {
-        return part.user.id === user.id;
-      })[0];
-      const isOver = ["paid", "sent"].includes(
-        participantSubDocument.settlementStatus
-      );
+      const isOver = getIsOver(roomObject, user.id);
       res.send(formatSettlement(roomObject, { isOver }));
     } else {
       res.status(404).json({
@@ -167,9 +166,6 @@ const joinHandler = async (req, res) => {
   }
 };
 
-/**
- * @todo 삭제할 유저 인덱스 더 쉽게 파악하기
- */
 const abortHandler = async (req, res) => {
   const isOvertime = (room, time) => {
     if (new Date(room.time) <= time) return true;
@@ -199,7 +195,6 @@ const abortHandler = async (req, res) => {
     }
 
     // 사용자가 참여중인 방 목록에서 해당 방을 제거하고, 해당 방의 참여자 목록에서 사용자를 제거합니다.
-    // FIXME : #155
     const roomPartIndex = room.part
       .map((part) => part.user.toString())
       .indexOf(user._id.toString());
@@ -214,7 +209,7 @@ const abortHandler = async (req, res) => {
     const userDoneRoomIndex = user.doneRoom.indexOf(room._id);
 
     // 방의 출발시간이 지나고 정산이 되지 않으면 나갈 수 없음
-    if (isOvertime(room, req.timestamp) || userOngoingRoomIndex !== -1) {
+    if (isOvertime(room, req.timestamp) && userOngoingRoomIndex !== -1) {
       return res.status(400).json({
         error: "Rooms/info : cannot exit room. Settlement is not done",
       });
@@ -249,7 +244,9 @@ const abortHandler = async (req, res) => {
       authorId: user._id,
     });
     const roomObject = (await room.populate(roomPopulateOption)).toObject();
-    res.send(formatSettlement(roomObject));
+    const isOver = getIsOver(roomObject, user.id);
+
+    res.send(formatSettlement(roomObject, { isOver }));
   } catch (err) {
     logger.error(err);
     res.status(500).json({
@@ -322,7 +319,9 @@ const searchHandler = async (req, res) => {
       .limit(1000)
       .populate(roomPopulateOption)
       .lean();
-    res.json(rooms.map((room) => formatSettlement(room, false)));
+    res.json(
+      rooms.map((room) => formatSettlement(room, { includeSettlement: false }))
+    );
   } catch (err) {
     res.status(500).json({
       error: "Rooms/search : Internal server error",
@@ -348,8 +347,12 @@ const searchByUserHandler = async (req, res) => {
 
     // 정산완료여부 기준으로 진행중인 방과 완료된 방을 분리해서 응답을 전송합니다.
     const response = {};
-    response.ongoing = user.ongoingRoom.map((room) => formatSettlement(room));
-    response.done = user.doneRoom.map((room) => formatSettlement(room));
+    response.ongoing = user.ongoingRoom.map((room) =>
+      formatSettlement(room, { isOver: false })
+    );
+    response.done = user.doneRoom.map((room) =>
+      formatSettlement(room, { isOver: true })
+    );
     res.json(response);
   } catch (err) {
     logger.error(err);
@@ -404,7 +407,7 @@ const commitPaymentHandler = async (req, res) => {
     await user.save();
 
     // 수정한 방 정보를 반환합니다.
-    res.send(formatSettlement(roomObject));
+    res.send(formatSettlement(roomObject, { isOver: true }));
   } catch (err) {
     logger.error(err);
     res.status(500).json({
@@ -452,7 +455,7 @@ const settlementHandler = async (req, res) => {
     await user.save();
 
     // 수정한 방 정보를 반환합니다.
-    res.send(formatSettlement(roomObject));
+    res.send(formatSettlement(roomObject, { isOver: true }));
   } catch (err) {
     logger.error(err);
     res.status(500).json({
@@ -526,7 +529,8 @@ const settlementHandler = async (req, res) => {
 //     });
 //     if (result) {
 //       const roomObject = (await result.populate(roomPopulateOption)).toObject();
-//       res.send(formatSettlement(roomObject));
+//       const isOver = getIsOver(room, user.id);
+//       res.send(formatSettlement(roomObject, { isOver }));
 //     } else {
 //       res.status(404).json({
 //         error: "Rooms/edit : such room not exist",
