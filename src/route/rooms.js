@@ -1,7 +1,3 @@
-// ########################################################
-// ############# Version 2 ROUTER FROM HERE #################
-// ########################################################
-
 const express = require("express");
 const { query, body } = require("express-validator");
 const router = express.Router();

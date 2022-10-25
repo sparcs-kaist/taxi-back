@@ -1,7 +1,3 @@
-// ########################################################
-// ############# Version 2 APIS FROM HERE #################
-// ########################################################
-
 const { roomModel, locationModel, userModel } = require("../db/mongo");
 const { emitChatEvent } = require("../route/chats.socket");
 const { leaveChatRoom } = require("../auth/login");
@@ -49,10 +45,10 @@ const createHandler = async (req, res) => {
       maxPartLength: maxPartLength,
       settlementTotal: 0,
     });
-    await room.save();
 
     // 방의 ObjectID를 방 생성 요청을 한 사용자의 room 배열에 추가
     user.ongoingRoom.push(room._id);
+    await room.save();
     await user.save();
 
     // 입장 채팅을 보냅니다.
@@ -63,7 +59,7 @@ const createHandler = async (req, res) => {
     });
 
     const roomObject = (await room.populate(roomPopulateOption)).toObject();
-    return res.send(formatSettlement(roomObject));
+    return res.send(formatSettlement(roomObject, { isOver: false }));
   } catch (err) {
     logger.error(err);
     res.status(500).json({
@@ -81,7 +77,13 @@ const infoHandler = async (req, res) => {
       .lean()
       .populate(roomPopulateOption);
     if (roomObject) {
-      res.send(formatSettlement(roomObject));
+      const participantSubDocument = roomObject.part.filter((part) => {
+        return part.user.id === user.id;
+      })[0];
+      const isOver = ["paid", "sent"].includes(
+        participantSubDocument.settlementStatus
+      );
+      res.send(formatSettlement(roomObject, { isOver }));
     } else {
       res.status(404).json({
         error: "Rooms/info : id does not exist",
@@ -389,13 +391,20 @@ const commitPaymentHandler = async (req, res) => {
       .lean()
       .populate(roomPopulateOption);
 
-    if (roomObject) {
-      res.send(formatSettlement(roomObject));
-    } else {
+    if (!roomObject) {
       return res.status(404).json({
         error: "Rooms/:id/commitPayment : cannot find settlement info",
       });
     }
+
+    // 해당 방의 ObjectId를 user.ongoingRoom에서 user.doneRoom으로 이동시킵니다.
+    const userOngoingRoomIndex = null;
+    user.ongoingRoom.splice(userOngoingRoomIndex, 1);
+    user.doneRoom.push(roomId);
+    await user.save();
+
+    // 수정한 방 정보를 반환합니다.
+    res.send(formatSettlement(roomObject));
   } catch (err) {
     logger.error(err);
     res.status(500).json({
@@ -429,13 +438,21 @@ const settlementHandler = async (req, res) => {
       )
       .lean()
       .populate(roomPopulateOption);
-    if (roomObject) {
-      res.send(formatSettlement(roomObject));
-    } else {
-      res.status(404).json({
+
+    if (!roomObject) {
+      return res.status(404).json({
         error: "Rooms/:id/settlement : cannot find settlement info",
       });
     }
+
+    // 해당 방의 ObjectId를 user.ongoingRoom에서 user.doneRoom으로 이동시킵니다.
+    const userOngoingRoomIndex = null;
+    user.ongoingRoom.splice(userOngoingRoomIndex, 1);
+    user.doneRoom.push(roomId);
+    await user.save();
+
+    // 수정한 방 정보를 반환합니다.
+    res.send(formatSettlement(roomObject));
   } catch (err) {
     logger.error(err);
     res.status(500).json({
