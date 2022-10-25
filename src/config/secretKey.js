@@ -1,7 +1,9 @@
+const { jwtSecretKey, frontUrl } = require("../../security");
+
 module.exports = {
-    secretKey : 'taxiAppSecretKey',
+    secretKey : jwtSecretKey,
     option : {
         algorithm : 'HS256',
-        issuer : 'taxiApp'
+        issuer : frontUrl
     }
 }

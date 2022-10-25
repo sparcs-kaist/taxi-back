@@ -119,8 +119,8 @@ const loginWithToken = async (req, res) => {
   }
 }
 
-const createNewTokenHandler = async (req, res) => {
-  const userData = getLoginInfo(req);
+const createNewTokenHandler = async (req, res, userData) => {
+  // const userData = getLoginInfo(req);
 
   userModel.findOne(
     { id: userData.id },
@@ -135,8 +135,7 @@ const createNewTokenHandler = async (req, res) => {
       else {
         const accessToken = await jwt.sign({ id: result._id, deviceToken: req.body.deviceToken ,type: 'access' });
         const refreshToken = await jwt.sign({ id: result._id,  deviceToken: req.body.deviceToken ,type: 'refresh' });
-        console.log(accessToken, refreshToken);
-        res.writeHead(302, {"Location" : "org.sparcs.taxi_app://login?accessToken=" + accessToken.token + "&refreshToken=" + refreshToken.token}).end();
+        res.redirect( "org.sparcs.taxiApp://login?accessToken=" + accessToken.token + "&refreshToken=" + refreshToken.token);
       }
     }
   );
@@ -167,7 +166,7 @@ const refreshAccessToken = async (req, res) => {
     }
 
     if (!(data.type == 'refresh')) {
-      res.status(401).json({ message: 'Not Access token' });
+      res.status(401).json({ message: 'Not Refresh token' });
       return;
     }
 
@@ -202,6 +201,11 @@ const registerDeviceTokenHandler = async (req, res) => {
   }
 }
 
+const sparcsssoForAppHandler = (req, res) => {
+  req.session.isApp = true;
+  sparcsssoHandler(req, res);
+}
+
 const sparcsssoHandler = (req, res) => {
   const userInfo = getLoginInfo(req);
   const { url, state } = client.getLoginParams();
@@ -218,7 +222,11 @@ const sparcsssoCallbackHandler = (req, res) => {
     const code = req.body.code || req.query.code;
     client.getUserInfo(code).then((userDataBefore) => {
       const userData = transUserData(userDataBefore);
-      loginDone(req, res, userData);
+      if(req.session.isApp){
+        createNewTokenHandler(req, res, userData);
+      } else {
+        loginDone(req, res, userData);
+      }
     });
   }
 };
@@ -233,7 +241,7 @@ module.exports = {
   sparcsssoCallbackHandler,
   logoutHandler,
   loginWithToken,
-  createNewTokenHandler,
   refreshAccessToken,
   registerDeviceTokenHandler,
+  sparcsssoForAppHandler
 };

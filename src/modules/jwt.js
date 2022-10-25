@@ -18,8 +18,6 @@ module.exports = {
             option.expiresIn = '7d';
         }
         
-        console.log(payload);
-
         const result = {
             token: jwt.sign(payload, secretKey, option),
         };
