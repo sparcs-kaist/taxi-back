@@ -72,12 +72,9 @@ Room {
   isDeparted: Boolean, // 이미 출발한 택시인지 여부 (출발했으면 true)
   part: [
     {
-      _id: ObjectId, // 참여 중인 사용자 Document의 ObjectId
-      id: String, // 참여 중인 사용자 id
-      name: String, // 참여 중인 사용자 이름
-      nickname: String, // 참여 중인 사용자 닉네임
-      profileImageUrl: String, // 프로필 사진 url 
-      isSettlement: String, //해당 사용자의 정산 상태 (주의: rooms/search에서는 isSettlement 속성을 반환하지 않고 undefined를 반환함).
+      _id: ObjectId, // part의 ObjectId
+      user: ObjectId, // part에 해당하는 user의 ObjectId
+      settlementStatus: String, //해당 사용자의 정산 상태 (주의: rooms/search에서는 isSettlement 속성을 반환하지 않고 undefined를 반환함).
     }
   ], 
   maxPartLength: Number(2~4), //방의 최대 인원 수
@@ -88,7 +85,7 @@ Room {
 }
 ```
 
-`isSettlement` 속성은 아래 네 가지 값들 중 하나를 가진다.
+`settlementStatus` 속성은 아래 네 가지 값들 중 하나를 가진다.
 
 1. `"not-departed"` :  아무도 결제/정산하지 않은 상태
 2. `"paid"` : 택시비를 결제한 참가가 "결제하기" 버튼을 누르면 해당 참가자에게 설정되는 정산 상태.
@@ -97,7 +94,7 @@ Room {
 
 ## Available endpoints
 
-### `info/` **(GET)**
+### `/info` **(GET)**
 
 ID를 parameter로 받아 해당 ID의 room의 정보 출력
 
