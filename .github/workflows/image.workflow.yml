@@ -39,6 +39,7 @@ jobs:
         ECR_REPOSITORY: taxi-back
       run: |
         docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+        docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:latest .
         docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
         docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
         echo "Push iamge : $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG and latest"
