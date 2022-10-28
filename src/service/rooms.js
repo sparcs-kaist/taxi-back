@@ -220,9 +220,10 @@ const abortHandler = async (req, res) => {
     } else if (userDoneRoomIndex !== -1) {
       user.doneRoom.splice(userDoneRoomIndex, 1);
     } else {
-      // Referential integrity 문제
       // room.part에는 user가 있지만 user.ongoingRoom이나 user.doneRoom에는 room이 없는 상황.
-      logger.error("Referential Integrity error");
+      logger.error(
+        `Room/abort: referential integrity error (user: ${user._id}, room: ${room._id})`
+      );
       return res.status(500).json({
         error: "Rooms/abort : internal server error",
       });
