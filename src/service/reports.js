@@ -57,7 +57,7 @@ const searchByUserHandler = async (req, res) => {
       reported: await reportModel
         .find({ reportedId: user._id })
         .limit(1000)
-        .populate(reportPopulateOption),
+        .populate(reportPopulateOption[1]),
     };
     res.json(response);
   } catch (err) {
