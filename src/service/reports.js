@@ -3,17 +3,10 @@ const logger = require("../modules/logger");
 
 const reportPopulateOption = [
   {
-    path: "creatorId",
-    select: "-_id name nickname",
-    // populate: { path: "user", select: "_id id name nickname profileImageUrl" },
-  },
-  {
     path: "reportedId",
-    select: "-_id name nickname",
-    // populate: { path: "user", select: "_id id name nickname profileImageUrl" },
+    select: "_id id name nickname profileImageUrl",
   },
 ];
-
 const createHandler = async (req, res) => {
   try {
     const { reportedId, type, etcDetail, time } = req.body;
@@ -57,7 +50,7 @@ const searchByUserHandler = async (req, res) => {
       reported: await reportModel
         .find({ reportedId: user._id })
         .limit(1000)
-        .populate(reportPopulateOption[1]),
+        .populate(reportPopulateOption),
     };
     res.json(response);
   } catch (err) {
