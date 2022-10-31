@@ -3,17 +3,10 @@ const logger = require("../modules/logger");
 
 const reportPopulateOption = [
   {
-    path: "creatorId",
-    select: "-_id user",
-    populate: { path: "user", select: "_id id name nickname profileImageUrl" },
-  },
-  {
     path: "reportedId",
-    select: "-_id user",
-    populate: { path: "user", select: "_id id name nickname profileImageUrl" },
+    select: "_id id name nickname profileImageUrl",
   },
 ];
-
 const createHandler = async (req, res) => {
   try {
     const { reportedId, type, etcDetail, time } = req.body;
@@ -48,13 +41,14 @@ const createHandler = async (req, res) => {
 const searchByUserHandler = async (req, res) => {
   try {
     // 해당 user가 신고한 사람인지, 신고 받은 사람인지 기준으로 신고를 분리해서 응답을 전송합니다.
+    const user = await userModel.findOne({ id: req.userId });
     const response = {
       reporting: await reportModel
-        .find({ creatorId: req.userId })
+        .find({ creatorId: user._id })
         .limit(1000)
         .populate(reportPopulateOption),
       reported: await reportModel
-        .find({ reportedId: req.userId })
+        .find({ reportedId: user._id })
         .limit(1000)
         .populate(reportPopulateOption),
     };
