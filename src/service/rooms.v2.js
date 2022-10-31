@@ -271,7 +271,6 @@ const abortHandler = async (req, res) => {
 
       // 남은 사용자가 없을 때 방을 삭제하고 싶다면 다음을 수정하여 사용하면 된다.
       // if (room.part.length <= 0) {
-      //   // 남은 사용자가 없는 경우.
       //   // FIXME : 채팅을 지워야 하고, 남은 뒷부분 코드 때문에 문제가 될 수 있을 것 같음
       //   // await room.remove();
       // }
