@@ -99,8 +99,6 @@ const loginWithToken = async (req, res) => {
       return;
     }
 
-    console.log(data);
-
     if (!(data.type == 'access')) {
       res.status(401).json({ message: 'Not Access token' });
       return;
