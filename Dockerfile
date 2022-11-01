@@ -14,4 +14,4 @@ RUN npm install
 # Run container
 EXPOSE 80
 ENV PORT 80
-CMD ["npm", "run", "start"]
+CMD ["npm", "run", "serve"]
