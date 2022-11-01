@@ -169,7 +169,7 @@ const refreshAccessToken = async (req, res) => {
 
     const newAccessToken = await jwt.sign({ id: data.id, type: 'access' });
     const newRefreshToken = await jwt.sign({ id: data.id, type: 'refresh' });
-    res.status(200).send({ accessToken: newAccessToken.token, refreshToken: newRefreshToken.token });
+    res.json({ accessToken: newAccessToken.token, refreshToken: newRefreshToken.token });
   }
   catch (e) {
     logger.error(e);
