@@ -155,7 +155,7 @@ const refreshAccessToken = async (req, res) => {
       return res.status(401).json({ message: 'Expired token' });
     }
 
-    if (!(data.type === 'refresh')) {
+    if (data.type !== 'refresh') {
       return res.status(401).json({ message: 'Not Refresh token' });
     }
 
@@ -171,15 +171,18 @@ const refreshAccessToken = async (req, res) => {
 
 const registerDeviceTokenHandler = async (req, res) => {
   try{
-    const { token } = req.body;
-    const { id } = getLoginInfo(req);
+    const { accessToken, deviceToken } = req.body;
 
-    if (!token || !id) return res.status(400).send("invalid request");
+    const accessTokenStatus = await jwt.verify(accessToken);
+    
+    if (!deviceToken) return res.status(400).send("invalid request");
+    if (accessTokenStatus === TOKEN_EXPIRED || accessTokenStatus === TOKEN_INVALID) return res.status(401).send("unauthorized");
+    
     try {
       await deviceTokenModel.updateOne({
-        user: id,
+        id: accessTokenStatus.id,
       }, 
-      {user : id, deviceTokenModel: token}, {upsert: true, new: true});
+      {id : accessTokenStatus.id, "$push": {deviceToken: deviceToken}}, {upsert: true, new: true});
       res.status(200).send("success");
     } catch (e) {
       logger.error(e);
