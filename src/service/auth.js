@@ -90,18 +90,15 @@ const loginWithToken = async (req, res) => {
     const data = await jwt.verify(token);
 
     if (data == TOKEN_INVALID) {
-      res.status(401).json({ message: 'Invalid token' });
-      return;
+      return res.status(401).json({ message: 'Invalid token' });
     }
 
     if (data == TOKEN_EXPIRED) {
-      res.status(401).json({ message: 'Expired token' });
-      return;
+      return res.status(401).json({ message: 'Expired token' });
     }
 
     if (data.type !== 'access') {
-      res.status(401).json({ message: 'Not Access token' });
-      return;
+      return res.status(401).json({ message: 'Not Access token' });
     }
 
     const userInfo = await userModel.findOne({ _id: data.id });
@@ -147,23 +144,19 @@ const refreshAccessToken = async (req, res) => {
     const accessTokenStatus = await jwt.verify(accessToken);
 
     if (accessTokenStatus === TOKEN_INVALID) {
-      res.status(401).json({ message: 'Invalid access token' });
-      return;
+      return res.status(401).json({ message: 'Invalid access token' });
     }
 
     if (data === TOKEN_INVALID) {
-      res.status(401).json({ message: 'Invalid token' });
-      return;
+      return res.status(401).json({ message: 'Invalid token' });
     }
 
     if (data === TOKEN_EXPIRED) {
-      res.status(401).json({ message: 'Expired token' });
-      return;
+      return res.status(401).json({ message: 'Expired token' });
     }
 
     if (!(data.type === 'refresh')) {
-      res.status(401).json({ message: 'Not Refresh token' });
-      return;
+      return res.status(401).json({ message: 'Not Refresh token' });
     }
 
     const newAccessToken = await jwt.sign({ id: data.id, type: 'access' });
