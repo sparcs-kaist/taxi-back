@@ -89,11 +89,11 @@ const loginWithToken = async (req, res) => {
     if (!token) return res.status(400).send("invalid request");
     const data = await jwt.verify(token);
 
-    if (data == TOKEN_INVALID) {
+    if (data === TOKEN_INVALID) {
       return res.status(401).json({ message: 'Invalid token' });
     }
 
-    if (data == TOKEN_EXPIRED) {
+    if (data === TOKEN_EXPIRED) {
       return res.status(401).json({ message: 'Expired token' });
     }
 
