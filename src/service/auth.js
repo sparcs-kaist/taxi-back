@@ -191,10 +191,10 @@ const registerDeviceTokenHandler = async (req, res) => {
       {user : id, deviceTokenModel: token}, {upsert: true, new: true});
       res.status(200).send("success");
     } catch (e) {
-      res.status(500).send(e);
+      res.status(500).send("server error");
     }
   } catch (e) {
-    res.status(500).send(e);
+    res.status(500).send("server error");
   }
 }
 
