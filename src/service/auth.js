@@ -57,7 +57,6 @@ const joinus = (req, res, userData) => {
   });
 };
 
-// 닉네임 변경?
 const update = async (req, res, userData) => {
   const updateInfo = { name: userData.name };
   await userModel.updateOne({ id: userData.id }, updateInfo);
@@ -100,7 +99,7 @@ const loginWithToken = async (req, res) => {
       return;
     }
 
-    if (!(data.type == 'access')) {
+    if (data.type !== 'access') {
       res.status(401).json({ message: 'Not Access token' });
       return;
     }
