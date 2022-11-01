@@ -14,6 +14,7 @@ const TOKEN_INVALID = -2;
 
 // SPARCS SSO
 const Client = require("../auth/sparcsso");
+const logger = require("../modules/logger");
 const client = new Client(security.sparcssso?.id, security.sparcssso?.key);
 
 const transUserData = (userData) => {
@@ -112,24 +113,22 @@ const loginWithToken = async (req, res) => {
       res.redirect(security.frontUrl + "/");
     }
   } catch (e) {
-    console.log(e);
+    logger.error(e);
     return res.status(500).send("server error");
   }
 }
 
 const createNewTokenHandler = async (req, res, userData) => {
-  // const userData = getLoginInfo(req);
-
   userModel.findOne(
     { id: userData.id },
     "name id withdraw ban",
     async (err, result) => {
       if (err) {
-        console.log(err);
+        logger.error(err);
         loginFalse(req, res);
       }
       else if (!result) joinus(req, res, userData);
-      else if (result.name != userData.name) update(req, res, userData);
+      else if (result.name !== userData.name) update(req, res, userData);
       else {
         const accessToken = await jwt.sign({ id: result._id, deviceToken: req.body.deviceToken ,type: 'access' });
         const refreshToken = await jwt.sign({ id: result._id,  deviceToken: req.body.deviceToken ,type: 'refresh' });
@@ -148,22 +147,22 @@ const refreshAccessToken = async (req, res) => {
 
     const accessTokenStatus = await jwt.verify(accessToken);
 
-    if (accessTokenStatus == TOKEN_INVALID) {
+    if (accessTokenStatus === TOKEN_INVALID) {
       res.status(401).json({ message: 'Invalid access token' });
       return;
     }
 
-    if (data == TOKEN_INVALID) {
+    if (data === TOKEN_INVALID) {
       res.status(401).json({ message: 'Invalid token' });
       return;
     }
 
-    if (data == TOKEN_EXPIRED) {
+    if (data === TOKEN_EXPIRED) {
       res.status(401).json({ message: 'Expired token' });
       return;
     }
 
-    if (!(data.type == 'refresh')) {
+    if (!(data.type === 'refresh')) {
       res.status(401).json({ message: 'Not Refresh token' });
       return;
     }
@@ -173,7 +172,7 @@ const refreshAccessToken = async (req, res) => {
     res.status(200).send({ accessToken: newAccessToken.token, refreshToken: newRefreshToken.token });
   }
   catch (e) {
-    console.log(e);
+    logger.error(e);
     res.status(501).send("server error");
   }
 }
@@ -191,9 +190,11 @@ const registerDeviceTokenHandler = async (req, res) => {
       {user : id, deviceTokenModel: token}, {upsert: true, new: true});
       res.status(200).send("success");
     } catch (e) {
+      logger.error(e);
       res.status(500).send("server error");
     }
   } catch (e) {
+    logger.error(e);
     res.status(500).send("server error");
   }
 }
