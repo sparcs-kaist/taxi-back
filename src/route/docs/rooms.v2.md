@@ -73,7 +73,13 @@ Room {
   part: [
     {
       _id: ObjectId, // part의 ObjectId
-      user: ObjectId, // part에 해당하는 user의 ObjectId
+      user: {
+        _id: ObjectId, // 참여 중인 사용자 Document의 ObjectId
+        id: String, // 참여 중인 사용자 id
+        name: String, // 참여 중인 사용자 이름
+        nickname: String, // 참여 중인 사용자 닉네임
+        profileImageUrl: String, // 프로필 사진 url 
+      }, // part에 해당하는 user의 ObjectId
       settlementStatus: String, //해당 사용자의 정산 상태 (주의: rooms/search에서는 isSettlement 속성을 반환하지 않고 undefined를 반환함).
     }
   ], 

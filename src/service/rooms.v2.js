@@ -349,6 +349,7 @@ const searchHandler = async (req, res) => {
 
     query.time = { $gte: minTime, $lt: maxTime };
     if (maxPartLength) query.maxPartLength = { $eq: maxPartLength };
+    query["part.0"] = { $exists: true }; // 참여자가 1명 이상인 방만 반환한다
 
     const rooms = await roomModel
       .find(query)
@@ -357,12 +358,7 @@ const searchHandler = async (req, res) => {
       .populate(roomPopulateOption)
       .lean();
 
-    // 참여자가 1명 이상인 방만 반환한다
-    res.json(
-      rooms
-        .filter((room) => room.part.length > 0)
-        .map((room) => formatSettlement(room, false))
-    );
+    res.json(rooms.map((room) => formatSettlement(room, false)));
   } catch (err) {
     res.status(500).json({
       error: "Rooms/search : Internal server error",
