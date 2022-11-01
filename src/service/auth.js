@@ -184,7 +184,6 @@ const registerDeviceTokenHandler = async (req, res) => {
   try{
     const { token } = req.body;
     const { id } = getLoginInfo(req);
-    console.log(id, token);
 
     if (!token || !id) return res.status(400).send("invalid request");
     try {
