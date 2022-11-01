@@ -182,7 +182,33 @@ const registerDeviceTokenHandler = async (req, res) => {
       await deviceTokenModel.updateOne({
         id: accessTokenStatus.id,
       }, 
-      {id : accessTokenStatus.id, "$push": {deviceToken: deviceToken}}, {upsert: true, new: true});
+      {id : accessTokenStatus.id, "$addToSet": {deviceToken: deviceToken}}, {upsert: true, new: true});
+      res.status(200).send("success");
+    } catch (e) {
+      logger.error(e);
+      res.status(500).send("server error");
+    }
+  } catch (e) {
+    logger.error(e);
+    res.status(500).send("server error");
+  }
+}
+
+const removeDeviceTokenHandler = async (req, res) => {
+  try{
+    const { accessToken, deviceToken } = req.body;
+
+    const accessTokenStatus = await jwt.verify(accessToken);
+
+    if (!deviceToken) return res.status(400).send("invalid request");
+
+    if (accessTokenStatus === TOKEN_EXPIRED || accessTokenStatus === TOKEN_INVALID) return res.status(401).send("unauthorized");
+
+    try {
+      await deviceTokenModel.updateOne({
+        id: accessTokenStatus.id,
+      },
+      {id : accessTokenStatus.id, "$pull": {deviceToken: deviceToken}}, {upsert: true, new: true});
       res.status(200).send("success");
     } catch (e) {
       logger.error(e);
@@ -236,5 +262,6 @@ module.exports = {
   loginWithToken,
   refreshAccessToken,
   registerDeviceTokenHandler,
-  sparcsssoForAppHandler
+  sparcsssoForAppHandler,
+  removeDeviceTokenHandler
 };
