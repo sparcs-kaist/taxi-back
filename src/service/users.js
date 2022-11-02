@@ -110,7 +110,7 @@ const editProfileImgDoneHandler = async (req, res) => {
       }
       res.json({
         result: true,
-        profileImageUrl: user._id,
+        profileImageUrl: userAfter._id,
       });
     });
   } catch (e) {
