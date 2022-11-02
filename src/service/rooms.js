@@ -199,7 +199,7 @@ const abortHandler = async (req, res) => {
     const roomPartIndex = room.part
       .map((part) => part.user.toString())
       .indexOf(user._id.toString());
-    if (roomPartIndex == -1) {
+    if (roomPartIndex === -1) {
       return res.status(403).json({
         error: "Rooms/info : did not joined the room",
       });
