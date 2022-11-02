@@ -45,7 +45,7 @@ router.post(
 // 기존 방에서 나간다. (채팅 이벤트 연동 안됨: 방 주인이 바뀌는 경우.)
 // request: {roomId: 나갈 방}
 // result: Room
-// 모든 사람이 나갈 경우 방 삭제.
+// 모든 사람이 나갈 경우에도 방을 삭제하지 않는다.
 router.post(
   "/abort",
   body("roomId").isMongoId(),

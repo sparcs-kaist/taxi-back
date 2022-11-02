@@ -194,11 +194,11 @@ const abortHandler = async (req, res) => {
       leaveChatRoom({ session: req.session });
     }
 
-    // 사용자가 참여중인 방 목록에서 해당 방을 제거하고, 해당 방의 참여자 목록에서 사용자를 제거합니다.
+    // 해당 방의 참여자 목록에서 사용자를 제거합니다.
+    // 사용자가 해당 룸의 구성원이 아닌 경우, 403 오류를 반환합니다.
     const roomPartIndex = room.part
       .map((part) => part.user.toString())
       .indexOf(user._id.toString());
-    // 사용자가 해당 룸의 구성원이 아닌 경우, 403 오류를 반환합니다.
     if (roomPartIndex == -1) {
       return res.status(403).json({
         error: "Rooms/info : did not joined the room",
@@ -215,6 +215,8 @@ const abortHandler = async (req, res) => {
       });
     }
 
+    // 사용자가 참여중인 방 목록에서 방을 제거합니다.
+    // 제거할 방이 없는 경우, 500 오류를 발생시킵니다.
     if (userOngoingRoomIndex !== -1) {
       user.ongoingRoom.splice(userOngoingRoomIndex, 1);
     } else if (userDoneRoomIndex !== -1) {
@@ -232,11 +234,12 @@ const abortHandler = async (req, res) => {
     room.part.splice(roomPartIndex, 1);
     await room.save();
 
-    if (room.part.length <= 0) {
-      // 남은 사용자가 없는 경우.
-      // FIXME : 채팅을 지워야 하고, 남은 뒷부분 코드 때문에 문제가 될 수 있을 것 같음
-      // await room.remove();
-    }
+    // if (room.part.length <= 0) {
+    // 남은 사용자가 없는 경우.
+    // 채팅을 지워야 하고, 남은 뒷부분 코드 때문에 문제가 될 수 있을 것 같음
+    // 따라서 모든 사용자가 나간 방을 지우지 않기로 결정함.
+    // await room.remove();
+    // }
 
     // 퇴장 채팅을 보냅니다.
     await emitChatEvent(req.app.get("io"), room._id, {
@@ -313,6 +316,7 @@ const searchHandler = async (req, res) => {
 
     query.time = { $gte: minTime, $lt: maxTime };
     if (maxPartLength) query.maxPartLength = { $eq: maxPartLength };
+    query["part.0"] = { $exists: true }; // 참여자가 1명 이상인 방만 반환한다
 
     const rooms = await roomModel
       .find(query)
