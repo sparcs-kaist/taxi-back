@@ -54,8 +54,8 @@ const logger = createLogger({
   ],
 });
 
-// If the environment is development, the log is also recorded on console
-if (nodeEnv === "development") {
+// If the environment is not production, the log is also recorded on console
+if (nodeEnv !== "production") {
   logger.add(
     new transports.Console({
       format: format.combine(
