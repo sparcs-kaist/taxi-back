@@ -1,4 +1,6 @@
 # `/rooms` API
+**개발 도중 Room 구조가 바뀌어 `/rooms/v2`로 접근하여 사용할 수 있었던 API 입니다.**
+**현재도 호환성 유지를 위해 `/rooms/v2`로 접근하여 API를 사용할 수 있습니다.**
 
 ## Table of contents
 
@@ -6,7 +8,7 @@
   - [Table of contents](#table-of-contents)
   - [Description](#description)
   - [Available endpoints](#available-endpoints)
-    - [`info/` **(GET)**](#info-get)
+    - [`/info` **(GET)**](#info-get)
       - [URL parameters](#url-parameters)
       - [Response](#response)
       - [Errors](#errors)

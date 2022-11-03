@@ -19,7 +19,7 @@ const roomPopulateOption = [
  * @param {Object} options - 추가 파라미터로, 기본값은 {}입니다.
  * @param {Boolean} options.includeSettlement - 반환 결과에 정산 정보를 포함할 지 여부로, 기본값은 true입니다.
  * @param {Date} options.timestamp - 방의 출발 여부(isDeparted)를 판단하는 기준이 되는 시각입니다.
- * @param {Boolean} options.isOver - 방의 완료 여부(isOver)로, 기본값은 false입니다. includeSettlement가 false인 경우 roomDocument의 isDone은 undefined로 설정됩니다.
+ * @param {Boolean} options.isOver - 방의 완료 여부(isOver)로, 기본값은 false입니다. includeSettlement가 false인 경우 roomDocument의 isOver 속성은 undefined로 설정됩니다.
  * @return {Object} 정산 여부가 위와 같이 가공되고 isDeparted 속성이 추가된 Room Object가 반환됩니다.
  */
 const formatSettlement = (
