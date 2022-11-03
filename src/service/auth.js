@@ -9,8 +9,7 @@ const {
 } = require("../modules/modifyProfile");
 const jwt = require('../modules/jwt');
 
-const TOKEN_EXPIRED = -3;
-const TOKEN_INVALID = -2;
+const { TOKEN_EXPIRED, TOKEN_INVALID } = require('../config/constants');
 
 // SPARCS SSO
 const Client = require("../auth/sparcsso");
@@ -105,6 +104,7 @@ const loginWithToken = async (req, res) => {
 
     if (!userInfo) return res.status(401).json({ message: 'Invalid token' });
     else{
+      req.session.isApp = true;
       login(req, userInfo.sid, userInfo.id, userInfo.name);
       res.redirect(security.frontUrl + "/");
     }
@@ -252,6 +252,9 @@ const sparcsssoCallbackHandler = (req, res) => {
 
 const logoutHandler = (req, res) => {
   logout(req, res);
+  if(req.session.isApp){
+    res.redirect("org.sparcs.taxiapp://logout");
+  }
   res.status(200).send("logged out successfully");
 };
 

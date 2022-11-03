@@ -1,9 +1,6 @@
-const randToken = require('rand-token');
 const jwt = require('jsonwebtoken');
-const secretKey = require('../config/secretKey').secretKey;
-const option = require('../config/secretKey').option;
-const TOKEN_EXPIRED = -3;
-const TOKEN_INVALID = -2;
+const {secretKey, option} = require('../config/secretKey');
+const { TOKEN_EXPIRED, TOKEN_INVALID } = require('../config/constants');
 
 const signJwt = async ({id, type}) => {
     const payload = {
