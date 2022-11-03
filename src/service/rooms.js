@@ -406,9 +406,19 @@ const commitPaymentHandler = async (req, res) => {
     }
 
     // 해당 방의 ObjectId를 user.ongoingRoom에서 user.doneRoom으로 이동시킵니다.
-    const userOngoingRoomIndex = user.ongoingRoom.indexOf(roomId);
-    user.ongoingRoom.splice(userOngoingRoomIndex, 1);
+    // user.ongoingRoom에 해당 방의 ObjectId가 존재하지 않는 경우, 500 오류를 반환합니다.
+    // 위와 같은 경우에도 해당 방을 user.doneRoom에 추가하는 데 문제가 없어야 합니다.
     user.doneRoom.push(roomId);
+
+    const userOngoingRoomIndex = user.ongoingRoom.indexOf(roomId);
+    if (userOngoingRoomIndex === -1) {
+      await user.save();
+      return res.status(500).json({
+        error: "Rooms/:id/settlement : internal server error",
+      });
+    }
+    user.ongoingRoom.splice(userOngoingRoomIndex, 1);
+
     await user.save();
 
     // 수정한 방 정보를 반환합니다.
@@ -454,9 +464,19 @@ const settlementHandler = async (req, res) => {
     }
 
     // 해당 방의 ObjectId를 user.ongoingRoom에서 user.doneRoom으로 이동시킵니다.
-    const userOngoingRoomIndex = user.ongoingRoom.indexOf(roomId);
-    user.ongoingRoom.splice(userOngoingRoomIndex, 1);
+    // user.ongoingRoom에 해당 방의 ObjectId가 존재하지 않는 경우, 500 오류를 반환합니다.
+    // 위와 같은 경우에도 해당 방을 user.doneRoom에 추가하는 데 문제가 없어야 합니다.
     user.doneRoom.push(roomId);
+
+    const userOngoingRoomIndex = user.ongoingRoom.indexOf(roomId);
+    if (userOngoingRoomIndex === -1) {
+      await user.save();
+      return res.status(500).json({
+        error: "Rooms/:id/settlement : internal server error",
+      });
+    }
+    user.ongoingRoom.splice(userOngoingRoomIndex, 1);
+
     await user.save();
 
     // 수정한 방 정보를 반환합니다.
