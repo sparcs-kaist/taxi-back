@@ -70,7 +70,19 @@ const createHandler = async (req, res) => {
     }
 
     // 방 생성 요청을 한 사용자의 ObjectID를 room의 part 리스트에 추가
-    const user = await userModel.findOne({ id: req.userId });
+    const user = await userModel.findOne({ id: req.userId }).populate("room");
+
+    // 사용자의 참여중인 진행중인 방이 5개 이상이면 오류를 반환합니다.
+    const ongoingRoomsOfUser = user.room.filter(
+      (roomOfUser) => !roomOfUser.isOver
+    );
+
+    if (ongoingRoomsOfUser.length >= 5) {
+      return res.status(400).json({
+        error: "Rooms/create : participating in too many rooms",
+      });
+    }
+
     const part = [{ user: user._id }]; // settlementStatus는 기본적으로 "not-departed"로 설정됨
 
     let room = new roomModel({
@@ -132,7 +144,19 @@ const infoHandler = async (req, res) => {
 
 const joinHandler = async (req, res) => {
   try {
-    const user = await userModel.findOne({ id: req.userId });
+    const user = await userModel.findOne({ id: req.userId }).populate("room");
+
+    // 사용자의 참여중인 진행중인 방이 5개 이상이면 오류를 반환합니다.
+    const ongoingRoomsOfUser = user.room.filter(
+      (roomOfUser) => !roomOfUser.isOver
+    );
+
+    if (ongoingRoomsOfUser.length >= 5) {
+      return res.status(400).json({
+        error: "Rooms/create : participating in too many rooms",
+      });
+    }
+
     const room = await roomModel.findById(req.body.roomId);
     if (!room) {
       res.status(404).json({
@@ -221,7 +245,7 @@ const abortHandler = async (req, res) => {
       leaveChatRoom({ session: req.session });
     }
 
-    // 사용자가 참여중인 방 목록에서 해당 방을 제거하고, 해당 방의 참여자 목록에서 사용자를 제거합니다.
+    // 해당 방의 참여자 목록에서 사용자를 제거합니다.
     // 사용자가 해당 룸의 구성원이 아닌 경우, 403 오류를 반환합니다.
     const roomPartIndex = room.part
       .map((part) => part.user.toString())
@@ -244,11 +268,12 @@ const abortHandler = async (req, res) => {
       user.room.splice(userRoomIndex, 1);
       await user.save();
       await room.save();
-      if (room.part.length <= 0) {
-        // 남은 사용자가 없는 경우.
-        // FIXME : 채팅을 지워야 하고, 남은 뒷부분 코드 때문에 문제가 될 수 있을 것 같음
-        // await room.remove();
-      }
+
+      // 남은 사용자가 없을 때 방을 삭제하고 싶다면 다음을 수정하여 사용하면 된다.
+      // if (room.part.length <= 0) {
+      //   // FIXME : 채팅을 지워야 하고, 남은 뒷부분 코드 때문에 문제가 될 수 있을 것 같음
+      //   // await room.remove();
+      // }
     }
 
     // 퇴장 채팅을 보냅니다.
@@ -324,6 +349,7 @@ const searchHandler = async (req, res) => {
 
     query.time = { $gte: minTime, $lt: maxTime };
     if (maxPartLength) query.maxPartLength = { $eq: maxPartLength };
+    query["part.0"] = { $exists: true }; // 참여자가 1명 이상인 방만 반환한다
 
     const rooms = await roomModel
       .find(query)
@@ -331,6 +357,7 @@ const searchHandler = async (req, res) => {
       .limit(1000)
       .populate(roomPopulateOption)
       .lean();
+
     res.json(rooms.map((room) => formatSettlement(room, false)));
   } catch (err) {
     res.status(500).json({
