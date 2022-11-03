@@ -19,6 +19,7 @@ const client = new Client(security.sparcssso?.id, security.sparcssso?.key);
 
 const transUserData = (userData) => {
   const kaistInfo = userData.kaist_info ? JSON.parse(userData.kaist_info) : {};
+  const allowedEmployeeTypes = ["P", "S", "ES"]; // P: 교수, S: 학생, ES: 교직원인 학생
   const info = {
     id: userData.uid,
     sid: userData.sid,
@@ -28,6 +29,7 @@ const transUserData = (userData) => {
     kaist: kaistInfo?.ku_std_no || "",
     sparcs: userData.sparcs_id || "",
     email: userData.email,
+    isEligible: allowedEmployeeTypes.includes(kaistInfo?.employeeType), // 카이스트 구성원인지 여부. DB에 저장하지 않음.
   };
   return info;
 };
@@ -273,11 +275,25 @@ const sparcsssoCallbackHandler = (req, res) => {
     const code = req.body.code || req.query.code;
     client.getUserInfo(code).then((userDataBefore) => {
       const userData = transUserData(userDataBefore);
+      if (userData.isEligible || security.nodeEnv !== "production") {
+        if (req.session.isApp) {
+          createNewTokenHandler(req, res, userData);
+        } else {
+          loginDone(req, res, userData);
+        }
+      } else loginFalse(req, res);
+<<<<<<< HEAD
       if (req.session.isApp) {
         createNewTokenHandler(req, res, userData);
       } else {
         loginDone(req, res, userData);
       }
+=======
+      // 로그인 시마다 사용자가 KAIST 구성원인지 검증함.
+      if (userData.isEligible || security.nodeEnv !== "production")
+        loginDone(req, res, userData);
+      else loginFalse(req, res);
+>>>>>>> origin
     });
   }
 };

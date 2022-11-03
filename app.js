@@ -25,15 +25,21 @@ app.use(cookieParser());
 // API 접근 기록 및 응답 시간을 http response의 헤더에 기록합니다.
 app.use(require("response-time")(logAPIAccess));
 
+// admin 페이지는 rate limiting을 적용하지 않습니다.
+app.use("/admin", require("./src/route/admin"));
+
+// Apply the rate limiting middleware to all requests
+app.use(require("./src/middleware/limitRate"));
+
 // 라우터 및 리액트
+// /rooms/v2에 요청을 보내는 기존 클라이언트 코드 호환성 유지
 app.use("/auth", require("./src/route/auth"));
 app.use("/json/logininfo", require("./src/route/logininfo"));
 app.use("/users", require("./src/route/users"));
-app.use("/rooms/v2", require("./src/route/rooms.v2"));
-app.use("/rooms", require("./src/route/rooms.v2"));
+app.use(["/rooms/v2", "/rooms"], require("./src/route/rooms"));
 app.use("/chats", require("./src/route/chats"));
 app.use("/locations", require("./src/route/locations"));
-app.use("/admin", require("./src/route/admin"));
+app.use("/reports", require("./src/route/reports"));
 
 // express 서버 시작
 const serverHttp = http.createServer(app).listen(security.port, () => {

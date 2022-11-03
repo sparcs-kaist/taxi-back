@@ -7,10 +7,12 @@ const {
   roomModel,
   locationModel,
   chatModel,
+  reportModel,
 } = require("../db/mongo");
 
 let router = express.Router();
 
+// Requires admin property of the user to enter admin page.
 router.use(require("../middleware/adminAuth"));
 
 // Registration of the mongoose adapter
@@ -18,7 +20,7 @@ AdminJS.registerAdapter(AdminJSMongoose);
 
 // Create router for admin page
 const adminJsOptions = {
-  resources: [userModel, roomModel, locationModel, chatModel],
+  resources: [userModel, roomModel, locationModel, chatModel, reportModel],
 };
 const adminJs = new AdminJS(adminJsOptions);
 router = AdminJSExpress.buildRouter(adminJs, router);
