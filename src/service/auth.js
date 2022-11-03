@@ -282,18 +282,6 @@ const sparcsssoCallbackHandler = (req, res) => {
           loginDone(req, res, userData);
         }
       } else loginFalse(req, res);
-<<<<<<< HEAD
-      if (req.session.isApp) {
-        createNewTokenHandler(req, res, userData);
-      } else {
-        loginDone(req, res, userData);
-      }
-=======
-      // 로그인 시마다 사용자가 KAIST 구성원인지 검증함.
-      if (userData.isEligible || security.nodeEnv !== "production")
-        loginDone(req, res, userData);
-      else loginFalse(req, res);
->>>>>>> origin
     });
   }
 };
