@@ -8,6 +8,7 @@ const {
   getFullUsername,
 } = require("../modules/modifyProfile");
 const jwt = require("../modules/jwt");
+const APP_URI_SCHEME = require("../../security").APP_URI_SCHEME;
 
 const { TOKEN_EXPIRED, TOKEN_INVALID } = require("../config/constants");
 
@@ -137,7 +138,8 @@ const createNewTokenHandler = async (req, res, userData) => {
           type: "refresh",
         });
         res.redirect(
-          "org.sparcs.taxiApp://login?accessToken=" +
+          APP_URI_SCHEME +
+            "://login?accessToken=" +
             accessToken.token +
             "&refreshToken=" +
             refreshToken.token
@@ -283,7 +285,7 @@ const sparcsssoCallbackHandler = (req, res) => {
 const logoutHandler = (req, res) => {
   logout(req, res);
   if (req.session.isApp) {
-    res.redirect("org.sparcs.taxiapp://logout");
+    res.redirect(APP_URI_SCHEME + "://logout");
   }
   res.status(200).send("logged out successfully");
 };
