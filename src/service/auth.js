@@ -1,15 +1,15 @@
 const security = require("../../security");
 const { userModel } = require("../db/mongo");
-const { deviceTokenModel } = require('../db/mongo');
+const { deviceTokenModel } = require("../db/mongo");
 const { getLoginInfo, logout, login } = require("../auth/login");
 const {
   generateNickname,
   generateProfileImageUrl,
   getFullUsername,
 } = require("../modules/modifyProfile");
-const jwt = require('../modules/jwt');
+const jwt = require("../modules/jwt");
 
-const { TOKEN_EXPIRED, TOKEN_INVALID } = require('../config/constants');
+const { TOKEN_EXPIRED, TOKEN_INVALID } = require("../config/constants");
 
 // SPARCS SSO
 const Client = require("../auth/sparcsso");
@@ -84,26 +84,26 @@ const loginFalse = (req, res) => {
 
 const loginWithToken = async (req, res) => {
   const { token } = req.query;
-  try{
+  try {
     if (!token) return res.status(400).send("invalid request");
     const data = await jwt.verify(token);
 
     if (data === TOKEN_INVALID) {
-      return res.status(401).json({ message: 'Invalid token' });
+      return res.status(401).json({ message: "Invalid token" });
     }
 
     if (data === TOKEN_EXPIRED) {
-      return res.status(401).json({ message: 'Expired token' });
+      return res.status(401).json({ message: "Expired token" });
     }
 
-    if (data.type !== 'access') {
-      return res.status(401).json({ message: 'Not Access token' });
+    if (data.type !== "access") {
+      return res.status(401).json({ message: "Not Access token" });
     }
 
     const userInfo = await userModel.findOne({ _id: data.id });
 
-    if (!userInfo) return res.status(401).json({ message: 'Invalid token' });
-    else{
+    if (!userInfo) return res.status(401).json({ message: "Invalid token" });
+    else {
       req.session.isApp = true;
       login(req, userInfo.sid, userInfo.id, userInfo.name);
       res.redirect(security.frontUrl + "/");
@@ -112,7 +112,7 @@ const loginWithToken = async (req, res) => {
     logger.error(e);
     return res.status(500).send("server error");
   }
-}
+};
 
 const createNewTokenHandler = async (req, res, userData) => {
   userModel.findOne(
@@ -122,67 +122,89 @@ const createNewTokenHandler = async (req, res, userData) => {
       if (err) {
         logger.error(err);
         loginFalse(req, res);
-      }
-      else if (!result) joinus(req, res, userData);
+      } else if (!result) joinus(req, res, userData);
       else if (result.name !== userData.name) update(req, res, userData);
       else {
-        const accessToken = await jwt.sign({ id: result._id, deviceToken: req.body.deviceToken ,type: 'access' });
-        const refreshToken = await jwt.sign({ id: result._id,  deviceToken: req.body.deviceToken ,type: 'refresh' });
-        res.redirect( "org.sparcs.taxiApp://login?accessToken=" + accessToken.token + "&refreshToken=" + refreshToken.token);
+        const accessToken = await jwt.sign({
+          id: result._id,
+          deviceToken: req.body.deviceToken,
+          type: "access",
+        });
+        const refreshToken = await jwt.sign({
+          id: result._id,
+          deviceToken: req.body.deviceToken,
+          type: "refresh",
+        });
+        res.redirect(
+          "org.sparcs.taxiApp://login?accessToken=" +
+            accessToken.token +
+            "&refreshToken=" +
+            refreshToken.token
+        );
       }
     }
   );
-}
+};
 
 const refreshAccessToken = async (req, res) => {
   const { accessToken, refreshToken } = req.body;
-  if (!accessToken || !refreshToken) return res.status(400).send("invalid request");
-  
+  if (!accessToken || !refreshToken)
+    return res.status(400).send("invalid request");
+
   try {
     const data = await jwt.verify(refreshToken);
 
     const accessTokenStatus = await jwt.verify(accessToken);
 
     if (accessTokenStatus === TOKEN_INVALID) {
-      return res.status(401).json({ message: 'Invalid access token' });
+      return res.status(401).json({ message: "Invalid access token" });
     }
 
     if (data === TOKEN_INVALID) {
-      return res.status(401).json({ message: 'Invalid token' });
+      return res.status(401).json({ message: "Invalid token" });
     }
 
     if (data === TOKEN_EXPIRED) {
-      return res.status(401).json({ message: 'Expired token' });
+      return res.status(401).json({ message: "Expired token" });
     }
 
-    if (data.type !== 'refresh') {
-      return res.status(401).json({ message: 'Not Refresh token' });
+    if (data.type !== "refresh") {
+      return res.status(401).json({ message: "Not Refresh token" });
     }
 
-    const newAccessToken = await jwt.sign({ id: data.id, type: 'access' });
-    const newRefreshToken = await jwt.sign({ id: data.id, type: 'refresh' });
-    res.json({ accessToken: newAccessToken.token, refreshToken: newRefreshToken.token });
-  }
-  catch (e) {
+    const newAccessToken = await jwt.sign({ id: data.id, type: "access" });
+    const newRefreshToken = await jwt.sign({ id: data.id, type: "refresh" });
+    res.json({
+      accessToken: newAccessToken.token,
+      refreshToken: newRefreshToken.token,
+    });
+  } catch (e) {
     logger.error(e);
     res.status(501).send("server error");
   }
-}
+};
 
 const registerDeviceTokenHandler = async (req, res) => {
-  try{
+  try {
     const { accessToken, deviceToken } = req.body;
 
     const accessTokenStatus = await jwt.verify(accessToken);
-    
+
     if (!deviceToken) return res.status(400).send("invalid request");
-    if (accessTokenStatus === TOKEN_EXPIRED || accessTokenStatus === TOKEN_INVALID) return res.status(401).send("unauthorized");
-    
+    if (
+      accessTokenStatus === TOKEN_EXPIRED ||
+      accessTokenStatus === TOKEN_INVALID
+    )
+      return res.status(401).send("unauthorized");
+
     try {
-      await deviceTokenModel.updateOne({
-        id: accessTokenStatus.id,
-      }, 
-      {id : accessTokenStatus.id, "$addToSet": {deviceToken: deviceToken}}, {upsert: true, new: true});
+      await deviceTokenModel.updateOne(
+        {
+          id: accessTokenStatus.id,
+        },
+        { id: accessTokenStatus.id, $addToSet: { deviceToken: deviceToken } },
+        { upsert: true, new: true }
+      );
       res.status(200).send("success");
     } catch (e) {
       logger.error(e);
@@ -192,23 +214,30 @@ const registerDeviceTokenHandler = async (req, res) => {
     logger.error(e);
     res.status(500).send("server error");
   }
-}
+};
 
 const removeDeviceTokenHandler = async (req, res) => {
-  try{
+  try {
     const { accessToken, deviceToken } = req.body;
 
     const accessTokenStatus = await jwt.verify(accessToken);
 
     if (!deviceToken) return res.status(400).send("invalid request");
 
-    if (accessTokenStatus === TOKEN_EXPIRED || accessTokenStatus === TOKEN_INVALID) return res.status(401).send("unauthorized");
+    if (
+      accessTokenStatus === TOKEN_EXPIRED ||
+      accessTokenStatus === TOKEN_INVALID
+    )
+      return res.status(401).send("unauthorized");
 
     try {
-      await deviceTokenModel.updateOne({
-        id: accessTokenStatus.id,
-      },
-      {id : accessTokenStatus.id, "$pull": {deviceToken: deviceToken}}, {upsert: true, new: true});
+      await deviceTokenModel.updateOne(
+        {
+          id: accessTokenStatus.id,
+        },
+        { id: accessTokenStatus.id, $pull: { deviceToken: deviceToken } },
+        { upsert: true, new: true }
+      );
       res.status(200).send("success");
     } catch (e) {
       logger.error(e);
@@ -218,12 +247,12 @@ const removeDeviceTokenHandler = async (req, res) => {
     logger.error(e);
     res.status(500).send("server error");
   }
-}
+};
 
 const sparcsssoForAppHandler = (req, res) => {
   req.session.isApp = true;
   sparcsssoHandler(req, res);
-}
+};
 
 const sparcsssoHandler = (req, res) => {
   const userInfo = getLoginInfo(req);
@@ -241,7 +270,7 @@ const sparcsssoCallbackHandler = (req, res) => {
     const code = req.body.code || req.query.code;
     client.getUserInfo(code).then((userDataBefore) => {
       const userData = transUserData(userDataBefore);
-      if(req.session.isApp){
+      if (req.session.isApp) {
         createNewTokenHandler(req, res, userData);
       } else {
         loginDone(req, res, userData);
@@ -252,7 +281,7 @@ const sparcsssoCallbackHandler = (req, res) => {
 
 const logoutHandler = (req, res) => {
   logout(req, res);
-  if(req.session.isApp){
+  if (req.session.isApp) {
     res.redirect("org.sparcs.taxiapp://logout");
   }
   res.status(200).send("logged out successfully");
@@ -266,5 +295,5 @@ module.exports = {
   refreshAccessToken,
   registerDeviceTokenHandler,
   sparcsssoForAppHandler,
-  removeDeviceTokenHandler
+  removeDeviceTokenHandler,
 };
