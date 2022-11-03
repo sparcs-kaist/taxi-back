@@ -1,12 +1,8 @@
-// ########################################################
-// ############# Version 2 ROUTER FROM HERE #################
-// ########################################################
-
 const express = require("express");
-const { query, param, body } = require("express-validator");
+const { query, body } = require("express-validator");
 const router = express.Router();
 
-const roomHandlers = require("../service/rooms.v2");
+const roomHandlers = require("../service/rooms");
 const validator = require("../middleware/validator");
 const patterns = require("../db/patterns");
 const setTimestamp = require("../middleware/setTimestamp");

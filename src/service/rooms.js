@@ -1,56 +1,12 @@
-// ########################################################
-// ############# Version 2 APIS FROM HERE #################
-// ########################################################
-
 const { roomModel, locationModel, userModel } = require("../db/mongo");
 const { emitChatEvent } = require("../route/chats.socket");
 const { leaveChatRoom } = require("../auth/login");
 const logger = require("../modules/logger");
-
-/** @constant {{path: string, select: string, populate?: {path: string, select: string}}[]}
- * 쿼리를 통해 얻은 Room Document를 populate할 설정값을 정의합니다.
- */
-const roomPopulateOption = [
-  { path: "from", select: "_id koName enName" },
-  { path: "to", select: "_id koName enName" },
-  {
-    path: "part",
-    select: "-_id user settlementStatus",
-    populate: { path: "user", select: "_id id name nickname profileImageUrl" },
-  },
-];
-
-/**
- * Room Object가 주어졌을 때 room의 part array의 각 요소를 API 명세에서와 같이 {userId: String, ... , settlementStatus: String}으로 가공합니다.
- * 또한, 방이 현재 출발했는지 유무인 isDeparted 속성을 추가합니다.
- * @param {Object} roomObject - 정산 정보를 가공할 room Object로, Mongoose Document가 아닌 순수 Javascript Object여야 합니다.
- * @param {Boolean} includeSettlement - 반환 결과에 정산 정보를 포함할 지 여부로, 기본값은 true입니다.
- * @return {Object} 정산 여부가 위와 같이 가공되고 isDeparted 속성이 추가된 Room Object가 반환됩니다.
- */
-const formatSettlement = (
-  roomObject,
-  includeSettlement = true,
-  timestamp = Date.now()
-) => {
-  roomObject.part = roomObject.part.map((participantSubDocument) => {
-    const { _id, name, nickname, profileImageUrl } =
-      participantSubDocument.user;
-    const { settlementStatus } = participantSubDocument;
-    return {
-      _id,
-      name,
-      nickname,
-      profileImageUrl,
-      isSettlement: includeSettlement ? settlementStatus : undefined,
-    };
-  });
-  roomObject.settlementTotal = includeSettlement
-    ? roomObject.settlementTotal
-    : undefined;
-  roomObject.isOver = includeSettlement ? roomObject.isOver : undefined;
-  roomObject.isDeparted = new Date(roomObject.time) < new Date(timestamp);
-  return roomObject;
-};
+const {
+  roomPopulateOption,
+  formatSettlement,
+  getIsOver,
+} = require("../db/rooms");
 
 const createHandler = async (req, res) => {
   const { name, from, to, time, maxPartLength } = req.body;
@@ -70,14 +26,12 @@ const createHandler = async (req, res) => {
     }
 
     // 방 생성 요청을 한 사용자의 ObjectID를 room의 part 리스트에 추가
-    const user = await userModel.findOne({ id: req.userId }).populate("room");
+    const user = await userModel
+      .findOne({ id: req.userId })
+      .populate("ongoingRoom");
 
     // 사용자의 참여중인 진행중인 방이 5개 이상이면 오류를 반환합니다.
-    const ongoingRoomsOfUser = user.room.filter(
-      (roomOfUser) => !roomOfUser.isOver
-    );
-
-    if (ongoingRoomsOfUser.length >= 5) {
+    if (user.ongoingRoom.length >= 5) {
       return res.status(400).json({
         error: "Rooms/create : participating in too many rooms",
       });
@@ -94,12 +48,11 @@ const createHandler = async (req, res) => {
       madeat: Date.now(),
       maxPartLength: maxPartLength,
       settlementTotal: 0,
-      isOver: false,
     });
     await room.save();
 
     // 방의 ObjectID를 방 생성 요청을 한 사용자의 room 배열에 추가
-    user.room.push(room._id);
+    user.ongoingRoom.push(room._id);
     await user.save();
 
     // 입장 채팅을 보냅니다.
@@ -128,7 +81,8 @@ const infoHandler = async (req, res) => {
       .lean()
       .populate(roomPopulateOption);
     if (roomObject) {
-      res.send(formatSettlement(roomObject));
+      const isOver = getIsOver(roomObject, user.id);
+      res.send(formatSettlement(roomObject, { isOver }));
     } else {
       res.status(404).json({
         error: "Rooms/info : id does not exist",
@@ -144,14 +98,12 @@ const infoHandler = async (req, res) => {
 
 const joinHandler = async (req, res) => {
   try {
-    const user = await userModel.findOne({ id: req.userId }).populate("room");
+    const user = await userModel
+      .findOne({ id: req.userId })
+      .populate("ongoingRoom");
 
     // 사용자의 참여중인 진행중인 방이 5개 이상이면 오류를 반환합니다.
-    const ongoingRoomsOfUser = user.room.filter(
-      (roomOfUser) => !roomOfUser.isOver
-    );
-
-    if (ongoingRoomsOfUser.length >= 5) {
+    if (user.ongoingRoom.length >= 5) {
       return res.status(400).json({
         error: "Rooms/create : participating in too many rooms",
       });
@@ -193,7 +145,7 @@ const joinHandler = async (req, res) => {
     }
 
     room.part.push({ user: user._id });
-    user.room.push(room._id);
+    user.ongoingRoom.push(room._id);
     await user.save();
     await room.save();
 
@@ -214,9 +166,6 @@ const joinHandler = async (req, res) => {
   }
 };
 
-/**
- * @todo 삭제할 유저 인덱스 더 쉽게 파악하기
- */
 const abortHandler = async (req, res) => {
   const isOvertime = (room, time) => {
     if (new Date(room.time) <= time) return true;
@@ -250,31 +199,47 @@ const abortHandler = async (req, res) => {
     const roomPartIndex = room.part
       .map((part) => part.user.toString())
       .indexOf(user._id.toString());
-    const userRoomIndex = user.room.indexOf(room._id);
-    if (roomPartIndex === -1 || userRoomIndex === -1) {
-      res.status(403).json({
+    if (roomPartIndex === -1) {
+      return res.status(403).json({
         error: "Rooms/info : did not joined the room",
       });
-      return;
-    } else {
-      // 방의 출발시간이 지나고 정산이 되지 않으면 나갈 수 없음
-      if (isOvertime(room, req.timestamp) && !room.isOver) {
-        res.status(400).json({
-          error: "Rooms/info : cannot exit room. Settlement is not done",
-        });
-        return;
-      }
-      room.part.splice(roomPartIndex, 1);
-      user.room.splice(userRoomIndex, 1);
-      await user.save();
-      await room.save();
-
-      // 남은 사용자가 없을 때 방을 삭제하고 싶다면 다음을 수정하여 사용하면 된다.
-      // if (room.part.length <= 0) {
-      //   // FIXME : 채팅을 지워야 하고, 남은 뒷부분 코드 때문에 문제가 될 수 있을 것 같음
-      //   // await room.remove();
-      // }
     }
+
+    const userOngoingRoomIndex = user.ongoingRoom.indexOf(room._id);
+    const userDoneRoomIndex = user.doneRoom.indexOf(room._id);
+
+    // 방의 출발시간이 지나고 정산이 되지 않으면 나갈 수 없음
+    if (isOvertime(room, req.timestamp) && userOngoingRoomIndex !== -1) {
+      return res.status(400).json({
+        error: "Rooms/info : cannot exit room. Settlement is not done",
+      });
+    }
+
+    // 사용자가 참여중인 방 목록에서 방을 제거합니다.
+    // 제거할 방이 없는 경우, 500 오류를 발생시킵니다.
+    if (userOngoingRoomIndex !== -1) {
+      user.ongoingRoom.splice(userOngoingRoomIndex, 1);
+    } else if (userDoneRoomIndex !== -1) {
+      user.doneRoom.splice(userDoneRoomIndex, 1);
+    } else {
+      // room.part에는 user가 있지만 user.ongoingRoom이나 user.doneRoom에는 room이 없는 상황.
+      logger.error(
+        `Room/abort: referential integrity error (user: ${user._id}, room: ${room._id})`
+      );
+      return res.status(500).json({
+        error: "Rooms/abort : internal server error",
+      });
+    }
+    await user.save();
+    room.part.splice(roomPartIndex, 1);
+    await room.save();
+
+    // if (room.part.length <= 0) {
+    // 남은 사용자가 없는 경우.
+    // 채팅을 지워야 하고, 남은 뒷부분 코드 때문에 문제가 될 수 있을 것 같음
+    // 따라서 모든 사용자가 나간 방을 지우지 않기로 결정함.
+    // await room.remove();
+    // }
 
     // 퇴장 채팅을 보냅니다.
     await emitChatEvent(req.app.get("io"), room._id, {
@@ -283,7 +248,9 @@ const abortHandler = async (req, res) => {
       authorId: user._id,
     });
     const roomObject = (await room.populate(roomPopulateOption)).toObject();
-    res.send(formatSettlement(roomObject));
+    const isOver = getIsOver(roomObject, user.id);
+
+    res.send(formatSettlement(roomObject, { isOver }));
   } catch (err) {
     logger.error(err);
     res.status(500).json({
@@ -357,8 +324,9 @@ const searchHandler = async (req, res) => {
       .limit(1000)
       .populate(roomPopulateOption)
       .lean();
-
-    res.json(rooms.map((room) => formatSettlement(room, false)));
+    res.json(
+      rooms.map((room) => formatSettlement(room, { includeSettlement: false }))
+    );
   } catch (err) {
     res.status(500).json({
       error: "Rooms/search : Internal server error",
@@ -371,22 +339,25 @@ const searchByUserHandler = async (req, res) => {
     const user = await userModel
       .findOne({ id: req.userId })
       .populate({
-        path: "room",
+        path: "ongoingRoom",
+        options: { limit: 1000 },
+        populate: roomPopulateOption,
+      })
+      .populate({
+        path: "doneRoom",
         options: { limit: 1000 },
         populate: roomPopulateOption,
       })
       .lean();
 
     // 정산완료여부 기준으로 진행중인 방과 완료된 방을 분리해서 응답을 전송합니다.
-    const response = {
-      ongoing: [],
-      done: [],
-    };
-    user.room.forEach((room) => {
-      room = formatSettlement(room);
-      if (room.isOver) response.done.push(room);
-      else response.ongoing.push(room);
-    });
+    const response = {};
+    response.ongoing = user.ongoingRoom.map((room) =>
+      formatSettlement(room, { isOver: false })
+    );
+    response.done = user.doneRoom.map((room) =>
+      formatSettlement(room, { isOver: true })
+    );
     res.json(response);
   } catch (err) {
     logger.error(err);
@@ -428,13 +399,30 @@ const commitPaymentHandler = async (req, res) => {
       .lean()
       .populate(roomPopulateOption);
 
-    if (roomObject) {
-      res.send(formatSettlement(roomObject));
-    } else {
+    if (!roomObject) {
       return res.status(404).json({
         error: "Rooms/:id/commitPayment : cannot find settlement info",
       });
     }
+
+    // 해당 방의 ObjectId를 user.ongoingRoom에서 user.doneRoom으로 이동시킵니다.
+    // user.ongoingRoom에 해당 방의 ObjectId가 존재하지 않는 경우, 500 오류를 반환합니다.
+    // 위와 같은 경우에도 해당 방을 user.doneRoom에 추가하는 데 문제가 없어야 합니다.
+    user.doneRoom.push(roomId);
+
+    const userOngoingRoomIndex = user.ongoingRoom.indexOf(roomId);
+    if (userOngoingRoomIndex === -1) {
+      await user.save();
+      return res.status(500).json({
+        error: "Rooms/:id/settlement : internal server error",
+      });
+    }
+    user.ongoingRoom.splice(userOngoingRoomIndex, 1);
+
+    await user.save();
+
+    // 수정한 방 정보를 반환합니다.
+    res.send(formatSettlement(roomObject, { isOver: true }));
   } catch (err) {
     logger.error(err);
     res.status(500).json({
@@ -468,19 +456,31 @@ const settlementHandler = async (req, res) => {
       )
       .lean()
       .populate(roomPopulateOption);
-    if (roomObject) {
-      if (roomObject.settlementTotal === roomObject.part.length) {
-        roomObject = await roomModel
-          .findByIdAndUpdate(roomId, { isOver: true }, { new: true })
-          .lean()
-          .populate(roomPopulateOption);
-      }
-      res.send(formatSettlement(roomObject));
-    } else {
-      res.status(404).json({
+
+    if (!roomObject) {
+      return res.status(404).json({
         error: "Rooms/:id/settlement : cannot find settlement info",
       });
     }
+
+    // 해당 방의 ObjectId를 user.ongoingRoom에서 user.doneRoom으로 이동시킵니다.
+    // user.ongoingRoom에 해당 방의 ObjectId가 존재하지 않는 경우, 500 오류를 반환합니다.
+    // 위와 같은 경우에도 해당 방을 user.doneRoom에 추가하는 데 문제가 없어야 합니다.
+    user.doneRoom.push(roomId);
+
+    const userOngoingRoomIndex = user.ongoingRoom.indexOf(roomId);
+    if (userOngoingRoomIndex === -1) {
+      await user.save();
+      return res.status(500).json({
+        error: "Rooms/:id/settlement : internal server error",
+      });
+    }
+    user.ongoingRoom.splice(userOngoingRoomIndex, 1);
+
+    await user.save();
+
+    // 수정한 방 정보를 반환합니다.
+    res.send(formatSettlement(roomObject, { isOver: true }));
   } catch (err) {
     logger.error(err);
     res.status(500).json({
@@ -554,7 +554,8 @@ const settlementHandler = async (req, res) => {
 //     });
 //     if (result) {
 //       const roomObject = (await result.populate(roomPopulateOption)).toObject();
-//       res.send(formatSettlement(roomObject));
+//       const isOver = getIsOver(room, user.id);
+//       res.send(formatSettlement(roomObject, { isOver }));
 //     } else {
 //       res.status(404).json({
 //         error: "Rooms/edit : such room not exist",
