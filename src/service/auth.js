@@ -83,6 +83,7 @@ const loginFalse = (req, res) => {
 };
 
 const loginWithToken = async (req, res) => {
+  req.session.isApp = true;
   const { token } = req.query;
   try {
     if (!token) return res.status(400).send("invalid request");
