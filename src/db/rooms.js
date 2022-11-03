@@ -59,7 +59,7 @@ const getIsOver = (roomObject, userId) => {
   });
 
   // 방에 참여중이지 않은 사용자의 경우, undefined을 반환합니다.
-  if (participantSubDocuments.length == 0) return undefined;
+  if (participantSubDocuments.length === 0) return undefined;
 
   // 방에 참여중인 사용자의 경우, 정산 상태가 완료된 것인지("paid"거나 "sent"인지)를 반환합니다.
   return ["paid", "sent"].includes(participantSubDocuments[0].settlementStatus);

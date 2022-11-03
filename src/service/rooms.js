@@ -49,10 +49,10 @@ const createHandler = async (req, res) => {
       maxPartLength: maxPartLength,
       settlementTotal: 0,
     });
+    await room.save();
 
     // 방의 ObjectID를 방 생성 요청을 한 사용자의 room 배열에 추가
     user.ongoingRoom.push(room._id);
-    await room.save();
     await user.save();
 
     // 입장 채팅을 보냅니다.
@@ -406,7 +406,7 @@ const commitPaymentHandler = async (req, res) => {
     }
 
     // 해당 방의 ObjectId를 user.ongoingRoom에서 user.doneRoom으로 이동시킵니다.
-    const userOngoingRoomIndex = null;
+    const userOngoingRoomIndex = user.ongoingRoom.indexOf(roomId);
     user.ongoingRoom.splice(userOngoingRoomIndex, 1);
     user.doneRoom.push(roomId);
     await user.save();
@@ -454,7 +454,7 @@ const settlementHandler = async (req, res) => {
     }
 
     // 해당 방의 ObjectId를 user.ongoingRoom에서 user.doneRoom으로 이동시킵니다.
-    const userOngoingRoomIndex = null;
+    const userOngoingRoomIndex = user.ongoingRoom.indexOf(roomId);
     user.ongoingRoom.splice(userOngoingRoomIndex, 1);
     user.doneRoom.push(roomId);
     await user.save();
