@@ -98,9 +98,6 @@ describe("room searchHandler", function () {
       },
     };
     const res = {
-      json: (data) => {
-        console.log(data);
-      },
       status: (data) => {
         expect(data).to.equal(200);
       },
