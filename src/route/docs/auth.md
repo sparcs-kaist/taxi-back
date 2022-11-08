@@ -78,3 +78,103 @@
 #### Errors
 
 - 403 "not logged in"
+
+### `/app/token/generate` **(GET)**
+
+- SPARCSSSO로 로그인을 진행하고 로그인 정보를 담아 ACCESSTOKEN, REFRESHTOKEN을 반환
+
+#### URL Parameters
+
+- None
+
+#### Response
+
+app's deep link
+형식 APP_URI_SCHEME + ://login?accessToken=[ACCESSTOKEN]&refreshToken=[REFRESHTOKEN]
+
+#### Errors
+
+- 없음
+
+### `/app/token/refresh` **(GET)**
+
+- 만료된 access token을 refresh token을 활용하여 갱신
+
+#### URL Parameters
+
+- accessToken, refreshToken
+
+#### Response
+
+```javascript
+{
+    accessToken: [newAccessToken], // JSON Web Token
+    refreshToken: [newRefreshToken], //JSON Web Token
+}
+```
+
+#### Errors
+
+- 401 / Invalid Access Token
+- 401 / Invalid Token
+- 401 / Expired Token
+- 401 / Not Refresh Token
+- 501 / Server Error
+
+### `/app/token/login` **(GET)**
+
+- access token을 사용하여 로그인
+
+#### URL Parameters
+
+- token
+
+#### Response
+
+None / 세션 기록
+
+#### Errors
+
+- 401 / Invalid Access Token
+- 401 / Invalid Token
+- 401 / Expired Token
+- 401 / Not Refresh Token
+- 501 / Server Error
+
+### `/app/device` **(POST)**
+
+- 기기의 deviceToken을 데이터베이스에 등록
+
+#### URL Parameters
+
+- accessToken
+- deviceToken
+
+#### Response
+
+None
+
+#### Errors
+
+- 400 / invalid request ( URL Parameters가 누락되어 있음 )
+- 401 / unauthorized ( 토큰이 유효하지 않음 )
+- 500 / server error
+
+### `/app/device` **(DELETE)**
+
+- 기기의 deviceToken을 데이터베이스에서 삭제
+
+#### URL Parameters
+
+- accessToken
+- deviceToken
+
+#### Response
+
+None
+
+#### Errors
+
+- 400 / invalid request ( URL Parameters가 누락되어 있음 )
+- 401 / unauthorized ( 토큰이 유효하지 않음 )
+- 500 / server error
