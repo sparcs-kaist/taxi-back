@@ -1,16 +1,16 @@
 const expect = require("chai").expect;
 const express = require("express");
-
-const authHandlers = require("../src/service/auth.replace");
 const roomsHandlers = require("../src/service/rooms");
 const { userModel, roomModel, locationModel } = require("../src/db/mongo");
+const { generateProfileImageUrl } = require("../src/modules/modifyProfile");
+const app = express();
 
-describe("room createHandler", function () {
+describe("[rooms] 1.createHandler", function () {
   it("should create room", async function () {
-    let testUser = await userModel.findOne({ id: "sunday" });
+    let testUser1 = userGenerator("test1");
+    await testUser1.save();
     let testFrom = await locationModel.findOne({ koName: "대전역" });
     let testTo = await locationModel.findOne({ koName: "택시승강장" });
-    let app = express();
     const req = {
       body: {
         name: "test-room",
@@ -19,7 +19,7 @@ describe("room createHandler", function () {
         time: Date.now(),
         maxPartLength: 4,
       },
-      userId: testUser.id,
+      userId: testUser1.id,
       app,
     };
     const res = {
@@ -35,13 +35,13 @@ describe("room createHandler", function () {
   });
 });
 
-describe("room infoHandler", function () {
+describe("[rooms] 2.infoHandler", function () {
   it("should return information of room", async function () {
-    let testUser = await userModel.findOne({ id: "sunday" });
+    let testUser1 = await userModel.findOne({ id: "test1" });
     let room = await roomModel.findOne({ name: "test-room" });
     const req = {
       query: { id: room._id },
-      userId: testUser.id,
+      userId: testUser1.id,
     };
     const res = {
       send: (data) => {
@@ -57,16 +57,16 @@ describe("room infoHandler", function () {
   });
 });
 
-describe("room joinHandler", function () {
+describe("[rooms] 3.joinHandler", function () {
   it("should return information of room and join", async function () {
-    let testUser = await userModel.findOne({ id: "monday" });
+    let testUser2 = userGenerator("test2");
+    await testUser2.save();
     let testRoom = await roomModel.findOne({ name: "test-room" });
-    let app = express();
     const req = {
       body: {
         roomId: testRoom._id,
       },
-      userId: testUser.id,
+      userId: testUser2.id,
       app,
     };
     const res = {
@@ -83,7 +83,7 @@ describe("room joinHandler", function () {
   });
 });
 
-describe("room searchHandler", function () {
+describe("[rooms] 4.searchHandler", function () {
   it("should return information of searching room", async function () {
     let testFrom = await locationModel.findOne({ koName: "대전역" });
     let testTo = await locationModel.findOne({ koName: "택시승강장" });
@@ -110,11 +110,11 @@ describe("room searchHandler", function () {
   });
 });
 
-describe("room searchByUserHandler", function () {
+describe("[rooms] 5.searchByUserHandler", function () {
   it("should return information of searching room", async function () {
-    let testUser = await userModel.findOne({ id: "sunday" });
+    let testUser1 = await userModel.findOne({ id: "test1" });
     const req = {
-      userId: testUser.id,
+      userId: testUser1.id,
     };
     const res = {
       json: (data) => {
@@ -130,13 +130,13 @@ describe("room searchByUserHandler", function () {
   });
 });
 
-describe("room commitPaymentHandler", function () {
+describe("[rooms] 6.commitPaymentHandler", function () {
   it("should return information of room and commit payment", async function () {
-    let testUser = await userModel.findOne({ id: "sunday" });
+    let testUser1 = await userModel.findOne({ id: "test1" });
     let testRoom = await roomModel.findOne({ name: "test-room" });
     const req = {
       body: { roomId: testRoom._id },
-      userId: testUser.id,
+      userId: testUser1.id,
       timestamp: Date.now(),
     };
     const res = {
@@ -153,13 +153,13 @@ describe("room commitPaymentHandler", function () {
   });
 });
 
-describe("room settlementHandler", function () {
+describe("[rooms] 7.settlementHandler", function () {
   it("should return information of room and set settlement", async function () {
-    let testUser = await userModel.findOne({ id: "monday" });
+    let testUser2 = await userModel.findOne({ id: "test2" });
     let testRoom = await roomModel.findOne({ name: "test-room" });
     const req = {
       body: { roomId: testRoom._id },
-      userId: testUser.id,
+      userId: testUser2.id,
     };
     const res = {
       send: (data) => {
@@ -175,14 +175,19 @@ describe("room settlementHandler", function () {
   });
 });
 
-describe("room abortHandler", function () {
+describe("[rooms] 8.abortHandler", function () {
+  const removeTestData = async () => {
+    // drop all testData
+    await roomModel.deleteOne({ name: "test-room" });
+    await userModel.deleteOne({ id: "test1" });
+    await userModel.deleteOne({ id: "test2" });
+  };
   it("should return information of room and abort user", async function () {
-    let testUser = await userModel.findOne({ id: "monday" });
+    let testUser2 = await userModel.findOne({ id: "test2" });
     let testRoom = await roomModel.findOne({ name: "test-room" });
-    let app = express();
     const req = {
       body: { roomId: testRoom._id },
-      userId: testUser.id,
+      userId: testUser2.id,
       session: {},
       app,
     };
@@ -196,5 +201,26 @@ describe("room abortHandler", function () {
       },
     };
     await roomsHandlers.abortHandler(req, res);
+    after(removeTestData);
   });
 });
+
+// 테스트를 위한 유저 생성 함수
+const userGenerator = (username) => {
+  const testUser = new userModel({
+    id: username,
+    name: username + "-name",
+    nickname: username + "-nickname",
+    profileImageUrl: generateProfileImageUrl(),
+    joinat: Date.now(),
+    subinfo: {
+      kaist: "20180668",
+      sparcs: "",
+      facebook: "",
+      twitter: "",
+    },
+    email: username + ".kaist.ac.kr",
+  });
+
+  return testUser;
+};
