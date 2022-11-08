@@ -36,8 +36,13 @@ const participantSchema = Schema({
 });
 
 const deviceTokenSchema = Schema({
-  id: { type: Schema.Types.ObjectId, ref: "User", required: true, unique: true },
-  deviceToken: { type: String, required: true },
+  id: {
+    type: Schema.Types.ObjectId,
+    ref: "User",
+    required: true,
+    unique: true,
+  },
+  deviceToken: { type: Schema.Types.Array, required: true },
 });
 
 const roomSchema = Schema({
