@@ -161,6 +161,7 @@ User {
 ```javascript
 {
     result: Boolean, // 정상적으로 업로드 되었으면 true
+    profileImageUrl?: user._id, // 정상적으로 업로드 되었으면 새 프로필 이미지 파일명, 그렇지 않은 경우 undefined
 }
 ```
 
