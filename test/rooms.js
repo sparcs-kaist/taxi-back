@@ -1,12 +1,9 @@
-const request = require("supertest");
 const expect = require("chai").expect;
 const express = require("express");
 
 const authHandlers = require("../src/service/auth.replace");
 const roomsHandlers = require("../src/service/rooms");
 const { userModel, roomModel, locationModel } = require("../src/db/mongo");
-
-const security = require("../security");
 
 describe("room createHandler", function () {
   it("should create room", async function () {
@@ -175,5 +172,29 @@ describe("room settlementHandler", function () {
       },
     };
     await roomsHandlers.settlementHandler(req, res);
+  });
+});
+
+describe("room abortHandler", function () {
+  it("should return information of room and abort user", async function () {
+    let testUser = await userModel.findOne({ id: "monday" });
+    let testRoom = await roomModel.findOne({ name: "test-room" });
+    let app = express();
+    const req = {
+      body: { roomId: testRoom._id },
+      userId: testUser.id,
+      session: {},
+      app,
+    };
+    const res = {
+      send: (data) => {
+        expect(data).to.has.property("name", "test-room");
+        expect(data.part).to.have.lengthOf(1);
+      },
+      status: (data) => {
+        expect(data).to.equal(200);
+      },
+    };
+    await roomsHandlers.abortHandler(req, res);
   });
 });
