@@ -4,7 +4,7 @@ const authHandlers = require("../src/service/auth.replace");
 const { userModel } = require("../src/db/mongo");
 const security = require("../security");
 
-describe("auth.replace handler", function () {
+describe("[auth.replace] 1.sparcsssoHandler", function () {
   const removeTestUser = async () => {
     // drop all collections
     await userModel.deleteOne({ id: "test" });

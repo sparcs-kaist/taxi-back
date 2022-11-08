@@ -2,7 +2,7 @@ const expect = require("chai").expect;
 const logininfoHandlers = require("../src/service/logininfo");
 const { userModel } = require("../src/db/mongo");
 
-describe("logininfo handler", function () {
+describe("[logininfo] 1.logininfoHandler", function () {
   it("should return {id: undefined, sid: undefined, name: undefined } when no user is logged in", function () {
     const req = { session: {} };
     const res = {
@@ -64,7 +64,7 @@ describe("logininfo handler", function () {
   });
 });
 
-describe("detail info handler", function () {
+describe("[logininfo] 2.detailHandler", function () {
   it("should return { id: undefined } when no user is logged in", function () {
     const req = { session: {} };
     const res = {

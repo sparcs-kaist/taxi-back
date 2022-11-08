@@ -1,7 +1,7 @@
 const expect = require("chai").expect;
 const locationHandlers = require("../src/service/locations");
 
-describe("locations handler", function () {
+describe("[locations] 1.getAllLocationsHandler", function () {
   it("should return information of locations correctly", async function () {
     const req = {};
     const res = {
