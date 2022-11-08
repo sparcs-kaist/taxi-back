@@ -9,7 +9,7 @@ const { userModel, roomModel, locationModel } = require("../src/db/mongo");
 const security = require("../security");
 
 describe("room createHandler", function () {
-  it("should create room correctly", async function () {
+  it("should create room", async function () {
     let testUser = await userModel.findOne({ id: "sunday" });
     let testFrom = await locationModel.findOne({ koName: "대전역" });
     let testTo = await locationModel.findOne({ koName: "택시승강장" });
@@ -39,7 +39,7 @@ describe("room createHandler", function () {
 });
 
 describe("room infoHandler", function () {
-  it("should return information of room correctly", async function () {
+  it("should return information of room", async function () {
     let testUser = await userModel.findOne({ id: "sunday" });
     let room = await roomModel.findOne({ name: "test-room" });
     const req = {
@@ -49,6 +49,7 @@ describe("room infoHandler", function () {
     const res = {
       send: (data) => {
         expect(data).to.has.property("name", "test-room");
+        expect(data).to.has.property("isOver");
       },
       status: (data) => {
         expect(data).to.equal(200);
@@ -60,7 +61,7 @@ describe("room infoHandler", function () {
 });
 
 describe("room joinHandler", function () {
-  it("should return information of room and join successfully", async function () {
+  it("should return information of room and join", async function () {
     let testUser = await userModel.findOne({ id: "monday" });
     let testRoom = await roomModel.findOne({ name: "test-room" });
     let app = express();
@@ -74,6 +75,7 @@ describe("room joinHandler", function () {
     const res = {
       send: (data) => {
         expect(data).to.has.property("name", "test-room");
+        expect(data.part).to.have.lengthOf(2);
       },
       status: (data) => {
         expect(data).to.equal(200);
@@ -84,25 +86,94 @@ describe("room joinHandler", function () {
   });
 });
 
-// describe("room searchHandler", function () {
-//   it("should return information of room successfully", async function () {
-//     let testFrom = await locationModel.findOne({ koName: "대전역" });
-//     let testTo = await locationModel.findOne({ koName: "택시승강장" });
-//     const req = {
-//       query: {
-//         name: "test-room",
-//         from: testFrom._id,
-//         to: testTo._id,
-//         time: Date.now(),
-//         maxPartLength: 4,
-//       },
-//     };
-//     const res = {
-//       status: (data) => {
-//         expect(data).to.equal(200);
-//       },
-//     };
+describe("room searchHandler", function () {
+  it("should return information of searching room", async function () {
+    let testFrom = await locationModel.findOne({ koName: "대전역" });
+    let testTo = await locationModel.findOne({ koName: "택시승강장" });
+    const req = {
+      query: {
+        name: "test-room",
+        from: testFrom._id,
+        to: testTo._id,
+        time: Date.now() - 1000,
+        maxPartLength: 4,
+      },
+    };
+    const res = {
+      json: (data) => {
+        expect(data[0]).to.has.property("name", "test-room");
+        expect(data[0]).to.has.property("settlementTotal");
+      },
+      status: (data) => {
+        expect(data).to.equal(200);
+      },
+    };
 
-//     await roomsHandlers.searchHandler(req, res);
-//   });
-// });
+    await roomsHandlers.searchHandler(req, res);
+  });
+});
+
+describe("room searchByUserHandler", function () {
+  it("should return information of searching room", async function () {
+    let testUser = await userModel.findOne({ id: "sunday" });
+    const req = {
+      userId: testUser.id,
+    };
+    const res = {
+      json: (data) => {
+        expect(data).to.has.property("ongoing");
+        expect(data).to.has.property("done");
+      },
+      status: (data) => {
+        expect(data).to.equal(200);
+      },
+    };
+
+    await roomsHandlers.searchByUserHandler(req, res);
+  });
+});
+
+describe("room commitPaymentHandler", function () {
+  it("should return information of room and commit payment", async function () {
+    let testUser = await userModel.findOne({ id: "sunday" });
+    let testRoom = await roomModel.findOne({ name: "test-room" });
+    const req = {
+      body: { roomId: testRoom._id },
+      userId: testUser.id,
+      timestamp: Date.now(),
+    };
+    const res = {
+      send: (data) => {
+        expect(data).to.has.property("name", "test-room");
+        expect(data).to.has.property("isOver", true);
+        expect(data).to.has.property("settlementTotal", 1);
+      },
+      status: (data) => {
+        expect(data).to.equal(200);
+      },
+    };
+    await roomsHandlers.commitPaymentHandler(req, res);
+  });
+});
+
+describe("room settlementHandler", function () {
+  it("should return information of room and set settlement", async function () {
+    let testUser = await userModel.findOne({ id: "monday" });
+    let testRoom = await roomModel.findOne({ name: "test-room" });
+    const req = {
+      body: { roomId: testRoom._id },
+      userId: testUser.id,
+    };
+    const res = {
+      send: (data) => {
+        expect(data).to.has.property("name", "test-room");
+        expect(data).to.has.property("isOver", true);
+        expect(data).to.has.property("settlementTotal", 2);
+      },
+      status: (data) => {
+        expect(data).to.equal(200);
+      },
+    };
+    await roomsHandlers.settlementHandler(req, res);
+  });
+});
