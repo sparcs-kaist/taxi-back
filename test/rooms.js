@@ -84,25 +84,25 @@ describe("room joinHandler", function () {
   });
 });
 
-describe("room searchHandler", function () {
-  it("should return information of room successfully", async function () {
-    let testFrom = await locationModel.findOne({ koName: "대전역" });
-    let testTo = await locationModel.findOne({ koName: "택시승강장" });
-    const req = {
-      query: {
-        name: "test-room",
-        from: testFrom._id,
-        to: testTo._id,
-        time: Date.now(),
-        maxPartLength: 4,
-      },
-    };
-    const res = {
-      status: (data) => {
-        expect(data).to.equal(200);
-      },
-    };
+// describe("room searchHandler", function () {
+//   it("should return information of room successfully", async function () {
+//     let testFrom = await locationModel.findOne({ koName: "대전역" });
+//     let testTo = await locationModel.findOne({ koName: "택시승강장" });
+//     const req = {
+//       query: {
+//         name: "test-room",
+//         from: testFrom._id,
+//         to: testTo._id,
+//         time: Date.now(),
+//         maxPartLength: 4,
+//       },
+//     };
+//     const res = {
+//       status: (data) => {
+//         expect(data).to.equal(200);
+//       },
+//     };
 
-    await roomsHandlers.searchHandler(req, res);
-  });
-});
+//     await roomsHandlers.searchHandler(req, res);
+//   });
+// });
