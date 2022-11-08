@@ -102,7 +102,8 @@ app's deep link
 
 #### URL Parameters
 
-- accessToken, refreshToken
+- accessToken / 만료된 유효한 JWT Access Token이어야 함
+- refreshToken / 만료되지 않은 유효한 JWT Refresh Token 이어야 함.
 
 #### Response
 
@@ -127,7 +128,7 @@ app's deep link
 
 #### URL Parameters
 
-- token
+- accessToken / 만료 되지 않은 유효한 JWT accessToken 이어야 함
 
 #### Response
 
@@ -147,8 +148,8 @@ None / 세션 기록
 
 #### URL Parameters
 
-- accessToken
-- deviceToken
+- accessToken / 만료 되지 않은 유효한 JWT accessToken 이어야 함
+- deviceToken / Firebase 라이브러리에서 제공해주는 DeviceToken 이어야 함
 
 #### Response
 
@@ -166,8 +167,8 @@ None
 
 #### URL Parameters
 
-- accessToken
-- deviceToken
+- accessToken / 만료 되지 않은 유효한 JWT accessToken 이어야 함
+- deviceToken / Firebase 라이브러리에서 제공해주는 DeviceToken 이어야 함
 
 #### Response
 

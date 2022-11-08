@@ -87,10 +87,10 @@ const loginFalse = (req, res) => {
 
 const loginWithToken = async (req, res) => {
   req.session.isApp = true;
-  const { token } = req.query;
+  const { accessToken } = req.query;
   try {
-    if (!token) return res.status(400).send("invalid request");
-    const data = await jwt.verify(token);
+    if (!accessToken) return res.status(400).send("invalid request");
+    const data = await jwt.verify(accessToken);
 
     if (data === TOKEN_INVALID) {
       return res.status(401).json({ message: "Invalid token" });
