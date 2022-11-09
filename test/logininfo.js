@@ -2,8 +2,8 @@ const expect = require("chai").expect;
 const logininfoHandlers = require("../src/service/logininfo");
 const { userModel } = require("../src/db/mongo");
 
-describe("[logininfo] 1.logininfoHandler", function () {
-  it("should return {id: undefined, sid: undefined, name: undefined } when no user is logged in", function () {
+describe("[logininfo] 1.logininfoHandler", () => {
+  it("should return {id: undefined, sid: undefined, name: undefined } when no user is logged in", () => {
     const req = { session: {} };
     const res = {
       json: (data) => {
@@ -17,7 +17,7 @@ describe("[logininfo] 1.logininfoHandler", function () {
     logininfoHandlers.logininfoHandler(req, res);
   });
 
-  it("should return {id: 'hello-id', sid: 'hello-sid', 'name': 'hello-name'} when user is logged in", function () {
+  it("should return {id: 'hello-id', sid: 'hello-sid', 'name': 'hello-name'} when user is logged in", () => {
     const req = {
       session: {
         loginInfo: {
@@ -40,7 +40,7 @@ describe("[logininfo] 1.logininfoHandler", function () {
     logininfoHandlers.logininfoHandler(req, res);
   });
 
-  it("should return {id: undefined, sid: undefined, name: undefined } when the session is expired", function () {
+  it("should return {id: undefined, sid: undefined, name: undefined } when the session is expired", () => {
     const req = {
       session: {
         loginInfo: {
@@ -64,8 +64,8 @@ describe("[logininfo] 1.logininfoHandler", function () {
   });
 });
 
-describe("[logininfo] 2.detailHandler", function () {
-  it("should return { id: undefined } when no user is logged in", function () {
+describe("[logininfo] 2.detailHandler", () => {
+  it("should return { id: undefined } when no user is logged in", () => {
     const req = { session: {} };
     const res = {
       json: (data) => {
@@ -77,7 +77,7 @@ describe("[logininfo] 2.detailHandler", function () {
     logininfoHandlers.detailHandler(req, res);
   });
 
-  it("should return correct information as same as user's when user is logged in", async function () {
+  it("should return correct information as same as user's when user is logged in", async () => {
     const req = {
       session: {
         loginInfo: {
@@ -112,7 +112,7 @@ describe("[logininfo] 2.detailHandler", function () {
     logininfoHandlers.detailHandler(req, res);
   });
 
-  it("should return {id: undefined} when the session is expired", function () {
+  it("should return {id: undefined} when the session is expired", () => {
     const req = {
       session: {
         loginInfo: {

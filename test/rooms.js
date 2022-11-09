@@ -5,8 +5,8 @@ const { userModel, roomModel, locationModel } = require("../src/db/mongo");
 const { userGenerator } = require("./utils");
 const app = express();
 
-describe("[rooms] 1.createHandler", function () {
-  it("should create room", async function () {
+describe("[rooms] 1.createHandler", () => {
+  it("should create room", async () => {
     const testUser1 = await userGenerator("test1");
     const testFrom = await locationModel.findOne({ koName: "대전역" });
     const testTo = await locationModel.findOne({ koName: "택시승강장" });
@@ -34,8 +34,8 @@ describe("[rooms] 1.createHandler", function () {
   });
 });
 
-describe("[rooms] 2.infoHandler", function () {
-  it("should return information of room", async function () {
+describe("[rooms] 2.infoHandler", () => {
+  it("should return information of room", async () => {
     const testUser1 = await userModel.findOne({ id: "test1" });
     const room = await roomModel.findOne({ name: "test-room" });
     const req = {
@@ -56,8 +56,8 @@ describe("[rooms] 2.infoHandler", function () {
   });
 });
 
-describe("[rooms] 3.joinHandler", function () {
-  it("should return information of room and join", async function () {
+describe("[rooms] 3.joinHandler", () => {
+  it("should return information of room and join", async () => {
     const testUser2 = await userGenerator("test2");
     const testRoom = await roomModel.findOne({ name: "test-room" });
     const req = {
@@ -81,8 +81,8 @@ describe("[rooms] 3.joinHandler", function () {
   });
 });
 
-describe("[rooms] 4.searchHandler", function () {
-  it("should return information of searching room", async function () {
+describe("[rooms] 4.searchHandler", () => {
+  it("should return information of searching room", async () => {
     const testFrom = await locationModel.findOne({ koName: "대전역" });
     const testTo = await locationModel.findOne({ koName: "택시승강장" });
     const req = {
@@ -108,8 +108,8 @@ describe("[rooms] 4.searchHandler", function () {
   });
 });
 
-describe("[rooms] 5.searchByUserHandler", function () {
-  it("should return information of searching room", async function () {
+describe("[rooms] 5.searchByUserHandler", () => {
+  it("should return information of searching room", async () => {
     const testUser1 = await userModel.findOne({ id: "test1" });
     const req = {
       userId: testUser1.id,
@@ -128,8 +128,8 @@ describe("[rooms] 5.searchByUserHandler", function () {
   });
 });
 
-describe("[rooms] 6.commitPaymentHandler", function () {
-  it("should return information of room and commit payment", async function () {
+describe("[rooms] 6.commitPaymentHandler", () => {
+  it("should return information of room and commit payment", async () => {
     const testUser1 = await userModel.findOne({ id: "test1" });
     const testRoom = await roomModel.findOne({ name: "test-room" });
     const req = {
@@ -151,8 +151,8 @@ describe("[rooms] 6.commitPaymentHandler", function () {
   });
 });
 
-describe("[rooms] 7.settlementHandler", function () {
-  it("should return information of room and set settlement", async function () {
+describe("[rooms] 7.settlementHandler", () => {
+  it("should return information of room and set settlement", async () => {
     const testUser2 = await userModel.findOne({ id: "test2" });
     const testRoom = await roomModel.findOne({ name: "test-room" });
     const req = {
@@ -173,14 +173,14 @@ describe("[rooms] 7.settlementHandler", function () {
   });
 });
 
-describe("[rooms] 8.abortHandler", function () {
+describe("[rooms] 8.abortHandler", () => {
   const removeTestData = async () => {
     // drop all testData
     await roomModel.deleteOne({ name: "test-room" });
     await userModel.deleteOne({ id: "test1" });
     await userModel.deleteOne({ id: "test2" });
   };
-  it("should return information of room and abort user", async function () {
+  it("should return information of room and abort user", async () => {
     const testUser2 = await userModel.findOne({ id: "test2" });
     const testRoom = await roomModel.findOne({ name: "test-room" });
     const req = {
