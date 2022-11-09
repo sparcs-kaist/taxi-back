@@ -7,9 +7,9 @@ const app = express();
 
 describe("[rooms] 1.createHandler", function () {
   it("should create room", async function () {
-    let testUser1 = await userGenerator("test1");
-    let testFrom = await locationModel.findOne({ koName: "대전역" });
-    let testTo = await locationModel.findOne({ koName: "택시승강장" });
+    const testUser1 = await userGenerator("test1");
+    const testFrom = await locationModel.findOne({ koName: "대전역" });
+    const testTo = await locationModel.findOne({ koName: "택시승강장" });
     const req = {
       body: {
         name: "test-room",
@@ -36,8 +36,8 @@ describe("[rooms] 1.createHandler", function () {
 
 describe("[rooms] 2.infoHandler", function () {
   it("should return information of room", async function () {
-    let testUser1 = await userModel.findOne({ id: "test1" });
-    let room = await roomModel.findOne({ name: "test-room" });
+    const testUser1 = await userModel.findOne({ id: "test1" });
+    const room = await roomModel.findOne({ name: "test-room" });
     const req = {
       query: { id: room._id },
       userId: testUser1.id,
@@ -58,8 +58,8 @@ describe("[rooms] 2.infoHandler", function () {
 
 describe("[rooms] 3.joinHandler", function () {
   it("should return information of room and join", async function () {
-    let testUser2 = await userGenerator("test2");
-    let testRoom = await roomModel.findOne({ name: "test-room" });
+    const testUser2 = await userGenerator("test2");
+    const testRoom = await roomModel.findOne({ name: "test-room" });
     const req = {
       body: {
         roomId: testRoom._id,
@@ -83,8 +83,8 @@ describe("[rooms] 3.joinHandler", function () {
 
 describe("[rooms] 4.searchHandler", function () {
   it("should return information of searching room", async function () {
-    let testFrom = await locationModel.findOne({ koName: "대전역" });
-    let testTo = await locationModel.findOne({ koName: "택시승강장" });
+    const testFrom = await locationModel.findOne({ koName: "대전역" });
+    const testTo = await locationModel.findOne({ koName: "택시승강장" });
     const req = {
       query: {
         name: "test-room",
@@ -110,7 +110,7 @@ describe("[rooms] 4.searchHandler", function () {
 
 describe("[rooms] 5.searchByUserHandler", function () {
   it("should return information of searching room", async function () {
-    let testUser1 = await userModel.findOne({ id: "test1" });
+    const testUser1 = await userModel.findOne({ id: "test1" });
     const req = {
       userId: testUser1.id,
     };
@@ -130,8 +130,8 @@ describe("[rooms] 5.searchByUserHandler", function () {
 
 describe("[rooms] 6.commitPaymentHandler", function () {
   it("should return information of room and commit payment", async function () {
-    let testUser1 = await userModel.findOne({ id: "test1" });
-    let testRoom = await roomModel.findOne({ name: "test-room" });
+    const testUser1 = await userModel.findOne({ id: "test1" });
+    const testRoom = await roomModel.findOne({ name: "test-room" });
     const req = {
       body: { roomId: testRoom._id },
       userId: testUser1.id,
@@ -153,8 +153,8 @@ describe("[rooms] 6.commitPaymentHandler", function () {
 
 describe("[rooms] 7.settlementHandler", function () {
   it("should return information of room and set settlement", async function () {
-    let testUser2 = await userModel.findOne({ id: "test2" });
-    let testRoom = await roomModel.findOne({ name: "test-room" });
+    const testUser2 = await userModel.findOne({ id: "test2" });
+    const testRoom = await roomModel.findOne({ name: "test-room" });
     const req = {
       body: { roomId: testRoom._id },
       userId: testUser2.id,
@@ -181,8 +181,8 @@ describe("[rooms] 8.abortHandler", function () {
     await userModel.deleteOne({ id: "test2" });
   };
   it("should return information of room and abort user", async function () {
-    let testUser2 = await userModel.findOne({ id: "test2" });
-    let testRoom = await roomModel.findOne({ name: "test-room" });
+    const testUser2 = await userModel.findOne({ id: "test2" });
+    const testRoom = await roomModel.findOne({ name: "test-room" });
     const req = {
       body: { roomId: testRoom._id },
       userId: testUser2.id,
