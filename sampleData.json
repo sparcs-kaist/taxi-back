@@ -23,20 +23,52 @@
       "enName": "Taxi Stand"
     },
     {
+      "koName": "대전역",
+      "enName": "Daejeon Station"
+    },
+    {
       "koName": "갤러리아 타임월드",
       "enName": "Galleria Timeworld"
+    },
+    {
+      "koName": "궁동 로데오거리",
+      "enName": "Gung-dong Rodeo Street"
+    },
+    {
+      "koName": "대전복합터미널",
+      "enName": "Daejeon Terminal Complex"
     },
     {
       "koName": "서대전역",
       "enName": "Seodaejeon Station"
     },
     {
-      "koName": "대전역",
-      "enName": "Daejeon Station"
+      "koName": "신세계백화점",
+      "enName": "Shinsegae Department Store"
     },
     {
-      "koName": "정부청사",
-      "enName": "Government Complex Daejeon"
+      "koName": "오리연못",
+      "enName": "Duck Pond"
+    },
+    {
+      "koName": "월평역",
+      "enName": "Wolpyeong Station"
+    },
+    {
+      "koName": "유성고속버스터미널",
+      "enName": "Yuseong Express Bus Terminal"
+    },
+    {
+      "koName": "유성시외버스터미널",
+      "enName": "Yuseong Intercity Bus Terminal"
+    },
+    {
+      "koName": "대전청사 고속터미널",
+      "enName": "Government Complex Express Bus Terminal"
+    },
+    {
+      "koName": "대전청사 시외버스터미널",
+      "enName": "Government Complex Intercity Bus Terminal"
     }
   ]
 }
