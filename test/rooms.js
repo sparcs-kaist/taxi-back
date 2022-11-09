@@ -2,13 +2,12 @@ const expect = require("chai").expect;
 const express = require("express");
 const roomsHandlers = require("../src/service/rooms");
 const { userModel, roomModel, locationModel } = require("../src/db/mongo");
-const { generateProfileImageUrl } = require("../src/modules/modifyProfile");
+const { userGenerator } = require("./utils");
 const app = express();
 
 describe("[rooms] 1.createHandler", function () {
   it("should create room", async function () {
-    let testUser1 = userGenerator("test1");
-    await testUser1.save();
+    let testUser1 = await userGenerator("test1");
     let testFrom = await locationModel.findOne({ koName: "대전역" });
     let testTo = await locationModel.findOne({ koName: "택시승강장" });
     const req = {
@@ -59,8 +58,7 @@ describe("[rooms] 2.infoHandler", function () {
 
 describe("[rooms] 3.joinHandler", function () {
   it("should return information of room and join", async function () {
-    let testUser2 = userGenerator("test2");
-    await testUser2.save();
+    let testUser2 = await userGenerator("test2");
     let testRoom = await roomModel.findOne({ name: "test-room" });
     const req = {
       body: {
@@ -204,23 +202,3 @@ describe("[rooms] 8.abortHandler", function () {
     after(removeTestData);
   });
 });
-
-// 테스트를 위한 유저 생성 함수
-const userGenerator = (username) => {
-  const testUser = new userModel({
-    id: username,
-    name: username + "-name",
-    nickname: username + "-nickname",
-    profileImageUrl: generateProfileImageUrl(),
-    joinat: Date.now(),
-    subinfo: {
-      kaist: "20180668",
-      sparcs: "",
-      facebook: "",
-      twitter: "",
-    },
-    email: username + ".kaist.ac.kr",
-  });
-
-  return testUser;
-};
