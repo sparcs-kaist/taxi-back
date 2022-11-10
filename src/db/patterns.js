@@ -6,7 +6,7 @@ module.exports = {
   },
   user: {
     nickname: RegExp("^[A-Za-z가-힣ㄱ-ㅎㅏ-ㅣ0-9-_ ]{3,25}$"),
-    allowedEmployeeTypes: RegExp("^([PEUR][SA]|[PEUR]|[SA])$"),
+    allowedEmployeeTypes: RegExp("^([PEUR]|[SA]|[PEUR][SA])$"),
     profileImgType: RegExp("^(image/png|image/jpg|image/jpeg)$"),
   },
   chat: {
