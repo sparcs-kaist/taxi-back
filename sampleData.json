@@ -39,6 +39,10 @@
       "enName": "Daejeon Terminal Complex"
     },
     {
+      "koName": "만년중학교",
+      "enName": "Mannyon Middle School"
+    },
+    {
       "koName": "서대전역",
       "enName": "Seodaejeon Station"
     },
@@ -53,6 +57,10 @@
     {
       "koName": "월평역",
       "enName": "Wolpyeong Station"
+    },
+    {
+      "koName": "유성구청",
+      "enName": "Yuseong-gu Office"
     },
     {
       "koName": "유성 고속버스터미널",
