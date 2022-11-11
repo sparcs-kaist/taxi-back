@@ -314,7 +314,7 @@ const searchHandler = async (req, res) => {
       });
     }
 
-    // 검색 시간대는 해당 날짜의 저정으로 설정합니다.
+    // 검색 시간대는 해당 날짜의 자정으로 설정합니다.
     const maxTime = new Date(minTime);
     maxTime.setDate(minTime.getDate() + 1);
     maxTime.setHours(0);
