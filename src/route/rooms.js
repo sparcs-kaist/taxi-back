@@ -62,6 +62,7 @@ router.get(
     query("from").optional().isMongoId(),
     query("to").optional().isMongoId(),
     query("time").optional().isISO8601(),
+    query("withTime").toBoolean().optional().isBoolean(),
     query("maxPartLength").optional().isInt({ min: 2, max: 4 }),
   ],
   validator,
