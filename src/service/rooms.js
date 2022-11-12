@@ -260,12 +260,6 @@ const abortHandler = async (req, res) => {
 };
 
 const searchHandler = async (req, res) => {
-  const isRequestUnder1min = (date) => {
-    const oneMinuteInMilliseconds = 60 * 1000;
-    if (date.getTime() + oneMinuteInMilliseconds > Date.now()) return true;
-    else return false;
-  };
-
   try {
     const { name, from, to, time, withTime, maxPartLength } = req.query;
 
@@ -305,13 +299,6 @@ const searchHandler = async (req, res) => {
       minTime.setMinutes(0);
       minTime.setSeconds(0);
       minTime.setMilliseconds(0);
-    }
-
-    // 요청이 서버 시각 기준 1분 전에 왔으면 해당 요청을 유효하지 않은 것으로 처리합니다.
-    if (!isRequestUnder1min(minTime)) {
-      return res.status(400).json({
-        error: "Room/search : Bad request",
-      });
     }
 
     // 검색 시간대는 해당 날짜의 자정으로 설정합니다.
