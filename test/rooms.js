@@ -6,7 +6,7 @@ const { userGenerator } = require("./utils");
 const app = express();
 
 describe("[rooms] 1.createHandler", () => {
-  it("should create room", async () => {
+  it("should create room which departs after 1 minute", async () => {
     const testUser1 = await userGenerator("test1");
     const testFrom = await locationModel.findOne({ koName: "대전역" });
     const testTo = await locationModel.findOne({ koName: "택시승강장" });
@@ -15,7 +15,7 @@ describe("[rooms] 1.createHandler", () => {
         name: "test-room",
         from: testFrom._id,
         to: testTo._id,
-        time: Date.now() + 60 * 60 * 1000,
+        time: Date.now() + 60 * 1000,
         maxPartLength: 4,
       },
       userId: testUser1.id,
@@ -136,7 +136,7 @@ describe("[rooms] 6.commitPaymentHandler", () => {
     const req = {
       body: { roomId: testRoom._id },
       userId: testUser1.id,
-      timestamp: Date.now() + 60 * 60 * 1000,
+      timestamp: Date.now() + 60 * 1000,
     };
     const res = {
       send: (data) => {
