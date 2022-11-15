@@ -15,7 +15,7 @@ describe("[rooms] 1.createHandler", () => {
         name: "test-room",
         from: testFrom._id,
         to: testTo._id,
-        time: Date.now(),
+        time: Date.now() + 60 * 60 * 1000,
         maxPartLength: 4,
       },
       userId: testUser1.id,
@@ -90,7 +90,8 @@ describe("[rooms] 4.searchHandler", () => {
         name: "test-room",
         from: testFrom._id,
         to: testTo._id,
-        time: Date.now() - 1000,
+        time: Date.now(),
+        withTime: true,
         maxPartLength: 4,
       },
     };
@@ -135,7 +136,7 @@ describe("[rooms] 6.commitPaymentHandler", () => {
     const req = {
       body: { roomId: testRoom._id },
       userId: testUser1.id,
-      timestamp: Date.now(),
+      timestamp: Date.now() + 60 * 60 * 1000,
     };
     const res = {
       send: (data) => {
