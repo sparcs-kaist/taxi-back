@@ -260,14 +260,8 @@ const abortHandler = async (req, res) => {
 };
 
 const searchHandler = async (req, res) => {
-  const isRequestUnder1min = (date) => {
-    const oneMinuteInMilliseconds = 60 * 1000;
-    if (date.getTime() + oneMinuteInMilliseconds > Date.now()) return true;
-    else return false;
-  };
-
   try {
-    const { name, from, to, time, maxPartLength } = req.query;
+    const { name, from, to, time, withTime, maxPartLength } = req.query;
 
     // 출발지와 도착지가 같은 경우
     if (from && to && from === to) {
@@ -294,19 +288,26 @@ const searchHandler = async (req, res) => {
         });
       }
     }
-
-    const minTime = time ? new Date(time) : new Date();
-    // 요청이 서버 시각 기준 1분 전에 왔으면 해당 요청을 유효하지 않은 것으로 처리합니다.
-    if (!isRequestUnder1min(minTime)) {
-      return res.status(400).json({
-        error: "Room/search : Bad request",
-      });
+    const currentTime = new Date();
+    const searchedTime = time ? new Date(time) : currentTime;
+    const minTime =
+      searchedTime.getTime() >= currentTime.getTime()
+        ? searchedTime // time이 현재 시간보다 미래인 경우
+        : currentTime; // time이 현재 시간보다 과거인 경우
+    if (!withTime && searchedTime.getTime() > currentTime.getTime()) {
+      minTime.setHours(0);
+      minTime.setMinutes(0);
+      minTime.setSeconds(0);
+      minTime.setMilliseconds(0);
     }
 
-    // 검색 시간대는 시작 시각으로부터 24시간으로 설정합니다.
-    const maxTime = new Date(minTime).setTime(
-      minTime.getTime() + 24 * 60 * 60 * 1000
-    );
+    // 검색 시간대는 해당 날짜의 자정으로 설정합니다.
+    const maxTime = new Date(minTime);
+    maxTime.setDate(minTime.getDate() + 1);
+    maxTime.setHours(0);
+    maxTime.setMinutes(0);
+    maxTime.setSeconds(0);
+    maxTime.setMilliseconds(0);
 
     // 검색 쿼리를 설정합니다.
     const query = {};
