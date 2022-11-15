@@ -8,7 +8,7 @@ const {
   getFullUsername,
 } = require("../modules/modifyProfile");
 const jwt = require("../modules/jwt");
-const APP_URI_SCHEME = require("../../security").APP_URI_SCHEME;
+const APP_URI_SCHEME = require("../../security").appUriScheme;
 
 const { TOKEN_EXPIRED, TOKEN_INVALID } = require("../config/constants");
 
@@ -108,9 +108,8 @@ const loginWithToken = async (req, res) => {
 
     if (!userInfo) return res.status(401).json({ message: "Invalid token" });
     else {
-      req.session.isApp = true;
       login(req, userInfo.sid, userInfo.id, userInfo.name);
-      res.redirect(security.frontUrl + "/");
+      return res.status(200).json({ message: "success" });
     }
   } catch (e) {
     logger.error(e);
