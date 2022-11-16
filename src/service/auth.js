@@ -106,7 +106,8 @@ const loginWithToken = async (req, res) => {
 
     const userInfo = await userModel.findOne({ _id: data.id });
 
-    if (!userInfo) return res.status(401).json({ message: "Invalid token" });
+    if (!userInfo)
+      return res.status(401).json({ message: "No corresponding user" });
     else {
       login(req, userInfo.sid, userInfo.id, userInfo.name);
       return res.status(200).json({ message: "success" });
@@ -151,7 +152,7 @@ const createNewTokenHandler = async (req, res, userData) => {
 };
 
 const refreshAccessToken = async (req, res) => {
-  const { accessToken, refreshToken } = req.body;
+  const { accessToken, refreshToken } = req.query;
   if (!accessToken || !refreshToken)
     return res.status(400).send("invalid request");
 
@@ -178,7 +179,7 @@ const refreshAccessToken = async (req, res) => {
 
     const newAccessToken = await jwt.sign({ id: data.id, type: "access" });
     const newRefreshToken = await jwt.sign({ id: data.id, type: "refresh" });
-    res.json({
+    return res.json({
       accessToken: newAccessToken.token,
       refreshToken: newRefreshToken.token,
     });
@@ -287,9 +288,6 @@ const sparcsssoCallbackHandler = (req, res) => {
 
 const logoutHandler = (req, res) => {
   logout(req, res);
-  if (req.session.isApp) {
-    res.redirect(APP_URI_SCHEME + "://logout");
-  }
   res.status(200).send("logged out successfully");
 };
 
