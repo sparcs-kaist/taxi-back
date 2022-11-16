@@ -5,7 +5,6 @@ const {
   chatModel,
 } = require("./db/mongo");
 const crypto = require("crypto");
-const security = require("../security");
 
 //사용 가능한 프로필 이미지 url들
 const defaultProfile = [
@@ -157,9 +156,9 @@ const generateChats = async (roomId, userOids, numOfChats) => {
   let userIdsInRoom = [];
   let userIdsOutRoom = userOids.map((userOid) => userOid);
   let lastTime = Date.now();
-  const maximumIntervalBtwChats = 1000 * security.maximumIntervalBtwChats; //Default: 20,000 milliseconds
-  let occurenceOfJoin = security.occurenceOfJoin; //Default: 10%
-  let occurenceOfAbort = security.occurenceOfAbort; //Default: 10%, 즉 새로운 하나의 채팅 메시지가 입/퇴장 메시지 중 하나일 확률은 20%
+  const maximumIntervalBtwChats = 1000 * 20; //Default: 20,000 milliseconds
+  const occurenceOfJoin = 0.1; //Default: 10%
+  const occurenceOfAbort = 0.1; //Default: 10%, 즉 새로운 하나의 채팅 메시지가 입/퇴장 메시지 중 하나일 확률은 20%
 
   for (const i of Array(numOfChats).keys()) {
     lastTime += Math.floor(Math.random() * maximumIntervalBtwChats);
