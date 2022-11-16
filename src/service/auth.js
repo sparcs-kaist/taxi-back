@@ -118,7 +118,7 @@ const loginWithToken = async (req, res) => {
   }
 };
 
-const createNewTokenHandler = async (req, res, userData) => {
+const createNewTokenHandler = (req, res, userData) => {
   userModel.findOne(
     { id: userData.id },
     "name id withdraw ban",

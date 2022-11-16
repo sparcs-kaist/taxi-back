@@ -42,7 +42,7 @@ const deviceTokenSchema = Schema({
     required: true,
     unique: true,
   },
-  deviceToken: { type: Schema.Types.Array, required: true },
+  deviceToken: [{ type: String, required: true }],
 });
 
 const roomSchema = Schema({
