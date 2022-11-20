@@ -5,12 +5,10 @@ const {
   generateChats,
 } = require("./src/testData");
 
-const { loadSampleData } = require("./security");
+const { loadSampleData, numberOfRooms, numberOfChats } = require("./security");
 
 const main = async () => {
   const { users, locations } = await Promise.resolve(loadSampleData);
-  const numberOfRooms = 2;
-  const numberOfChats = 200;
 
   const userOids = [];
   const roomOids = [];
