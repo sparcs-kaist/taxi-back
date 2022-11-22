@@ -25,7 +25,7 @@ jobs:
         node-version: ${{ matrix.node-version }}
         cache: 'npm'   
     - name: Install sampleGenerator dependencies from package-lock.json
-      run: cd taxiSampleGenerator && npm ci && cd ..
+      run: cd sampleGenerator && npm ci && cd ..
     - name: Install taxi-back dependencies from package-lock.json
       run: npm ci
     - name: Run unit tests
