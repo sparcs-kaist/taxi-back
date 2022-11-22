@@ -5,9 +5,13 @@ const {
   generateChats,
 } = require("./src/testData");
 
+const database = require("./src/db/mongo").connection;
+
 const { loadSampleData, numberOfRooms, numberOfChats } = require("./security");
 
 const main = async () => {
+  await database.db.dropDatabase();
+
   const { users, locations } = await Promise.resolve(loadSampleData);
 
   const userOids = [];
@@ -37,4 +41,4 @@ const main = async () => {
   process.exit(0);
 };
 
-main();
+database.on("open", main);
