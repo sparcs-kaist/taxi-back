@@ -36,7 +36,7 @@ const participantSchema = Schema({
 });
 
 const deviceTokenSchema = Schema({
-  id: {
+  userid: {
     type: Schema.Types.ObjectId,
     ref: "User",
     required: true,
@@ -118,7 +118,7 @@ mongoose.connect(security.mongo, {
 
 module.exports = {
   userModel: mongoose.model("User", userSchema),
-  deviceTokenModel: mongoose.model("Token", deviceTokenSchema),
+  deviceTokenModel: mongoose.model("DeviceToken", deviceTokenSchema),
   roomModel: mongoose.model("Room", roomSchema),
   locationModel: mongoose.model("Location", locationSchema),
   chatModel: mongoose.model("Chat", chatSchema),
