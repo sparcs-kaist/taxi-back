@@ -104,7 +104,9 @@ Room {
 
 ### `/info` **(GET)**
 
-ID를 parameter로 받아 해당 ID의 room의 정보 출력
+ID를 parameter로 받아 해당 ID의 room의 정보 출력한다. 
+요청을 보낸 사용자가 해당 room의 part에 속해 있어야 한다. 
+참여 중인 방 목록에서 해당 방을 클릭하여 채팅이나 정산을 하고 싶을 때 사용하는 API이다. 
 
 #### URL parameters
 
