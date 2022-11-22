@@ -5,9 +5,13 @@ const {
   generateChats,
 } = require("./src/testData");
 
+const mongoose = require("./src/db/mongo");
+
 const { loadSampleData, numberOfRooms, numberOfChats } = require("./security");
 
 const main = async () => {
+  await mongoose.connection.db.dropDatabase();
+
   const { users, locations } = await Promise.resolve(loadSampleData);
 
   const userOids = [];
@@ -37,4 +41,5 @@ const main = async () => {
   process.exit(0);
 };
 
-main();
+const database = mongoose.connection;
+database.on("open", main);

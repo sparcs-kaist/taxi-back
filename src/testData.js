@@ -3,7 +3,7 @@ const {
   roomModel,
   locationModel,
   chatModel,
-} = require("./db/mongo");
+} = require("./db/model");
 const crypto = require("crypto");
 const security = require("../security");
 
