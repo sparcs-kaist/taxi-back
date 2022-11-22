@@ -26,8 +26,12 @@ jobs:
         cache: 'npm'   
     - name: Install sampleGenerator dependencies from package-lock.json
       run: cd sampleGenerator && npm ci && cd ..
+      with: 
+        submodules: true
     - name: Install taxi-back dependencies from package-lock.json
       run: npm ci
+      with: 
+        submodules: true
     - name: Run unit tests
       run: npm test
       env:
