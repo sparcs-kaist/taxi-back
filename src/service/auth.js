@@ -87,9 +87,10 @@ const loginFalse = (req, res) => {
 
 const loginWithToken = async (req, res) => {
   req.session.isApp = true;
-  const { accessToken } = req.query;
+  const { accessToken, deviceToken } = req.query;
   try {
-    if (!accessToken) return res.status(400).send("invalid request");
+    if (!accessToken || !deviceToken)
+      return res.status(400).send("invalid request");
     const data = await jwt.verify(accessToken);
 
     if (data === TOKEN_INVALID) {
@@ -110,6 +111,7 @@ const loginWithToken = async (req, res) => {
       return res.status(401).json({ message: "No corresponding user" });
     else {
       login(req, userInfo.sid, userInfo.id, userInfo.name);
+      req.session.deviceToken = deviceToken;
       return res.status(200).json({ message: "success" });
     }
   } catch (e) {
