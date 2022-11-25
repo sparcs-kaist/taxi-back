@@ -351,6 +351,31 @@ const searchByUserHandler = async (req, res) => {
       })
       .lean();
 
+    // ongoingRoom 중 이미 출발했고, 혼자 참여중인 방은
+    // 정산 상태를 완료로 바꾸고 doneRoom으로 옮긴다.
+    const moving = user.ongoingRoom.filter(
+      (room) => room.part.length === 1 && room.time < req.timestamp
+    );
+    moving.forEach(async function (room) {
+      room.part.settlementStatus = "paid";
+      room.settlementTotal = 1;
+      room.isDeparted = true;
+      await room.save();
+
+      user.doneRoom.push(room._id);
+
+      const movingRoomIndex = user.ongoingRoom.indexOf(room._id);
+      if (movingRoomIndex === -1) {
+        await user.save();
+        return res.status(500).json({
+          error: "Rooms/searchByUser/:id : internal server error",
+        });
+      }
+      user.ongoingRoom.splice(movingRoomIndex);
+
+      await user.save();
+    });
+
     // 정산완료여부 기준으로 진행중인 방과 완료된 방을 분리해서 응답을 전송합니다.
     const response = {};
     response.ongoing = user.ongoingRoom.map((room) =>
