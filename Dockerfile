@@ -1,15 +1,11 @@
 FROM node:16-alpine
 
-# Install git
-RUN apk add --no-cache \
-  git
-
-# Clone repository
+# Copy repository
 WORKDIR /usr/src/app
 COPY . .
 
 # Install requirements
-RUN npm install
+RUN npm ci
 
 # Run container
 EXPOSE 80
