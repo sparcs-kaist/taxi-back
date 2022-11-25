@@ -354,13 +354,28 @@ const searchByUserHandler = async (req, res) => {
     // ongoingRoom 중 이미 출발했고, 혼자 참여중인 방은
     // 정산 상태를 완료로 바꾸고 doneRoom으로 옮긴다.
     const moving = user.ongoingRoom.filter(
-      (room) => room.part.length === 1 && room.time < req.timestamp
+      (room) => room.part.length == 1 && room.time <= req.timestamp
     );
+
     moving.forEach(async function (room) {
-      room.part.settlementStatus = "paid";
-      room.settlementTotal = 1;
-      room.isDeparted = true;
-      await room.save();
+      let changingRoomObject = await roomModel
+        .findOneAndUpdate(
+          { _id: room._id },
+          {
+            settlementTotal: 1,
+            isDeparted: true,
+            $set: { "part[0].settlementStatus": "paid" },
+          },
+          { raw: true }
+        )
+        .lean()
+        .populate(roomPopulateOption);
+
+      if (!changingRoomObject) {
+        return res.status(404).json({
+          error: "Rooms/searchByUser/:id : cannot find settlement info",
+        });
+      }
 
       user.doneRoom.push(room._id);
 
@@ -371,7 +386,7 @@ const searchByUserHandler = async (req, res) => {
           error: "Rooms/searchByUser/:id : internal server error",
         });
       }
-      user.ongoingRoom.splice(movingRoomIndex);
+      user.ongoingRoom.splice(movingRoomIndex, 1);
 
       await user.save();
     });
