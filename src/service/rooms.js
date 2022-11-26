@@ -357,7 +357,7 @@ const searchByUserHandler = async (req, res) => {
       (room) => room.part.length == 1 && room.time <= req.timestamp
     );
 
-    moving.forEach(async function (room) {
+    for (const room of moving) {
       let changingRoomObject = await roomModel
         .findOneAndUpdate(
           { _id: room._id },
@@ -389,7 +389,7 @@ const searchByUserHandler = async (req, res) => {
       user.ongoingRoom.splice(movingRoomIndex, 1);
 
       await user.save();
-    });
+    }
 
     // 정산완료여부 기준으로 진행중인 방과 완료된 방을 분리해서 응답을 전송합니다.
     const response = {};
