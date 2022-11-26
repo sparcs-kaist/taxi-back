@@ -360,13 +360,21 @@ const searchByUserHandler = async (req, res) => {
     for (const room of moving) {
       let changingRoomObject = await roomModel
         .findOneAndUpdate(
-          { _id: room._id },
+          {
+            _id: room._id,
+            part: {
+              $elemMatch: {
+                user: user._id,
+                settlementStatus: "not-departed",
+              },
+            },
+            time: { $lte: req.timestamp },
+          },
           {
             settlementTotal: 1,
-            isDeparted: true,
-            $set: { "part[0].settlementStatus": "paid" },
+            $set: { "part.$.settlementStatus": "paid" },
           },
-          { raw: true }
+          { new: true }
         )
         .lean()
         .populate(roomPopulateOption);
