@@ -58,7 +58,7 @@ const locationSchema = Schema({
   koName: { type: String, required: true },
   priority: { type: Number, default: 0 },
   isValid: { type: Boolean, default: true },
-  //   latitude: { type: Number, required: true },
+  // latitude: { type: Number, required: true },
   // longitude: { type: Number, required: true }
 });
 const chatSchema = Schema({
