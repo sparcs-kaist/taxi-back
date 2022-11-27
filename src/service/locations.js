@@ -3,7 +3,7 @@ const logger = require("../modules/logger");
 
 const getAllLocationsHandler = async (_, res) => {
   try {
-    const locations = await locationModel.find({}, { __v: 0 });
+    const locations = await locationModel.find({ isValid: true }, { __v: 0 }).sort({"priority": 1});
     const serverTime = new Date().toISOString();
     res.json({ locations, serverTime });
   } catch (err) {
