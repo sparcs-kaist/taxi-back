@@ -5,6 +5,8 @@ const { userModel, roomModel, locationModel } = require("../src/db/mongo");
 const { userGenerator } = require("./utils");
 const app = express();
 
+// rooms.js 관련 8개의 handler을 테스트
+// 1. test1이 1분 뒤에 출발하는 test-room 방을 생성
 describe("[rooms] 1.createHandler", () => {
   it("should create room which departs after 1 minute", async () => {
     const testUser1 = await userGenerator("test1");
@@ -34,6 +36,7 @@ describe("[rooms] 1.createHandler", () => {
   });
 });
 
+// 2. test1을 통하여 방의 정보 가져옴
 describe("[rooms] 2.infoHandler", () => {
   it("should return information of room", async () => {
     const testUser1 = await userModel.findOne({ id: "test1" });
@@ -56,6 +59,7 @@ describe("[rooms] 2.infoHandler", () => {
   });
 });
 
+// 3. test2가 test-room에 join
 describe("[rooms] 3.joinHandler", () => {
   it("should return information of room and join", async () => {
     const testUser2 = await userGenerator("test2");
@@ -81,6 +85,7 @@ describe("[rooms] 3.joinHandler", () => {
   });
 });
 
+// 4. 방의 정보를 통해 검색
 describe("[rooms] 4.searchHandler", () => {
   it("should return information of searching room", async () => {
     const testFrom = await locationModel.findOne({ koName: "대전역" });
@@ -109,6 +114,7 @@ describe("[rooms] 4.searchHandler", () => {
   });
 });
 
+// 5. 방에 속한 유저를 통해 검색
 describe("[rooms] 5.searchByUserHandler", () => {
   it("should return information of searching room", async () => {
     const testUser1 = await userModel.findOne({ id: "test1" });
@@ -129,6 +135,7 @@ describe("[rooms] 5.searchByUserHandler", () => {
   });
 });
 
+// 6.1분이 지난 후, 정산 정보를 불러옴
 describe("[rooms] 6.commitPaymentHandler", () => {
   it("should return information of room and commit payment", async () => {
     const testUser1 = await userModel.findOne({ id: "test1" });
@@ -152,6 +159,7 @@ describe("[rooms] 6.commitPaymentHandler", () => {
   });
 });
 
+// 7. 도착 정보를 불러옴
 describe("[rooms] 7.settlementHandler", () => {
   it("should return information of room and set settlement", async () => {
     const testUser2 = await userModel.findOne({ id: "test2" });
@@ -174,6 +182,7 @@ describe("[rooms] 7.settlementHandler", () => {
   });
 });
 
+// 8. test2 방에서 퇴장, 생성해준 data 모두 삭제
 describe("[rooms] 8.abortHandler", () => {
   const removeTestData = async () => {
     // drop all testData
