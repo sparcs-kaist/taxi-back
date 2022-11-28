@@ -31,7 +31,7 @@ jobs:
       uses: actions/github-script@v4
       with:
         script: |
-          const tagVersion = tag.replace("${{ steps.previous_tag.outputs.tag }}", '')
+          const tagVersion = "${{ steps.previous_tag.outputs.tag }}".replace('v', '')
           core.setOutput('tag', tagVersion)
     
     - name: Configure AWS credentials
