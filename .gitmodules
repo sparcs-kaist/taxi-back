@@ -1,0 +1,3 @@
+[submodule "sampleGenerator"]
+	path = sampleGenerator
+	url = https://github.com/sparcs-kaist/taxiSampleGenerator

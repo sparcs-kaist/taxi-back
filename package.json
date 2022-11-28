@@ -42,9 +42,11 @@
   },
   "scripts": {
     "start": "npx nodemon app.js",
-    "test": "cross-env TZ='Asia/Seoul' NODE_ENV=test mocha --recursive --reporter spec --exit",
+    "test": "npm run sample && npm run mocha",
+    "mocha": "cross-env TZ='Asia/Seoul' NODE_ENV=test mocha --recursive --reporter spec --exit",
     "serve": "cross-env TZ='Asia/Seoul' NODE_ENV=production node app.js",
-    "lint": "npx eslint --fix ."
+    "lint": "npx eslint --fix .",
+    "sample": "cd sampleGenerator && npm start && cd .."
   },
   "author": "sparcs/taxi",
   "license": "MIT"
