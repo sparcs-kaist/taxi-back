@@ -2,38 +2,54 @@ name: Push Image to Amazon ECR
 
 # when branch is merge to main 
 on:
-  pull_request:
+  release:
     types:
-      - closed
-    branches:
-      - main
+      - created
 
 env:
   AWS_REGION: ap-northeast-2
 
 jobs:
-  if_merged:
-    if: github.event.pull_request.merged == true
+  build:
     name: Build and Push
     runs-on: ubuntu-latest
 
     steps:
     - name: Checkout
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
+    
+    - name: Get previous tag-version
+      id: previous_tag
+      uses: WyriHaximus/github-action-get-previous-tag@v1
+      with:
+        fallback: 1.0.0
+    
+    - name: Set Tag Version
+      id: tag
+      uses: actions/github-script@v4
+      with:
+        script: |
+          const tagVersion = tag.replace("${{ steps.previous_tag.outputs.tag }}", '')
+          core.setOutput('tag', tagVersion)
+    
     - name: Configure AWS credentials
       uses: aws-actions/configure-aws-credentials@v1
       with:
         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         aws-region: ${{ env.AWS_REGION }}
+    
     - name: Login to AWS ECR
       id: login-ecr
       uses: aws-actions/amazon-ecr-login@v1
+    
     - name: Build and Push to AWS ECR
-      id: build-image
+      id: build_image
       env:
         ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-        IMAGE_TAG: ${{ github.sha }} # let's talk about tag
+        IMAGE_TAG: ${{ steps.tag.outputs.tag }}
         ECR_REPOSITORY: taxi-back
       run: |
         docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
