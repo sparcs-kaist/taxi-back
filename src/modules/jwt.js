@@ -11,7 +11,7 @@ const signJwt = async ({ id, type }) => {
     option.expiresIn = "30d";
   }
   if (type === "access") {
-    option.expiresIn = "7d";
+    option.expiresIn = "14d";
   }
 
   const result = {

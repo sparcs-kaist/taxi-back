@@ -209,22 +209,17 @@ const registerDeviceTokenHandler = async (req, res) => {
     )
       return res.status(401).send("unauthorized");
 
-    try {
-      await deviceTokenModel.updateOne(
-        {
-          userid: accessTokenStatus.id,
-        },
-        {
-          userid: accessTokenStatus.id,
-          $addToSet: { deviceToken: deviceToken },
-        },
-        { upsert: true, new: true }
-      );
-      res.status(200).send("success");
-    } catch (e) {
-      logger.error(e);
-      res.status(500).send("server error");
-    }
+    await deviceTokenModel.updateOne(
+      {
+        userid: accessTokenStatus.id,
+      },
+      {
+        userid: accessTokenStatus.id,
+        $addToSet: { deviceToken: deviceToken },
+      },
+      { upsert: true, new: true }
+    );
+    res.status(200).send("success");
   } catch (e) {
     logger.error(e);
     res.status(500).send("server error");
@@ -245,26 +240,21 @@ const removeDeviceTokenHandler = async (req, res) => {
     )
       return res.status(401).send("unauthorized");
 
-    try {
-      await deviceTokenModel.updateOne(
-        {
-          userid: accessTokenStatus.id,
-        },
-        { userid: accessTokenStatus.id, $pull: { deviceToken: deviceToken } },
-        { upsert: true, new: true }
-      );
-      res.status(200).send("success");
-    } catch (e) {
-      logger.error(e);
-      res.status(500).send("server error");
-    }
+    await deviceTokenModel.updateOne(
+      {
+        userid: accessTokenStatus.id,
+      },
+      { userid: accessTokenStatus.id, $pull: { deviceToken: deviceToken } },
+      { upsert: true, new: true }
+    );
+    res.status(200).send("success");
   } catch (e) {
     logger.error(e);
     res.status(500).send("server error");
   }
 };
 
-const sparcsssoForAppHandler = (req, res) => {
+const generateTokenHandler = (req, res) => {
   req.session.isApp = true;
   sparcsssoHandler(req, res);
 };
@@ -280,7 +270,7 @@ const sparcsssoCallbackHandler = (req, res) => {
   const state1 = req.session.state;
   const state2 = req.body.state || req.query.state;
 
-  if (state1 != state2) loginFalse(req, res);
+  if (state1 !== state2) loginFalse(req, res);
   else {
     const code = req.body.code || req.query.code;
     client.getUserInfo(code).then((userDataBefore) => {
@@ -308,6 +298,6 @@ module.exports = {
   loginWithToken,
   refreshAccessToken,
   registerDeviceTokenHandler,
-  sparcsssoForAppHandler,
+  generateTokenHandler,
   removeDeviceTokenHandler,
 };
