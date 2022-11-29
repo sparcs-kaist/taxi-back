@@ -1,6 +1,6 @@
 # This workflow will do a clean installation of node dependencies, cache/restore them, build the source code and run tests across different versions of node
 # For more information see: https://help.github.com/actions/language-and-framework-guides/using-nodejs-with-github-actions
-name: Node.js CI
+name: Test for Continuous integration
 on:
   push:
     branches: [ "main" ]
@@ -19,34 +19,16 @@ jobs:
       run: sudo docker run --name mongodb -d -p 27017:27017 mongo:${{ matrix.mongodb-version }}
     - name: Use Node.js ${{ matrix.node-version }}
       uses: actions/checkout@v3
+      with:
+        submodules: true
     - name: Setup Node
       uses: actions/setup-node@v3
       with:
         node-version: ${{ matrix.node-version }}
         cache: 'npm'   
-    - name: Install aws cli
-      run: sudo apt update && sudo apt install awscli
-    - name: create AWS configuration file and copy
-      run: |
-        mkdir -p ~/.aws
-        cd ~/.aws
-        pwd
-        touch credentials
-        echo "[default]" >> credentials
-        echo aws_access_key_id = ${{ secrets.AWS_ACCESS_KEY_ID }}  >> credentials
-        echo aws_secret_access_key = ${{ secrets.AWS_SECRET_ACCESS_KEY }} >> credentials
-        cat credentials
-        touch config
-        echo "[default]" >> config
-        echo "region = ap-northeast-2" >> config
-        echo "output = json" >> config
-    - name: Download mongoDB dump file
-      run: aws s3 cp --recursive s3://${{ secrets.AWS_S3_BUCKET_NAME }}/dump dump
-    - name: Copy to mongodb container
-      run: docker cp dump mongodb:/dump
-    - name: Restore DB from dump file
-      run: docker exec mongodb sh -c 'mongorestore ${{ secrets.DB_PATH }} /dump/${{ secrets.DB_NAME }}'
-    - name: Install dependencies from package-lock.json
+    - name: Install sampleGenerator dependencies from package-lock.json
+      run: cd sampleGenerator && npm ci && cd ..
+    - name: Install taxi-back dependencies from package-lock.json
       run: npm ci
     - name: Run unit tests
       run: npm test
