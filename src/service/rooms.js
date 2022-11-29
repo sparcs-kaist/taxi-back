@@ -17,6 +17,24 @@ const createHandler = async (req, res) => {
         error: "Room/create : locations are same",
       });
     }
+
+    const createTime = new Date(time);
+    createTime.setHours(0, 0, 0, 0);
+
+    const currentTime = new Date();
+    currentTime.setHours(0, 0, 0, 0);
+
+    const maxTime = new Date(currentTime);
+    maxTime.setDate(currentTime.getDate() + 15);
+
+    maxTime.setHours(0, 0, 0, 0);
+
+    if (createTime.getTime() > maxTime.getTime()) {
+      return res.status(400).json({
+        error: "Room/create : cannot over 2 weeks on the basis of current Date",
+      });
+    }
+
     let fromLoc = await locationModel.findById(from);
     let toLoc = await locationModel.findById(to);
     if (!fromLoc || !toLoc) {
@@ -303,7 +321,7 @@ const searchHandler = async (req, res) => {
 
     // 검색 시간대는 해당 날짜의 자정으로 설정합니다.
     const maxTime = new Date(minTime);
-    maxTime.setDate(minTime.getDate() + 14);
+    maxTime.setDate(minTime.getDate() + (time ? 1 : 14));
     maxTime.setHours(0);
     maxTime.setMinutes(0);
     maxTime.setSeconds(0);
