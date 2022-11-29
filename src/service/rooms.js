@@ -337,7 +337,7 @@ const searchHandler = async (req, res) => {
 
 const searchByUserHandler = async (req, res) => {
   try {
-    const user = await userModel
+    var user = await userModel
       .findOne({ id: req.userId })
       .populate({
         path: "ongoingRoom",
@@ -356,7 +356,7 @@ const searchByUserHandler = async (req, res) => {
       (room) => room.part.length == 1 && room.time <= req.timestamp
     );
 
-    console.log("moving array: " + moving);
+    // 정산 상태를 완료로 바꾼다.
     for await (const room of moving) {
       console.log("before changing settlement: " + room);
       let changingRoomObject = await roomModel
@@ -386,20 +386,32 @@ const searchByUserHandler = async (req, res) => {
         });
       }
 
-      console.log("after changing settlement: " + changingRoomObject);
-      user.doneRoom.push(room._id);
-      const movingRoomIndex = user.ongoingRoom.indexOf(room._id);
-      console.log("movingRoomIndex: " + movingRoomIndex);
-      if (movingRoomIndex === -1) {
-        await user.save();
-        console.log("There is no room that satisfies room id. ");
-        return res.status(500).json({
-          error: "Rooms/searchByUser/:id : internal server error",
-        });
-      }
-      user.ongoingRoom.splice(movingRoomIndex, 1);
-      await user.save();
+      // ongoingRoom에서 doneRoom으로 옮긴다.
+      await userModel.updateOne(
+        { id: req.userId },
+        { $push: { doneRoom: room.id } }
+      );
+
+      await userModel.updateOne(
+        { id: req.userId },
+        { $pull: { ongoingRoom: room.id } }
+      );
     }
+
+    // lean()이 적용된 user를 response에 반환해줘야 하기 때문에 user를 한 번 더 지정한다.
+    user = await userModel
+      .findOne({ id: req.userId })
+      .populate({
+        path: "ongoingRoom",
+        options: { limit: 1000 },
+        populate: roomPopulateOption,
+      })
+      .populate({
+        path: "doneRoom",
+        options: { limit: 1000 },
+        populate: roomPopulateOption,
+      })
+      .lean();
 
     // 정산완료여부 기준으로 진행중인 방과 완료된 방을 분리해서 응답을 전송합니다.
     const response = {};
