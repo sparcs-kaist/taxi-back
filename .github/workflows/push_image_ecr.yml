@@ -5,6 +5,10 @@ on:
   release:
     types:
       - created
+  workflow_run:
+    workflows: ["Create Release and Tag"]
+    types:
+      - completed
 
 env:
   AWS_REGION: ap-northeast-2
