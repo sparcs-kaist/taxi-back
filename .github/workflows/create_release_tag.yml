@@ -30,9 +30,12 @@ jobs:
       with:
         version: ${{ steps.previous_tag.outputs.tag }}
     
-    - name: Get current date
+    - name: Get current time
+      uses: josStorer/get-current-time@v2.0.2
       id: date
-      run: echo "::set-output name=date::$(date +'%Y-%m-%d')"
+      with:
+        format: YYYY-MM-DD
+        utcOffset: "+09:00"
     
     - name: Create Release
       id: create_release
@@ -43,7 +46,7 @@ jobs:
         tag_name: ${{ steps.minor_tag.outputs.v_patch }}
         release_name: ${{ steps.minor_tag.outputs.v_patch }}
         body: |
-          ${{ steps.date.outputs.date }}
+          ${{ steps.date.outputs.formattedTime }}
           Github action released ${{ steps.minor_tag.outputs.v_patch }}
         draft: false
         prerelease: false
