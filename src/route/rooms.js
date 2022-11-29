@@ -64,6 +64,7 @@ router.get(
     query("time").optional().isISO8601(),
     query("withTime").toBoolean().optional().isBoolean(),
     query("maxPartLength").optional().isInt({ min: 2, max: 4 }),
+    query("isHome").isBoolean(),
   ],
   validator,
   roomHandlers.searchHandler
