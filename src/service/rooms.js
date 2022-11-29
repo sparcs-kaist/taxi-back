@@ -348,8 +348,7 @@ const searchByUserHandler = async (req, res) => {
         path: "doneRoom",
         options: { limit: 1000 },
         populate: roomPopulateOption,
-      })
-      .lean();
+      });
 
     // ongoingRoom 중 이미 출발했고, 혼자 참여중인 방은
     // 정산 상태를 완료로 바꾸고 doneRoom으로 옮긴다.
@@ -357,7 +356,9 @@ const searchByUserHandler = async (req, res) => {
       (room) => room.part.length == 1 && room.time <= req.timestamp
     );
 
-    for (const room of moving) {
+    console.log("moving array: " + moving);
+    for await (const room of moving) {
+      console.log("before changing settlement: " + room);
       let changingRoomObject = await roomModel
         .findOneAndUpdate(
           {
@@ -385,17 +386,18 @@ const searchByUserHandler = async (req, res) => {
         });
       }
 
+      console.log("after changing settlement: " + changingRoomObject);
       user.doneRoom.push(room._id);
-
       const movingRoomIndex = user.ongoingRoom.indexOf(room._id);
+      console.log("movingRoomIndex: " + movingRoomIndex);
       if (movingRoomIndex === -1) {
         await user.save();
+        console.log("There is no room that satisfies room id. ");
         return res.status(500).json({
           error: "Rooms/searchByUser/:id : internal server error",
         });
       }
       user.ongoingRoom.splice(movingRoomIndex, 1);
-
       await user.save();
     }
 
