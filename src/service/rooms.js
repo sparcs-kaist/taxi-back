@@ -337,7 +337,7 @@ const searchHandler = async (req, res) => {
 
 const searchByUserHandler = async (req, res) => {
   try {
-    var user = await userModel
+    var user = await userModel // 일련의 작업 후 user를 재정의하기 때문에 var로 정의
       .findOne({ id: req.userId })
       .populate({
         path: "ongoingRoom",
@@ -382,7 +382,7 @@ const searchByUserHandler = async (req, res) => {
 
       if (!changingRoomObject) {
         return res.status(404).json({
-          error: "Rooms/searchByUser/:id : cannot find settlement info",
+          error: "Rooms/searchByUser : cannot find settlement info",
         });
       }
 
