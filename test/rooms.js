@@ -106,6 +106,7 @@ describe("[rooms] 4.searchHandler", () => {
 });
 
 // 5. 방에 속한 유저를 통해 검색
+// ongoing은 test-room이 검색되고, done은 아무것도 검색되지 않아야함
 describe("[rooms] 5.searchByUserHandler", () => {
   it("should return information of searching room", async () => {
     const testUser1 = await userModel.findOne({ id: "test1" });
