@@ -8,11 +8,9 @@ const agreeOnTermsOfServiceHandler = async (req, res) => {
     if (user.agreeOnTermsOfService !== true) {
       user.agreeOnTermsOfService = true;
       await user.save();
-      res
-        .status(200)
-        .send(
-          "User/agreeOnTermsOfService : agree on Terms of Service successful"
-        );
+      res.send(
+        "User/agreeOnTermsOfService : agree on Terms of Service successful"
+      );
     } else {
       res.status(400).send("User/agreeOnTermsOfService : already agreed");
     }
@@ -27,7 +25,7 @@ const getAgreeOnTermsOfServiceHandler = async (req, res) => {
       .findOne({ id: req.userId }, "agreeOnTermsOfService")
       .lean();
     const agreeOnTermsOfService = user.agreeOnTermsOfService === true;
-    res.status(200).json({ agreeOnTermsOfService });
+    res.json({ agreeOnTermsOfService });
   } catch {
     res.status(500).send("/getAgreeOnTermsOfService : internal server error");
   }
@@ -41,9 +39,7 @@ const editNicknameHandler = (req, res) => {
     .findOneAndUpdate({ id: req.userId }, { nickname: newNickname })
     .then((result) => {
       if (result) {
-        res
-          .status(200)
-          .send("User/editNickname : edit user nickname successful");
+        res.send("User/editNickname : edit user nickname successful");
       } else {
         res.status(400).send("User/editNickname : such user id does not exist");
       }
