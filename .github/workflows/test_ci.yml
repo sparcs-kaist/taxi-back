@@ -26,6 +26,8 @@ jobs:
       with:
         node-version: ${{ matrix.node-version }}
         cache: 'npm'   
+    - name: Update to lateset submoudle
+      run: git submodule update --remote
     - name: Install sampleGenerator dependencies from package-lock.json
       run: cd sampleGenerator && npm ci && cd ..
     - name: Install taxi-back dependencies from package-lock.json
