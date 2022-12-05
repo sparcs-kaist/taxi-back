@@ -7,15 +7,18 @@ const signJwt = async ({ id, type }) => {
     id: id,
     type: type,
   };
+
+  const options = { ...option };
+
   if (type === "refresh") {
-    option.expiresIn = "30d";
+    options.expiresIn = "30d";
   }
   if (type === "access") {
-    option.expiresIn = "14d";
+    options.expiresIn = "14d";
   }
 
   const result = {
-    token: jwt.sign(payload, jwtSecretKey, option),
+    token: jwt.sign(payload, jwtSecretKey, options),
   };
   return result;
 };
