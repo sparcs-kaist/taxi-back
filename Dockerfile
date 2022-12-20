@@ -32,4 +32,4 @@ RUN mkdir $DB_STORAGE; \
 
 # Start mongo service
 EXPOSE 27017
-CMD ["sh", "-c", "cp -rf /home/db /data && mongod"]
+CMD ["sh", "-c", "cp -rf $DB_STORAGE /data && mongod"]
