@@ -18,4 +18,5 @@ module.exports = {
   },
   jwtSecretKey: process.env.JWT_SECRET_KEY,
   appUriScheme: process.env.APP_URI_SCHEME,
+  googleApplicationCredentials: process.env.GOOGLE_APPLICATION_CREDENTIALS,
 };

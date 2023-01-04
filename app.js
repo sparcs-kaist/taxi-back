@@ -11,6 +11,16 @@ const logger = require("./src/modules/logger");
 const logAPIAccess = require("./src/modules/logAPIAccess");
 const startSocketServer = require("./src/modules/socket");
 
+// Firebase Admin 초기설정
+
+var admin = require("firebase-admin");
+
+var serviceAccount = require(security.googleApplicationCredentials);
+
+admin.initializeApp({
+  credential: admin.credential.cert(serviceAccount),
+});
+
 // 익스프레스 서버 생성
 const app = express();
 app.use(express.urlencoded({ extended: false }));
