@@ -33,7 +33,7 @@ jobs:
       name: Save origin version of submodule
       run: echo "ver=`cd sampleGenerator && git log origin --pretty="%h" -1 && cd ..`" >> $GITHUB_OUTPUT
     - name: Check submodule version
-      if: ${{ steps.submodule-local.outputs.ver }} != ${{ steps.submodule-origin.outputs.ver }}
+      if: ${{ steps.submodule-local.outputs.ver != steps.submodule-origin.outputs.ver }}
       uses: actions/github-script@v3
       with:
         script: |
