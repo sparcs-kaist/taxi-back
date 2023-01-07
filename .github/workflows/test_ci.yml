@@ -27,9 +27,11 @@ jobs:
         node-version: ${{ matrix.node-version }}
         cache: 'npm'   
     - id: submodule-local
-      run: echo "::set-output name=ver::`git log --pretty="%h" -1`"
+      name: Save local version of submodule
+      run: echo "{ver}::{`cd sampleGenerator && git log --pretty="%h" -1 && cd ..`}" >> $GITHHUB_OUTPUT
     - id: submodule-origin
-      run: echo "::set-output name=ver::`git log origin --pretty="%h" -1`"
+      name: Save origin version of submodule
+      run: echo "{ver}::{`cd sampleGenerator && git log origin --pretty="%h" -1 && cd ..`}" >> $GITHHUB_OUTPUT
     - name: Print submodule version
       run: echo ${{ steps.submodule-local.outputs.ver }}
     - name: Check submodule version
