@@ -1,0 +1,11 @@
+/node_modules
+.env.test
+.env.production
+.env.development
+.DS_store
+*.code-workspace
+*.swp
+/logs/*.log
+
+# AdminJS 관련 디렉토리
+.adminjs
