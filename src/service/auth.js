@@ -6,10 +6,15 @@ const {
   generateProfileImageUrl,
   getFullUsername,
 } = require("../modules/modifyProfile");
+
+const jwt = require("../modules/jwt");
+const APP_URI_SCHEME = require("../../security").appUriScheme;
+
 const { user: userPattern } = require("../db/patterns");
 
 // SPARCS SSO
 const Client = require("../auth/sparcsso");
+const logger = require("../modules/logger");
 const client = new Client(security.sparcssso?.id, security.sparcssso?.key);
 
 const transUserData = (userData) => {
@@ -56,7 +61,6 @@ const joinus = (req, res, userData) => {
   });
 };
 
-// 닉네임 변경?
 const update = async (req, res, userData) => {
   const updateInfo = { name: userData.name };
   await userModel.updateOne({ id: userData.id }, updateInfo);
@@ -83,6 +87,11 @@ const loginFalse = (req, res) => {
   res.redirect(security.frontUrl + "/login/false"); // 리엑트로 연결되나?
 };
 
+const generateTokenHandler = (req, res) => {
+  req.session.isApp = true;
+  sparcsssoHandler(req, res);
+};
+
 const sparcsssoHandler = (req, res) => {
   const userInfo = getLoginInfo(req);
   const { url, state } = client.getLoginParams();
@@ -94,17 +103,53 @@ const sparcsssoCallbackHandler = (req, res) => {
   const state1 = req.session.state;
   const state2 = req.body.state || req.query.state;
 
-  if (state1 != state2) loginFalse(req, res);
+  if (state1 !== state2) loginFalse(req, res);
   else {
     const code = req.body.code || req.query.code;
     client.getUserInfo(code).then((userDataBefore) => {
       const userData = transUserData(userDataBefore);
-      // 로그인 시마다 사용자가 KAIST 구성원인지 검증함.
-      if (userData.isEligible || security.nodeEnv !== "production")
-        loginDone(req, res, userData);
-      else loginFalse(req, res);
+      if (userData.isEligible || security.nodeEnv !== "production") {
+        if (req.session.isApp) {
+          createNewTokenHandler(req, res, userData);
+        } else {
+          loginDone(req, res, userData);
+        }
+      } else loginFalse(req, res);
     });
   }
+};
+
+const createNewTokenHandler = (req, res, userData) => {
+  userModel.findOne(
+    { id: userData.id },
+    "name id withdraw ban",
+    async (err, result) => {
+      if (err) {
+        logger.error(err);
+        loginFalse(req, res);
+      } else if (!result) joinus(req, res, userData);
+      else if (result.name !== userData.name) update(req, res, userData);
+      else {
+        const accessToken = await jwt.sign({
+          id: result._id,
+          deviceToken: req.body.deviceToken,
+          type: "access",
+        });
+        const refreshToken = await jwt.sign({
+          id: result._id,
+          deviceToken: req.body.deviceToken,
+          type: "refresh",
+        });
+        res.redirect(
+          APP_URI_SCHEME +
+            "://login?accessToken=" +
+            accessToken.token +
+            "&refreshToken=" +
+            refreshToken.token
+        );
+      }
+    }
+  );
 };
 
 const logoutHandler = (req, res) => {
@@ -116,4 +161,5 @@ module.exports = {
   sparcsssoHandler,
   sparcsssoCallbackHandler,
   logoutHandler,
+  generateTokenHandler,
 };

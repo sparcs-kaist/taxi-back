@@ -16,4 +16,6 @@ module.exports = {
     secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
     s3BucketName: process.env.AWS_S3_BUCKET_NAME,
   },
+  jwtSecretKey: process.env.JWT_SECRET_KEY,
+  appUriScheme: process.env.APP_URI_SCHEME,
 };
