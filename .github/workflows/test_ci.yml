@@ -26,8 +26,18 @@ jobs:
       with:
         node-version: ${{ matrix.node-version }}
         cache: 'npm'   
-    - name: Update to latest submoudle
-      run: git submodule update --remote
+    - id: submodule-local
+      run: echo "::set-output name=ver::`git log --pretty="%h" -1`"
+    - id: submodule-origin
+      run: echo "::set-output name=ver::`git log origin --pretty="%h" -1`"
+    - name: Print submodule version
+      run: echo ${{ steps.submodule-local.outputs.ver }}
+    - name: Check submodule version
+      if: ${{ steps.submodule-local.outputs.ver }} != ${{ steps.submodule-origin.outputs.ver }}
+      uses: actions/github-script@v3
+      with:
+        script: |
+            core.setFailed('Please update submodule to the latest version')
     - name: Install sampleGenerator dependencies from package-lock.json
       run: cd sampleGenerator && npm ci && cd ..
     - name: Install taxi-back dependencies from package-lock.json
