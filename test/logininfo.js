@@ -47,7 +47,7 @@ describe("logininfo handler", function () {
           id: "hello-id",
           sid: "hello-sid",
           name: "hello-name",
-          time: new Date(Date.now() - (3600 * 1000 + 1)).getTime(), // the session should expire after 1 hour
+          time: new Date(Date.now() - (14 * 24 * 3600 * 1000 + 1)).getTime(), // the session should expire after 1 hour
         },
       },
     };
@@ -119,7 +119,7 @@ describe("detail info handler", function () {
           id: "hello-id",
           sid: "hello-sid",
           name: "hello-name",
-          time: new Date(Date.now() - (3600 * 1000 + 1)).getTime(), // the session should expire after 1 hour
+          time: new Date(Date.now() - (14 * 24 * 3600 * 1000 + 1)).getTime(), // the session should expire after 1 hour
         },
       },
     };
