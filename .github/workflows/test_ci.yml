@@ -28,10 +28,10 @@ jobs:
         cache: 'npm'   
     - id: submodule-local
       name: Save local version of submodule
-      run: echo "{ver}::{`cd sampleGenerator && git log --pretty="%h" -1 && cd ..`}" >> $GITHUB_OUTPUT
+      run: echo "{ver}={`cd sampleGenerator && git log --pretty="%h" -1 && cd ..`}" >> $GITHUB_OUTPUT
     - id: submodule-origin
       name: Save origin version of submodule
-      run: echo "{ver}::{`cd sampleGenerator && git log origin --pretty="%h" -1 && cd ..`}" >> $GITHUB_OUTPUT
+      run: echo "{ver}={`cd sampleGenerator && git log origin --pretty="%h" -1 && cd ..`}" >> $GITHUB_OUTPUT
     - name: Print submodule version
       run: echo ${{ steps.submodule-local.outputs.ver }}
     - name: Check submodule version
