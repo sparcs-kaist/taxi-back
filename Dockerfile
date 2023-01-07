@@ -4,6 +4,9 @@ FROM node:16-alpine
 WORKDIR /usr/src/app
 COPY . .
 
+# Install curl (for taxi-docker)
+RUN apk update && apk add curl
+
 # Install requirements
 RUN npm ci
 
