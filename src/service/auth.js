@@ -83,42 +83,6 @@ const loginDone = (req, res, userData) => {
   );
 };
 
-const loginFalse = (req, res) => {
-  res.redirect(security.frontUrl + "/login/false"); // 리엑트로 연결되나?
-};
-
-const generateTokenHandler = (req, res) => {
-  req.session.isApp = true;
-  sparcsssoHandler(req, res);
-};
-
-const sparcsssoHandler = (req, res) => {
-  const userInfo = getLoginInfo(req);
-  const { url, state } = client.getLoginParams();
-  req.session.state = state;
-  res.redirect(url);
-};
-
-const sparcsssoCallbackHandler = (req, res) => {
-  const state1 = req.session.state;
-  const state2 = req.body.state || req.query.state;
-
-  if (state1 !== state2) loginFalse(req, res);
-  else {
-    const code = req.body.code || req.query.code;
-    client.getUserInfo(code).then((userDataBefore) => {
-      const userData = transUserData(userDataBefore);
-      if (userData.isEligible || security.nodeEnv !== "production") {
-        if (req.session.isApp) {
-          createNewTokenHandler(req, res, userData);
-        } else {
-          loginDone(req, res, userData);
-        }
-      } else loginFalse(req, res);
-    });
-  }
-};
-
 const createNewTokenHandler = (req, res, userData) => {
   userModel.findOne(
     { id: userData.id },
@@ -152,9 +116,45 @@ const createNewTokenHandler = (req, res, userData) => {
   );
 };
 
+const loginFalse = (req, res) => {
+  res.redirect(security.frontUrl + "/login/false"); // 리엑트로 연결되나?
+};
+
+const sparcsssoHandler = (req, res) => {
+  const userInfo = getLoginInfo(req);
+  const { url, state } = client.getLoginParams();
+  req.session.state = state;
+  res.redirect(url);
+};
+
+const sparcsssoCallbackHandler = (req, res) => {
+  const state1 = req.session.state;
+  const state2 = req.body.state || req.query.state;
+
+  if (state1 !== state2) loginFalse(req, res);
+  else {
+    const code = req.body.code || req.query.code;
+    client.getUserInfo(code).then((userDataBefore) => {
+      const userData = transUserData(userDataBefore);
+      if (userData.isEligible || security.nodeEnv !== "production") {
+        if (req.session.isApp) {
+          createNewTokenHandler(req, res, userData);
+        } else {
+          loginDone(req, res, userData);
+        }
+      } else loginFalse(req, res);
+    });
+  }
+};
+
 const logoutHandler = (req, res) => {
   logout(req, res);
   res.status(200).send("logged out successfully");
+};
+
+const generateTokenHandler = (req, res) => {
+  req.session.isApp = true;
+  sparcsssoHandler(req, res);
 };
 
 module.exports = {

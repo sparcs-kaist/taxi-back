@@ -3,6 +3,7 @@ const { deviceTokenModel } = require("../db/mongo");
 const { login } = require("../auth/login");
 
 const jwt = require("../modules/jwt");
+const logger = require("../modules/logger");
 
 const { TOKEN_EXPIRED, TOKEN_INVALID } = require("../config/constants");
 
