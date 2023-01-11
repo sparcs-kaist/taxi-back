@@ -23,6 +23,7 @@ const userSchema = Schema({
   },
   email: { type: String, required: true },
   isAdmin: { type: Boolean, default: false }, //관리자 여부
+  account: { type: String, default: "" }, //계좌번호 정보
 });
 
 const participantSchema = Schema({
