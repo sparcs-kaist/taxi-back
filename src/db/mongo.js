@@ -93,6 +93,10 @@ const reportSchema = Schema({
   time: { type: Date, required: true },
 });
 
+const adminIpWhitelistSchema = Schema({
+  ip: { type: String, required: true },
+});
+
 const database = mongoose.connection;
 database.on("error", console.error.bind(console, "mongoose connection error."));
 database.on("open", () => {
@@ -125,4 +129,5 @@ module.exports = {
   locationModel: mongoose.model("Location", locationSchema),
   chatModel: mongoose.model("Chat", chatSchema),
   reportModel: mongoose.model("Report", reportSchema),
+  adminIpWhitelistModel: mongoose.model("AdminIpWhitelist", adminIpWhitelistSchema),
 };
