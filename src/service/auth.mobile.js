@@ -95,10 +95,10 @@ const registerDeviceTokenHandler = async (req, res) => {
 
     await deviceTokenModel.updateOne(
       {
-        userid: accessTokenStatus.id,
+        userId: accessTokenStatus.id,
       },
       {
-        userid: accessTokenStatus.id,
+        userId: accessTokenStatus.id,
         $addToSet: { deviceToken: deviceToken },
       },
       { upsert: true, new: true }
@@ -126,9 +126,9 @@ const removeDeviceTokenHandler = async (req, res) => {
 
     await deviceTokenModel.updateOne(
       {
-        userid: accessTokenStatus.id,
+        userId: accessTokenStatus.id,
       },
-      { userid: accessTokenStatus.id, $pull: { deviceToken: deviceToken } },
+      { userId: accessTokenStatus.id, $pull: { deviceToken: deviceToken } },
       { upsert: true, new: true }
     );
     res.status(200).send("success");

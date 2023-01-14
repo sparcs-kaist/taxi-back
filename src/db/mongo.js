@@ -36,13 +36,18 @@ const participantSchema = Schema({
 });
 
 const deviceTokenSchema = Schema({
-  userid: {
+  userId: {
     type: Schema.Types.ObjectId,
     ref: "User",
     required: true,
     unique: true,
   },
   deviceToken: [{ type: String, required: true }],
+  registeredAt: {
+    type: Date,
+    default: () => Date.now(),
+    required: true,
+  },
 });
 
 const roomSchema = Schema({
