@@ -21,7 +21,14 @@ AdminJS.registerAdapter(AdminJSMongoose);
 
 // Create router for admin page
 const adminJsOptions = {
-  resources: [userModel, roomModel, locationModel, chatModel, reportModel, adminIpWhitelistModel],
+  resources: [
+    userModel,
+    roomModel,
+    locationModel,
+    chatModel,
+    reportModel,
+    adminIpWhitelistModel,
+  ],
 };
 const adminJs = new AdminJS(adminJsOptions);
 router = AdminJSExpress.buildRouter(adminJs, router);

@@ -94,7 +94,8 @@ const reportSchema = Schema({
 });
 
 const adminIpWhitelistSchema = Schema({
-  ip: { type: String, required: true },
+  ip: { type: String, required: true }, // IP 주소
+  description: { type: String, default: "" }, // 설명
 });
 
 const database = mongoose.connection;
@@ -129,5 +130,8 @@ module.exports = {
   locationModel: mongoose.model("Location", locationSchema),
   chatModel: mongoose.model("Chat", chatSchema),
   reportModel: mongoose.model("Report", reportSchema),
-  adminIpWhitelistModel: mongoose.model("AdminIpWhitelist", adminIpWhitelistSchema),
+  adminIpWhitelistModel: mongoose.model(
+    "AdminIpWhitelist",
+    adminIpWhitelistSchema
+  ),
 };
