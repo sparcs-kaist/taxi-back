@@ -1,5 +1,5 @@
 const security = require("../../security");
-const { userModel } = require("../db/mongo");
+const { userModel, deviceTokenModel } = require("../db/mongo");
 const { logout, login } = require("../auth/login");
 const {
   generateNickname,
@@ -128,8 +128,36 @@ const logoutHandler = (req, res) => {
   res.status(200).send("logged out successfully");
 };
 
+const registerDeviceTokenHandler = async (req, res) => {
+  try {
+    // FCM 토큰이 현재 유효한지 확인합니다.
+    const deviceToken = req.body.deviceToken;
+    try {
+      // Check if the response is 200. If 400 or 404, then the token is not valid.
+      const iidInfo = await fetch(
+        `https://https://iid.googleapis.com/iid/info/${deviceToken}?details=true`
+      );
+      // 데이터베이스에 새 레코드를 추가합니다.
+      const newDeviceToken = new deviceTokenModel({
+        userId: req.session.user_id,
+        deviceToken,
+      });
+      await newDeviceToken.save();
+      return res.status(200).json({
+        deviceToken,
+      });
+    } catch (e) {
+      return res.status(404).send("token not found");
+    }
+  } catch (e) {
+    logger.error(e);
+    res.status(500).send("internal server error");
+  }
+};
+
 module.exports = {
   tryHandler,
   sparcsssoHandler,
   logoutHandler,
+  registerDeviceTokenHandler,
 };

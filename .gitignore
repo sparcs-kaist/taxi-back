@@ -9,3 +9,6 @@
 
 # AdminJS 관련 디렉토리
 .adminjs
+
+# Firebase Admin SDK 크레덴셜
+firebase-admin-sdk-account.json

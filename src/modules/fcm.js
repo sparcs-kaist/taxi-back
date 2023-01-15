@@ -1,51 +1,50 @@
 var admin = require("firebase-admin");
 const logger = require("../modules/logger");
 
-const sendNotificationMultipleUsers = (message, tokens) => {
-  const tokenMessage = {
-    ...message,
-    tokens: tokens,
-  };
-  return admin
-    .messaging()
-    .sendMulticast(tokenMessage)
-    .then((response) => {
-      return response.failureCount;
-    });
+const sendNotificationMultipleUsers = async (message, tokens) => {
+  try {
+    const tokenMessage = {
+      ...message,
+      tokens: tokens,
+    };
+    const { failureCount } = await admin
+      .messaging()
+      .sendMulticase(tokenMessage);
+    return failureCount;
+  } catch (error) {
+    logger.error(error);
+    return -1;
+  }
 };
 
-const sendNotification = (message, token) => {
-  const tokenMessage = {
-    ...message,
-    token: token,
-  };
-  return admin
-    .messaging()
-    .send(message)
-    .then((response) => {
-      return true;
-    })
-    .catch((error) => {
-      logger.error(error);
-      return false;
-    });
+const sendNotification = async (message, token) => {
+  try {
+    const tokenMessage = {
+      ...message,
+      token: token,
+    };
+    const response = await admin.messaging.send(tokenMessage);
+    logger.info(`Notification sent to token ${token}`);
+    return true;
+  } catch (error) {
+    logger.error(error);
+    return false;
+  }
 };
 
-const sendMessageTopic = (message, topic) => {
-  const topicMessage = {
-    ...message,
-    topic: topic,
-  };
-  return admin
-    .messaging()
-    .send(message)
-    .then((response) => {
-      return true;
-    })
-    .catch((error) => {
-      logger.error(error);
-      return false;
-    });
+const sendMessageTopic = async (message, topic) => {
+  try {
+    const topicMessage = {
+      ...message,
+      topic: topic,
+    };
+    const response = await admin.messaging.send(topicMessage);
+    logger.info(`Notification sent to topic ${topic}`);
+    return true;
+  } catch (error) {
+    logger.error(error);
+    return false;
+  }
 };
 
 module.exports = {
