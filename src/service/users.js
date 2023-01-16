@@ -54,7 +54,7 @@ const editNicknameHandler = (req, res) => {
     });
 };
 
-const editAccountHandler = async (req, res) => {
+const editAccountHandler = (req, res) => {
   const newAccount = req.body.account;
 
   // 계좌번호를 갱신하고 결과를 반환
