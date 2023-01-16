@@ -106,6 +106,7 @@ describe("[logininfo] 2.detailHandler", () => {
           subinfo: result.subinfo,
           email: result.email,
           profileImgUrl: result.profileImageUrl,
+          account: "",
         });
       },
     };

@@ -28,7 +28,7 @@ const detailHandler = (req, res) => {
           subinfo: result.subinfo,
           email: result.email,
           profileImgUrl: result.profileImageUrl,
-          account: result.account,
+          account: result.account ? result.account : "",
         });
       }
     }
