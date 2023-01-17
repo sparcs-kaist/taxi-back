@@ -54,6 +54,25 @@ const editNicknameHandler = (req, res) => {
     });
 };
 
+const editAccountHandler = (req, res) => {
+  const newAccount = req.body.account;
+
+  // 계좌번호를 갱신하고 결과를 반환
+  userModel
+    .findOneAndUpdate({ id: req.userId }, { account: newAccount })
+    .then((result) => {
+      if (result) {
+        res.status(200).send("User/editAccount : edit user account successful");
+      } else {
+        res.status(400).send("User/editAccount : such user id does not exist");
+      }
+    })
+    .catch((err) => {
+      logger.error(err);
+      res.status(500).send("User/editAccount : internal server error");
+    });
+};
+
 const editProfileImgGetPUrlHandler = async (req, res) => {
   try {
     const type = req.body.type;
@@ -122,6 +141,7 @@ module.exports = {
   agreeOnTermsOfServiceHandler,
   getAgreeOnTermsOfServiceHandler,
   editNicknameHandler,
+  editAccountHandler,
   editProfileImgGetPUrlHandler,
   editProfileImgDoneHandler,
 };
