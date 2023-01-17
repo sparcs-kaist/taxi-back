@@ -18,10 +18,7 @@ const createHandler = async (req, res) => {
       });
     }
 
-<<<<<<< HEAD
     const currentTime = new Date();
-=======
->>>>>>> 1ba303d45074a76a3d22812c54af30bf48a8e3d3
     const maxTime = new Date();
     maxTime.setDate(currentTime.getDate() + 14);
     maxTime.setHours(0, 0, 0, 0);
