@@ -8,7 +8,7 @@ const {
   locationModel,
   chatModel,
   reportModel,
-  adminIpWhitelistModel,
+  adminIPWhitelistModel,
 } = require("../db/mongo");
 
 let router = express.Router();
@@ -27,7 +27,7 @@ const adminJsOptions = {
     locationModel,
     chatModel,
     reportModel,
-    adminIpWhitelistModel,
+    adminIPWhitelistModel,
   ],
 };
 const adminJs = new AdminJS(adminJsOptions);

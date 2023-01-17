@@ -93,7 +93,7 @@ const reportSchema = Schema({
   time: { type: Date, required: true },
 });
 
-const adminIpWhitelistSchema = Schema({
+const adminIPWhitelistSchema = Schema({
   ip: { type: String, required: true }, // IP 주소
   description: { type: String, default: "" }, // 설명
 });
@@ -130,8 +130,8 @@ module.exports = {
   locationModel: mongoose.model("Location", locationSchema),
   chatModel: mongoose.model("Chat", chatSchema),
   reportModel: mongoose.model("Report", reportSchema),
-  adminIpWhitelistModel: mongoose.model(
-    "AdminIpWhitelist",
-    adminIpWhitelistSchema
+  adminIPWhitelistModel: mongoose.model(
+    "AdminIPWhitelist",
+    adminIPWhitelistSchema
   ),
 };

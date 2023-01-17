@@ -2,7 +2,7 @@
 
 const { isLogin, getLoginInfo } = require("../auth/login");
 const { frontUrl } = require("../../security");
-const { userModel, adminIpWhitelistModel } = require("../db/mongo");
+const { userModel, adminIPWhitelistModel } = require("../db/mongo");
 
 const adminAuthMiddleware = async (req, res, next) => {
   try {
@@ -17,7 +17,7 @@ const adminAuthMiddleware = async (req, res, next) => {
     // 접속한 IP가 화이트리스트에 있는지 확인
     const clientIP =
       req.headers["x-forwarded-for"] || req.connection.remoteAddress;
-    const ipWhitelist = await adminIpWhitelistModel.find({});
+    const ipWhitelist = await adminIPWhitelistModel.find({});
     if (!clientIP) return res.redirect(frontUrl);
     if (
       ipWhitelist.length > 0 &&
