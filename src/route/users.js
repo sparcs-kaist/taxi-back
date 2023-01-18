@@ -31,6 +31,14 @@ router.post(
   userHandlers.editNicknameHandler
 );
 
+// 새 계좌번호를 받아 로그인된 유저의 계좌번호를 변경합니다.
+router.post(
+  "/editAccount",
+  body("account").matches(patterns.user.account),
+  validator,
+  userHandlers.editAccountHandler
+);
+
 // 프로필 이미지를 업로드할 수 있는 Presigned-url을 발급합니다.
 router.post(
   "/editProfileImg/getPUrl",
