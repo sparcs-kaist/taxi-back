@@ -1,11 +1,11 @@
 # This workflow will do a clean installation of node dependencies, cache/restore them, build the source code and run tests across different versions of node
 # For more information see: https://help.github.com/actions/language-and-framework-guides/using-nodejs-with-github-actions
-name: Node.js CI
+name: Test for Continuous integration
 on:
   push:
     branches: [ "main" ]
   pull_request:
-    branches: [ "main" ]
+    branches: [ "main", "dev" ]
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -26,6 +26,18 @@ jobs:
       with:
         node-version: ${{ matrix.node-version }}
         cache: 'npm'   
+    - id: submodule-local
+      name: Save local version of submodule
+      run: echo "ver=`cd sampleGenerator && git log --pretty="%h" -1 && cd ..`" >> $GITHUB_OUTPUT
+    - id: submodule-origin
+      name: Save origin version of submodule
+      run: echo "ver=`cd sampleGenerator && git log origin --pretty="%h" -1 && cd ..`" >> $GITHUB_OUTPUT
+    - name: Check submodule version
+      if: ${{ steps.submodule-local.outputs.ver != steps.submodule-origin.outputs.ver }}
+      uses: actions/github-script@v3
+      with:
+        script: |
+            core.setFailed('Please update submodule to the latest version by using \"git submodule update --remote\"')
     - name: Install sampleGenerator dependencies from package-lock.json
       run: cd sampleGenerator && npm ci && cd ..
     - name: Install taxi-back dependencies from package-lock.json
