@@ -153,8 +153,15 @@ const createNewTokenHandler = (req, res, userData) => {
 };
 
 const logoutHandler = (req, res) => {
-  logout(req, res);
-  res.status(200).send("logged out successfully");
+  try {
+    const { sid } = getLoginInfo(req);
+    const redirectUrl = security.frontUrl + "/login";
+    const ssoLogoutUrl = client.getLogoutUrl(sid, redirectUrl);
+    logout(req, res);
+    res.json({ ssoLogoutUrl });
+  } catch (e) {
+    res.status(500).send("Auth/logout : internal server error");
+  }
 };
 
 module.exports = {
