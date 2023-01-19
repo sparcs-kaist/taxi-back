@@ -356,6 +356,7 @@ const searchByUserHandler = async (req, res) => {
   try {
     const user = await userModel
       .findOne({ id: req.userId })
+      .sort({ time: -1 })
       .populate({
         path: "ongoingRoom",
         options: { limit: 1000 },
