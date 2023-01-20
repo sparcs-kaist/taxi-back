@@ -356,15 +356,22 @@ const searchByUserHandler = async (req, res) => {
   try {
     const user = await userModel
       .findOne({ id: req.userId })
-      .sort({ time: -1 })
       .populate({
         path: "ongoingRoom",
-        options: { limit: 1000 },
+        options: {
+          limit: 1000,
+          // ongoingRoom 은 시간 오름차순 정렬
+          sort: { time: 1 },
+        },
         populate: roomPopulateOption,
       })
       .populate({
         path: "doneRoom",
-        options: { limit: 1000 },
+        options: {
+          limit: 1000,
+          // doneRoom 은 시간 내림차순 정렬
+          sort: { time: -1 },
+        },
         populate: roomPopulateOption,
       })
       .lean();
