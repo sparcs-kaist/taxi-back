@@ -35,9 +35,9 @@ app.use(require("./src/middleware/limitRate"));
 // 라우터 및 리액트
 // /rooms/v2에 요청을 보내는 기존 클라이언트 코드 호환성 유지
 app.use("/auth", require("./src/route/auth"));
-app.use(["logininfo", "/json/logininfo"], require("./src/route/logininfo"));
+app.use(["/logininfo", "/json/logininfo"], require("./src/route/logininfo"));
 app.use("/users", require("./src/route/users"));
-app.use(["/rooms", "/rooms/v2"], require("./src/route/rooms"));
+app.use(["/rooms/v2", "/rooms"], require("./src/route/rooms"));
 app.use("/chats", require("./src/route/chats"));
 app.use("/locations", require("./src/route/locations"));
 app.use("/reports", require("./src/route/reports"));
