@@ -115,11 +115,10 @@ const sparcsssoCallbackHandler = (req, res) => {
           loginDone(req, res, userData);
         }
       } else {
-        // SSO 로그아웃 URL 생성
+        // 카이스트 구성원이 아닌 경우, SSO 로그아웃 이후, 로그인 실패 URI 로 이동합니다
         const { sid } = userData;
         const redirectUrl = security.frontUrl + "/login?status=fail";
         const ssoLogoutUrl = client.getLogoutUrl(sid, redirectUrl);
-
         loginFail(req, res, ssoLogoutUrl);
       }
     });
