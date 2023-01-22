@@ -8,6 +8,7 @@ const {
   locationModel,
   chatModel,
   reportModel,
+  adminIPWhitelistModel,
 } = require("../db/mongo");
 
 let router = express.Router();
@@ -20,7 +21,14 @@ AdminJS.registerAdapter(AdminJSMongoose);
 
 // Create router for admin page
 const adminJsOptions = {
-  resources: [userModel, roomModel, locationModel, chatModel, reportModel],
+  resources: [
+    userModel,
+    roomModel,
+    locationModel,
+    chatModel,
+    reportModel,
+    adminIPWhitelistModel,
+  ],
 };
 const adminJs = new AdminJS(adminJsOptions);
 router = AdminJSExpress.buildRouter(adminJs, router);
