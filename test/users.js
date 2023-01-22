@@ -1,7 +1,6 @@
 const expect = require("chai").expect;
-const express = require("express");
 const usersHandlers = require("../src/service/users");
-const { userModel, roomModel, locationModel } = require("../src/db/mongo");
+const { userModel } = require("../src/db/mongo");
 const { userGenerator, testRemover } = require("./utils");
 
 let testData = { rooms: [], users: [], chat: [], location: [], report: [] };
@@ -70,7 +69,7 @@ describe("[users] 3.editNicknameHandler", () => {
   });
 });
 
-// 4. 방의 정보를 통해 검색
+// 4. Image PUrl이 제대로 변경 되었는지 확인
 describe("[users] 4.editProfileImgGetPUrlHandler", () => {
   it("should return url and fields of data", async () => {
     const testUser1 = await userModel.findOne({ id: "test1" });
