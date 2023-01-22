@@ -83,8 +83,8 @@ const loginDone = (req, res, userData) => {
   );
 };
 
-const loginFalse = (req, res) => {
-  res.redirect(security.frontUrl + "/login/false"); // 리엑트로 연결되나?
+const loginFalse = (req, res, redirectUrl = "") => {
+  res.redirect(redirectUrl || security.frontUrl + "/login/false");
 };
 
 const generateTokenHandler = (req, res) => {
@@ -114,7 +114,14 @@ const sparcsssoCallbackHandler = (req, res) => {
         } else {
           loginDone(req, res, userData);
         }
-      } else loginFalse(req, res);
+      } else {
+        // SSO 로그아웃 URL 생성
+        const { sid } = userData;
+        const redirectUrl = security.frontUrl + "/login/false";
+        const ssoLogoutUrl = client.getLogoutUrl(sid, redirectUrl);
+
+        loginFalse(req, res, ssoLogoutUrl);
+      }
     });
   }
 };
