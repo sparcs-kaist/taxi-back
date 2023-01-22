@@ -49,14 +49,13 @@
 
 ```javascript
 {
-    status: 200,
-    data: "logged out successfully",
+    ssoLogoutUrl: String, // sso 로그아웃 url
 }
 ```
 
 #### Errors
 
-- 없음
+- 500 / "internal server error"
 
 ### `/getToken` **(GET)**
 
