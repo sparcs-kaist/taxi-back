@@ -133,6 +133,7 @@ describe("[rooms] 6.commitPaymentHandler", () => {
       body: { roomId: testRoom._id },
       userId: testUser1.id,
       timestamp: Date.now() + 60 * 1000,
+      app,
     };
     const res = {
       send: (data) => {
@@ -153,6 +154,7 @@ describe("[rooms] 7.settlementHandler", () => {
     const req = {
       body: { roomId: testRoom._id },
       userId: testUser2.id,
+      app,
     };
     const res = {
       send: (data) => {
