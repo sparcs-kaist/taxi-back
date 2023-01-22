@@ -23,6 +23,7 @@ const userSchema = Schema({
   },
   email: { type: String, required: true },
   isAdmin: { type: Boolean, default: false }, //관리자 여부
+  account: { type: String, default: "" }, //계좌번호 정보
 });
 
 const participantSchema = Schema({
@@ -93,6 +94,11 @@ const reportSchema = Schema({
   time: { type: Date, required: true },
 });
 
+const adminIPWhitelistSchema = Schema({
+  ip: { type: String, required: true }, // IP 주소
+  description: { type: String, default: "" }, // 설명
+});
+
 const database = mongoose.connection;
 database.on("error", console.error.bind(console, "mongoose connection error."));
 database.on("open", () => {
@@ -125,4 +131,8 @@ module.exports = {
   locationModel: mongoose.model("Location", locationSchema),
   chatModel: mongoose.model("Chat", chatSchema),
   reportModel: mongoose.model("Report", reportSchema),
+  adminIPWhitelistModel: mongoose.model(
+    "AdminIPWhitelist",
+    adminIPWhitelistSchema
+  ),
 };

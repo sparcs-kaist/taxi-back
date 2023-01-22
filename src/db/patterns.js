@@ -8,6 +8,7 @@ module.exports = {
     nickname: RegExp("^[A-Za-z가-힣ㄱ-ㅎㅏ-ㅣ0-9-_ ]{3,25}$"),
     allowedEmployeeTypes: RegExp("^([PEUR]|[SA]|[PEUR][SA])$"),
     profileImgType: RegExp("^(image/png|image/jpg|image/jpeg)$"),
+    account: RegExp("^[A-Za-z가-힣]{2,7} [0-9]{10,14}$"),
   },
   chat: {
     chatImgType: RegExp("^(image/png|image/jpg|image/jpeg)$"),
