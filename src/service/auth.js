@@ -84,7 +84,7 @@ const loginDone = (req, res, userData) => {
 };
 
 const loginFail = (req, res, redirectUrl = "") => {
-  res.redirect(redirectUrl || security.frontUrl + "/login?status=fail");
+  res.redirect(redirectUrl || security.frontUrl + "/login/fail");
 };
 
 const generateTokenHandler = (req, res) => {
@@ -108,7 +108,8 @@ const sparcsssoCallbackHandler = (req, res) => {
     const code = req.body.code || req.query.code;
     client.getUserInfo(code).then((userDataBefore) => {
       const userData = transUserData(userDataBefore);
-      if (userData.isEligible || security.nodeEnv !== "production") {
+      if (userData.isEligible) {
+        // || security.nodeEnv !== "production") {
         if (req.session.isApp) {
           createNewTokenHandler(req, res, userData);
         } else {
@@ -117,7 +118,7 @@ const sparcsssoCallbackHandler = (req, res) => {
       } else {
         // 카이스트 구성원이 아닌 경우, SSO 로그아웃 이후, 로그인 실패 URI 로 이동합니다
         const { sid } = userData;
-        const redirectUrl = security.frontUrl + "/login?status=fail";
+        const redirectUrl = security.frontUrl + "/login/fail";
         const ssoLogoutUrl = client.getLogoutUrl(sid, redirectUrl);
         loginFail(req, res, ssoLogoutUrl);
       }
