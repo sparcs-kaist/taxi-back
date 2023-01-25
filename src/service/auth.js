@@ -108,8 +108,7 @@ const sparcsssoCallbackHandler = (req, res) => {
     const code = req.body.code || req.query.code;
     client.getUserInfo(code).then((userDataBefore) => {
       const userData = transUserData(userDataBefore);
-      if (userData.isEligible) {
-        // || security.nodeEnv !== "production") {
+      if (userData.isEligible || security.nodeEnv !== "production") {
         if (req.session.isApp) {
           createNewTokenHandler(req, res, userData);
         } else {
