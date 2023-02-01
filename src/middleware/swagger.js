@@ -5,16 +5,28 @@ const swaggereJsdoc = require("swagger-jsdoc");
 const router = express.Router();
 const options = {
   definition: {
+    openapi: "3.0.3",
     info: {
-      title: "Test API",
+      title: "Taxi API Document",
       version: "1.0.0",
-      description: "Test API with express",
     },
     basePath: "/",
+    tags: [
+      {
+        name: "logininfo",
+        description: "로그인 정보 제공",
+      },
+    ],
+    consumes: ["application/json"],
+    produces: ["application/json"],
   },
-  apis: ["./route/*.js"],
+  apis: ["src/route/*.js"],
 };
 
-router.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggereJsdoc(options)));
+router.use(
+  "/",
+  swaggerUi.serve,
+  swaggerUi.setup(swaggereJsdoc(options), { explorer: true })
+);
 
 module.exports = router;
