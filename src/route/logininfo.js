@@ -47,9 +47,14 @@ router.route("/").get(logininfoHandlers.logininfoHandler);
  *             schema:
  *               type: object
  *               properties:
+ *                 oid:
+ *                   type: string
  *                 id:
  *                   type: string
  *                   description: 사용자 id
+ *                 name:
+ *                   type: string
+ *                   description: 사용자 이름
  *                 nickname:
  *                   type: string
  *                 withdraw:
@@ -59,6 +64,8 @@ router.route("/").get(logininfoHandlers.logininfoHandler);
  *                 joinat:
  *                   type: string
  *                   format: date-time
+ *                 agreeOnTermsOfService:
+ *                   type: boolean
  *                 subinfio:
  *                   type: object
  *                   properties:
@@ -74,6 +81,13 @@ router.route("/").get(logininfoHandlers.logininfoHandler);
  *                       type: string
  *                     twitter:
  *                       type: string
+ *                 email:
+ *                   type: string
+ *                   example: geon6757@kaist.ac.kr
+ *                 profileImgUrl:
+ *                   type: string
+ *                 account:
+ *                   type: string
  */
 router.route("/detail").get(logininfoHandlers.detailHandler);
 
