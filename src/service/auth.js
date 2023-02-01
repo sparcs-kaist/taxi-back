@@ -54,7 +54,7 @@ const joinus = (req, res, userData) => {
   });
   newUser.save((err) => {
     if (err) {
-      loginFalse(req, res);
+      loginFail(req, res);
       return;
     }
     loginDone(req, res, userData);
@@ -72,7 +72,7 @@ const loginDone = (req, res, userData) => {
     { id: userData.id },
     "name id withdraw ban",
     (err, result) => {
-      if (err) loginFalse(req, res);
+      if (err) loginFail(req, res);
       else if (!result) joinus(req, res, userData);
       else if (result.name != userData.name) update(req, res, userData);
       else {
@@ -83,8 +83,8 @@ const loginDone = (req, res, userData) => {
   );
 };
 
-const loginFalse = (req, res) => {
-  res.redirect(security.frontUrl + "/login/false"); // 리엑트로 연결되나?
+const loginFail = (req, res, redirectUrl = "") => {
+  res.redirect(redirectUrl || security.frontUrl + "/login/fail");
 };
 
 const generateTokenHandler = (req, res) => {
@@ -103,7 +103,7 @@ const sparcsssoCallbackHandler = (req, res) => {
   const state1 = req.session.state;
   const state2 = req.body.state || req.query.state;
 
-  if (state1 !== state2) loginFalse(req, res);
+  if (state1 !== state2) loginFail(req, res);
   else {
     const code = req.body.code || req.query.code;
     client.getUserInfo(code).then((userDataBefore) => {
@@ -114,7 +114,13 @@ const sparcsssoCallbackHandler = (req, res) => {
         } else {
           loginDone(req, res, userData);
         }
-      } else loginFalse(req, res);
+      } else {
+        // 카이스트 구성원이 아닌 경우, SSO 로그아웃 이후, 로그인 실패 URI 로 이동합니다
+        const { sid } = userData;
+        const redirectUrl = security.frontUrl + "/login/fail";
+        const ssoLogoutUrl = client.getLogoutUrl(sid, redirectUrl);
+        loginFail(req, res, ssoLogoutUrl);
+      }
     });
   }
 };
@@ -126,7 +132,7 @@ const createNewTokenHandler = (req, res, userData) => {
     async (err, result) => {
       if (err) {
         logger.error(err);
-        loginFalse(req, res);
+        loginFail(req, res);
       } else if (!result) joinus(req, res, userData);
       else if (result.name !== userData.name) update(req, res, userData);
       else {
