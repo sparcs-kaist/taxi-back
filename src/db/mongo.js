@@ -47,10 +47,14 @@ const deviceTokenSchema = Schema({
 });
 
 const notificationOptionSchema = Schema({
+  owner: {
+    type: Schema.Types.ObjectId,
+    ref: "User",
+    required: true,
+  },
   deviceToken: {
     type: String,
     required: true,
-    unique: true,
   },
   options: {
     keywords: [{ type: String, required: true }],
@@ -150,7 +154,7 @@ module.exports = {
     "AdminIPWhitelist",
     adminIPWhitelistSchema
   ),
-  notificationOptionSchema: mongoose.model(
+  notificationOptionModel: mongoose.model(
     "Notification",
     notificationOptionSchema
   ),
