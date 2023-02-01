@@ -46,6 +46,21 @@ const deviceTokenSchema = Schema({
   deviceToken: [{ type: String, required: true }],
 });
 
+const notificationOptionSchema = Schema({
+  deviceToken: {
+    type: String,
+    required: true,
+    unique: true,
+  },
+  options: {
+    keywords: [{ type: String, required: true }],
+    chatting: { type: Boolean, required: true, default: true },
+    beforeDepart: { type: Boolean, required: true, default: true },
+    notice: { type: Boolean, required: true, default: true },
+    advertisement: { type: Boolean, required: true, default: false },
+  },
+});
+
 const roomSchema = Schema({
   name: { type: String, required: true, default: "이름 없음", text: true },
   from: { type: Schema.Types.ObjectId, ref: "Location", required: true },
@@ -134,5 +149,9 @@ module.exports = {
   adminIPWhitelistModel: mongoose.model(
     "AdminIPWhitelist",
     adminIPWhitelistSchema
+  ),
+  notificationOptionSchema: mongoose.model(
+    "Notification",
+    notificationOptionSchema
   ),
 };
