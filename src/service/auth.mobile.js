@@ -238,7 +238,7 @@ const getNotificationOption = async (req, res) => {
         }
       );
     } catch (e) {
-      console.log(e);
+      logger.error(e);
     }
   } catch (e) {
     logger.error(e);
