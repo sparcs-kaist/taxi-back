@@ -23,10 +23,7 @@ const options = {
   apis: ["src/route/*.js"],
 };
 
-router.use(
-  "/",
-  swaggerUi.serve,
-  swaggerUi.setup(swaggereJsdoc(options), { explorer: true })
-);
+router.use(swaggerUi.serve);
+router.get(swaggerUi.setup(swaggereJsdoc(options), { explorer: true }));
 
 module.exports = router;
