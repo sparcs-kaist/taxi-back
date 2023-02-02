@@ -3,7 +3,7 @@ const swaggerUi = require("swagger-ui-express");
 const swaggereJsdoc = require("swagger-jsdoc");
 
 const router = express.Router();
-const options = {
+const swaggerSpec = swaggereJsdoc({
   definition: {
     openapi: "3.0.3",
     info: {
@@ -21,9 +21,9 @@ const options = {
     produces: ["application/json"],
   },
   apis: ["src/route/*.js"],
-};
+});
 
 router.use(swaggerUi.serve);
-router.get(swaggerUi.setup(swaggereJsdoc(options), { explorer: true }));
+router.get(swaggerUi.setup(swaggerSpec, { explorer: true }));
 
 module.exports = router;
