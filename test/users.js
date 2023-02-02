@@ -39,7 +39,7 @@ describe("[users] 2.getAgreeOnTermsOfServiceHandler", () => {
   });
 });
 
-// 3. test1 유저의 nickname을 test-nickname으로 변경, 성공 메세지가 제대로 오는지 확인 
+// 3. test1 유저의 nickname을 test-nickname으로 변경, 성공 메세지가 제대로 오는지 확인
 describe("[users] 3.editNicknameHandler", () => {
   const testNickname = "test-nickname";
 
@@ -65,7 +65,7 @@ describe("[users] 3.editNicknameHandler", () => {
   });
 });
 
-// 3. test1 유저의 계좌번호를 testAccount으로 변경, 성공 메세지가 제대로 오는지 확인 
+// 3. test1 유저의 계좌번호를 testAccount으로 변경, 성공 메세지가 제대로 오는지 확인
 describe("[users] 4.editAccountHandler", () => {
   const testAccount = "신한 0123456789012";
 
@@ -92,10 +92,11 @@ describe("[users] 4.editAccountHandler", () => {
 });
 
 // 5. test1 유저의 프로필 업로드를 위한 PUrl을 제대로 받았는지 확인
+// 추가 검증을 위해, key와 Content-Type이 일치하는지 확인
 describe("[users] 5.editProfileImgGetPUrlHandler", () => {
   it("should return url and fields of data", async () => {
     const testUser1 = await userModel.findOne({ id: "test1" });
-    const testImgType = "image/jpg"
+    const testImgType = "image/jpg";
     let req = httpMocks.createRequest({
       userId: testUser1.id,
       body: {
@@ -107,10 +108,14 @@ describe("[users] 5.editProfileImgGetPUrlHandler", () => {
 
     expect(res).to.has.property("statusCode", 200);
     expect(res._getJSONData()).to.has.property("url");
-    expect(res._getJSONData().fields).to.has.property("key",
-      `profile-img/${testUser1._id}`);
-    expect(res._getJSONData().fields).to.has.property("Content-Type",
-      testImgType);
+    expect(res._getJSONData().fields).to.has.property(
+      "key",
+      `profile-img/${testUser1._id}`
+    );
+    expect(res._getJSONData().fields).to.has.property(
+      "Content-Type",
+      testImgType
+    );
   });
 });
 
