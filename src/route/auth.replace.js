@@ -3,7 +3,7 @@ const router = express.Router();
 
 const authReplaceHandlers = require("../service/auth.replace");
 const setTimestamp = require("../middleware/setTimestamp");
-const { authMiddleware } = require("../middleware/auth");
+const authMiddleware = require("../middleware/auth");
 
 // 로그인 시도
 router.route("/try").post(setTimestamp, authReplaceHandlers.tryHandler);
@@ -16,7 +16,7 @@ router.route("/logout").get(authReplaceHandlers.logoutHandler);
 
 // FCM 토큰 등록
 router
-  .route("/deviceToken")
+  .route("/registerDeviceToken")
   .post(authMiddleware, authReplaceHandlers.registerDeviceTokenHandler);
 
 module.exports = router;

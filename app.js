@@ -13,9 +13,9 @@ const startSocketServer = require("./src/modules/socket");
 
 // Firebase Admin 초기설정
 
-var admin = require("firebase-admin");
+const admin = require("firebase-admin");
 
-var serviceAccount = require(security.googleApplicationCredentials);
+const serviceAccount = require(security.googleApplicationCredentials);
 
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),

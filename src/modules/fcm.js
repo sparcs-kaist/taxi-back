@@ -1,4 +1,5 @@
-var admin = require("firebase-admin");
+const { getMessaging } = require("firebase-admin/messaging");
+const axios = require("axios");
 const logger = require("../modules/logger");
 
 /**
@@ -7,11 +8,22 @@ const logger = require("../modules/logger");
  * @return {Promise<Boolean>} 토큰이 현재 유효한 경우 true, 아닌 경우 false를 반환합니다.
  */
 const validateDeviceToken = async (deviceToken) => {
+  // TO DO THIS, WE FIRST NEED TO GET ACCESS TOKEN FROM THE CREDENTIAL VIA API REQUEST.
+  // Otherwise, you will see a "MissingAuthorization" error.
   try {
     // Check if the status code is 200. If 400 or 404, then the token is not valid.
-    const response = await fetch(
-      `https://https://iid.googleapis.com/iid/info/${deviceToken}?details=true`
-    );
+    // I think there will be a better method......
+    // const serverKey = "";
+    // const response = await axios.post(
+    //   `https://https://iid.googleapis.com/iid/info/${deviceToken}?details=true`,
+    //   {},
+    //   {
+    //     headers: {
+    //       Authorization: `Bearer ${serverKey}`,
+    //     },
+    //   }
+    // );
+    const response = { status: 200 };
     if (response.status === 200) {
       return true;
     } else {
@@ -25,12 +37,10 @@ const validateDeviceToken = async (deviceToken) => {
 const sendNotificationMultipleUsers = async (message, tokens) => {
   try {
     const tokenMessage = {
-      ...message,
+      data: message,
       tokens: tokens,
     };
-    const { failureCount } = await admin
-      .messaging()
-      .sendMulticase(tokenMessage);
+    const { failureCount } = await getMessaging().sendMulticast(tokenMessage);
     return failureCount;
   } catch (error) {
     logger.error(error);
@@ -41,10 +51,11 @@ const sendNotificationMultipleUsers = async (message, tokens) => {
 const sendNotification = async (message, token) => {
   try {
     const tokenMessage = {
-      ...message,
+      data: message,
       token: token,
     };
-    const response = await admin.messaging.send(tokenMessage);
+    logger.info(tokenMessage.token);
+    const response = await getMessaging().send(tokenMessage);
     logger.info(`Notification sent to token ${token}`);
     return true;
   } catch (error) {
@@ -56,10 +67,10 @@ const sendNotification = async (message, token) => {
 const sendMessageTopic = async (message, topic) => {
   try {
     const topicMessage = {
-      ...message,
+      data: message,
       topic: topic,
     };
-    const response = await admin.messaging.send(topicMessage);
+    const response = await getMessaging().send(topicMessage);
     logger.info(`Notification sent to topic ${topic}`);
     return true;
   } catch (error) {
