@@ -45,9 +45,11 @@ app.use("/locations", require("./src/route/locations"));
 app.use("/reports", require("./src/route/reports"));
 
 // express 서버 시작
-const serverHttp = http.createServer(app).listen(security.port, () =>
-  logger.info(`Express 서버가 ${security.port}번 포트에서 시작됨.`)
-);
+const serverHttp = http
+  .createServer(app)
+  .listen(security.port, () =>
+    logger.info(`Express 서버가 ${security.port}번 포트에서 시작됨.`)
+  );
 
 // socket.io 서버 시작 및 app 인스턴스에 저장
 app.set("io", startSocketServer(serverHttp, session));

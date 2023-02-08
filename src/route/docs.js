@@ -24,6 +24,6 @@ const swaggerSpec = swaggereJsdoc({
 });
 
 router.use(swaggerUi.serve);
-router.get(swaggerUi.setup(swaggerSpec, { explorer: true }));
+router.use(swaggerUi.setup(swaggerSpec, { explorer: true }));
 
 module.exports = router;
