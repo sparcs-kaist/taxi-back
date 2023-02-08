@@ -1,24 +1,23 @@
 const expect = require("chai").expect;
 const logininfoHandlers = require("../src/service/logininfo");
 const { userModel } = require("../src/db/mongo");
+const httpMocks = require("node-mocks-http");
 
 describe("[logininfo] 1.logininfoHandler", () => {
   it("should return {id: undefined, sid: undefined, name: undefined } when no user is logged in", () => {
-    const req = { session: {} };
-    const res = {
-      json: (data) => {
-        expect(data).to.deep.equal({
-          id: undefined,
-          sid: undefined,
-          name: undefined,
-        });
-      },
-    };
+    let req = httpMocks.createRequest({
+      session: {},
+    });
+    let res = httpMocks.createResponse();
     logininfoHandlers.logininfoHandler(req, res);
+
+    expect(res._getJSONData().id).to.be.undefined;
+    expect(res._getJSONData().sid).to.be.undefined;
+    expect(res._getJSONData().name).to.be.undefined;
   });
 
   it("should return {id: 'hello-id', sid: 'hello-sid', 'name': 'hello-name'} when user is logged in", () => {
-    const req = {
+    let req = httpMocks.createRequest({
       session: {
         loginInfo: {
           id: "hello-id",
@@ -27,21 +26,17 @@ describe("[logininfo] 1.logininfoHandler", () => {
           time: Date.now(),
         },
       },
-    };
-    const res = {
-      json: (data) => {
-        expect(data).to.deep.equal({
-          id: "hello-id",
-          sid: "hello-sid",
-          name: "hello-name",
-        });
-      },
-    };
+    });
+    let res = httpMocks.createResponse();
     logininfoHandlers.logininfoHandler(req, res);
+
+    expect(res._getJSONData()).to.has.property("id", "hello-id");
+    expect(res._getJSONData()).to.has.property("sid", "hello-sid");
+    expect(res._getJSONData()).to.has.property("name", "hello-name");
   });
 
   it("should return {id: undefined, sid: undefined, name: undefined } when the session is expired", () => {
-    const req = {
+    let req = httpMocks.createRequest({
       session: {
         loginInfo: {
           id: "hello-id",
@@ -50,31 +45,25 @@ describe("[logininfo] 1.logininfoHandler", () => {
           time: new Date(Date.now() - (14 * 24 * 3600 * 1000 + 1)).getTime(), // the session should expire after 1 hour
         },
       },
-    };
-    const res = {
-      json: (data) => {
-        expect(data).to.deep.equal({
-          id: undefined,
-          sid: undefined,
-          name: undefined,
-        });
-      },
-    };
+    });
+    let res = httpMocks.createResponse();
     logininfoHandlers.logininfoHandler(req, res);
+
+    expect(res._getJSONData().id).to.be.undefined;
+    expect(res._getJSONData().sid).to.be.undefined;
+    expect(res._getJSONData().name).to.be.undefined;
   });
 });
 
 describe("[logininfo] 2.detailHandler", () => {
   it("should return { id: undefined } when no user is logged in", () => {
-    const req = { session: {} };
-    const res = {
-      json: (data) => {
-        expect(data).to.deep.equal({
-          id: undefined,
-        });
-      },
-    };
+    let req = httpMocks.createRequest({
+      session: {},
+    });
+    let res = httpMocks.createResponse();
     logininfoHandlers.detailHandler(req, res);
+
+    expect(res._getJSONData().id).to.be.undefined;
   });
 
   it("should return correct information as same as user's when user is logged in", async () => {
@@ -114,7 +103,7 @@ describe("[logininfo] 2.detailHandler", () => {
   });
 
   it("should return {id: undefined} when the session is expired", () => {
-    const req = {
+    let req = httpMocks.createRequest({
       session: {
         loginInfo: {
           id: "hello-id",
@@ -123,14 +112,10 @@ describe("[logininfo] 2.detailHandler", () => {
           time: new Date(Date.now() - (14 * 24 * 3600 * 1000 + 1)).getTime(), // the session should expire after 1 hour
         },
       },
-    };
-    const res = {
-      json: (data) => {
-        expect(data).to.deep.equal({
-          id: undefined,
-        });
-      },
-    };
+    });
+    let res = httpMocks.createResponse();
     logininfoHandlers.detailHandler(req, res);
+
+    expect(res._getJSONData().id).to.be.undefined;
   });
 });
