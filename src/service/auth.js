@@ -54,7 +54,7 @@ const joinus = (req, res, userData) => {
   });
   newUser.save((err) => {
     if (err) {
-      loginFalse(req, res);
+      loginFail(req, res);
       return;
     }
     loginDone(req, res, userData);
@@ -72,7 +72,7 @@ const loginDone = (req, res, userData) => {
     { id: userData.id },
     "name id withdraw ban",
     (err, result) => {
-      if (err) loginFalse(req, res);
+      if (err) loginFail(req, res);
       else if (!result) joinus(req, res, userData);
       else if (result.name != userData.name) update(req, res, userData);
       else {
@@ -83,6 +83,48 @@ const loginDone = (req, res, userData) => {
   );
 };
 
+const loginFail = (req, res, redirectUrl = "") => {
+  res.redirect(redirectUrl || security.frontUrl + "/login/fail");
+};
+
+const generateTokenHandler = (req, res) => {
+  req.session.isApp = true;
+  sparcsssoHandler(req, res);
+};
+
+const sparcsssoHandler = (req, res) => {
+  const userInfo = getLoginInfo(req);
+  const { url, state } = client.getLoginParams();
+  req.session.state = state;
+  res.redirect(url);
+};
+
+const sparcsssoCallbackHandler = (req, res) => {
+  const state1 = req.session.state;
+  const state2 = req.body.state || req.query.state;
+
+  if (state1 !== state2) loginFail(req, res);
+  else {
+    const code = req.body.code || req.query.code;
+    client.getUserInfo(code).then((userDataBefore) => {
+      const userData = transUserData(userDataBefore);
+      if (userData.isEligible || security.nodeEnv !== "production") {
+        if (req.session.isApp) {
+          createNewTokenHandler(req, res, userData);
+        } else {
+          loginDone(req, res, userData);
+        }
+      } else {
+        // 카이스트 구성원이 아닌 경우, SSO 로그아웃 이후, 로그인 실패 URI 로 이동합니다
+        const { sid } = userData;
+        const redirectUrl = security.frontUrl + "/login/fail";
+        const ssoLogoutUrl = client.getLogoutUrl(sid, redirectUrl);
+        loginFail(req, res, ssoLogoutUrl);
+      }
+    });
+  }
+};
+
 const createNewTokenHandler = (req, res, userData) => {
   userModel.findOne(
     { id: userData.id },
@@ -90,7 +132,7 @@ const createNewTokenHandler = (req, res, userData) => {
     async (err, result) => {
       if (err) {
         logger.error(err);
-        loginFalse(req, res);
+        loginFail(req, res);
       } else if (!result) joinus(req, res, userData);
       else if (result.name !== userData.name) update(req, res, userData);
       else {
@@ -116,45 +158,16 @@ const createNewTokenHandler = (req, res, userData) => {
   );
 };
 
-const loginFalse = (req, res) => {
-  res.redirect(security.frontUrl + "/login/false"); // 리엑트로 연결되나?
-};
-
-const sparcsssoHandler = (req, res) => {
-  const userInfo = getLoginInfo(req);
-  const { url, state } = client.getLoginParams();
-  req.session.state = state;
-  res.redirect(url);
-};
-
-const sparcsssoCallbackHandler = (req, res) => {
-  const state1 = req.session.state;
-  const state2 = req.body.state || req.query.state;
-
-  if (state1 !== state2) loginFalse(req, res);
-  else {
-    const code = req.body.code || req.query.code;
-    client.getUserInfo(code).then((userDataBefore) => {
-      const userData = transUserData(userDataBefore);
-      if (userData.isEligible || security.nodeEnv !== "production") {
-        if (req.session.isApp) {
-          createNewTokenHandler(req, res, userData);
-        } else {
-          loginDone(req, res, userData);
-        }
-      } else loginFalse(req, res);
-    });
-  }
-};
-
 const logoutHandler = (req, res) => {
-  logout(req, res);
-  res.status(200).send("logged out successfully");
-};
-
-const generateTokenHandler = (req, res) => {
-  req.session.isApp = true;
-  sparcsssoHandler(req, res);
+  try {
+    const { sid } = getLoginInfo(req);
+    const redirectUrl = security.frontUrl + "/login";
+    const ssoLogoutUrl = client.getLogoutUrl(sid, redirectUrl);
+    logout(req, res);
+    res.json({ ssoLogoutUrl });
+  } catch (e) {
+    res.status(500).send("Auth/logout : internal server error");
+  }
 };
 
 module.exports = {

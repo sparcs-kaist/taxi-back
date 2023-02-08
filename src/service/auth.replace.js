@@ -125,8 +125,13 @@ const sparcsssoHandler = (req, res) => {
 };
 
 const logoutHandler = (req, res) => {
-  logout(req, res);
-  res.status(200).send("logged out successfully");
+  try {
+    const ssoLogoutUrl = security.frontUrl + "/login";
+    logout(req, res);
+    res.json({ ssoLogoutUrl });
+  } catch (e) {
+    res.status(500).send("Auth/logout : internal server error");
+  }
 };
 
 const registerDeviceTokenHandler = async (req, res) => {
