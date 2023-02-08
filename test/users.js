@@ -5,6 +5,9 @@ const { userGenerator, testRemover } = require("./utils");
 const httpMocks = require("node-mocks-http");
 
 let testData = { rooms: [], users: [], chat: [], location: [], report: [] };
+const removeTestData = async () => {
+  await testRemover(testData);
+};
 
 // users.js 관련 5개의 handler을 테스트
 // 1. test1 유저를 생성 후, agreeOnTermsOfServiceHandler가 제대로 msg를 send 하는지 확인
@@ -127,8 +130,9 @@ describe("[users] 6.editProfileImgDoneHandler", () => {
       userId: testUser1.id,
     });
     let res = httpMocks.createResponse();
-
     await usersHandlers.editProfileImgDoneHandler(req, res);
+    afterEach(removeTestData);
+
     expect(res).to.has.property("statusCode", 200);
   });
 });
