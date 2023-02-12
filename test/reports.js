@@ -12,8 +12,8 @@ const removeTestData = async () => {
 // 1. test1 유저가 test2 유저를 미결제로 신고, 성공 메세지가 제대로 오는지 확인
 describe("[reports] 1.createHandler", () => {
   it("should return correct response from handler", async () => {
-    let testUser1 = await userGenerator("test1", testData);
-    let testUser2 = await userGenerator("test2", testData);
+    const testUser1 = await userGenerator("test1", testData);
+    const testUser2 = await userGenerator("test2", testData);
     const msg = "User/report : report successful";
     let req = httpMocks.createRequest({
       userId: testUser1.id,
