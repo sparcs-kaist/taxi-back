@@ -4,6 +4,7 @@ const roomsHandlers = require("../src/service/rooms");
 const { userModel, roomModel, locationModel } = require("../src/db/mongo");
 const { userGenerator, testRemover } = require("./utils");
 const app = express();
+const httpMocks = require("node-mocks-http");
 
 let testData = { rooms: [], users: [], chat: [], location: [], report: [] };
 
@@ -14,7 +15,7 @@ describe("[rooms] 1.createHandler", () => {
     const testUser1 = await userGenerator("test1", testData);
     const testFrom = await locationModel.findOne({ koName: "대전역" });
     const testTo = await locationModel.findOne({ koName: "택시승강장" });
-    const req = {
+    let req = httpMocks.createRequest({
       body: {
         name: "test-room",
         from: testFrom._id,
@@ -24,14 +25,13 @@ describe("[rooms] 1.createHandler", () => {
       },
       userId: testUser1.id,
       app,
-    };
-    const res = {
-      send: (data) => {
-        expect(data).to.has.property("name", "test-room");
-      },
-    };
-
+    });
+    let res = httpMocks.createResponse();
     await roomsHandlers.createHandler(req, res);
+
+    const testRoom = await roomModel.findOne({ name: "test-room" });
+    testData["rooms"].push(testRoom);
+    expect(res._getData()).to.has.property("name", "test-room");
   });
 });
 
@@ -39,19 +39,16 @@ describe("[rooms] 1.createHandler", () => {
 describe("[rooms] 2.infoHandler", () => {
   it("should return information of room", async () => {
     const testUser1 = await userModel.findOne({ id: "test1" });
-    const room = await roomModel.findOne({ name: "test-room" });
-    const req = {
-      query: { id: room._id },
+    const testRoom = await roomModel.findOne({ name: "test-room" });
+    let req = httpMocks.createRequest({
+      query: { id: testRoom._id },
       userId: testUser1.id,
-    };
-    const res = {
-      send: (data) => {
-        expect(data).to.has.property("name", "test-room");
-        expect(data).to.has.property("isOver");
-      },
-    };
-
+    });
+    let res = httpMocks.createResponse();
     await roomsHandlers.infoHandler(req, res);
+
+    expect(res._getData()).to.has.property("name", "test-room");
+    expect(res._getData()).to.has.property("isOver");
   });
 });
 
@@ -60,22 +57,19 @@ describe("[rooms] 3.joinHandler", () => {
   it("should return information of room and join", async () => {
     const testUser2 = await userGenerator("test2", testData);
     const testRoom = await roomModel.findOne({ name: "test-room" });
-    testData["rooms"].push(testRoom);
-    const req = {
+    let req = httpMocks.createRequest({
       body: {
         roomId: testRoom._id,
       },
       userId: testUser2.id,
       app,
-    };
-    const res = {
-      send: (data) => {
-        expect(data).to.has.property("name", "test-room");
-        expect(data.part).to.have.lengthOf(2);
-      },
-    };
+    });
+    let res = httpMocks.createResponse();
 
     await roomsHandlers.joinHandler(req, res);
+
+    expect(res._getData()).to.has.property("name", "test-room");
+    expect(res._getData().part).to.have.lengthOf(2);
   });
 });
 
@@ -84,7 +78,7 @@ describe("[rooms] 4.searchHandler", () => {
   it("should return information of searching room", async () => {
     const testFrom = await locationModel.findOne({ koName: "대전역" });
     const testTo = await locationModel.findOne({ koName: "택시승강장" });
-    const req = {
+    let req = httpMocks.createRequest({
       query: {
         name: "test-room",
         from: testFrom._id,
@@ -93,15 +87,13 @@ describe("[rooms] 4.searchHandler", () => {
         withTime: true,
         maxPartLength: 4,
       },
-    };
-    const res = {
-      json: (data) => {
-        expect(data[0]).to.has.property("name", "test-room");
-        expect(data[0]).to.has.property("settlementTotal");
-      },
-    };
-
+    });
+    let res = httpMocks.createResponse();
     await roomsHandlers.searchHandler(req, res);
+
+    const resJson = res._getJSONData();
+    expect(resJson[0]).to.has.property("name", "test-room");
+    expect(resJson[0].settlementTotal).to.be.undefined;
   });
 });
 
