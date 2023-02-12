@@ -187,6 +187,6 @@ describe("[rooms] 8.abortHandler", () => {
       },
     };
     await roomsHandlers.abortHandler(req, res);
-    after(removeTestData);
+    afterEach(removeTestData);
   });
 });
