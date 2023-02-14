@@ -22,6 +22,10 @@ const userGenerator = async (username, testData) => {
       twitter: "",
     },
     email: username + ".kaist.ac.kr",
+    withdraw: false,
+    ban: false,
+    agreeOnTermsOfService: false,
+    isAdmin: false,
   });
   await testUser.save();
   testData["users"].push(testUser);

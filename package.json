@@ -25,10 +25,13 @@
     "firebase-admin": "^11.4.1",
     "jsonwebtoken": "^8.5.1",
     "mongoose": "^6.5.2",
+    "node-mocks-http": "^1.12.1",
     "querystring": "^0.2.1",
     "redis": "^4.2.0",
     "response-time": "^2.3.2",
     "socket.io": "^4.3.1",
+    "swagger-jsdoc": "^6.2.8",
+    "swagger-ui-express": "^4.6.0",
     "validator": "^13.7.0",
     "winston": "^3.8.1",
     "winston-daily-rotate-file": "^4.7.1"
