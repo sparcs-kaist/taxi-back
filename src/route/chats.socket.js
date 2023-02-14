@@ -1,6 +1,8 @@
 const { getLoginInfo, joinChatRoom, leaveChatRoom } = require("../auth/login");
 const { roomModel, userModel, chatModel } = require("../db/mongo");
+const { getS3Url } = require("../db/awsS3");
 const validator = require("validator");
+const { sendMessageByTopic, sendMessageByTokens } = require("../modules/fcm");
 const logger = require("../modules/logger");
 
 class IllegalArgumentsException {
@@ -94,6 +96,7 @@ const transformChatsForRoom = async (chats) => {
 const ioListeners = (io, socket) => {
   const session = socket.handshake.session;
 
+  // 사용자가 Socket.io 서버와 연결될 때마다 발생하는 이벤트
   socket.on("chats-join", async (roomId) => {
     try {
       const myUserId = getLoginInfo({ session: session }).id || "";
@@ -135,6 +138,7 @@ const ioListeners = (io, socket) => {
     }
   });
 
+  // 사용자와 Socket.io 서버의 연결이 끊어졌을 때 발생하는 이벤트
   socket.on("chats-disconnect", async () => {
     try {
       const myUserId = getLoginInfo({ session: session }).id || "";
@@ -159,10 +163,14 @@ const ioListeners = (io, socket) => {
     }
   });
 
+  // 사용자가 채팅 메시지를 전송했을 때 발생하는 이벤트
   socket.on("chats-send", async (chatMessage) => {
     try {
       const myUserId = getLoginInfo({ session: session }).id || "";
-      const myUser = await userModel.findOne({ id: myUserId }, "id nickname");
+      const myUser = await userModel.findOne(
+        { id: myUserId },
+        "id nickname profileImageUrl"
+      );
       if (!myUser)
         return io.to(socket.id).emit("chats-send", { err: "user not exist" });
       const roomId = session.chatRoomId;
@@ -170,19 +178,28 @@ const ioListeners = (io, socket) => {
         return io
           .to(socket.id)
           .emit("chats-send", { err: "user not join chat room" });
-
-      emitChatEvent(io, roomId, {
+      await emitChatEvent(io, roomId, {
         type: "text",
         content: chatMessage.content,
         authorId: myUser._id,
       });
       io.to(socket.id).emit("chats-send", { done: true });
+
+      // 해당 방에 참여중인 사용자들에게 알림을 전송합니다.
+      const myRoom = await roomModel.findById(roomId, "name");
+      await sendMessageByTopic(
+        `room-${roomId}`,
+        myRoom.name,
+        chatMessage.content,
+        getS3Url(`/profile-img/${myUser.profileImageUrl}`)
+      );
     } catch (err) {
       logger.error(err);
       io.to(socket.id).emit("chats-send", { err: true });
     }
   });
 
+  // 사용자가 과거 채팅 메시지를 로드하려 할 때 발생하는 이벤트
   socket.on("chats-load", async (lastDate, amount) => {
     try {
       const roomId = session.chatRoomId;

@@ -1,28 +1,14 @@
 const { getMessaging } = require("firebase-admin/messaging");
+const { deviceTokenModel } = require("../db/mongo");
 const logger = require("../modules/logger");
 
-const sendNotificationMultipleUsers = async (data, tokens) => {
+const sendNotificationByToken = async (data, token) => {
   try {
-    const tokenMessage = {
-      data,
-      tokens,
-    };
-    const { failureCount } = await getMessaging().sendMulticast(tokenMessage);
-    return failureCount;
-  } catch (error) {
-    logger.error(error);
-    return -1;
-  }
-};
-
-const sendNotification = async (data, token) => {
-  try {
-    const tokenMessage = {
+    const message = {
       data,
       token,
     };
-    console.log(tokenMessage);
-    await getMessaging().send(tokenMessage);
+    await getMessaging().send(message);
     logger.info(`Notification sent to token ${token}`);
     return true;
   } catch (error) {
@@ -31,13 +17,27 @@ const sendNotification = async (data, token) => {
   }
 };
 
-const sendMessageTopic = async (data, topic) => {
+const sendNotificationByTokens = async (data, tokens) => {
   try {
-    const topicMessage = {
+    const message = {
+      data,
+      tokens,
+    };
+    const { failureCount } = await getMessaging().sendMulticast(message);
+    return failureCount;
+  } catch (error) {
+    logger.error(error);
+    return -1;
+  }
+};
+
+const sendNotificationByTopic = async (data, topic) => {
+  try {
+    const message = {
       data,
       topic,
     };
-    await getMessaging().send(topicMessage);
+    await getMessaging().send(message);
     logger.info(`Notification sent to topic ${topic}`);
     return true;
   } catch (error) {
@@ -46,10 +46,87 @@ const sendMessageTopic = async (data, topic) => {
   }
 };
 
-// We need more helper functions, right?
+/**
+ * 주어진 token에 메시지 알림을 전송합니다.
+ * @param {string} token - 알림을 받을 기기의 deviceToken입니다.
+ * @param {string} title - 보낼 메시지의 제목입니다.
+ * @param {string} body - 보낼 메시지의 본문입니다.
+ * @param {string} icon - 메시지를 보낸 사람의 프로필 사진 주소입니다.
+ * @return {Promise<boolean>} 알림 전송에 성공했으면 true, 아니면 false를 반환합니다.
+ */
+const sendMessageByToken = async (token, title, body, icon) => {
+  const data = { title, body, icon };
+  return await sendNotificationByToken(data, token);
+};
+
+/**
+ * 주어진 token들에 메시지 알림을 전송합니다.
+ * @param {string} tokens - 알림을 받을 기기의 deviceToken들로 구성된 Array입니다.
+ * @param {string} title - 보낼 메시지의 제목입니다.
+ * @param {string} body - 보낼 메시지의 본문입니다.
+ * @param {string} icon - 메시지를 보낸 사람의 프로필 사진 주소입니다.
+ * @return {Promise<Number>} 알림 전송에 성공한 기기의 수를 반환합니다. 오류가 발생하면 -1을 반환합니다.
+ */
+const sendMessageByTokens = async (tokens, title, body, icon) => {
+  const data = { title, body, icon };
+  return await sendNotificationByTokens(data, tokens);
+};
+
+/**
+ * 주어진 사용자를 특정한 topic에 구독시킵니다.
+ * @param {string} userId - topic을 구독할 사용자의 ObjectId입니다.
+ * @param {string} topic - 구독할 topic입니다.
+ * @return {Promise<boolean>} 토픽 구독에 성공했으면 true, 아니면 false를 반환합니다.
+ */
+const subscribeUserToTopic = async (userId, topic) => {
+  try {
+    const deviceToken = await deviceTokenModel.findOne({
+      userId,
+    });
+    await getMessaging().subscribeToTopic(deviceToken.deviceToken, topic);
+    return true;
+  } catch (error) {
+    logger.error(error);
+    return false;
+  }
+};
+
+/**
+ * 주어진 사용자를 특정한 topic으로부터 구독 해제시킵니다.
+ * @param {string} userId - topic을 구독 해제할 사용자의 id입니다.
+ * @param {string} topic - 구독을 해제할 topic입니다.
+ * @return {Promise<boolean>} 토픽 구독 해제에 성공했으면 true, 아니면 false를 반환합니다.
+ */
+const unsubscribeUserFromTopic = async (userId, topic) => {
+  try {
+    const deviceToken = await deviceTokenModel.findOne({
+      userId,
+    });
+    await getMessaging().unsubscribeFromTopic(deviceToken.deviceToken, topic);
+    return true;
+  } catch (error) {
+    logger.error(error);
+    return false;
+  }
+};
+
+/**
+ * 주어진 topic을 구독하고 있는 모든 기기에 메시지 알림을 전송합니다.
+ * @param {string} topic - 알림을 보낼 기기들이 구독하고 있는 topic입니다.
+ * @param {string} title - 보낼 메시지의 제목입니다.
+ * @param {string} body - 보낼 메시지의 본문입니다.
+ * @param {string} icon - 메시지를 보낸 사람의 프로필 사진 주소입니다.
+ * @return {Promise<boolean>} 알림 전송에 성공했으면 true, 아니면 false를 반환합니다.
+ */
+const sendMessageByTopic = async (topic, title, body, icon) => {
+  const data = { title, body, icon };
+  return await sendNotificationByTopic(data, topic);
+};
 
 module.exports = {
-  sendNotificationMultipleUsers,
-  sendNotification,
-  sendMessageTopic,
+  sendMessageByToken,
+  sendMessageByTokens,
+  subscribeUserToTopic,
+  unsubscribeUserFromTopic,
+  sendMessageByTopic,
 };
