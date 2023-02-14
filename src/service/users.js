@@ -8,11 +8,9 @@ const agreeOnTermsOfServiceHandler = async (req, res) => {
     if (user.agreeOnTermsOfService !== true) {
       user.agreeOnTermsOfService = true;
       await user.save();
-      res
-        .status(200)
-        .send(
-          "User/agreeOnTermsOfService : agree on Terms of Service successful"
-        );
+      res.status(200).send(
+        "User/agreeOnTermsOfService : agree on Terms of Service successful"
+      );
     } else {
       res.status(400).send("User/agreeOnTermsOfService : already agreed");
     }
@@ -27,23 +25,21 @@ const getAgreeOnTermsOfServiceHandler = async (req, res) => {
       .findOne({ id: req.userId }, "agreeOnTermsOfService")
       .lean();
     const agreeOnTermsOfService = user.agreeOnTermsOfService === true;
-    res.status(200).json({ agreeOnTermsOfService });
+    res.json({ agreeOnTermsOfService });
   } catch {
     res.status(500).send("/getAgreeOnTermsOfService : internal server error");
   }
 };
 
-const editNicknameHandler = (req, res) => {
+const editNicknameHandler = async (req, res) => {
   const newNickname = req.body.nickname;
 
   // 닉네임을 갱신하고 결과를 반환
-  userModel
+  await userModel
     .findOneAndUpdate({ id: req.userId }, { nickname: newNickname })
     .then((result) => {
       if (result) {
-        res
-          .status(200)
-          .send("User/editNickname : edit user nickname successful");
+        res.status(200).send("User/editNickname : edit user nickname successful");
       } else {
         res.status(400).send("User/editNickname : such user id does not exist");
       }
@@ -54,11 +50,11 @@ const editNicknameHandler = (req, res) => {
     });
 };
 
-const editAccountHandler = (req, res) => {
+const editAccountHandler = async (req, res) => {
   const newAccount = req.body.account;
 
   // 계좌번호를 갱신하고 결과를 반환
-  userModel
+  await userModel
     .findOneAndUpdate({ id: req.userId }, { account: newAccount })
     .then((result) => {
       if (result) {
