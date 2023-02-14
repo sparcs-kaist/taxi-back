@@ -1,9 +1,11 @@
 const express = require("express");
 const router = express.Router();
+const { body } = require("express-validator");
 
 const authReplaceHandlers = require("../service/auth.replace");
 const setTimestamp = require("../middleware/setTimestamp");
 const authMiddleware = require("../middleware/auth");
+const validator = require("../middleware/validator");
 
 // 로그인 시도
 router.route("/try").post(setTimestamp, authReplaceHandlers.tryHandler);
@@ -15,8 +17,12 @@ router.route("/sparcssso").get(authReplaceHandlers.sparcsssoHandler);
 router.route("/logout").get(authReplaceHandlers.logoutHandler);
 
 // FCM 토큰 등록
-router
-  .route("/registerDeviceToken")
-  .post(authMiddleware, authReplaceHandlers.registerDeviceTokenHandler);
+router.post(
+  "/registerDeviceToken",
+  authMiddleware,
+  [body("deviceToken").isString().isLength({ min: 1, max: 1024 })],
+  validator,
+  authReplaceHandlers.registerDeviceTokenHandler
+);
 
 module.exports = router;

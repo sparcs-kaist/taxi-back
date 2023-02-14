@@ -1,5 +1,5 @@
 const security = require("../../security");
-const { userModel } = require("../db/mongo");
+const { userModel, deviceTokenModel } = require("../db/mongo");
 const { getLoginInfo, logout, login } = require("../auth/login");
 const {
   generateNickname,
@@ -93,7 +93,6 @@ const generateTokenHandler = (req, res) => {
 };
 
 const sparcsssoHandler = (req, res) => {
-  const userInfo = getLoginInfo(req);
   const { url, state } = client.getLoginParams();
   req.session.state = state;
   res.redirect(url);
@@ -170,9 +169,34 @@ const logoutHandler = (req, res) => {
   }
 };
 
+const registerDeviceTokenHandler = async (req, res) => {
+  try {
+    const newDeviceToken = req.body.deviceToken;
+    // 데이터베이스에 새 레코드를 추가합니다.
+    const user = await userModel.findOne({ id: req.userId }, "_id");
+    const deviceToken = await deviceTokenModel.updateOne(
+      {
+        userId: user._id,
+      },
+      {
+        userId: user._id,
+        $addToSet: { deviceToken: newDeviceToken },
+      },
+      { upsert: true, new: true }
+    );
+    return res.status(200).json({
+      deviceToken: deviceToken.deviceToken,
+    });
+  } catch (e) {
+    logger.error(e);
+    res.status(500).send("internal server error");
+  }
+};
+
 module.exports = {
   sparcsssoHandler,
   sparcsssoCallbackHandler,
   logoutHandler,
   generateTokenHandler,
+  registerDeviceTokenHandler,
 };

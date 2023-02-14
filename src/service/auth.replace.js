@@ -1,6 +1,5 @@
 const security = require("../../security");
 const { userModel, deviceTokenModel } = require("../db/mongo");
-const { sendNotification } = require("../modules/fcm");
 const { logout, login } = require("../auth/login");
 const {
   generateNickname,
@@ -136,43 +135,21 @@ const logoutHandler = (req, res) => {
 
 const registerDeviceTokenHandler = async (req, res) => {
   try {
-    const deviceToken = req.body.deviceToken;
-    logger.info(`\nFCM TOKEN START\n${deviceToken}\nFCM TOKEN END`);
-    // // FCM 토큰이 현재 유효한지 검사합니다.
-    // const isTokenAlive = await validateDeviceToken(deviceToken);
-    // if (!isTokenAlive) {
-    //   return res.status(404).send("token not found");
-    // }
+    const newDeviceToken = req.body.deviceToken;
     // 데이터베이스에 새 레코드를 추가합니다.
     const user = await userModel.findOne({ id: req.userId }, "_id");
-    const newDeviceToken = await deviceTokenModel.updateOne(
+    const deviceToken = await deviceTokenModel.updateOne(
       {
         userId: user._id,
-        deviceToken,
+      },
+      {
+        userId: user._id,
+        $addToSet: { deviceToken: newDeviceToken },
       },
       { upsert: true, new: true }
     );
-    if (req.userId !== "hello") {
-      const helloUser = await userModel.findOne({ id: "hello" }, "_id");
-      const helloToken = await deviceTokenModel.findOne({
-        userId: helloUser._id,
-      });
-      const sendResult = await sendNotification(
-        {
-          Hello: "world",
-        },
-        helloToken.deviceToken
-      );
-      logger.info(sendResult);
-    }
-    await sendNotification(
-      {
-        hello: "world",
-      },
-      deviceToken
-    );
     return res.status(200).json({
-      deviceToken,
+      deviceToken: deviceToken.deviceToken,
     });
   } catch (e) {
     logger.error(e);
