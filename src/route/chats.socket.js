@@ -2,7 +2,7 @@ const { getLoginInfo, joinChatRoom, leaveChatRoom } = require("../auth/login");
 const { roomModel, userModel, chatModel } = require("../db/mongo");
 const { getS3Url } = require("../db/awsS3");
 const validator = require("validator");
-const { sendMessageByTopic, sendMessageByTokens } = require("../modules/fcm");
+const { subscribeUserToTopic, sendMessageByTopic } = require("../modules/fcm");
 const logger = require("../modules/logger");
 
 class IllegalArgumentsException {
@@ -118,6 +118,9 @@ const ioListeners = (io, socket) => {
       socket.join(`chatRoom-${roomId}`);
       session.save(); // Socket.io 세션의 변경 사항을 Express 세션에 반영.
 
+      // 방을 추가한 사용자를 `room-${room._id}` topic에 구독시킵니다.
+      await subscribeUserToTopic(myUser._id, `room-${room._id}`);
+
       const amount = 30;
       const chats = await chatModel
         .find({ roomId: roomId, isValid: true })
@@ -186,12 +189,12 @@ const ioListeners = (io, socket) => {
       io.to(socket.id).emit("chats-send", { done: true });
 
       // 해당 방에 참여중인 사용자들에게 알림을 전송합니다.
-      const myRoom = await roomModel.findById(roomId, "name");
       await sendMessageByTopic(
         `room-${roomId}`,
-        myRoom.name,
+        myUser.nickname,
         chatMessage.content,
-        getS3Url(`/profile-img/${myUser.profileImageUrl}`)
+        getS3Url(`/profile-img/${myUser.profileImageUrl}`),
+        `/myroom/${roomId}`
       );
     } catch (err) {
       logger.error(err);

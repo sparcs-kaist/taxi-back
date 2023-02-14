@@ -52,10 +52,12 @@ const sendNotificationByTopic = async (data, topic) => {
  * @param {string} title - 보낼 메시지의 제목입니다.
  * @param {string} body - 보낼 메시지의 본문입니다.
  * @param {string} icon - 메시지를 보낸 사람의 프로필 사진 주소입니다.
+ * @param {string?} url - 알림 팝업을 클릭했을 때 이동할 주소입니다.
  * @return {Promise<boolean>} 알림 전송에 성공했으면 true, 아니면 false를 반환합니다.
  */
-const sendMessageByToken = async (token, title, body, icon) => {
-  const data = { title, body, icon };
+const sendMessageByToken = async (token, title, body, icon, url) => {
+  url = url || "/myroom";
+  const data = { title, body, icon, url };
   return await sendNotificationByToken(data, token);
 };
 
@@ -65,10 +67,12 @@ const sendMessageByToken = async (token, title, body, icon) => {
  * @param {string} title - 보낼 메시지의 제목입니다.
  * @param {string} body - 보낼 메시지의 본문입니다.
  * @param {string} icon - 메시지를 보낸 사람의 프로필 사진 주소입니다.
+ * @param {string?} url - 알림 팝업을 클릭했을 때 이동할 주소입니다.
  * @return {Promise<Number>} 알림 전송에 성공한 기기의 수를 반환합니다. 오류가 발생하면 -1을 반환합니다.
  */
-const sendMessageByTokens = async (tokens, title, body, icon) => {
-  const data = { title, body, icon };
+const sendMessageByTokens = async (tokens, title, body, icon, url) => {
+  url = url || "/myroom";
+  const data = { title, body, icon, url };
   return await sendNotificationByTokens(data, tokens);
 };
 
@@ -76,18 +80,21 @@ const sendMessageByTokens = async (tokens, title, body, icon) => {
  * 주어진 사용자를 특정한 topic에 구독시킵니다.
  * @param {string} userId - topic을 구독할 사용자의 ObjectId입니다.
  * @param {string} topic - 구독할 topic입니다.
- * @return {Promise<boolean>} 토픽 구독에 성공했으면 true, 아니면 false를 반환합니다.
+ * @return {Promise<Number>} 토픽 구독에 성공한 기기의 수를 반환합니다. 오류가 발생하면 -1을 반환합니다.
  */
 const subscribeUserToTopic = async (userId, topic) => {
   try {
     const deviceToken = await deviceTokenModel.findOne({
       userId,
     });
-    await getMessaging().subscribeToTopic(deviceToken.deviceToken, topic);
-    return true;
+    const { successCount } = await getMessaging().subscribeToTopic(
+      deviceToken.deviceToken,
+      topic
+    );
+    return successCount;
   } catch (error) {
     logger.error(error);
-    return false;
+    return -1;
   }
 };
 
@@ -95,18 +102,21 @@ const subscribeUserToTopic = async (userId, topic) => {
  * 주어진 사용자를 특정한 topic으로부터 구독 해제시킵니다.
  * @param {string} userId - topic을 구독 해제할 사용자의 id입니다.
  * @param {string} topic - 구독을 해제할 topic입니다.
- * @return {Promise<boolean>} 토픽 구독 해제에 성공했으면 true, 아니면 false를 반환합니다.
+ * @return {Promise<Number>} 토픽 구독 해제에 성공한 기기의 수를 반환합니다. 오류가 발생하면 -1을 반환합니다.
  */
 const unsubscribeUserFromTopic = async (userId, topic) => {
   try {
     const deviceToken = await deviceTokenModel.findOne({
       userId,
     });
-    await getMessaging().unsubscribeFromTopic(deviceToken.deviceToken, topic);
-    return true;
+    const { successCount } = await getMessaging().unsubscribeFromTopic(
+      deviceToken.deviceToken,
+      topic
+    );
+    return successCount;
   } catch (error) {
     logger.error(error);
-    return false;
+    return -1;
   }
 };
 
@@ -116,10 +126,12 @@ const unsubscribeUserFromTopic = async (userId, topic) => {
  * @param {string} title - 보낼 메시지의 제목입니다.
  * @param {string} body - 보낼 메시지의 본문입니다.
  * @param {string} icon - 메시지를 보낸 사람의 프로필 사진 주소입니다.
+ * @param {string?} url - 알림 팝업을 클릭했을 때 이동할 주소입니다.
  * @return {Promise<boolean>} 알림 전송에 성공했으면 true, 아니면 false를 반환합니다.
  */
-const sendMessageByTopic = async (topic, title, body, icon) => {
-  const data = { title, body, icon };
+const sendMessageByTopic = async (topic, title, body, icon, url) => {
+  url = url || "/myroom";
+  const data = { title, body, icon, url };
   return await sendNotificationByTopic(data, topic);
 };
 
