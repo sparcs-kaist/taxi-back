@@ -7,6 +7,10 @@ const app = express();
 const httpMocks = require("node-mocks-http");
 
 let testData = { rooms: [], users: [], chat: [], location: [], report: [] };
+const removeTestData = async () => {
+  // drop all testData
+  await testRemover(testData);
+};
 
 // rooms.js 관련 8개의 handler을 테스트
 // 1. test1이 1분 뒤에 출발하는 test-room 방을 생성, 제대로 생성 되었는지 확인
@@ -157,10 +161,6 @@ describe("[rooms] 7.settlementHandler", () => {
 
 // 8. test2 방에서 퇴장, 제대로 방에서 나갔는지 확인하고 생성해준 data 모두 삭제
 describe("[rooms] 8.abortHandler", () => {
-  const removeTestData = async () => {
-    // drop all testData
-    await testRemover(testData);
-  };
   it("should return information of room and abort user", async () => {
     const testUser2 = await userModel.findOne({ id: "test2" });
     const testRoom = await roomModel.findOne({ name: "test-room" });

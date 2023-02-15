@@ -13,7 +13,7 @@ const removeTestData = async () => {
 // 1. test1 유저를 생성 후, agreeOnTermsOfServiceHandler가 제대로 msg를 send 하는지 확인
 describe("[users] 1.agreeOnTermsOfServiceHandler", () => {
   it("should return correct response from handler", async () => {
-    let testUser1 = await userGenerator("test1", testData);
+    const testUser1 = await userGenerator("test1", testData);
     const msg =
       "User/agreeOnTermsOfService : agree on Terms of Service successful";
     let req = httpMocks.createRequest({
