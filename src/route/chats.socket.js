@@ -58,11 +58,11 @@ const emitChatEvent = async (io, roomId, chat) => {
 
     const { type, content, authorId } = chat;
     const time = chat?.time || Date.now();
-    const author = await userModel.findById(
+    const { nickname, profileImageUrl } = await userModel.findById(
       authorId,
-      "_id nickname profileImageUrl"
+      "nickname profileImageUrl"
     );
-    if (!author) {
+    if (!nickname) {
       throw new IllegalArgumentsException();
     }
 
@@ -85,16 +85,15 @@ const emitChatEvent = async (io, roomId, chat) => {
         { upsert: true, new: true }
       )
       .lean();
-
-    logger.info(chatDocument);
+    chatDocument.authorName = nickname;
+    chatDocument.authorProfileUrl = profileImageUrl;
 
     // 방의 모든 사용자에게 이미지 수신 이벤트를 발생시킵니다.
     io.to(`chatRoom-${roomId}`).emit("chats-receive", { chat: chatDocument });
 
     // FCM 알림으로 보내는 content는 채팅 type에 따라 달라집니다.
     // type이 text인 경우 `${nickname}: ${content}`를, 아닌 경우 `${nickname}`를 보냅니다.
-    const body =
-      type === "text" ? `${author.nickname}: ${content}` : author.nickname;
+    const body = type === "text" ? `${nickname}: ${content}` : nickname;
 
     const room = await roomModel.findById(roomId, "name part");
     const urlOnClick = `/myroom/${roomId}`;
@@ -109,7 +108,7 @@ const emitChatEvent = async (io, roomId, chat) => {
       type,
       room.name,
       body,
-      getS3Url(`/profile-img/${author.profileImageUrl}`),
+      getS3Url(`/profile-img/${profileImageUrl}`),
       urlOnClick
     );
     return true;
