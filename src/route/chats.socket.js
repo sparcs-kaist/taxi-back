@@ -2,7 +2,7 @@ const { getLoginInfo, joinChatRoom, leaveChatRoom } = require("../auth/login");
 const { roomModel, userModel, chatModel } = require("../db/mongo");
 const { getS3Url } = require("../db/awsS3");
 const validator = require("validator");
-const { subscribeUserToTopic, sendMessageByTopic } = require("../modules/fcm");
+const { sendMessageByTopic } = require("../modules/fcm");
 const logger = require("../modules/logger");
 
 class IllegalArgumentsException {
@@ -117,15 +117,6 @@ const ioListeners = (io, socket) => {
       joinChatRoom({ session: session }, socket.id, roomId);
       socket.join(`chatRoom-${roomId}`);
       session.save(); // Socket.io 세션의 변경 사항을 Express 세션에 반영.
-
-      // 방에 참여한 사용자를 `room-${room._id}` topic에 구독시킵니다.
-      const topic = `room-${room._id}`;
-      logger.info(
-        `${await subscribeUserToTopic(
-          myUser._id,
-          topic
-        )} tokens subscribed to ${topic}`
-      );
 
       const amount = 30;
       const chats = await chatModel

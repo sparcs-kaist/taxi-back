@@ -91,7 +91,34 @@ const subscribeUserToTopic = async (userId, topic) => {
       deviceToken.deviceToken,
       topic
     );
+    logger.info(`${userId}'s ${successCount} token(s) subscribed to ${topic}`);
     return successCount;
+  } catch (error) {
+    logger.error(error);
+    return -1;
+  }
+};
+
+/**
+ * 주어진 사용자를 주어진 roomId들에 해당하는 topic들에 구독시킵니다.
+ * @summary subscribeUserToTopic의 기능을 연장한 함수입니다.
+ * @param {string} userId - topic을 구독할 사용자의 ObjectId입니다.
+ * @param {Array<string>} roomIds: 구독할 room의 ObjectId들로 구성된 Array입니다.
+ * @return {Promise<Number>} 토픽 구독에 성공한 기기의 수를 반환합니다. 오류가 발생하면 -1을 반환합니다.
+ */
+const subscribeUserToRoomTopics = async (userId, roomIds) => {
+  try {
+    const result = await Promise.all(
+      roomIds.map(async (roomId) => {
+        const topic = `room-${roomId}`;
+        return await subscribeUserToTopic(userId, topic);
+      })
+    );
+    if (result.includes(-1)) {
+      return -1;
+    } else {
+      return result.reduce((a, b) => a + b, 0);
+    }
   } catch (error) {
     logger.error(error);
     return -1;
@@ -112,6 +139,9 @@ const unsubscribeUserFromTopic = async (userId, topic) => {
     const { successCount } = await getMessaging().unsubscribeFromTopic(
       deviceToken.deviceToken,
       topic
+    );
+    logger.info(
+      `${userId}'s ${successCount} token(s) unsubscribed from ${topic}`
     );
     return successCount;
   } catch (error) {
@@ -139,6 +169,7 @@ module.exports = {
   sendMessageByToken,
   sendMessageByTokens,
   subscribeUserToTopic,
+  subscribeUserToRoomTopics,
   unsubscribeUserFromTopic,
   sendMessageByTopic,
 };

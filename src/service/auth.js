@@ -7,6 +7,7 @@ const {
   getFullUsername,
 } = require("../modules/modifyProfile");
 
+const { subscribeUserToRoomTopics } = require("../modules/fcm");
 const jwt = require("../modules/jwt");
 const APP_URI_SCHEME = require("../../security").appUriScheme;
 
@@ -173,7 +174,9 @@ const registerDeviceTokenHandler = async (req, res) => {
   try {
     const newDeviceToken = req.body.deviceToken;
     // 데이터베이스에 새 레코드를 추가합니다.
-    const user = await userModel.findOne({ id: req.userId }, "_id");
+    const user = await userModel
+      .findOne({ id: req.userId }, "_id ongoingRoom doneRoom")
+      .lean();
     const deviceToken = await deviceTokenModel.updateOne(
       {
         userId: user._id,
@@ -184,6 +187,14 @@ const registerDeviceTokenHandler = async (req, res) => {
       },
       { upsert: true, new: true }
     );
+    // 사용자의 모든 deviceToken들을 사용자가 참여중인 방들에 해당하는 topic에 구독시킵니다.
+    const ongoingRoom = user.ongoingRoom;
+    const doneRoom = user.doneRoom;
+    const roomIds = ongoingRoom
+      .concat(doneRoom)
+      .map((objectId) => objectId.toString());
+    await subscribeUserToRoomTopics(user._id, roomIds);
+
     return res.status(200).json({
       deviceToken: deviceToken.deviceToken,
     });
