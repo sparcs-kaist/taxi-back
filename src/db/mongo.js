@@ -155,7 +155,7 @@ module.exports = {
     adminIPWhitelistSchema
   ),
   notificationOptionModel: mongoose.model(
-    "Notification",
+    "NotificationOption",
     notificationOptionSchema
   ),
 };

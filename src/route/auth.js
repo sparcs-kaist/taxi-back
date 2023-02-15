@@ -19,9 +19,7 @@ router.route("/app/device").post(mobileAuthHandlers.registerDeviceTokenHandler);
 router.route("/app/device").delete(mobileAuthHandlers.removeDeviceTokenHandler);
 router.route("/app/token/generate").get(authHandlers.generateTokenHandler);
 
-router
-  .route("/app/device/option")
-  .get(mobileAuthHandlers.getNotificationOption);
+router.route("/app/device/option").get(mobileAuthHandlers.deviceOptionHandler);
 router
   .route("/app/device/option")
   .patch(mobileAuthHandlers.changeNotificationOption);

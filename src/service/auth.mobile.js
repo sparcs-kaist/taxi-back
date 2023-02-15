@@ -202,7 +202,7 @@ const changeNotificationOption = async (req, res) => {
   }
 };
 
-const getNotificationOption = async (req, res) => {
+const deviceOptionHandler = async (req, res) => {
   try {
     const { accessToken, deviceToken } = req.body;
 
@@ -252,5 +252,5 @@ module.exports = {
   registerDeviceTokenHandler,
   removeDeviceTokenHandler,
   changeNotificationOption,
-  getNotificationOption,
+  deviceOptionHandler,
 };
