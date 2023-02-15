@@ -19,9 +19,9 @@ router.route("/app/device").post(mobileAuthHandlers.registerDeviceTokenHandler);
 router.route("/app/device").delete(mobileAuthHandlers.removeDeviceTokenHandler);
 router.route("/app/token/generate").get(authHandlers.generateTokenHandler);
 
-router.route("/app/device/option").get(mobileAuthHandlers.deviceOptionHandler);
 router
   .route("/app/device/option")
+  .get(mobileAuthHandlers.deviceOptionHandler)
   .patch(mobileAuthHandlers.changeNotificationOption);
 
 // 환경변수 SPARCSSSO_CLIENT_ID 유무에 따라 로그인 방식이 변경됩니다.
