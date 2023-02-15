@@ -23,22 +23,16 @@ class IllegalArgumentsException {
   }
 }
 
-/**
- * 채팅 타입과 작성자의 닉네임, 본문을 받아 채팅 타입에 따라 다르게 FCM 알림으로 보낼 content를 생성합니다.
- * @summary emitChatEvent에서만 사용됩니다.
- * @param {string} type - 채팅 메시지의 유형입니다. "text" | "s3img" | "in" | "out" 입니다.
- * @param {string} nickname - 작성자의 닉네임입니다.
- * @param {string} content - 메시지 본문입니다.
- * @return {string} FCM 알림으로 보낼 content입니다.
- */
 const getNotificationContent = (type, nickname, content) => {
   if (type === "text") {
+    // type이 "text"인 경우, nickname과 content를 합쳐서 반환
     return `${nickname}: ${content}`;
   } else if (type === "s3img") {
-    return `${nickname}: Image`;
+    // type이 "s3img"이거나 "in", "out"인 경우에는 nickname만 반환
+    return nickname;
   } else {
     // type이 "in"이거나 "out"인 경우
-    return `${nickname}: ${type}`;
+    return nickname;
   }
 };
 
@@ -72,30 +66,36 @@ const emitChatEvent = async (io, roomId, chat) => {
       throw new IllegalArgumentsException();
     }
 
-    const chatDocument = await chatModel.findOneAndUpdate(
-      {
-        type,
-        authorId,
-        roomId,
-        time,
-      },
-      {
-        type,
-        authorId,
-        roomId,
-        time,
-        content,
-        isValid: true,
-      },
-      { upsert: true, new: true }
-    );
+    const chatDocument = await chatModel
+      .findOneAndUpdate(
+        {
+          type,
+          authorId,
+          roomId,
+          time,
+        },
+        {
+          type,
+          authorId,
+          roomId,
+          time,
+          content,
+          isValid: true,
+        },
+        { upsert: true, new: true }
+      )
+      .lean();
 
     logger.info(chatDocument);
 
     // 방의 모든 사용자에게 이미지 수신 이벤트를 발생시킵니다.
-    io.to(`chatRoom-${roomId}`).emit("chats-receive", { chatDocument });
+    io.to(`chatRoom-${roomId}`).emit("chats-receive", { chat: chatDocument });
 
-    // 해당 방에 참여중인 사용자들에게 알림을 전송합니다.
+    // FCM 알림으로 보내는 content는 채팅 type에 따라 달라집니다.
+    // type이 text인 경우 `${nickname}: ${content}`를, 아닌 경우 `${nickname}`를 보냅니다.
+    const body =
+      type === "text" ? `${author.nickname}: ${content}` : author.nickname;
+
     const room = await roomModel.findById(roomId, "name part");
     const urlOnClick = `/myroom/${roomId}`;
     const userIdsExceptAuthor = room.part
@@ -103,11 +103,12 @@ const emitChatEvent = async (io, roomId, chat) => {
       .filter((userId) => userId !== authorId);
     const deviceTokens = await getTokensOfUsers(userIdsExceptAuthor);
 
+    // 해당 방에 참여중인 사용자들에게 알림을 전송합니다.
     await sendMessageByTokens(
       deviceTokens,
       type,
       room.name,
-      getNotificationContent(type, author.nickname, content),
+      body,
       getS3Url(`/profile-img/${author.profileImageUrl}`),
       urlOnClick
     );
