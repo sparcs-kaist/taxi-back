@@ -63,7 +63,7 @@ const getTokensOfUsers = async (userIds) => {
       const deviceToken = await deviceTokenModel.findOne({
         userId,
       });
-      return deviceToken.deviceTokens;
+      return deviceToken?.deviceTokens || new Array();
     })
   );
   return deviceTokensOfUsers.reduce(
@@ -149,14 +149,19 @@ const sendMessageByTopic = async (topic, type, title, body, icon, link) => {
  * 주어진 사용자를 특정한 topic에 구독시킵니다.
  * @param {string} userId - topic을 구독할 사용자의 ObjectId입니다.
  * @param {string} topic - 구독할 topic입니다.
- * @return {Promise<Number>} 토픽 구독에 성공한 기기의 수를 반환합니다. 오류가 발생하면 -1을 반환합니다.
+ * @return {Promise<Number>} 토픽 구독에 실패한 기기의 수를 반환합니다. 오류가 발생하면 -1을 반환합니다.
  */
 const subscribeUserToTopic = async (userId, topic) => {
   try {
     const deviceToken = await deviceTokenModel.findOne({
       userId,
     });
-    const { successCount } = await getMessaging().subscribeToTopic(
+    // deviceToken이 존재하지 않는 경우, -1을 반환합니다.
+    if (!deviceToken?.deviceTokens || deviceToken.deviceTokens.length === 0) {
+      return -1;
+    }
+
+    const { failureCount } = await getMessaging().subscribeToTopic(
       deviceToken.deviceTokens,
       topic
     );
@@ -181,8 +186,10 @@ const subscribeUserToTopic = async (userId, topic) => {
       })
     );
 
-    logger.info(`${userId}'s ${successCount} token(s) subscribed to ${topic}`);
-    return successCount;
+    logger.info(
+      `${userId}'s ${failureCount} token(s) were not subscribed to ${topic}`
+    );
+    return failureCount;
   } catch (error) {
     logger.error(error);
     return -1;
@@ -193,14 +200,19 @@ const subscribeUserToTopic = async (userId, topic) => {
  * 주어진 사용자를 특정한 topic으로부터 구독 해제시킵니다.
  * @param {string} userId - topic을 구독 해제할 사용자의 id입니다.
  * @param {string} topic - 구독을 해제할 topic입니다.
- * @return {Promise<Number>} 토픽 구독 해제에 성공한 기기의 수를 반환합니다. 오류가 발생하면 -1을 반환합니다.
+ * @return {Promise<Number>} 토픽 구독 해제에 실패한 기기의 수를 반환합니다. 오류가 발생하면 -1을 반환합니다.
  */
 const unsubscribeUserFromTopic = async (userId, topic) => {
   try {
     const deviceToken = await deviceTokenModel.findOne({
       userId,
     });
-    const { successCount } = await getMessaging().unsubscribeFromTopic(
+    // deviceToken이 존재하지 않는 경우, -1을 반환합니다.
+    if (!deviceToken?.deviceTokens || deviceToken.deviceTokens.length === 0) {
+      return -1;
+    }
+
+    const { failureCount } = await getMessaging().unsubscribeFromTopic(
       deviceToken.deviceTokens,
       topic
     );
@@ -216,9 +228,9 @@ const unsubscribeUserFromTopic = async (userId, topic) => {
     );
 
     logger.info(
-      `${userId}'s ${successCount} token(s) unsubscribed from ${topic}`
+      `${userId}'s ${failureCount} token(s) were not unsubscribed from ${topic}`
     );
-    return successCount;
+    return failureCount;
   } catch (error) {
     logger.error(error);
     return -1;
