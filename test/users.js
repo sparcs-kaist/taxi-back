@@ -22,8 +22,9 @@ describe("[users] 1.agreeOnTermsOfServiceHandler", () => {
     let res = httpMocks.createResponse();
     await usersHandlers.agreeOnTermsOfServiceHandler(req, res);
 
+    const resData = res._getData();
     expect(res).to.has.property("statusCode", 200);
-    expect(res._getData()).to.equal(msg);
+    expect(resData).to.equal(msg);
   });
 });
 
@@ -37,8 +38,9 @@ describe("[users] 2.getAgreeOnTermsOfServiceHandler", () => {
     let res = httpMocks.createResponse();
     await usersHandlers.getAgreeOnTermsOfServiceHandler(req, res);
 
+    const resJson = res._getJSONData();
     expect(res).to.has.property("statusCode", 200);
-    expect(res._getJSONData()).to.has.property("agreeOnTermsOfService", true);
+    expect(resJson).to.has.property("agreeOnTermsOfService", true);
   });
 });
 
@@ -58,8 +60,9 @@ describe("[users] 3.editNicknameHandler", () => {
     let res = httpMocks.createResponse();
     await usersHandlers.editNicknameHandler(req, res);
 
+    const resData = res._getData();
     expect(res).to.has.property("statusCode", 200);
-    expect(res._getData()).to.equal(msg);
+    expect(resData).to.equal(msg);
   });
 
   it("should be changed to new nickname", async () => {
@@ -84,8 +87,9 @@ describe("[users] 4.editAccountHandler", () => {
     let res = httpMocks.createResponse();
     await usersHandlers.editAccountHandler(req, res);
 
+    const resData = res._getData();
     expect(res).to.has.property("statusCode", 200);
-    expect(res._getData()).to.equal(msg);
+    expect(resData).to.equal(msg);
   });
 
   it("should be changed to new account", async () => {
@@ -109,16 +113,14 @@ describe("[users] 5.editProfileImgGetPUrlHandler", () => {
     let res = httpMocks.createResponse();
     await usersHandlers.editProfileImgGetPUrlHandler(req, res);
 
+    const resJson = res._getJSONData();
     expect(res).to.has.property("statusCode", 200);
-    expect(res._getJSONData()).to.has.property("url");
-    expect(res._getJSONData().fields).to.has.property(
+    expect(resJson).to.has.property("url");
+    expect(resJson.fields).to.has.property(
       "key",
       `profile-img/${testUser1._id}`
     );
-    expect(res._getJSONData().fields).to.has.property(
-      "Content-Type",
-      testImgType
-    );
+    expect(resJson.fields).to.has.property("Content-Type", testImgType);
   });
 });
 
