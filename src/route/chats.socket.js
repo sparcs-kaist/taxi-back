@@ -118,8 +118,14 @@ const ioListeners = (io, socket) => {
       socket.join(`chatRoom-${roomId}`);
       session.save(); // Socket.io 세션의 변경 사항을 Express 세션에 반영.
 
-      // 방을 추가한 사용자를 `room-${room._id}` topic에 구독시킵니다.
-      await subscribeUserToTopic(myUser._id, `room-${room._id}`);
+      // 방에 참여한 사용자를 `room-${room._id}` topic에 구독시킵니다.
+      const topic = `room-${room._id}`;
+      logger.info(
+        `${await subscribeUserToTopic(
+          myUser._id,
+          topic
+        )} tokens subscribed to ${topic}`
+      );
 
       const amount = 30;
       const chats = await chatModel
@@ -189,12 +195,15 @@ const ioListeners = (io, socket) => {
       io.to(socket.id).emit("chats-send", { done: true });
 
       // 해당 방에 참여중인 사용자들에게 알림을 전송합니다.
+      const room = await roomModel.findById(roomId, "name");
+      const topic = `room-${roomId}`;
+      const urlOnClick = `/myroom/${roomId}`;
       await sendMessageByTopic(
-        `room-${roomId}`,
-        myUser.nickname,
+        topic,
+        `${myUser.nickname} (${room.name})`,
         chatMessage.content,
         getS3Url(`/profile-img/${myUser.profileImageUrl}`),
-        `/myroom/${roomId}`
+        urlOnClick
       );
     } catch (err) {
       logger.error(err);

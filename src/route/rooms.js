@@ -3,8 +3,8 @@ const { query, body } = require("express-validator");
 const router = express.Router();
 
 const roomHandlers = require("../service/rooms");
-const validator = require("../middleware/validator");
 const patterns = require("../db/patterns");
+const validator = require("../middleware/validator");
 const setTimestamp = require("../middleware/setTimestamp");
 
 // 라우터 접근 시 로그인 필요

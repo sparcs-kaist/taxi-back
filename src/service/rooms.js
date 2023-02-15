@@ -1,7 +1,10 @@
 const { roomModel, locationModel, userModel } = require("../db/mongo");
 const { emitChatEvent } = require("../route/chats.socket");
 const { leaveChatRoom } = require("../auth/login");
-const { unsubscribeUserFromTopic } = require("../modules/fcm");
+const {
+  subscribeUserToTopic,
+  unsubscribeUserFromTopic,
+} = require("../modules/fcm");
 const logger = require("../modules/logger");
 const {
   roomPopulateOption,
@@ -171,6 +174,15 @@ const joinHandler = async (req, res) => {
       authorId: user._id,
     });
 
+    // 방에 참여한 사용자를 `room-${room._id}` topic에 구독시킵니다.
+    const topic = `room-${room._id}`;
+    logger.info(
+      `${await subscribeUserToTopic(
+        user._id,
+        topic
+      )} tokens subscribed to ${topic}`
+    );
+
     const roomObject = (await room.populate(roomPopulateOption)).toObject();
     res.send(formatSettlement(roomObject));
   } catch (err) {
@@ -264,7 +276,13 @@ const abortHandler = async (req, res) => {
     });
 
     // 방에서 나간 사용자를 `room-${room._id}` topic으로부터 구독 해제시킵니다.
-    logger.info(await unsubscribeUserFromTopic(user._id, `room-${room._id}`));
+    const topic = `room-${room._id}`;
+    logger.info(
+      `${await unsubscribeUserFromTopic(
+        user._id,
+        topic
+      )} tokens unsubscribed from ${topic}`
+    );
 
     const roomObject = (await room.populate(roomPopulateOption)).toObject();
     const isOver = getIsOver(roomObject, user.id);
