@@ -138,45 +138,48 @@ const sendNotificationByTopic = async (data, topic) => {
 /**
  * 주어진 token에 메시지 알림을 전송합니다.
  * @param {string} token - 메시지 알림을 받을 기기의 deviceToken입니다.
+ * @param {string} type - 메시지 유형으로, "text" | "in" | "out" | "s3img" 입니다.
  * @param {string} title - 보낼 메시지의 제목입니다.
- * @param {string} body - 보낼 메시지의 본문입니다.
+ * @param {string} content - 보낼 메시지의 본문입니다.
  * @param {string} icon - 메시지를 보낸 사람의 프로필 사진 주소입니다.
  * @param {string?} url - 메시지 알림 팝업을 클릭했을 때 이동할 주소입니다.
  * @return {Promise<boolean>} 메시지 알림 전송에 성공했으면 true, 아니면 false를 반환합니다.
  */
-const sendMessageByToken = async (token, title, body, icon, url) => {
+const sendMessageByToken = async (token, type, title, content, icon, url) => {
   url = url || "/myroom";
-  const data = { title, body, icon, url };
+  const data = { type, title, content, icon, url };
   return await sendNotificationByToken(data, token);
 };
 
 /**
  * 주어진 token들에 메시지 알림을 전송합니다.
  * @param {Array<string>} tokens - 메시지 알림을 받을 기기의 deviceToken들로 구성된 Array입니다.
+ * @param {string} type - 메시지 유형으로, "text" | "in" | "out" | "s3img" 입니다.
  * @param {string} title - 보낼 메시지의 제목입니다.
- * @param {string} body - 보낼 메시지의 본문입니다.
+ * @param {string} content - 보낼 메시지의 본문입니다.
  * @param {string} icon - 메시지를 보낸 사람의 프로필 사진 주소입니다.
  * @param {string?} url - 메시지 알림 팝업을 클릭했을 때 이동할 주소입니다.
  * @return {Promise<Number>} 메시지 알림 전송에 성공한 기기의 수를 반환합니다. 오류가 발생하면 -1을 반환합니다.
  */
-const sendMessageByTokens = async (tokens, title, body, icon, url) => {
+const sendMessageByTokens = async (tokens, type, title, content, icon, url) => {
   url = url || "/myroom";
-  const data = { title, body, icon, url };
+  const data = { type, title, content, icon, url };
   return await sendNotificationByTokens(data, tokens);
 };
 
 /**
  * 주어진 topic을 구독하고 있는 모든 기기에 메시지 알림을 전송합니다.
  * @param {string} topic - 메시지 알림을 보낼 기기들이 구독하고 있는 topic입니다.
+ * @param {string} type - 메시지 유형으로, "text" | "in" | "out" | "s3img" 입니다.
  * @param {string} title - 보낼 메시지의 제목입니다.
- * @param {string} body - 보낼 메시지의 본문입니다.
+ * @param {string} content - 보낼 메시지의 본문입니다.
  * @param {string} icon - 메시지를 보낸 사람의 프로필 사진 주소입니다.
  * @param {string?} url - 메시지 알림 팝업을 클릭했을 때 이동할 주소입니다.
  * @return {Promise<boolean>} 메시지 알림 전송에 성공했으면 true, 아니면 false를 반환합니다.
  */
-const sendMessageByTopic = async (topic, title, body, icon, url) => {
+const sendMessageByTopic = async (topic, type, title, content, icon, url) => {
   url = url || "/myroom";
-  const data = { title, body, icon, url };
+  const data = { type, title, content, icon, url };
   return await sendNotificationByTopic(data, topic);
 };
 

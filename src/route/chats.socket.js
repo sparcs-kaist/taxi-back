@@ -24,38 +24,63 @@ const chatPopulateOption = [
 const emitChatEvent = async (io, roomId, chat) => {
   try {
     // chat must contain type, content and authorId
+    // chat can contain time or not.
     if (!io || !roomId || !chat?.type || !chat?.content || !chat?.authorId) {
       throw new IllegalArgumentsException();
     }
 
-    const author = await userModel.findById(chat.authorId);
+    const { type, content, authorId } = chat;
+    const time = chat?.time || Date.now();
+    const author = await userModel.findById(
+      authorId,
+      "_id nickname profileImageUrl"
+    );
     if (!author) {
       throw new IllegalArgumentsException();
     }
 
-    chat.roomId = roomId;
-    chat.time = Date.now();
+    const chatDocument = await chatModel.findOneAndUpdate(
+      {
+        type,
+        authorId,
+        roomId,
+        time,
+      },
+      {
+        type,
+        authorId,
+        roomId,
+        time,
+        content,
+        isValid: true,
+      },
+      { upsert: true, new: true }
+    );
 
-    const chatDocument = new chatModel(chat);
-    await chatDocument.save();
+    logger.info(chatDocument);
 
-    chat.authorName = author.nickname;
-    chat.authorProfileUrl = author.profileImageUrl;
-    if (chat.type == "in" || chat.type == "out") {
-      const userIds = chat.content.split("|");
-      chat.inOutNames = [];
-      for (const userId of userIds) {
-        const user = await userModel.findOne({ id: userId });
-        if (!user) {
-          throw new IllegalArgumentsException();
-        }
-        chat.inOutNames.push(user.nickname);
-      }
-    }
-    io.to(`chatRoom-${roomId}`).emit("chats-receive", { chat });
+    // 방의 모든 사용자에게 이미지 수신 이벤트를 발생시킵니다.
+    io.to(`chatRoom-${roomId}`).emit("chats-receive", { chatDocument });
+
+    // 해당 방에 참여중인 사용자들에게 알림을 전송합니다.
+    const room = await roomModel.findById(roomId, "name part");
+    const urlOnClick = `/myroom/${roomId}`;
+    const userIdsExceptAuthor = room.part
+      .map((participant) => participant.user)
+      .filter((userId) => userId !== authorId);
+    const deviceTokens = await getTokensOfUsers(userIdsExceptAuthor);
+    await sendMessageByTokens(
+      deviceTokens,
+      type,
+      room.name,
+      `${author.nickname}: ${content}`,
+      getS3Url(`/profile-img/${author.profileImageUrl}`),
+      urlOnClick
+    );
+    return true;
   } catch (err) {
     logger.error(err);
-    return;
+    return false;
   }
 };
 
@@ -184,21 +209,6 @@ const ioListeners = (io, socket) => {
         authorId: myUser._id,
       });
       io.to(socket.id).emit("chats-send", { done: true });
-
-      // 해당 방에 참여중인 사용자들에게 알림을 전송합니다.
-      const room = await roomModel.findById(roomId, "name part");
-      const urlOnClick = `/myroom/${roomId}`;
-      const userIdsExceptMe = room.part
-        .map((participant) => participant.user)
-        .filter((userId) => userId !== myUser._id);
-      const deviceTokens = await getTokensOfUsers(userIdsExceptMe);
-      await sendMessageByTokens(
-        deviceTokens,
-        room.name,
-        `${myUser.nickname}: ${chatMessage.content}`,
-        getS3Url(`/profile-img/${myUser.profileImageUrl}`),
-        urlOnClick
-      );
     } catch (err) {
       logger.error(err);
       io.to(socket.id).emit("chats-send", { err: true });
