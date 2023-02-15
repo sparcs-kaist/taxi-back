@@ -95,7 +95,7 @@ const sendMessageByToken = async (token, type, title, body, icon, link) => {
           icon,
         },
         fcm_options: {
-          link: link || "/myroom",
+          link: link || "/",
         },
       },
     };
@@ -132,7 +132,7 @@ const sendMessageByTokens = async (tokens, type, title, body, icon, link) => {
           icon,
         },
         fcm_options: {
-          link: link || "/myroom",
+          link: link || "/",
         },
       },
     };
@@ -168,7 +168,7 @@ const sendMessageByTopic = async (topic, type, title, body, icon, link) => {
           icon,
         },
         fcm_options: {
-          link: link || "/myroom",
+          link: link || "/",
         },
       },
     };
