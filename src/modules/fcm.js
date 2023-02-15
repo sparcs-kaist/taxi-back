@@ -10,7 +10,7 @@ const logger = require("../modules/logger");
  */
 const registerDeviceToken = async (userId, deviceToken) => {
   try {
-    const { deviceTokens } = await deviceTokenModel.updateOne(
+    const newDeviceToken = await deviceTokenModel.updateOne(
       {
         userId,
       },
@@ -20,7 +20,7 @@ const registerDeviceToken = async (userId, deviceToken) => {
       },
       { upsert: true, new: true }
     );
-    return deviceTokens;
+    return newDeviceToken.deviceTokens;
   } catch (error) {
     logger.error(error);
     return new Array();
@@ -35,7 +35,7 @@ const registerDeviceToken = async (userId, deviceToken) => {
  */
 const unregisterDeviceToken = async (userId, deviceToken) => {
   try {
-    const { deviceTokens } = await deviceTokenModel.updateOne(
+    const newDeviceToken = await deviceTokenModel.updateOne(
       {
         userId,
       },
@@ -45,7 +45,7 @@ const unregisterDeviceToken = async (userId, deviceToken) => {
       },
       { upsert: true, new: true }
     );
-    return deviceTokens;
+    return newDeviceToken.deviceTokens;
   } catch (error) {
     logger.error(error);
     return new Array();
@@ -60,52 +60,16 @@ const unregisterDeviceToken = async (userId, deviceToken) => {
 const getTokensOfUsers = async (userIds) => {
   const deviceTokensOfUsers = await Promise.all(
     userIds.map(async (userId) => {
-      const { deviceTokens } = await deviceTokenModel.findOne({
+      const deviceToken = await deviceTokenModel.findOne({
         userId,
       });
-      return deviceTokens;
+      return deviceToken.deviceTokens;
     })
   );
   return deviceTokensOfUsers.reduce(
     (arrayA, arrayB) => arrayA.concat(arrayB),
     new Array()
   );
-};
-
-/**
- * 주어진 token에 메시지 알림을 전송합니다.
- * @param {string} token - 메시지 알림을 받을 기기의 deviceToken입니다.
- * @param {string} type - 메시지 유형으로, "text" | "in" | "out" | "s3img" 입니다.
- * @param {string} title - 보낼 메시지의 제목입니다.
- * @param {string} body - 보낼 메시지의 본문입니다.
- * @param {string} icon - 메시지를 보낸 사람의 프로필 사진 주소입니다.
- * @param {string?} link - 메시지 알림 팝업을 클릭했을 때 이동할 주소입니다.
- * @return {Promise<boolean>} 메시지 알림 전송에 성공했으면 true, 아니면 false를 반환합니다.
- */
-const sendMessageByToken = async (token, type, title, body, icon, link) => {
-  try {
-    const message = {
-      token,
-      notification: {
-        title,
-        body,
-      },
-      webpush: {
-        notification: {
-          icon,
-        },
-        fcm_options: {
-          link: link || "/",
-        },
-      },
-    };
-    await getMessaging().send(message);
-    logger.info(`Notification sent to token ${token}`);
-    return true;
-  } catch (error) {
-    logger.error(error);
-    return false;
-  }
 };
 
 /**
@@ -189,17 +153,17 @@ const sendMessageByTopic = async (topic, type, title, body, icon, link) => {
  */
 const subscribeUserToTopic = async (userId, topic) => {
   try {
-    const { deviceTokens } = await deviceTokenModel.findOne({
+    const deviceToken = await deviceTokenModel.findOne({
       userId,
     });
     const { successCount } = await getMessaging().subscribeToTopic(
-      deviceTokens,
+      deviceToken.deviceTokens,
       topic
     );
 
     // 데이터베이스에 해당 토큰에 대한 토픽 구독 레코드를 추가합니다.
     await Promise.all(
-      deviceTokens.map(async (token) => {
+      deviceToken.deviceTokens.map(async (token) => {
         return await topicSubscriptionModel.updateOne(
           {
             deviceToken: token,
@@ -233,17 +197,17 @@ const subscribeUserToTopic = async (userId, topic) => {
  */
 const unsubscribeUserFromTopic = async (userId, topic) => {
   try {
-    const { deviceTokens } = await deviceTokenModel.findOne({
+    const deviceToken = await deviceTokenModel.findOne({
       userId,
     });
     const { successCount } = await getMessaging().unsubscribeFromTopic(
-      deviceTokens,
+      deviceToken.deviceTokens,
       topic
     );
 
     // 데이터베이스에서 해당 토큰에 대한 토픽 구독 레코드를 삭제합니다.
     await Promise.all(
-      deviceTokens.map(async (token) => {
+      deviceToken.deviceTokens.map(async (token) => {
         return await topicSubscriptionModel.deleteOne({
           deviceToken: token,
           topic: topic,
@@ -265,7 +229,6 @@ module.exports = {
   registerDeviceToken,
   unregisterDeviceToken,
   getTokensOfUsers,
-  sendMessageByToken,
   sendMessageByTokens,
   sendMessageByTopic,
   subscribeUserToTopic,

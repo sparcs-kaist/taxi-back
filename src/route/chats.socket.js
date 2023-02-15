@@ -103,7 +103,7 @@ const emitChatEvent = async (io, roomId, chat) => {
     const urlOnClick = `/myroom/${roomId}`;
     const userIdsExceptAuthor = room.part
       .map((participant) => participant.user)
-      .filter((userId) => userId !== authorId);
+      .filter((userId) => userId.toString() !== authorId.toString());
     const deviceTokens = await getTokensOfUsers(userIdsExceptAuthor);
 
     // 해당 방에 참여중인 사용자들에게 알림을 전송합니다.
