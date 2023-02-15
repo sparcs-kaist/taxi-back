@@ -23,16 +23,24 @@ class IllegalArgumentsException {
   }
 }
 
-const getNotificationContent = (type, nickname, content) => {
+// FCM 알림으로 보내는 content는 채팅 type에 따라 달라집니다.
+// type이 text인 경우 `${nickname}: ${content}`를, 아닌 경우 `${nickname}`를 보냅니다.
+const getMessageBody = (type, nickname, content) => {
+  // TODO: 채팅 메시지 유형에 따라 Body를 다르게 표시합니다.
   if (type === "text") {
-    // type이 "text"인 경우, nickname과 content를 합쳐서 반환
+    // 채팅 메시지 유형이 텍스트인 경우 본문은 "${nickname}: ${content}"가 됩니다.
     return `${nickname}: ${content}`;
   } else if (type === "s3img") {
-    // type이 "s3img"이거나 "in", "out"인 경우에는 nickname만 반환
-    return nickname;
+    // 채팅 유형이 이미지인 경우 본문은 "${nickname} 님이 이미지를 전송하였습니다"가 됩니다.
+    // TODO: 사용자 언어를 가져올 수 있으면 개선할 수 있다고 생각합니다.
+    const suffix = " 님이 이미지를 전송하였습니다.";
+    return `${nickname} ${suffix}`;
   } else {
-    // type이 "in"이거나 "out"인 경우
-    return nickname;
+    // 채팅 메시지 type이 "in"이거나 "out"인 경우 본문은 "${nickname} 님이 입장하였습니다" 또는 "${nickname} 님이 퇴장하였습니다"가 됩니다.
+    // TODO: 사용자 언어를 가져올 수 있으면 개선할 수 있다고 생각합니다.
+    const suffix =
+      type === "in" ? " 님이 입장하였습니다" : "님이 퇴장하였습니다";
+    return `${nickname} ${suffix}`;
   }
 };
 
@@ -91,10 +99,6 @@ const emitChatEvent = async (io, roomId, chat) => {
     // 방의 모든 사용자에게 이미지 수신 이벤트를 발생시킵니다.
     io.to(`chatRoom-${roomId}`).emit("chats-receive", { chat: chatDocument });
 
-    // FCM 알림으로 보내는 content는 채팅 type에 따라 달라집니다.
-    // type이 text인 경우 `${nickname}: ${content}`를, 아닌 경우 `${nickname}`를 보냅니다.
-    const body = type === "text" ? `${nickname}: ${content}` : nickname;
-
     const room = await roomModel.findById(roomId, "name part");
     const urlOnClick = `/myroom/${roomId}`;
     const userIdsExceptAuthor = room.part
@@ -107,7 +111,7 @@ const emitChatEvent = async (io, roomId, chat) => {
       deviceTokens,
       type,
       room.name,
-      body,
+      getMessageBody(type, nickname, content),
       getS3Url(`/profile-img/${profileImageUrl}`),
       urlOnClick
     );

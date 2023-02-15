@@ -73,16 +73,28 @@ const getTokensOfUsers = async (userIds) => {
 };
 
 /**
- * 주어진 token에 해당하는 기기에 data를 전송합니다.
- * @param {string} token - 알림을 받을 기기의 deviceToken입니다.
- * @param {Object} data - 기기에 전송할 key-value pair입니다. 모든 value는 string 타입이어야 합니다.
- * @return {Promise<boolean>} data 전송에 성공했으면 true, 아니면 false를 반환합니다.
+ * 주어진 token에 메시지 알림을 전송합니다.
+ * @param {string} token - 메시지 알림을 받을 기기의 deviceToken입니다.
+ * @param {string} type - 메시지 유형으로, "text" | "in" | "out" | "s3img" 입니다.
+ * @param {string} title - 보낼 메시지의 제목입니다.
+ * @param {string} body - 보낼 메시지의 본문입니다.
+ * @param {string} icon - 메시지를 보낸 사람의 프로필 사진 주소입니다.
+ * @param {string?} link - 메시지 알림 팝업을 클릭했을 때 이동할 주소입니다.
+ * @return {Promise<boolean>} 메시지 알림 전송에 성공했으면 true, 아니면 false를 반환합니다.
  */
-const sendNotificationByToken = async (data, token) => {
+const sendMessageByToken = async (token, type, title, body, icon, link) => {
   try {
     const message = {
-      data,
       token,
+      notification: {
+        title,
+        body,
+      },
+      webpush: {
+        fcm_options: {
+          link: link || "/myroom",
+        },
+      },
     };
     await getMessaging().send(message);
     logger.info(`Notification sent to token ${token}`);
@@ -94,77 +106,40 @@ const sendNotificationByToken = async (data, token) => {
 };
 
 /**
- * 주어진 token들에 해당하는 기기들에 data를 전송합니다.
- * @param {Array<string>} tokens - 알림을 받을 기기들의 deviceToken들입니다.
- * @param {Object} data - 기기에 전송할 key-value pair입니다. 모든 value는 string 타입이어야 합니다.
- * @return {Promise<boolean>} data 전송에 성공한 기기의 수를 반환합니다. 오류가 발생하면 -1을 반환합니다.
- */
-const sendNotificationByTokens = async (data, tokens) => {
-  try {
-    if (tokens.length === 0) return -1;
-    const message = {
-      data,
-      tokens,
-    };
-    const { failureCount } = await getMessaging().sendMulticast(message);
-    return failureCount;
-  } catch (error) {
-    logger.error(error);
-    return -1;
-  }
-};
-
-/**
- * 주어진 topic을 구독하고 있는 모든 기기에 data를 전송합니다.
- * @param {string} token - data를 보낼 기기들이 구독하고 있는 topic입니다.
- * @param {Object} data - 기기에 전송할 key-value pair입니다. 모든 value는 string 타입이어야 합니다.
- * @return {Promise<boolean>} data 전송에 성공했으면 true, 아니면 false를 반환합니다.
- */
-const sendNotificationByTopic = async (data, topic) => {
-  try {
-    const message = {
-      data,
-      topic,
-    };
-    await getMessaging().send(message);
-    logger.info(`Notification sent to topic ${topic}`);
-    return true;
-  } catch (error) {
-    logger.error(error);
-    return false;
-  }
-};
-
-/**
- * 주어진 token에 메시지 알림을 전송합니다.
- * @param {string} token - 메시지 알림을 받을 기기의 deviceToken입니다.
- * @param {string} type - 메시지 유형으로, "text" | "in" | "out" | "s3img" 입니다.
- * @param {string} title - 보낼 메시지의 제목입니다.
- * @param {string} body - 보낼 메시지의 본문입니다.
- * @param {string} icon - 메시지를 보낸 사람의 프로필 사진 주소입니다.
- * @param {string?} url - 메시지 알림 팝업을 클릭했을 때 이동할 주소입니다.
- * @return {Promise<boolean>} 메시지 알림 전송에 성공했으면 true, 아니면 false를 반환합니다.
- */
-const sendMessageByToken = async (token, type, title, body, icon, url) => {
-  url = url || "/myroom";
-  const data = { type, title, body, icon, url };
-  return await sendNotificationByToken(data, token);
-};
-
-/**
  * 주어진 token들에 메시지 알림을 전송합니다.
  * @param {Array<string>} tokens - 메시지 알림을 받을 기기의 deviceToken들로 구성된 Array입니다.
  * @param {string} type - 메시지 유형으로, "text" | "in" | "out" | "s3img" 입니다.
  * @param {string} title - 보낼 메시지의 제목입니다.
  * @param {string} body - 보낼 메시지의 본문입니다.
  * @param {string} icon - 메시지를 보낸 사람의 프로필 사진 주소입니다.
- * @param {string?} url - 메시지 알림 팝업을 클릭했을 때 이동할 주소입니다.
- * @return {Promise<Number>} 메시지 알림 전송에 성공한 기기의 수를 반환합니다. 오류가 발생하면 -1을 반환합니다.
+ * @param {string?} link - 메시지 알림 팝업을 클릭했을 때 이동할 주소입니다.
+ * @return {Promise<Number>} 메시지 알림 전송에 실패한 기기의 수를 반환합니다. 오류가 발생하면 -1을 반환합니다.
  */
-const sendMessageByTokens = async (tokens, type, title, body, icon, url) => {
-  url = url || "/myroom";
-  const data = { type, title, body, icon, url };
-  return await sendNotificationByTokens(data, tokens);
+const sendMessageByTokens = async (tokens, type, title, body, icon, link) => {
+  if (tokens.length === 0) return -1;
+  try {
+    const message = {
+      tokens,
+      notification: {
+        title,
+        body,
+      },
+      webpush: {
+        notification: {
+          icon,
+        },
+        fcm_options: {
+          link: link || "/myroom",
+        },
+      },
+    };
+    const { failureCount } = await getMessaging().sendMulticast(message);
+    logger.info(`Notification sent failed for ${failureCount} devices`);
+    return failureCount;
+  } catch (error) {
+    logger.error(error);
+    return -1;
+  }
 };
 
 /**
@@ -174,13 +149,30 @@ const sendMessageByTokens = async (tokens, type, title, body, icon, url) => {
  * @param {string} title - 보낼 메시지의 제목입니다.
  * @param {string} body - 보낼 메시지의 본문입니다.
  * @param {string} icon - 메시지를 보낸 사람의 프로필 사진 주소입니다.
- * @param {string?} url - 메시지 알림 팝업을 클릭했을 때 이동할 주소입니다.
+ * @param {string?} link - 메시지 알림 팝업을 클릭했을 때 이동할 주소입니다.
  * @return {Promise<boolean>} 메시지 알림 전송에 성공했으면 true, 아니면 false를 반환합니다.
  */
-const sendMessageByTopic = async (topic, type, title, body, icon, url) => {
-  url = url || "/myroom";
-  const data = { type, title, body, icon, url };
-  return await sendNotificationByTopic(data, topic);
+const sendMessageByTopic = async (topic, type, title, body, icon, link) => {
+  try {
+    const message = {
+      topic,
+      notification: {
+        title,
+        body,
+      },
+      webpush: {
+        fcm_options: {
+          link: link || "/myroom",
+        },
+      },
+    };
+    await getMessaging().send(message);
+    logger.info(`Notification sent to token ${topic}`);
+    return true;
+  } catch (error) {
+    logger.error(error);
+    return false;
+  }
 };
 
 /**
