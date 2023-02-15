@@ -5,6 +5,16 @@ const validator = require("validator");
 const { getTokensOfUsers, sendMessageByTokens } = require("../modules/fcm");
 const logger = require("../modules/logger");
 
+/** @constant {{path: string, select: string}[]}
+ * 쿼리를 통해 얻은 Chat Document를 populate할 설정값을 정의합니다.
+ */
+const chatPopulateOption = [
+  { path: "authorId", select: "_id nickname profileImageUrl" },
+];
+
+/**
+ * emitChatEvent의 필수 파라미터가 주어지지 않은 경우 발생하는 예외를 정의하는 클래스입니다.
+ */
 class IllegalArgumentsException {
   constructor() {
     this.toString = () => {
@@ -13,14 +23,37 @@ class IllegalArgumentsException {
   }
 }
 
-/** @constant {{path: string, select: string}[]}
- * 쿼리를 통해 얻은 Chat Document를 populate할 설정값을 정의합니다.
+/**
+ * 채팅 타입과 작성자의 닉네임, 본문을 받아 채팅 타입에 따라 다르게 FCM 알림으로 보낼 content를 생성합니다.
+ * @summary emitChatEvent에서만 사용됩니다.
+ * @param {string} type - 채팅 메시지의 유형입니다. "text" | "s3img" | "in" | "out" 입니다.
+ * @param {string} nickname - 작성자의 닉네임입니다.
+ * @param {string} content - 메시지 본문입니다.
+ * @return {string} FCM 알림으로 보낼 content입니다.
  */
-const chatPopulateOption = [
-  { path: "authorId", select: "_id nickname profileImageUrl" },
-];
+const getNotificationContent = (type, nickname, content) => {
+  if (type === "text") {
+    return `${nickname}: ${content}`;
+  } else if (type === "s3img") {
+    return `${nickname}: Image`;
+  } else {
+    // type이 "in"이거나 "out"인 경우
+    return `${nickname}: ${type}`;
+  }
+};
 
-// express 라우터에서 채팅 이벤트를 보낼 수 있게 함수를 분리했습니다.
+/**
+ * 채팅을 전송하고 채팅 알림을 발생시킵니다.
+ * @summary express 라우터에서 채팅 이벤트를 보낼 수 있게 함수를 분리했습니다.
+ * @param {Server<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, any>} io - Socket.io 서버 인스턴스입니다. req.app.get("io")를 통해 접근할 수 있습니다.
+ * @param {string} roomId - 채팅 및 채팅 알림을 보낼 방의 ObjectId입니다.
+ * @param {Object} chat - 채팅 메시지 내용입니다.
+ * @param {string} chat.type - 채팅 메시지의 유형입니다. "text" | "s3img" | "in" | "out" 입니다.
+ * @param {string} chat.content - 채팅 메시지의 본문입니다. chat.type이 "s3img"인 경우에는 채팅의 objectId입니다. chat.type이 "in"이거나 "out"인 경우 입퇴장한 사용자의 id(!==ObjectId)입니다.
+ * @param {string} chat.authorId - 채팅을 보낸 사용자의 ObjectId입니다.
+ * @param {Date?} chat.time - optional. 채팅 메시지 전송 시각입니다.
+ * @return {Promise<Boolean>} 채팅 및 알림 전송에 성공하면 true, 중간에 오류가 발생하면 false를 반환합니다.
+ */
 const emitChatEvent = async (io, roomId, chat) => {
   try {
     // chat must contain type, content and authorId
@@ -69,11 +102,12 @@ const emitChatEvent = async (io, roomId, chat) => {
       .map((participant) => participant.user)
       .filter((userId) => userId !== authorId);
     const deviceTokens = await getTokensOfUsers(userIdsExceptAuthor);
+
     await sendMessageByTokens(
       deviceTokens,
       type,
       room.name,
-      `${author.nickname}: ${content}`,
+      getNotificationContent(type, author.nickname, content),
       getS3Url(`/profile-img/${author.profileImageUrl}`),
       urlOnClick
     );
@@ -87,7 +121,7 @@ const emitChatEvent = async (io, roomId, chat) => {
 /**
  * Chat Object의 array가 주어졌을 때 클라이언트에서 처리하기 편한 형태로 Chat Object를 가공합니다.
  * @param {[Object]} chats - Chats Document에 lean과 populate(chatPopulateOption)을 차례로 적용한 Chat Object의 배열입니다.
- * @return {Promise} {type: String, authorId: String, authorName: String, authorProfileUrl: String, content: string, time: Date}로 이루어진 chat 객체의 배열입니다.
+ * @return {Promise<Array>} {type: String, authorId: String, authorName: String, authorProfileUrl: String, content: string, time: Date}로 이루어진 chat 객체의 배열입니다.
  */
 const transformChatsForRoom = async (chats) => {
   const chatsToSend = [];
