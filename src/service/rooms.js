@@ -1,7 +1,10 @@
 const { roomModel, locationModel, userModel } = require("../db/mongo");
 const { emitChatEvent } = require("../route/chats.socket");
 const { leaveChatRoom } = require("../auth/login");
-const { unsubscribeUserFromTopic } = require("../modules/fcm");
+const {
+  subscribeUserToTopic,
+  unsubscribeUserFromTopic,
+} = require("../modules/fcm");
 const logger = require("../modules/logger");
 const {
   roomPopulateOption,
@@ -76,6 +79,10 @@ const createHandler = async (req, res) => {
       content: user.id,
       authorId: user._id,
     });
+
+    // 방에 참여한 사용자를 `room-${room._id}` topic에 구독시킵니다.
+    const topic = `room-${room._id}`;
+    await subscribeUserToTopic(user._id, topic);
 
     const roomObject = (await room.populate(roomPopulateOption)).toObject();
     return res.send(formatSettlement(roomObject));
@@ -170,6 +177,10 @@ const joinHandler = async (req, res) => {
       content: user.id,
       authorId: user._id,
     });
+
+    // 방에 참여한 사용자를 `room-${room._id}` topic에 구독시킵니다.
+    const topic = `room-${room._id}`;
+    await subscribeUserToTopic(user._id, topic);
 
     const roomObject = (await room.populate(roomPopulateOption)).toObject();
     res.send(formatSettlement(roomObject));

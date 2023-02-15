@@ -51,6 +51,16 @@ const deviceTokenSchema = Schema({
   },
 });
 
+const topicSubscriptionSchema = Schema({
+  deviceToken: String,
+  topic: String,
+  subscribedAt: {
+    type: Date,
+    default: () => Date.now(),
+    required: true,
+  },
+});
+
 const roomSchema = Schema({
   name: { type: String, required: true, default: "이름 없음", text: true },
   from: { type: Schema.Types.ObjectId, ref: "Location", required: true },
@@ -132,6 +142,10 @@ mongoose.connect(security.mongo, {
 module.exports = {
   userModel: mongoose.model("User", userSchema),
   deviceTokenModel: mongoose.model("DeviceToken", deviceTokenSchema),
+  topicSubscriptionModel: mongoose.model(
+    "TopicSubscription",
+    topicSubscriptionSchema
+  ),
   roomModel: mongoose.model("Room", roomSchema),
   locationModel: mongoose.model("Location", locationSchema),
   chatModel: mongoose.model("Chat", chatSchema),

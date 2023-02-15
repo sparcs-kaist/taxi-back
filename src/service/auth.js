@@ -174,9 +174,10 @@ const registerDeviceTokenHandler = async (req, res) => {
   try {
     const newDeviceToken = req.body.deviceToken;
     // 데이터베이스에 새 레코드를 추가합니다.
-    const user = await userModel
-      .findOne({ id: req.userId }, "_id ongoingRoom doneRoom")
-      .lean();
+    const user = await userModel.findOne(
+      { id: req.userId },
+      "_id ongoingRoom doneRoom"
+    );
     const deviceToken = await deviceTokenModel.updateOne(
       {
         userId: user._id,

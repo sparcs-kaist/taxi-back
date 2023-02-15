@@ -1,5 +1,5 @@
 const { getMessaging } = require("firebase-admin/messaging");
-const { deviceTokenModel } = require("../db/mongo");
+const { deviceTokenModel, topicSubscriptionModel } = require("../db/mongo");
 const logger = require("../modules/logger");
 
 const sendNotificationByToken = async (data, token) => {
@@ -84,13 +84,34 @@ const sendMessageByTokens = async (tokens, title, body, icon, url) => {
  */
 const subscribeUserToTopic = async (userId, topic) => {
   try {
-    const deviceToken = await deviceTokenModel.findOne({
+    const { deviceToken } = await deviceTokenModel.findOne({
       userId,
     });
     const { successCount } = await getMessaging().subscribeToTopic(
-      deviceToken.deviceToken,
+      deviceToken,
       topic
     );
+
+    // 데이터베이스에 해당 토큰에 대한 토픽 구독 레코드를 추가합니다.
+    await Promise.all(
+      deviceToken.map(async (token) => {
+        return await topicSubscriptionModel.updateOne(
+          {
+            deviceToken: token,
+            topic: topic,
+          },
+          {
+            deviceToken: token,
+            topic: topic,
+          },
+          {
+            upsert: true,
+            new: true,
+          }
+        );
+      })
+    );
+
     logger.info(`${userId}'s ${successCount} token(s) subscribed to ${topic}`);
     return successCount;
   } catch (error) {
@@ -133,13 +154,24 @@ const subscribeUserToRoomTopics = async (userId, roomIds) => {
  */
 const unsubscribeUserFromTopic = async (userId, topic) => {
   try {
-    const deviceToken = await deviceTokenModel.findOne({
+    const { deviceToken } = await deviceTokenModel.findOne({
       userId,
     });
     const { successCount } = await getMessaging().unsubscribeFromTopic(
-      deviceToken.deviceToken,
+      deviceToken,
       topic
     );
+
+    // 데이터베이스에서 해당 토큰에 대한 토픽 구독 레코드를 삭제합니다.
+    await Promise.all(
+      deviceToken.map(async (token) => {
+        return await topicSubscriptionModel.deleteOne({
+          deviceToken: token,
+          topic: topic,
+        });
+      })
+    );
+
     logger.info(
       `${userId}'s ${successCount} token(s) unsubscribed from ${topic}`
     );
