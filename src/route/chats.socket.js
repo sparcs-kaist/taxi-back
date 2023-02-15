@@ -187,13 +187,11 @@ const ioListeners = (io, socket) => {
 
       // 해당 방에 참여중인 사용자들에게 알림을 전송합니다.
       const room = await roomModel.findById(roomId, "name part");
-      const topic = `room-${roomId}`;
       const urlOnClick = `/myroom/${roomId}`;
       const userIdsExceptMe = room.part
         .map((participant) => participant.user)
         .filter((userId) => userId !== myUser._id);
       const deviceTokens = await getTokensOfUsers(userIdsExceptMe);
-      logger.info(deviceTokens);
       await sendMessageByTokens(
         deviceTokens,
         room.name,
