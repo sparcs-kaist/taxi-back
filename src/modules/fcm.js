@@ -91,6 +91,9 @@ const sendMessageByToken = async (token, type, title, body, icon, link) => {
         body,
       },
       webpush: {
+        notification: {
+          icon,
+        },
         fcm_options: {
           link: link || "/myroom",
         },
@@ -161,6 +164,9 @@ const sendMessageByTopic = async (topic, type, title, body, icon, link) => {
         body,
       },
       webpush: {
+        notification: {
+          icon,
+        },
         fcm_options: {
           link: link || "/myroom",
         },
