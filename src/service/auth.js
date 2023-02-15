@@ -7,7 +7,6 @@ const {
   getFullUsername,
 } = require("../modules/modifyProfile");
 
-const { subscribeUserToRoomTopics } = require("../modules/fcm");
 const jwt = require("../modules/jwt");
 const APP_URI_SCHEME = require("../../security").appUriScheme;
 
@@ -194,7 +193,6 @@ const registerDeviceTokenHandler = async (req, res) => {
     const roomIds = ongoingRoom
       .concat(doneRoom)
       .map((objectId) => objectId.toString());
-    await subscribeUserToRoomTopics(user._id, roomIds);
 
     return res.status(200).json({
       deviceToken: deviceToken.deviceToken,

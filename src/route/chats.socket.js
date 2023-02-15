@@ -2,7 +2,7 @@ const { getLoginInfo, joinChatRoom, leaveChatRoom } = require("../auth/login");
 const { roomModel, userModel, chatModel } = require("../db/mongo");
 const { getS3Url } = require("../db/awsS3");
 const validator = require("validator");
-const { sendMessageByTopic } = require("../modules/fcm");
+const { getTokensOfUsers, sendMessageByTokens } = require("../modules/fcm");
 const logger = require("../modules/logger");
 
 class IllegalArgumentsException {
@@ -169,7 +169,7 @@ const ioListeners = (io, socket) => {
       const myUserId = getLoginInfo({ session: session }).id || "";
       const myUser = await userModel.findOne(
         { id: myUserId },
-        "id nickname profileImageUrl"
+        "_id id nickname profileImageUrl"
       );
       if (!myUser)
         return io.to(socket.id).emit("chats-send", { err: "user not exist" });
@@ -186,11 +186,16 @@ const ioListeners = (io, socket) => {
       io.to(socket.id).emit("chats-send", { done: true });
 
       // 해당 방에 참여중인 사용자들에게 알림을 전송합니다.
-      const room = await roomModel.findById(roomId, "name");
+      const room = await roomModel.findById(roomId, "name part");
       const topic = `room-${roomId}`;
       const urlOnClick = `/myroom/${roomId}`;
-      await sendMessageByTopic(
-        topic,
+      const userIdsExceptMe = room.part
+        .map((participant) => participant.user)
+        .filter((userId) => userId !== myUser._id);
+      const deviceTokens = await getTokensOfUsers(userIdsExceptMe);
+      logger.info(deviceTokens);
+      await sendMessageByTokens(
+        deviceTokens,
         `${myUser.nickname} (${room.name})`,
         chatMessage.content,
         getS3Url(`/profile-img/${myUser.profileImageUrl}`),

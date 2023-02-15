@@ -6,7 +6,6 @@ const {
   generateProfileImageUrl,
 } = require("../modules/modifyProfile");
 
-const { subscribeUserToRoomTopics } = require("../modules/fcm");
 const logger = require("../modules/logger");
 
 const loginHtml = `
@@ -159,7 +158,6 @@ const registerDeviceTokenHandler = async (req, res) => {
     const roomIds = ongoingRoom
       .concat(doneRoom)
       .map((objectId) => objectId.toString());
-    await subscribeUserToRoomTopics(user._id, roomIds);
 
     return res.status(200).json({
       deviceToken: deviceToken.deviceToken,
