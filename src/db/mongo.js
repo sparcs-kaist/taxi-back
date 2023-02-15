@@ -43,7 +43,7 @@ const deviceTokenSchema = Schema({
     required: true,
     unique: true,
   },
-  deviceToken: [{ type: String, required: true }],
+  deviceTokens: [{ type: String, required: true }],
   registeredAt: {
     type: Date,
     default: () => Date.now(),

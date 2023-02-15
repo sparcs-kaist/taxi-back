@@ -10,17 +10,17 @@ const logger = require("../modules/logger");
  */
 const registerDeviceToken = async (userId, deviceToken) => {
   try {
-    const newDeviceToken = await deviceTokenModel.updateOne(
+    const { deviceTokens } = await deviceTokenModel.updateOne(
       {
         userId,
       },
       {
         userId,
-        $addToSet: { deviceToken },
+        $addToSet: { deviceTokens: deviceToken },
       },
       { upsert: true, new: true }
     );
-    return newDeviceToken.deviceToken;
+    return deviceTokens;
   } catch (error) {
     logger.error(error);
     return new Array();
@@ -35,17 +35,17 @@ const registerDeviceToken = async (userId, deviceToken) => {
  */
 const unregisterDeviceToken = async (userId, deviceToken) => {
   try {
-    const newDeviceToken = await deviceTokenModel.updateOne(
+    const { deviceTokens } = await deviceTokenModel.updateOne(
       {
         userId,
       },
       {
         userId,
-        $pull: { deviceToken },
+        $pull: { deviceTokens: deviceToken },
       },
       { upsert: true, new: true }
     );
-    return newDeviceToken.deviceToken;
+    return deviceTokens;
   } catch (error) {
     logger.error(error);
     return new Array();
@@ -58,15 +58,15 @@ const unregisterDeviceToken = async (userId, deviceToken) => {
  * @return {Promise<Array<string>>} deviceToken의 Array를 반환합니다. 오류가 발생하면 빈 배열을 반환합니다.
  */
 const getTokensOfUsers = async (userIds) => {
-  const deviceTokenOfUsers = await Promise.all(
+  const deviceTokensOfUsers = await Promise.all(
     userIds.map(async (userId) => {
-      const deviceToken = await deviceTokenModel.findOne({
+      const { deviceTokens } = await deviceTokenModel.findOne({
         userId,
       });
-      return deviceToken.deviceToken;
+      return deviceTokens;
     })
   );
-  return deviceTokenOfUsers.reduce(
+  return deviceTokensOfUsers.reduce(
     (arrayA, arrayB) => arrayA.concat(arrayB),
     new Array()
   );
@@ -189,17 +189,17 @@ const sendMessageByTopic = async (topic, type, title, body, icon, link) => {
  */
 const subscribeUserToTopic = async (userId, topic) => {
   try {
-    const { deviceToken } = await deviceTokenModel.findOne({
+    const { deviceTokens } = await deviceTokenModel.findOne({
       userId,
     });
     const { successCount } = await getMessaging().subscribeToTopic(
-      deviceToken,
+      deviceTokens,
       topic
     );
 
     // 데이터베이스에 해당 토큰에 대한 토픽 구독 레코드를 추가합니다.
     await Promise.all(
-      deviceToken.map(async (token) => {
+      deviceTokens.map(async (token) => {
         return await topicSubscriptionModel.updateOne(
           {
             deviceToken: token,
@@ -233,17 +233,17 @@ const subscribeUserToTopic = async (userId, topic) => {
  */
 const unsubscribeUserFromTopic = async (userId, topic) => {
   try {
-    const { deviceToken } = await deviceTokenModel.findOne({
+    const { deviceTokens } = await deviceTokenModel.findOne({
       userId,
     });
     const { successCount } = await getMessaging().unsubscribeFromTopic(
-      deviceToken,
+      deviceTokens,
       topic
     );
 
     // 데이터베이스에서 해당 토큰에 대한 토픽 구독 레코드를 삭제합니다.
     await Promise.all(
-      deviceToken.map(async (token) => {
+      deviceTokens.map(async (token) => {
         return await topicSubscriptionModel.deleteOne({
           deviceToken: token,
           topic: topic,
