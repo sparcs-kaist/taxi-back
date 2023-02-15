@@ -21,10 +21,8 @@ router.route("/app/token/generate").get(authHandlers.generateTokenHandler);
 
 router
   .route("/app/device/option")
-  .get(mobileAuthHandlers.getNotificationOption);
-router
-  .route("/app/device/option")
-  .patch(mobileAuthHandlers.changeNotificationOption);
+  .get(mobileAuthHandlers.getNotificationOptionHandler)
+  .patch(mobileAuthHandlers.changeNotificationOptionHandler);
 
 // 환경변수 SPARCSSSO_CLIENT_ID 유무에 따라 로그인 방식이 변경됩니다.
 module.exports = security.sparcssso?.id ? router : authReplace;
