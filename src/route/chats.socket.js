@@ -196,8 +196,8 @@ const ioListeners = (io, socket) => {
       logger.info(deviceTokens);
       await sendMessageByTokens(
         deviceTokens,
-        `${myUser.nickname} (${room.name})`,
-        chatMessage.content,
+        room.name,
+        `${myUser.nickname}: ${chatMessage.content}`,
         getS3Url(`/profile-img/${myUser.profileImageUrl}`),
         urlOnClick
       );
