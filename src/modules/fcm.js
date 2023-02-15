@@ -3,6 +3,56 @@ const { deviceTokenModel, topicSubscriptionModel } = require("../db/mongo");
 const logger = require("../modules/logger");
 
 /**
+ * 사용자의 ObjectId와 FCM device token이 주어졌을 때, 해당 deviceToken을 사용자의 토큰으로 DB에 등록합니다.
+ * @param {string} userId - 사용자의 ObjectId입니다.
+ * @param {string} deviceToken - 등록하려는 FCM device token입니다.
+ * @return {Promise<Array<string>>} 변경된 사용자의 deviceToken의 목록 Array를 반환합니다. 오류가 발생하면 빈 배열을 반환합니다.
+ */
+const registerDeviceToken = async (userId, deviceToken) => {
+  try {
+    const newDeviceToken = await deviceTokenModel.updateOne(
+      {
+        userId,
+      },
+      {
+        userId,
+        $addToSet: { deviceToken },
+      },
+      { upsert: true, new: true }
+    );
+    return newDeviceToken.deviceToken;
+  } catch (error) {
+    logger.error(error);
+    return new Array();
+  }
+};
+
+/**
+ * 사용자의 ObjectId와 FCM device token이 주어졌을 때, 해당 사용자의 해당 deviceToken을 DB에서 삭제합니다.
+ * @param {string} userId - 사용자의 ObjectId입니다.
+ * @param {string} deviceToken - 삭제하려는 FCM device token입니다.
+ * @return {Promise<Array<string>>} 변경된 사용자의 deviceToken의 목록 Array를 반환합니다. 오류가 발생하면 빈 배열을 반환합니다.
+ */
+const unregisterDeviceToken = async (userId, deviceToken) => {
+  try {
+    const newDeviceToken = await deviceTokenModel.updateOne(
+      {
+        userId,
+      },
+      {
+        userId,
+        $pull: { deviceToken },
+      },
+      { upsert: true, new: true }
+    );
+    return newDeviceToken.deviceToken;
+  } catch (error) {
+    logger.error(error);
+    return new Array();
+  }
+};
+
+/**
  * 사용자들의 ObjectId의 배열이 주어졌을 때, 해당 사용자들의 모든 deviceToken을 하나의 Array로 반환합니다.
  * @param {Array<string>} userIds - 사용자의 ObjectId로 이루어진 Array입니다.
  * @return {Promise<Array<string>>} deviceToken의 Array를 반환합니다. 오류가 발생하면 빈 배열을 반환합니다.
@@ -211,6 +261,8 @@ const unsubscribeUserFromTopic = async (userId, topic) => {
 };
 
 module.exports = {
+  registerDeviceToken,
+  unregisterDeviceToken,
   getTokensOfUsers,
   sendMessageByToken,
   sendMessageByTokens,

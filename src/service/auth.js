@@ -1,20 +1,23 @@
 const security = require("../../security");
-const { userModel, deviceTokenModel } = require("../db/mongo");
+const { userModel } = require("../db/mongo");
+const { user: userPattern } = require("../db/patterns");
 const { getLoginInfo, logout, login } = require("../auth/login");
+
+const {
+  registerDeviceToken,
+  unregisterDeviceToken,
+} = require("../modules/fcm");
+const logger = require("../modules/logger");
 const {
   generateNickname,
   generateProfileImageUrl,
   getFullUsername,
 } = require("../modules/modifyProfile");
-
 const jwt = require("../modules/jwt");
 const APP_URI_SCHEME = require("../../security").appUriScheme;
 
-const { user: userPattern } = require("../db/patterns");
-
 // SPARCS SSO
 const Client = require("../auth/sparcsso");
-const logger = require("../modules/logger");
 const client = new Client(security.sparcssso?.id, security.sparcssso?.key);
 
 const transUserData = (userData) => {
@@ -157,9 +160,17 @@ const createNewTokenHandler = (req, res, userData) => {
   );
 };
 
-const logoutHandler = (req, res) => {
+const logoutHandler = async (req, res) => {
   try {
-    const { sid } = getLoginInfo(req);
+    const { id, sid } = getLoginInfo(req);
+
+    // DB에서 deviceToken 레코드를 삭제합니다.
+    const deviceToken = req.session?.deviceToken;
+    if (deviceToken) {
+      const user = await userModel.findOne({ id }, "_id");
+      await unregisterDeviceToken(user._id, deviceToken);
+    }
+
     const redirectUrl = security.frontUrl + "/login";
     const ssoLogoutUrl = client.getLogoutUrl(sid, redirectUrl);
     logout(req, res);
@@ -171,31 +182,18 @@ const logoutHandler = (req, res) => {
 
 const registerDeviceTokenHandler = async (req, res) => {
   try {
-    const newDeviceToken = req.body.deviceToken;
+    const deviceToken = req.body.deviceToken;
     // 데이터베이스에 새 레코드를 추가합니다.
-    const user = await userModel.findOne(
-      { id: req.userId },
-      "_id ongoingRoom doneRoom"
-    );
-    const deviceToken = await deviceTokenModel.updateOne(
-      {
-        userId: user._id,
-      },
-      {
-        userId: user._id,
-        $addToSet: { deviceToken: newDeviceToken },
-      },
-      { upsert: true, new: true }
-    );
-    // 사용자의 모든 deviceToken들을 사용자가 참여중인 방들에 해당하는 topic에 구독시킵니다.
-    const ongoingRoom = user.ongoingRoom;
-    const doneRoom = user.doneRoom;
-    const roomIds = ongoingRoom
-      .concat(doneRoom)
-      .map((objectId) => objectId.toString());
+    const user = await userModel.findOne({ id: req.userId }, "_id");
+
+    // DB에 deviceToken 레코드를 추가합니다.
+    const newDeviceToken = await registerDeviceToken(user._id, deviceToken);
+
+    // 세션에 현재 사용자 기기의 deviceToken을 저장합니다.
+    req.session.deviceToken = deviceToken;
 
     return res.status(200).json({
-      deviceToken: deviceToken.deviceToken,
+      deviceToken: newDeviceToken,
     });
   } catch (e) {
     logger.error(e);
