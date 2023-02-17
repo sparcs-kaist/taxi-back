@@ -12,6 +12,8 @@ const {
 } = require("../modules/modifyProfile");
 const logger = require("../modules/logger");
 
+const { registerDeviceTokenHandler } = require("../service/auth");
+
 const loginHtml = `
 <!DOCTYPE html>
 <html lang="ko">
@@ -144,27 +146,6 @@ const logoutHandler = async (req, res) => {
     res.json({ ssoLogoutUrl });
   } catch (e) {
     res.status(500).send("Auth/logout : internal server error");
-  }
-};
-
-const registerDeviceTokenHandler = async (req, res) => {
-  try {
-    const deviceToken = req.body.deviceToken;
-    // 데이터베이스에 새 레코드를 추가합니다.
-    const user = await userModel.findOne({ id: req.userId }, "_id");
-
-    // DB에 deviceToken 레코드를 추가합니다.
-    const newDeviceToken = await registerDeviceToken(user._id, deviceToken);
-
-    // 세션에 현재 사용자 기기의 deviceToken을 저장합니다.
-    req.session.deviceToken = deviceToken;
-
-    return res.status(200).json({
-      deviceToken: newDeviceToken,
-    });
-  } catch (e) {
-    logger.error(e);
-    res.status(500).send("internal server error");
   }
 };
 
