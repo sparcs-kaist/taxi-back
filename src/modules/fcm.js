@@ -53,6 +53,28 @@ const unregisterDeviceToken = async (userId, deviceToken) => {
 };
 
 /**
+ * 사용자의 FCM device token이 현재 사용 가능한지 검증합니다.
+ * @summary 해당 디바이스에 dry-run 방식으로 메시지 전송을 시험함으로써 해당 deviceToken이 사용 가능한지 검증합니다. dry-run 시 FCM 서버에는 메시지 전송 요청이 전송되지만, 실제 기기에는 알림이 전송되지 않습니다.
+ * @param {string} deviceToken - 사용 가능 여부를 확인하려고 하는 FCM device token입니다.
+ * @return {Promise<Boolean>} 해당 디바이스에 알림을 보낸다는 요청을 FCM 서버에 성공적으로 보냈으면 true, 아니면 false를 반환합니다.
+ */
+const validateDeviceToken = async (deviceToken) => {
+  try {
+    const message = {
+      token: deviceToken,
+      data: {
+        dryRun: "true",
+      },
+    };
+    await getMessaging().send(message, true);
+    return true;
+  } catch (error) {
+    logger.error(error);
+    return false;
+  }
+};
+
+/**
  * 사용자들의 ObjectId의 배열이 주어졌을 때, 해당 사용자들의 모든 deviceToken을 하나의 Array로 반환합니다.
  * @param {Array<string>} userIds - 사용자의 ObjectId로 이루어진 Array입니다.
  * @return {Promise<Array<string>>} deviceToken의 Array를 반환합니다. 오류가 발생하면 빈 배열을 반환합니다.
@@ -78,7 +100,7 @@ const getTokensOfUsers = async (userIds) => {
  * @param {string} type - 메시지 유형으로, "text" | "in" | "out" | "s3img" 입니다.
  * @param {string} title - 보낼 메시지의 제목입니다.
  * @param {string} body - 보낼 메시지의 본문입니다.
- * @param {string} icon - 메시지를 보낸 사람의 프로필 사진 주소입니다.
+ * @param {string?} icon - 메시지를 보낸 사람의 프로필 사진 주소입니다.
  * @param {string?} link - 메시지 알림 팝업을 클릭했을 때 이동할 주소입니다.
  * @return {Promise<Number>} 메시지 알림 전송에 실패한 기기의 수를 반환합니다. 오류가 발생하면 -1을 반환합니다.
  */
@@ -93,7 +115,7 @@ const sendMessageByTokens = async (tokens, type, title, body, icon, link) => {
       },
       webpush: {
         notification: {
-          icon,
+          icon: icon || "/icons-512.png",
         },
         fcm_options: {
           link: link || "/",
@@ -115,7 +137,7 @@ const sendMessageByTokens = async (tokens, type, title, body, icon, link) => {
  * @param {string} type - 메시지 유형으로, "text" | "in" | "out" | "s3img" 입니다.
  * @param {string} title - 보낼 메시지의 제목입니다.
  * @param {string} body - 보낼 메시지의 본문입니다.
- * @param {string} icon - 메시지를 보낸 사람의 프로필 사진 주소입니다.
+ * @param {string?} icon - 메시지를 보낸 사람의 프로필 사진 주소입니다.
  * @param {string?} link - 메시지 알림 팝업을 클릭했을 때 이동할 주소입니다.
  * @return {Promise<boolean>} 메시지 알림 전송에 성공했으면 true, 아니면 false를 반환합니다.
  */
@@ -129,7 +151,7 @@ const sendMessageByTopic = async (topic, type, title, body, icon, link) => {
       },
       webpush: {
         notification: {
-          icon,
+          icon: icon || "/icons-512.png",
         },
         fcm_options: {
           link: link || "/",
@@ -240,6 +262,7 @@ const unsubscribeUserFromTopic = async (userId, topic) => {
 module.exports = {
   registerDeviceToken,
   unregisterDeviceToken,
+  validateDeviceToken,
   getTokensOfUsers,
   sendMessageByTokens,
   sendMessageByTopic,

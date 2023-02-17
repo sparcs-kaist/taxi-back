@@ -6,6 +6,7 @@ const { getLoginInfo, logout, login } = require("../auth/login");
 const {
   registerDeviceToken,
   unregisterDeviceToken,
+  validateDeviceToken,
 } = require("../modules/fcm");
 const logger = require("../modules/logger");
 const {
@@ -182,11 +183,17 @@ const logoutHandler = async (req, res) => {
 
 const registerDeviceTokenHandler = async (req, res) => {
   try {
+    // 해당 FCM device token이 유효한지 검사합니다.
     const deviceToken = req.body.deviceToken;
-    // 데이터베이스에 새 레코드를 추가합니다.
-    const user = await userModel.findOne({ id: req.userId }, "_id");
+    const isValid = await validateDeviceToken(deviceToken);
+    if (!isValid) {
+      return res
+        .status(400)
+        .send("Auth/registerDeviceToken : deviceToken is invalid");
+    }
 
-    // DB에 deviceToken 레코드를 추가합니다.
+    // 데이터베이스에 deviceToken 레코드를 추가합니다.
+    const user = await userModel.findOne({ id: req.userId }, "_id");
     const newDeviceToken = await registerDeviceToken(user._id, deviceToken);
 
     // 세션에 현재 사용자 기기의 deviceToken을 저장합니다.
@@ -197,7 +204,7 @@ const registerDeviceTokenHandler = async (req, res) => {
     });
   } catch (e) {
     logger.error(e);
-    res.status(500).send("internal server error");
+    res.status(500).send("Auth/registerDeviceToken : internal server error");
   }
 };
 
