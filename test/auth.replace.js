@@ -4,6 +4,8 @@ const authHandlers = require("../src/service/auth.replace");
 const { userModel } = require("../src/db/mongo");
 const security = require("../security");
 
+// auth.replace.js 관련 1개의 handler을 테스트
+// 1. dev 환경에서 front의 URL로 잘 redirect 되는지 확인
 describe("[auth.replace] 1.sparcsssoHandler", () => {
   const removeTestUser = async () => {
     // drop all collections
