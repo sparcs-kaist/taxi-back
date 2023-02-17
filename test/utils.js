@@ -32,6 +32,8 @@ const userGenerator = async (username, testData) => {
   return testUser;
 };
 
+// 매 테스트가 끝나고 테스트 데이터를 초기화 해주기 위한 함수
+// 더미 데이터를 생성할 경우 이 함수를 통해 제거
 const testRemover = async (testData) => {
   for (const roomData of testData["rooms"]) {
     await roomModel.deleteOne({ _id: roomData });
