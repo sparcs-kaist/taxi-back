@@ -68,10 +68,7 @@ const transformChatsForRoom = async (chats) => {
   for (const chat of chats) {
     // inOutNames 배열(들어오거나 나간 사용자들의 닉네임으로 이루어진 배열)을 생성합니다.
     chat.inOutNames = [];
-    if (
-      chat.type === "in" ||
-      chat.type === "out" ||
-    ) {
+    if (chat.type === "in" || chat.type === "out") {
       const inOutUserIds = chat.content.split("|");
       chat.inOutNames = await Promise.all(
         inOutUserIds.map(async (userId) => {
