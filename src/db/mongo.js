@@ -35,6 +35,16 @@ const participantSchema = Schema({
   },
 });
 
+const deviceTokenSchema = Schema({
+  userid: {
+    type: Schema.Types.ObjectId,
+    ref: "User",
+    required: true,
+    unique: true,
+  },
+  deviceToken: [{ type: String, required: true }],
+});
+
 const roomSchema = Schema({
   name: { type: String, required: true, default: "이름 없음", text: true },
   from: { type: Schema.Types.ObjectId, ref: "Location", required: true },
@@ -56,7 +66,9 @@ const roomSchema = Schema({
 const locationSchema = Schema({
   enName: { type: String, required: true },
   koName: { type: String, required: true },
-  //   latitude: { type: Number, required: true },
+  priority: { type: Number, default: 0 },
+  isValid: { type: Boolean, default: true },
+  // latitude: { type: Number, required: true },
   // longitude: { type: Number, required: true }
 });
 const chatSchema = Schema({
@@ -108,6 +120,7 @@ mongoose.connect(security.mongo, {
 
 module.exports = {
   userModel: mongoose.model("User", userSchema),
+  deviceTokenModel: mongoose.model("DeviceToken", deviceTokenSchema),
   roomModel: mongoose.model("Room", roomSchema),
   locationModel: mongoose.model("Location", locationSchema),
   chatModel: mongoose.model("Chat", chatSchema),
