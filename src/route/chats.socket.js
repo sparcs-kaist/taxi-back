@@ -39,12 +39,7 @@ const emitChatEvent = async (io, roomId, chat) => {
 
     chat.authorName = author.nickname;
     chat.authorProfileUrl = author.profileImageUrl;
-    if (
-      chat.type == "in" ||
-      chat.type == "out" ||
-      chat.type == "payment" ||
-      chat.type == "settlement"
-    ) {
+    if (chat.type == "in" || chat.type == "out") {
       const userIds = chat.content.split("|");
       chat.inOutNames = [];
       for (const userId of userIds) {
@@ -76,8 +71,6 @@ const transformChatsForRoom = async (chats) => {
     if (
       chat.type === "in" ||
       chat.type === "out" ||
-      chat.type === "payment" ||
-      chat.type === "settlement"
     ) {
       const inOutUserIds = chat.content.split("|");
       chat.inOutNames = await Promise.all(
