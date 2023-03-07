@@ -448,6 +448,12 @@ const commitPaymentHandler = async (req, res) => {
 
     await user.save();
 
+    await emitChatEvent(req.app.get("io"), roomId, {
+      type: "payment",
+      content: user.id,
+      authorId: user._id,
+    });
+
     // 수정한 방 정보를 반환합니다.
     res.send(formatSettlement(roomObject, { isOver: true }));
   } catch (err) {
@@ -505,6 +511,12 @@ const settlementHandler = async (req, res) => {
     user.ongoingRoom.splice(userOngoingRoomIndex, 1);
 
     await user.save();
+
+    await emitChatEvent(req.app.get("io"), roomId, {
+      type: "settlement",
+      content: user.id,
+      authorId: user._id,
+    });
 
     // 수정한 방 정보를 반환합니다.
     res.send(formatSettlement(roomObject, { isOver: true }));

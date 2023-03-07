@@ -129,6 +129,7 @@ describe("[rooms] 6.commitPaymentHandler", () => {
       body: { roomId: testRoom._id },
       userId: testUser1.id,
       timestamp: Date.now() + 60 * 1000,
+      app,
     });
     let res = httpMocks.createResponse();
     await roomsHandlers.commitPaymentHandler(req, res);
@@ -148,6 +149,7 @@ describe("[rooms] 7.settlementHandler", () => {
     let req = httpMocks.createRequest({
       body: { roomId: testRoom._id },
       userId: testUser2.id,
+      app,
     });
     let res = httpMocks.createResponse();
     await roomsHandlers.settlementHandler(req, res);
