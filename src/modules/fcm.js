@@ -27,6 +27,7 @@ const registerDeviceToken = async (userId, deviceToken) => {
   }
 };
 
+// TODO: remove userId
 /**
  * 사용자의 ObjectId와 FCM device token이 주어졌을 때, 해당 사용자의 해당 deviceToken을 DB에서 삭제합니다.
  * @param {string} userId - 사용자의 ObjectId입니다.
@@ -77,16 +78,28 @@ const validateDeviceToken = async (deviceToken) => {
 /**
  * 사용자들의 ObjectId의 배열이 주어졌을 때, 해당 사용자들의 모든 deviceToken을 하나의 Array로 반환합니다.
  * @param {Array<string>} userIds - 사용자의 ObjectId로 이루어진 Array입니다.
+ * @param {Object?} notificationOptions - 특정 알림 설정을 비활성화한 사용자를 필터링하기 위해 사용되는 Object입니다.
+ * @param {Boolean?} notificationOptions.chatting - true 또는 false로 주어진 경우, 채팅 알림 설정이 각각 true 또는 false로 설정된 사용자들의 deviceToken만 반환합니다.
  * @return {Promise<Array<string>>} deviceToken의 Array를 반환합니다. 오류가 발생하면 빈 배열을 반환합니다.
  */
-const getTokensOfUsers = async (userIds) => {
+const getTokensOfUsers = async (userIds, notificationOptions = {}) => {
   const deviceTokensOfUsers = await Promise.all(
     userIds.map(async (userId) => {
-      const deviceToken = await deviceTokenModel.findOne({
-        userId,
-      });
+      const query = { userId };
+      if (notificationOptions) query.notificationOptions = notificationOptions;
+      const deviceToken = await deviceTokenModel.findOne({ query });
       return deviceToken?.deviceTokens || new Array();
     })
+  );
+  logger.info(
+    await Promise.all(
+      userIds.map(async (userId) => {
+        const deviceToken = await deviceTokenModel.findOne({
+          userId,
+        });
+        return deviceToken?.deviceTokens || new Array();
+      })
+    )
   );
   return deviceTokensOfUsers.reduce(
     (arrayA, arrayB) => arrayA.concat(arrayB),
@@ -96,6 +109,7 @@ const getTokensOfUsers = async (userIds) => {
 
 /**
  * 주어진 token들에 메시지 알림을 전송합니다.
+ * TODO: 알림 전송 실패한 토큰 삭제하기
  * @param {Array<string>} tokens - 메시지 알림을 받을 기기의 deviceToken들로 구성된 Array입니다.
  * @param {string} type - 메시지 유형으로, "text" | "in" | "out" | "s3img" 입니다.
  * @param {string} title - 보낼 메시지의 제목입니다.

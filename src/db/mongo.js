@@ -36,6 +36,36 @@ const participantSchema = Schema({
   },
 });
 
+// 각 사용자의 알림 설정
+const notificationOptionSchema = Schema({
+  chatting: {
+    type: Boolean,
+    default: true,
+    required: true,
+  }, //채팅 알림 수신 여부
+  keywords: [
+    {
+      type: String,
+      required: true,
+    },
+  ], //방 알림 키워드
+  beforeDepart: {
+    type: Boolean,
+    required: true,
+    default: false,
+  }, //출발 전 알림 발송 유무
+  notice: {
+    type: Boolean,
+    default: true,
+    required: true,
+  }, //공지 알림 수신 여부
+  advertisement: {
+    type: Boolean,
+    default: false,
+    required: true,
+  }, //광고성 알림 수신 여부
+});
+
 const deviceTokenSchema = Schema({
   userId: {
     type: Schema.Types.ObjectId,
@@ -44,9 +74,8 @@ const deviceTokenSchema = Schema({
     unique: true,
   },
   deviceTokens: [{ type: String, required: true }],
-  registeredAt: {
-    type: Date,
-    default: () => Date.now(),
+  notificationOptions: {
+    type: notificationOptionSchema,
     required: true,
   },
 });
