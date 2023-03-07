@@ -11,7 +11,7 @@ const detailHandler = (req, res) => {
   if (!user.id) return res.json({ id: undefined });
   userModel.findOne(
     { id: user.id },
-    "_id name nickname id withdraw ban joinat agreeOnTermsOfService subinfo email profileImageUrl",
+    "_id name nickname id withdraw ban joinat agreeOnTermsOfService subinfo email profileImageUrl account",
     (err, result) => {
       if (err) res.json({ err: true });
       else if (!result) res.json({ err: true });
