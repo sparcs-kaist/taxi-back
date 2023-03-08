@@ -7,6 +7,6 @@ const router = express.Router();
 router.use(require("../middleware/adminAuth"));
 
 // Log 파일 제공
-router.use(express.static(path.join(process.env.PWD, "logs")));
+router.use(express.static(path.join(process.cwd(), "logs")));
 
 module.exports = router;
