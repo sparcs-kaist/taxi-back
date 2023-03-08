@@ -172,7 +172,7 @@ const ioListeners = (io, socket) => {
           .emit("chats-send", { err: "user not join chat room" });
 
       emitChatEvent(io, roomId, {
-        type: "text",
+        type: chatMessage.type || "text",
         content: chatMessage.content,
         authorId: myUser._id,
       });
