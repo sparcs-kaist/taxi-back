@@ -14,7 +14,7 @@ const {
 let router = express.Router();
 
 // Requires admin property of the user to enter admin page.
-router.use(require("../middleware/adminAuth"));
+router.use(require("../middleware/authAdmin"));
 
 // Registration of the mongoose adapter
 AdminJS.registerAdapter(AdminJSMongoose);

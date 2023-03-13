@@ -4,7 +4,7 @@ const { isLogin, getLoginInfo } = require("../auth/login");
 const { frontUrl } = require("../../security");
 const { userModel, adminIPWhitelistModel } = require("../db/mongo");
 
-const adminAuthMiddleware = async (req, res, next) => {
+const authAdminMiddleware = async (req, res, next) => {
   try {
     // 로그인 여부를 확인
     if (!isLogin(req)) return res.redirect(frontUrl);
@@ -31,4 +31,4 @@ const adminAuthMiddleware = async (req, res, next) => {
   }
 };
 
-module.exports = adminAuthMiddleware;
+module.exports = authAdminMiddleware;
