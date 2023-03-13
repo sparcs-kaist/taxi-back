@@ -15,13 +15,11 @@ const authAdminMiddleware = async (req, res, next) => {
     if (!user.isAdmin) return res.redirect(frontUrl);
 
     // 접속한 IP가 화이트리스트에 있는지 확인
-    const clientIP =
-      req.headers["x-forwarded-for"] || req.connection.remoteAddress;
     const ipWhitelist = await adminIPWhitelistModel.find({});
-    if (!clientIP) return res.redirect(frontUrl);
+    if (!req.clientIP) return res.redirect(frontUrl);
     if (
       ipWhitelist.length > 0 &&
-      ipWhitelist.map((x) => x.ip).indexOf(clientIP) < 0
+      ipWhitelist.map((x) => x.ip).indexOf(req.clientIP) < 0
     )
       return res.redirect(frontUrl);
 
