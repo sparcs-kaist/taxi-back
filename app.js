@@ -24,6 +24,9 @@ app.use(require("cookie-parser")());
 // [Middleware] API 접근 기록 및 응답 시간을 http response의 헤더에 기록합니다.
 app.use(require("response-time")(logAPIAccess));
 
+// [Middleware] Timestamp 확인
+app.use(require("./src/middleware/timestamp"));
+
 // [Router] admin 페이지는 rate limiting을 적용하지 않습니다.
 app.use("/admin/logs", require("./src/route/admin.logs"));
 app.use("/admin", require("./src/route/admin"));
