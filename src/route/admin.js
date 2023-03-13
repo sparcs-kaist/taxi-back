@@ -11,7 +11,7 @@ const {
   adminIPWhitelistModel,
 } = require("../db/mongo");
 
-let router = express.Router();
+const router = express.Router();
 
 // Requires admin property of the user to enter admin page.
 router.use(require("../middleware/authAdmin"));
@@ -20,7 +20,7 @@ router.use(require("../middleware/authAdmin"));
 AdminJS.registerAdapter(AdminJSMongoose);
 
 // Create router for admin page
-const adminJsOptions = {
+const adminJS = new AdminJS({
   resources: [
     userModel,
     roomModel,
@@ -29,8 +29,7 @@ const adminJsOptions = {
     reportModel,
     adminIPWhitelistModel,
   ],
-};
-const adminJs = new AdminJS(adminJsOptions);
-router = AdminJSExpress.buildRouter(adminJs, router);
+});
+router.use(AdminJSExpress.buildRouter(adminJS));
 
 module.exports = router;
