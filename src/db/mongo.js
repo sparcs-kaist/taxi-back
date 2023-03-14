@@ -36,8 +36,23 @@ const participantSchema = Schema({
   },
 });
 
-// 각 사용자의 알림 설정
+const deviceTokenSchema = Schema({
+  userId: {
+    type: Schema.Types.ObjectId,
+    ref: "User",
+    required: true,
+    unique: true,
+  },
+  deviceTokens: [{ type: String, required: true }],
+});
+
+// 각 디바이스의 알림 설정
 const notificationOptionSchema = Schema({
+  deviceToken: {
+    type: String,
+    required: true,
+    unique: true,
+  },
   chatting: {
     type: Boolean,
     default: true,
@@ -64,20 +79,6 @@ const notificationOptionSchema = Schema({
     default: false,
     required: true,
   }, //광고성 알림 수신 여부
-});
-
-const deviceTokenSchema = Schema({
-  userId: {
-    type: Schema.Types.ObjectId,
-    ref: "User",
-    required: true,
-    unique: true,
-  },
-  deviceTokens: [{ type: String, required: true }],
-  notificationOptions: {
-    type: notificationOptionSchema,
-    required: true,
-  },
 });
 
 const topicSubscriptionSchema = Schema({
@@ -174,6 +175,10 @@ mongoose.connect(security.mongo, {
 module.exports = {
   userModel: mongoose.model("User", userSchema),
   deviceTokenModel: mongoose.model("DeviceToken", deviceTokenSchema),
+  notificationOptionModel: mongoose.model(
+    "NotificationOption",
+    notificationOptionSchema
+  ),
   topicSubscriptionModel: mongoose.model(
     "TopicSubscription",
     topicSubscriptionSchema

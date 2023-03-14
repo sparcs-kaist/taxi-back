@@ -1,5 +1,9 @@
 const { getMessaging } = require("firebase-admin/messaging");
-const { deviceTokenModel, topicSubscriptionModel } = require("../db/mongo");
+const {
+  deviceTokenModel,
+  notificationOptionModel,
+  topicSubscriptionModel,
+} = require("../db/mongo");
 const logger = require("../modules/logger");
 
 /**
@@ -10,6 +14,7 @@ const logger = require("../modules/logger");
  */
 const registerDeviceToken = async (userId, deviceToken) => {
   try {
+    // 디바이스 토큰을 DB에 추가합니다.
     const newDeviceToken = await deviceTokenModel.updateOne(
       {
         userId,
@@ -20,6 +25,14 @@ const registerDeviceToken = async (userId, deviceToken) => {
       },
       { upsert: true, new: true }
     );
+
+    // 디바이스 토큰 관련 설정을 DB에 추가합니다.
+    await notificationOptionModel.updateOne(
+      { deviceToken },
+      { deviceToken },
+      { upsert: true, new: true }
+    );
+
     return newDeviceToken.deviceTokens;
   } catch (error) {
     logger.error(error);
@@ -36,6 +49,7 @@ const registerDeviceToken = async (userId, deviceToken) => {
  */
 const unregisterDeviceToken = async (userId, deviceToken) => {
   try {
+    // 디바이스 토큰을 DB에서 삭제합니다.
     const newDeviceToken = await deviceTokenModel.updateOne(
       {
         userId,
@@ -46,6 +60,12 @@ const unregisterDeviceToken = async (userId, deviceToken) => {
       },
       { upsert: true, new: true }
     );
+
+    // 디바이스 토큰 관련 설정을 DB에서 삭제합니다.
+    await notificationOptionModel.deleteOne({
+      deviceToken,
+    });
+
     return newDeviceToken.deviceTokens;
   } catch (error) {
     logger.error(error);
@@ -111,7 +131,7 @@ const getTokensOfUsers = async (userIds, notificationOptions = {}) => {
  * 주어진 token들에 메시지 알림을 전송합니다.
  * TODO: 알림 전송 실패한 토큰 삭제하기
  * @param {Array<string>} tokens - 메시지 알림을 받을 기기의 deviceToken들로 구성된 Array입니다.
- * @param {string} type - 메시지 유형으로, "text" | "in" | "out" | "s3img" 입니다.
+ * @param {string} type - 메시지 유형으로, "text" | "in" | "out" | "s3img" | "payment" | "settlement" 입니다.
  * @param {string} title - 보낼 메시지의 제목입니다.
  * @param {string} body - 보낼 메시지의 본문입니다.
  * @param {string?} icon - 메시지를 보낸 사람의 프로필 사진 주소입니다.
@@ -148,7 +168,7 @@ const sendMessageByTokens = async (tokens, type, title, body, icon, link) => {
 /**
  * 주어진 topic을 구독하고 있는 모든 기기에 메시지 알림을 전송합니다.
  * @param {string} topic - 메시지 알림을 보낼 기기들이 구독하고 있는 topic입니다.
- * @param {string} type - 메시지 유형으로, "text" | "in" | "out" | "s3img" 입니다.
+ * @param {string} type - 메시지 유형으로, "text" | "in" | "out" | "s3img" | "payment" | "settlement" 입니다.
  * @param {string} title - 보낼 메시지의 제목입니다.
  * @param {string} body - 보낼 메시지의 본문입니다.
  * @param {string?} icon - 메시지를 보낸 사람의 프로필 사진 주소입니다.

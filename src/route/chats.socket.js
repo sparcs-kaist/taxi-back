@@ -35,11 +35,19 @@ const getMessageBody = (type, nickname, content) => {
     // TODO: 사용자 언어를 가져올 수 있으면 개선할 수 있다고 생각합니다.
     const suffix = " 님이 이미지를 전송하였습니다.";
     return `${nickname} ${suffix}`;
-  } else {
+  } else if (type === "in" || type === "out") {
     // 채팅 메시지 type이 "in"이거나 "out"인 경우 본문은 "${nickname} 님이 입장하였습니다" 또는 "${nickname} 님이 퇴장하였습니다"가 됩니다.
     // TODO: 사용자 언어를 가져올 수 있으면 개선할 수 있다고 생각합니다.
     const suffix =
       type === "in" ? " 님이 입장하였습니다" : "님이 퇴장하였습니다";
+    return `${nickname} ${suffix}`;
+  } else if (type === "payment" || type === "settlement") {
+    // 채팅 메시지 type이 "in"이거나 "out"인 경우 본문은 "${nickname} 님이 결제를 완료하였습니다" 또는 "${nickname} 님이 정산을 완료하였습니다"가 됩니다.
+    // TODO: 사용자 언어를 가져올 수 있다면 개선할 수 있다고 생각합니다.
+    const suffix =
+      type === "payment"
+        ? " 님이 결제를 완료하였습니다"
+        : " 님이 정산을 완료하였습니다";
     return `${nickname} ${suffix}`;
   }
 };
@@ -50,7 +58,7 @@ const getMessageBody = (type, nickname, content) => {
  * @param {Server<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, any>} io - Socket.io 서버 인스턴스입니다. req.app.get("io")를 통해 접근할 수 있습니다.
  * @param {string} roomId - 채팅 및 채팅 알림을 보낼 방의 ObjectId입니다.
  * @param {Object} chat - 채팅 메시지 내용입니다.
- * @param {string} chat.type - 채팅 메시지의 유형입니다. "text" | "s3img" | "in" | "out" 입니다.
+ * @param {string} chat.type - 채팅 메시지의 유형입니다. "text" | "s3img" | "in" | "out" | "payment" | "settlement" 입니다.
  * @param {string} chat.content - 채팅 메시지의 본문입니다. chat.type이 "s3img"인 경우에는 채팅의 objectId입니다. chat.type이 "in"이거나 "out"인 경우 입퇴장한 사용자의 id(!==ObjectId)입니다.
  * @param {string} chat.authorId - 채팅을 보낸 사용자의 ObjectId입니다.
  * @param {Date?} chat.time - optional. 채팅 메시지 전송 시각입니다.
