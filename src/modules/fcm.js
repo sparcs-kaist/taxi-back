@@ -47,15 +47,12 @@ const registerDeviceToken = async (userId, deviceToken) => {
  * @param {string} deviceToken - 삭제하려는 FCM device token입니다.
  * @return {Promise<Array<string>>} 변경된 사용자의 deviceToken의 목록 Array를 반환합니다. 오류가 발생하면 빈 배열을 반환합니다.
  */
-const unregisterDeviceToken = async (userId, deviceToken) => {
+const unregisterDeviceToken = async (deviceToken) => {
   try {
     // 디바이스 토큰을 DB에서 삭제합니다.
     const newDeviceToken = await deviceTokenModel.updateOne(
+      {},
       {
-        userId,
-      },
-      {
-        userId,
         $pull: { deviceTokens: deviceToken },
       },
       { upsert: true, new: true }
@@ -76,11 +73,23 @@ const unregisterDeviceToken = async (userId, deviceToken) => {
 /**
  * 메시지 전송에 실패한 deviceToken을 DB에서 삭제합니다.
  * @param {Array<string>} deviceTokens - 사용자의 ObjectId입니다.
- * @param {Array<BatchResponse>} fcmResponses - 등록하려는 FCM device token입니다.
- * @return {Promise<Boolean>} 해당 토큰들을 DB에서 삭제하는 데 성공했으면 true, 아니면 false를 반환합니다.
+ * @param {Array<SendResponse>} fcmResponses - 등록하려는 FCM device token입니다.
+ * @return {Promise<Array<Boolean>>} 각각의 토큰들의 삭제 성공 여부가 저장된 Array를 반환합니다. 해당 토큰을 DB에서 삭제하는 데 성공했으면 true, 아니면 false가 포함됩니다.
  */
 const removeExpiredTokens = async (deviceTokens, fcmResponses) => {
-  return false;
+  const removalResults = await Promise.all(
+    deviceTokens.map(async (deviceToken, index) => {
+      try {
+        const fcmResponse = fcmResponses[index];
+        if (!fcmResponse.Exception) return;
+        await unregisterDeviceToken(deviceToken);
+        return true;
+      } catch (err) {
+        return false;
+      }
+    })
+  );
+  return removalResults;
 };
 
 /**
