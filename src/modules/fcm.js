@@ -45,13 +45,13 @@ const registerDeviceToken = async (userId, deviceToken) => {
  * 사용자의 ObjectId와 FCM device token이 주어졌을 때, 해당 사용자의 해당 deviceToken을 DB에서 삭제합니다.
  * @param {string} userId - 사용자의 ObjectId입니다.
  * @param {string} deviceToken - 삭제하려는 FCM device token입니다.
- * @return {Promise<Array<string>>} 변경된 사용자의 deviceToken의 목록 Array를 반환합니다. 오류가 발생하면 빈 배열을 반환합니다.
+ * @return {Promise<boolean>} 해당 deviceToken을 가진 모든 사용자로부터 해당 deviceToken을 삭제하는 데 성공하면 true, 하나 이상의 사용자에게서 해당 deviceToken을 삭제하는 데 실패하면 false를 반환합니다. 삭제할 deviceToken이 존재하지 않는 경우에는 true를 반환합니다.
  */
 const unregisterDeviceToken = async (deviceToken) => {
   try {
     // 디바이스 토큰을 DB에서 삭제합니다.
-    const newDeviceToken = await deviceTokenModel.updateOne(
-      {},
+    const { matchedCount, modifiedCount } = await deviceTokenModel.updateMany(
+      { deviceTokens: deviceToken },
       {
         $pull: { deviceTokens: deviceToken },
       },
@@ -63,10 +63,10 @@ const unregisterDeviceToken = async (deviceToken) => {
       deviceToken,
     });
 
-    return newDeviceToken.deviceTokens;
+    return matchedCount === modifiedCount;
   } catch (error) {
     logger.error(error);
-    return new Array();
+    return false;
   }
 };
 
@@ -80,14 +80,23 @@ const removeExpiredTokens = async (deviceTokens, fcmResponses) => {
   const removalResults = await Promise.all(
     deviceTokens.map(async (deviceToken, index) => {
       try {
-        const fcmResponse = fcmResponses[index];
-        if (!fcmResponse.Exception) return;
-        await unregisterDeviceToken(deviceToken);
-        return true;
+        // FCM device token이 유효하지 않아 메시지 전송에 실패한 경우, 해당 device token을 DB에서 삭제합니다.
+        if (
+          fcmResponses[index].error.code ===
+          "messaging/registration-token-not-registered"
+        ) {
+          await unregisterDeviceToken(deviceToken);
+          return true;
+        }
+        return false;
       } catch (err) {
         return false;
       }
     })
+  );
+  const removedTokenCount = removalResults.filter((result) => result).length;
+  logger.info(
+    `${removedTokenCount} deviceTokens were removed from the database.`
   );
   return removalResults;
 };
@@ -165,11 +174,16 @@ const sendMessageByTokens = async (tokens, type, title, body, icon, link) => {
         },
       },
     };
-    const { Responses, failureCount } = await getMessaging().sendMulticast(
+    const { responses, failureCount } = await getMessaging().sendMulticast(
       message
     );
-    logger.info(`Notification sent failed for ${failureCount} devices`);
-    await removeExpiredTokens(tokens, Responses);
+
+    // 메시지 전송에 실패한 기기가 존재할 경우, 해당 기기의 deviceToken을 DB에서 삭제합니다.
+    if (failureCount) {
+      logger.info(`Notification sent failed for ${failureCount} devices`);
+      await removeExpiredTokens(tokens, responses);
+    }
+
     return failureCount;
   } catch (error) {
     logger.error(error);

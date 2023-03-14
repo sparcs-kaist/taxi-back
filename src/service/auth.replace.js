@@ -132,13 +132,10 @@ const sparcsssoHandler = (req, res) => {
 
 const logoutHandler = async (req, res) => {
   try {
-    const { id } = getLoginInfo(req);
-
     // DB에서 deviceToken 레코드를 삭제합니다.
     const deviceToken = req.session?.deviceToken;
     if (deviceToken) {
-      const user = await userModel.findOne({ id }, "_id");
-      await unregisterDeviceToken(user._id, deviceToken);
+      await unregisterDeviceToken(deviceToken);
     }
 
     const ssoLogoutUrl = security.frontUrl + "/login";

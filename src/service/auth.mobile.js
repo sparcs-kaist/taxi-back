@@ -119,7 +119,7 @@ const removeDeviceTokenHandler = async (req, res) => {
     )
       return res.status(401).send("unauthorized");
 
-    await unregisterDeviceToken(accessTokenStatus.id, deviceToken);
+    await unregisterDeviceToken(deviceToken);
     res.status(200).send("success");
   } catch (e) {
     logger.error(e);
