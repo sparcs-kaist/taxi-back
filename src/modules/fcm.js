@@ -74,6 +74,16 @@ const unregisterDeviceToken = async (userId, deviceToken) => {
 };
 
 /**
+ * 메시지 전송에 실패한 deviceToken을 DB에서 삭제합니다.
+ * @param {Array<string>} deviceTokens - 사용자의 ObjectId입니다.
+ * @param {Array<BatchResponse>} fcmResponses - 등록하려는 FCM device token입니다.
+ * @return {Promise<Boolean>} 해당 토큰들을 DB에서 삭제하는 데 성공했으면 true, 아니면 false를 반환합니다.
+ */
+const removeExpiredTokens = async (deviceTokens, fcmResponses) => {
+  return false;
+};
+
+/**
  * 사용자의 FCM device token이 현재 사용 가능한지 검증합니다.
  * @summary 해당 디바이스에 dry-run 방식으로 메시지 전송을 시험함으로써 해당 deviceToken이 사용 가능한지 검증합니다. dry-run 시 FCM 서버에는 메시지 전송 요청이 전송되지만, 실제 기기에는 알림이 전송되지 않습니다.
  * @param {string} deviceToken - 사용 가능 여부를 확인하려고 하는 FCM device token입니다.
@@ -156,8 +166,11 @@ const sendMessageByTokens = async (tokens, type, title, body, icon, link) => {
         },
       },
     };
-    const { failureCount } = await getMessaging().sendMulticast(message);
+    const { Responses, failureCount } = await getMessaging().sendMulticast(
+      message
+    );
     logger.info(`Notification sent failed for ${failureCount} devices`);
+    await removeExpiredTokens(tokens, Responses);
     return failureCount;
   } catch (error) {
     logger.error(error);
