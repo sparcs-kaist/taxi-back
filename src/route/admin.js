@@ -22,6 +22,7 @@ router.use(require("../middleware/auth"));
 // Registration of the mongoose adapter
 AdminJS.registerAdapter(AdminJSMongoose);
 
+// AdminJS에서 Log 저장을 하는 action
 const logAction = (actionName) => async (res, req, context) => {
   const user = await userModel.findOne({ id: req.userId });
   const modelName = context?.resource?.MongooseModel?.modelName;
@@ -55,6 +56,7 @@ const logAction = (actionName) => async (res, req, context) => {
   return res;
 };
 
+// AdminJS에서 Log 기록을 하도록 action을 수정합니다
 const resourceWrapper = (resource) => ({
   resource,
   features: [
