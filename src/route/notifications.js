@@ -8,7 +8,12 @@ const validator = require("../middleware/validator");
 // 라우터 접근 시 로그인 필요
 router.use(require("../middleware/auth"));
 
-router.get("/options", notificationHandlers.getNotificationOptions);
+router.get(
+  "/options",
+  body("deviceToken").isString(),
+  notificationHandlers.getNotificationOptions
+);
+
 router.patch(
   "/options",
   body("deviceToken").isString(),
@@ -17,7 +22,6 @@ router.patch(
   body("options.keywords").optional().isArray(),
   body("options.keywords.*").optional().isString(),
   body("options.beforeDepart").optional().isBoolean(),
-  body("options.notice").optional().isBoolean(),
   body("options.notice").optional().isBoolean(),
   body("options.advertisement").optional().isBoolean(),
   validator,

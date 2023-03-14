@@ -1,98 +1,90 @@
-const { deviceTokenModel } = require("../db/mongo");
-
-const changeNotificationOptions = async (req, res) => {
-  res.status(400).send("Bad request");
-};
+const { notificationOptionModel } = require("../db/mongo");
+const logger = require("../modules/logger");
 
 const getNotificationOptions = async (req, res) => {
-  res.status(400).send("Bad request");
+  try {
+    const { deviceToken } = req.body;
+    if (!deviceToken) {
+      return res
+        .status(400)
+        .send("Notification/getNotificationOptions: deviceToken not found");
+    }
+
+    // deviceToken에 대응되는 알림 설정을 찾아 반환합니다.
+    const notificationOptions = await notificationOptionModel
+      .findOne(
+        {
+          deviceToken,
+        },
+        "-_id chatting keywords beforeDepart notice advertisement"
+      )
+      .lean();
+    if (!notificationOptions) {
+      return res
+        .status(400)
+        .send("Notificaiton/getNotificationOptions: deviceToken not found");
+    }
+    res.status(200).json(notificationOptions);
+  } catch (err) {
+    logger.error(err);
+    return res
+      .status(500)
+      .send("Notification/getNotificationOptions: internal server error");
+  }
 };
 
-/*
-const changeNotificationOption = async (req, res) => {
+const changeNotificationOptions = async (req, res) => {
   try {
-    const { accessToken, deviceToken, options } = req.body;
+    const { deviceToken, options } = req.body;
 
-    const accessTokenStatus = await jwt.verify(accessToken);
+    if (!deviceToken) {
+      return res
+        .status(400)
+        .send("Notification/changeNotificationOptions: deviceToken not found");
+    }
 
-    if (!deviceToken) return res.status(400).send("invalid request");
+    const newOptions = {};
+    const booleanFields = [
+      "chatting",
+      "beforeDepart",
+      "notice",
+      "advertisement",
+    ];
+    booleanFields.map((field) => {
+      if (options[field] === true || options[field] === false) {
+        newOptions[field] = options[field];
+      }
+    });
+    if (options.keywords) {
+      newOptions.keywords = options.keyword;
+    }
 
-    if (!options) return res.status(400).send("invalid request");
-
-    if (
-      accessTokenStatus === TOKEN_EXPIRED ||
-      accessTokenStatus === TOKEN_INVALID
-    )
-      return res.status(401).send("unauthorized");
-
-    notificationOptionModel.updateOne(
+    const updatedNotificationOptions = await notificationOptionModel.updateOne(
       {
-        owner: accessTokenStatus.id,
-        deviceToken: deviceToken,
+        deviceToken,
       },
-      { options: options },
-      (err, docs) => {
-        if (err) {
-          logger.error(err);
-          res.status(500).send("DB Error");
-        }
-        if (docs.matchedCount == 0) {
-          res.status(404).send("DeviceToken not found");
-        } else {
-          res.status(200).send("success");
-        }
+      {
+        deviceToken,
+        newOptions,
+      },
+      {
+        new: true,
       }
     );
-  } catch (e) {
-    logger.error(e);
-    res.status(500).send("server error");
+
+    if (!updatedNotificationOptions)
+      res
+        .status(400)
+        .send("Notification/changeNotificationOptions: deviceToken not found");
+
+    res.status(200).json(updatedNotificationOptions);
+  } catch (err) {
+    logger.error(err);
+    return res
+      .status(500)
+      .send("Notification/changeNotificationOptions: internal server error");
   }
 };
-
-const getNotificationOption = async (req, res) => {
-  try {
-    const { accessToken, deviceToken } = req.body;
-
-    const accessTokenStatus = await jwt.verify(accessToken);
-
-    if (!deviceToken) return res.status(400).send("invalid request");
-
-    if (
-      accessTokenStatus === TOKEN_EXPIRED ||
-      accessTokenStatus === TOKEN_INVALID
-    )
-      return res.status(401).send("unauthorized");
-    try {
-      notificationOptionModel.findOne(
-        {
-          owner: accessTokenStatus.id,
-          deviceToken: deviceToken,
-        },
-        (err, result) => {
-          try {
-            if (err) {
-              res.status(500).send("db error");
-            }
-            if (result) {
-              res.json(result.options);
-            } else {
-              res.status(404).send("deviceToken isn't in DB");
-            }
-          } catch (e) {
-            logger.error(e);
-            res.status(500).send("DB Error");
-          }
-        }
-      );
-    } catch (e) {
-      console.log(e);
-    }
-  } catch (e) {
-    logger.error(e);
-    res.status(500).send("server error");
-  }
-};
-*/
 
 module.exports = {
   getNotificationOptions,
