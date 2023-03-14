@@ -147,6 +147,18 @@ const adminIPWhitelistSchema = Schema({
   description: { type: String, default: "" }, // 설명
 });
 
+const adminLogSchema = Schema({
+  user: { type: Schema.Types.ObjectId, ref: "User", required: true }, // Log 취급자 User
+  time: { type: Date, required: true }, // Log 발생 시각
+  ip: { type: String, required: true }, // 접속 IP 주소
+  target: { type: String, default: "" }, // 처리한 정보주체 정보
+  action: {
+    type: String,
+    enum: ["create", "read", "update", "delete"],
+    required: true,
+  }, // 수행 업무
+});
+
 const database = mongoose.connection;
 database.on("error", console.error.bind(console, "mongoose connection error."));
 database.on("open", () => {
@@ -191,4 +203,5 @@ module.exports = {
     "AdminIPWhitelist",
     adminIPWhitelistSchema
   ),
+  adminLogModel: mongoose.model("AdminLog", adminLogSchema),
 };

@@ -4,9 +4,9 @@
   "description": "KAIST Taxi Party Matching Web Service",
   "main": "app.js",
   "dependencies": {
-    "@adminjs/express": "^5.0.1",
-    "@adminjs/mongoose": "^3.0.1",
-    "adminjs": "^6.5.0",
+    "@adminjs/express": "^5.1.0",
+    "@adminjs/mongoose": "^3.0.3",
+    "adminjs": "^6.8.7",
     "aws-sdk": "^2.1182.0",
     "axios": "^0.27.2",
     "connect-mongo": "^4.6.0",

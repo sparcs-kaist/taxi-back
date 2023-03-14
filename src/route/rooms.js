@@ -3,9 +3,8 @@ const { query, body } = require("express-validator");
 const router = express.Router();
 
 const roomHandlers = require("../service/rooms");
-const patterns = require("../db/patterns");
 const validator = require("../middleware/validator");
-const setTimestamp = require("../middleware/setTimestamp");
+const patterns = require("../db/patterns");
 
 // 라우터 접근 시 로그인 필요
 router.use(require("../middleware/auth"));
@@ -38,7 +37,6 @@ router.post(
   "/join",
   [body("roomId").isMongoId()],
   validator,
-  setTimestamp,
   roomHandlers.joinHandler
 );
 
@@ -50,7 +48,6 @@ router.post(
   "/abort",
   body("roomId").isMongoId(),
   validator,
-  setTimestamp,
   roomHandlers.abortHandler
 );
 
@@ -77,7 +74,6 @@ router.post(
   "/commitPayment",
   body("roomId").isMongoId(),
   validator,
-  setTimestamp,
   roomHandlers.commitPaymentHandler
 );
 

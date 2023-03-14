@@ -35,6 +35,9 @@ const session = require("./src/middleware/session");
 app.use(session);
 app.use(require("cookie-parser")());
 
+// [Middleware] Timestamp 및 clientIP 확인
+app.use(require("./src/middleware/information"));
+
 // [Middleware] API 접근 기록 및 응답 시간을 http response의 헤더에 기록합니다.
 app.use(require("response-time")(logAPIAccess));
 
@@ -49,11 +52,10 @@ app.use(require("./src/middleware/limitRate"));
 app.use("/docs", require("./src/route/docs"));
 
 // [Router] APIs
-// /rooms/v2에 요청을 보내는 기존 클라이언트 코드 호환성 유지
 app.use("/auth", require("./src/route/auth"));
-app.use(["/logininfo", "/json/logininfo"], require("./src/route/logininfo"));
+app.use("/logininfo", require("./src/route/logininfo"));
 app.use("/users", require("./src/route/users"));
-app.use(["/rooms/v2", "/rooms"], require("./src/route/rooms"));
+app.use("/rooms", require("./src/route/rooms"));
 app.use("/chats", require("./src/route/chats"));
 app.use("/locations", require("./src/route/locations"));
 app.use("/reports", require("./src/route/reports"));

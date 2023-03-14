@@ -3,7 +3,6 @@ const router = express.Router();
 const { body } = require("express-validator");
 
 const authMiddleware = require("../middleware/auth");
-const setTimestamp = require("../middleware/setTimestamp");
 const validator = require("../middleware/validator");
 const authHandlers = require("../service/auth");
 const mobileAuthHandlers = require("../service/auth.mobile");
@@ -12,9 +11,7 @@ const security = require("../../security");
 const authReplace = require("./auth.replace");
 
 router.route("/sparcssso").get(authHandlers.sparcsssoHandler);
-router
-  .route("/sparcssso/callback")
-  .get(setTimestamp, authHandlers.sparcsssoCallbackHandler);
+router.route("/sparcssso/callback").get(authHandlers.sparcsssoCallbackHandler);
 router.route("/logout").get(authHandlers.logoutHandler);
 
 router.route("/app/token/login").get(mobileAuthHandlers.loginWithToken);
