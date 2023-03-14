@@ -15,7 +15,7 @@ const logger = require("../modules/logger");
 const registerDeviceToken = async (userId, deviceToken) => {
   try {
     // 디바이스 토큰을 DB에 추가합니다.
-    const newDeviceToken = await deviceTokenModel.updateOne(
+    const newDeviceToken = await deviceTokenModel.findOneAndUpdate(
       {
         userId,
       },
@@ -30,8 +30,10 @@ const registerDeviceToken = async (userId, deviceToken) => {
     await notificationOptionModel.updateOne(
       { deviceToken },
       { deviceToken },
-      { upsert: true, new: true }
+      { upsert: true }
     );
+
+    logger.info(newDeviceToken.deviceTokens);
 
     return newDeviceToken.deviceTokens;
   } catch (error) {
@@ -251,7 +253,7 @@ const subscribeUserToTopic = async (userId, topic) => {
     // 데이터베이스에 해당 토큰에 대한 토픽 구독 레코드를 추가합니다.
     await Promise.all(
       deviceToken.deviceTokens.map(async (token) => {
-        return await topicSubscriptionModel.updateOne(
+        return await topicSubscriptionModel.findOneAndUpdate(
           {
             deviceToken: token,
             topic: topic,

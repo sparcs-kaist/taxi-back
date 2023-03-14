@@ -3,7 +3,7 @@ const logger = require("../modules/logger");
 
 const getNotificationOptions = async (req, res) => {
   try {
-    const { deviceToken } = req.body;
+    const { deviceToken } = req.query;
     if (!deviceToken) {
       return res
         .status(400)
@@ -56,21 +56,29 @@ const changeNotificationOptions = async (req, res) => {
       }
     });
     if (options.keywords) {
-      newOptions.keywords = options.keyword;
+      newOptions.keywords = options.keywords;
     }
-
-    const updatedNotificationOptions = await notificationOptionModel.updateOne(
+    await notificationOptionModel.updateOne(
       {
         deviceToken,
       },
       {
         deviceToken,
-        newOptions,
+        ...newOptions,
       },
       {
         new: true,
       }
     );
+
+    const updatedNotificationOptions = await notificationOptionModel
+      .findOne(
+        {
+          deviceToken,
+        },
+        "-_id chatting keywords beforeDepart notice advertisement"
+      )
+      .lean();
 
     if (!updatedNotificationOptions)
       res

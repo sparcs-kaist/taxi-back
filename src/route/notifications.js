@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const { body } = require("express-validator");
+const { query, body } = require("express-validator");
 
 const notificationHandlers = require("../service/notifications");
 const validator = require("../middleware/validator");
@@ -10,7 +10,7 @@ router.use(require("../middleware/auth"));
 
 router.get(
   "/options",
-  body("deviceToken").isString(),
+  query("deviceToken").isString(),
   notificationHandlers.getNotificationOptions
 );
 

@@ -59,6 +59,7 @@ app.use("/rooms", require("./src/route/rooms"));
 app.use("/chats", require("./src/route/chats"));
 app.use("/locations", require("./src/route/locations"));
 app.use("/reports", require("./src/route/reports"));
+app.use("/notifications", require("./src/route/notifications"));
 
 // express 서버 시작
 const serverHttp = http
