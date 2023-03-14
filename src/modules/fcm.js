@@ -126,19 +126,9 @@ const getTokensOfUsers = async (userIds, notificationOptions = {}) => {
     userIds.map(async (userId) => {
       const query = { userId };
       if (notificationOptions) query.notificationOptions = notificationOptions;
-      const deviceToken = await deviceTokenModel.findOne({ query });
+      const deviceToken = await deviceTokenModel.findOne(query);
       return deviceToken?.deviceTokens || new Array();
     })
-  );
-  logger.info(
-    await Promise.all(
-      userIds.map(async (userId) => {
-        const deviceToken = await deviceTokenModel.findOne({
-          userId,
-        });
-        return deviceToken?.deviceTokens || new Array();
-      })
-    )
   );
   return deviceTokensOfUsers.reduce(
     (arrayA, arrayB) => arrayA.concat(arrayB),
