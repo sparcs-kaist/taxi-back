@@ -47,7 +47,7 @@ const logAction = (actionName) => async (res, req, context) => {
       user: user._id, // Log 취급자 User
       time: req.timestamp, // Log 발생 시각
       ip: req.clientIP, // 접속 IP 주소
-      target: target, // 처리한 정보주체 정보
+      target, // 처리한 정보주체 정보
       action, // 수행 업무
     });
     await newLog.save();
