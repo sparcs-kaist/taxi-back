@@ -11,6 +11,8 @@ const {
   reportModel,
   adminIPWhitelistModel,
   adminLogModel,
+  deviceTokenModel,
+  notificationOptionModel,
 } = require("../db/mongo");
 
 const router = express.Router();
@@ -84,6 +86,8 @@ const adminJS = new AdminJS({
     reportModel,
     adminIPWhitelistModel,
     adminLogModel,
+    deviceTokenModel,
+    notificationOptionModel,
   ].map(resourceWrapper),
 });
 router.use(AdminJSExpress.buildRouter(adminJS));

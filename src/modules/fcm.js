@@ -33,8 +33,6 @@ const registerDeviceToken = async (userId, deviceToken) => {
       { upsert: true }
     );
 
-    logger.info(newDeviceToken.deviceTokens);
-
     return newDeviceToken.deviceTokens;
   } catch (error) {
     logger.error(error);
