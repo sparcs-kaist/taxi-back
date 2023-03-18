@@ -1,3 +1,4 @@
+const firebaseAdmin = require("firebase-admin");
 const { getMessaging } = require("firebase-admin/messaging");
 const {
   deviceTokenModel,
@@ -5,6 +6,22 @@ const {
   topicSubscriptionModel,
 } = require("../db/mongo");
 const logger = require("../modules/logger");
+const { googleApplicationCredentials } = require("../../security");
+
+/**
+ * credential을 등록합니다.
+ */
+const initializeApp = () => {
+  if (googleApplicationCredentials) {
+    firebaseAdmin.initializeApp({
+      credential: firebaseAdmin.credential.cert(require(googleApplicationCredentials)),
+    });
+  } else {
+    logger.error(
+      "Firebase 관련 credential이 존재하지 않습니다. FCM 관련 기능을 사용할 수 없습니다."
+    );
+  }
+}
 
 /**
  * 사용자의 ObjectId와 FCM device token이 주어졌을 때, 해당 deviceToken을 사용자의 토큰으로 DB에 등록합니다.
@@ -320,6 +337,7 @@ const unsubscribeUserFromTopic = async (userId, topic) => {
 };
 
 module.exports = {
+  initializeApp,
   registerDeviceToken,
   unregisterDeviceToken,
   validateDeviceToken,

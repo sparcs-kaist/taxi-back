@@ -7,18 +7,7 @@ const logAPIAccess = require("./src/modules/logAPIAccess");
 const startSocketServer = require("./src/modules/socket");
 
 // Firebase Admin 초기설정
-const admin = require("firebase-admin");
-const googleApplicationCredentialsPath = security.googleApplicationCredentials;
-if (googleApplicationCredentialsPath) {
-  const serviceAccount = require(googleApplicationCredentialsPath);
-  admin.initializeApp({
-    credential: admin.credential.cert(serviceAccount),
-  });
-} else {
-  logger.error(
-    "Firebase 관련 credential이 존재하지 않습니다. FCM 관련 기능을 사용할 수 없습니다."
-  );
-}
+require("./src/modules/fcm").initializeApp();
 
 // 익스프레스 서버 생성
 const app = express();
