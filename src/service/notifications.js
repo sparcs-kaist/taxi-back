@@ -4,11 +4,6 @@ const logger = require("../modules/logger");
 const getNotificationOptions = async (req, res) => {
   try {
     const { deviceToken } = req.query;
-    if (!deviceToken) {
-      return res
-        .status(400)
-        .send("Notification/getNotificationOptions: deviceToken not found");
-    }
 
     // deviceToken에 대응되는 알림 설정을 찾아 반환합니다.
     const notificationOptions = await notificationOptionModel
@@ -36,12 +31,6 @@ const getNotificationOptions = async (req, res) => {
 const changeNotificationOptions = async (req, res) => {
   try {
     const { deviceToken, options } = req.body;
-
-    if (!deviceToken) {
-      return res
-        .status(400)
-        .send("Notification/changeNotificationOptions: deviceToken not found");
-    }
 
     const newOptions = {};
     const booleanFields = [
