@@ -14,14 +14,16 @@ const { googleApplicationCredentials } = require("../../security");
 const initializeApp = () => {
   if (googleApplicationCredentials) {
     firebaseAdmin.initializeApp({
-      credential: firebaseAdmin.credential.cert(require(googleApplicationCredentials)),
+      credential: firebaseAdmin.credential.cert(
+        require("../../firebase-admin-sdk-account.json")
+      ),
     });
   } else {
     logger.error(
       "Firebase 관련 credential이 존재하지 않습니다. FCM 관련 기능을 사용할 수 없습니다."
     );
   }
-}
+};
 
 /**
  * 사용자의 ObjectId와 FCM device token이 주어졌을 때, 해당 deviceToken을 사용자의 토큰으로 DB에 등록합니다.
