@@ -1,5 +1,5 @@
 const { roomModel, locationModel, userModel } = require("../db/mongo");
-const { emitChatEvent } = require("../routes/chats.socket");
+const { emitChatEvent } = require("./socket.chats");
 const { leaveChatRoom } = require("../auth/login");
 const logger = require("../modules/logger");
 const {

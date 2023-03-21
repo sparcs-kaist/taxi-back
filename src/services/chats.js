@@ -1,7 +1,7 @@
 const { chatModel, userModel } = require("../db/mongo");
 const awsS3 = require("../db/awsS3");
 
-const { emitChatEvent } = require("../routes/chats.socket");
+const { emitChatEvent } = require("./socket.chats");
 
 const uploadChatImgGetPUrlHandler = async (req, res) => {
   try {
