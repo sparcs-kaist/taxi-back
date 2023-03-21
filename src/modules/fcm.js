@@ -14,9 +14,7 @@ const { googleApplicationCredentials } = require("../../security");
 const initializeApp = () => {
   if (googleApplicationCredentials) {
     firebaseAdmin.initializeApp({
-      credential: firebaseAdmin.credential.cert(
-        require("../../firebase-admin-sdk-account.json")
-      ),
+      credential: firebaseAdmin.credential.cert(googleApplicationCredentials),
     });
   } else {
     logger.error(
