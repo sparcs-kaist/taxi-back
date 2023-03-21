@@ -233,6 +233,11 @@ const sendMessageByTopic = async (topic, type, title, body, icon, link) => {
   try {
     const message = {
       topic,
+      data: {
+        url: link || "/",
+        icon: icon || "/icons-512.png",
+        click_action: "FLUTTER_NOTIFICATION_CLICK",
+      },
       notification: {
         title,
         body,
@@ -243,6 +248,12 @@ const sendMessageByTopic = async (topic, type, title, body, icon, link) => {
         },
         fcm_options: {
           link: link || "/",
+        },
+      },
+      android: {
+        notification: {
+          icon: icon || "/icons-512.png",
+          imageUrl: icon || "/icons-512.png",
         },
       },
     };
