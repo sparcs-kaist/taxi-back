@@ -8,7 +8,7 @@ const {
 const jwt = require("../modules/jwt");
 const logger = require("../modules/logger");
 
-const { TOKEN_EXPIRED, TOKEN_INVALID } = require("../config/constants");
+const { TOKEN_EXPIRED, TOKEN_INVALID } = require("../../loadenv").jwt;
 
 const loginWithToken = async (req, res) => {
   req.session.isApp = true;

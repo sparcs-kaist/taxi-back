@@ -26,6 +26,8 @@ module.exports = {
       algorithm: "HS256",
       issuer: process.env.FRONT_URL || "http://localhost:3000", // optional (default = "http://localhost:3000")
     },
+    TOKEN_EXPIRED: -3,
+    TOKEN_INVALID: -2,
   },
   appUriScheme: process.env.APP_URI_SCHEME,
   googleApplicationCredentials:
