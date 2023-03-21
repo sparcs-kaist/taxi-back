@@ -4,17 +4,11 @@ const {
   leaveChatRoom,
 } = require("../modules/auths/login");
 const { roomModel, userModel, chatModel } = require("../modules/stores/mongo");
+const { chatPopulateOption } = require("../modules/populates/chats");
 const { getS3Url } = require("../modules/stores/awsS3");
 const validator = require("validator");
 const { getTokensOfUsers, sendMessageByTokens } = require("../modules/fcm");
 const logger = require("../modules/logger");
-
-/** @constant {{path: string, select: string}[]}
- * 쿼리를 통해 얻은 Chat Document를 populate할 설정값을 정의합니다.
- */
-const chatPopulateOption = [
-  { path: "authorId", select: "_id nickname profileImageUrl" },
-];
 
 /**
  * emitChatEvent의 필수 파라미터가 주어지지 않은 경우 발생하는 예외를 정의하는 클래스입니다.

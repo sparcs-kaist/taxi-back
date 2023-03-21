@@ -1,12 +1,7 @@
 const { userModel, reportModel } = require("../modules/stores/mongo");
+const { reportPopulateOption } = require("../modules/populates/reports");
 const logger = require("../modules/logger");
 
-const reportPopulateOption = [
-  {
-    path: "reportedId",
-    select: "_id id name nickname profileImageUrl",
-  },
-];
 const createHandler = async (req, res) => {
   try {
     const { reportedId, type, etcDetail, time } = req.body;
