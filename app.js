@@ -3,7 +3,6 @@ const express = require("express");
 const http = require("http");
 const { port: httpPort } = require("./loadenv");
 const logger = require("./src/modules/logger");
-const logAPIAccess = require("./src/modules/logAPIAccess");
 const startSocketServer = require("./src/modules/socket");
 
 // Firebase Admin 초기설정
@@ -28,7 +27,7 @@ app.use(require("cookie-parser")());
 app.use(require("./src/middlewares/information"));
 
 // [Middleware] API 접근 기록 및 응답 시간을 http response의 헤더에 기록합니다.
-app.use(require("response-time")(logAPIAccess));
+app.use(require("./src/middlewares/responseTime"));
 
 // [Router] admin 페이지는 rate limiting을 적용하지 않습니다.
 app.use("/admin", require("./src/routes/admin"));
