@@ -2,7 +2,12 @@ const { userModel } = require("../db/mongo");
 const { deviceTokenModel } = require("../db/mongo");
 const { login } = require("../auth/login");
 
+const {
+  registerDeviceToken,
+  unregisterDeviceToken,
+} = require("../modules/fcm");
 const jwt = require("../modules/jwt");
+const logger = require("../modules/logger");
 
 const { TOKEN_EXPIRED, TOKEN_INVALID } = require("../config/constants");
 
@@ -92,16 +97,7 @@ const registerDeviceTokenHandler = async (req, res) => {
     )
       return res.status(401).send("unauthorized");
 
-    await deviceTokenModel.updateOne(
-      {
-        userid: accessTokenStatus.id,
-      },
-      {
-        userid: accessTokenStatus.id,
-        $addToSet: { deviceToken: deviceToken },
-      },
-      { upsert: true, new: true }
-    );
+    await registerDeviceToken(accessTokenStatus.id, deviceToken);
     res.status(200).send("success");
   } catch (e) {
     logger.error(e);
@@ -123,13 +119,7 @@ const removeDeviceTokenHandler = async (req, res) => {
     )
       return res.status(401).send("unauthorized");
 
-    await deviceTokenModel.updateOne(
-      {
-        userid: accessTokenStatus.id,
-      },
-      { userid: accessTokenStatus.id, $pull: { deviceToken: deviceToken } },
-      { upsert: true, new: true }
-    );
+    await unregisterDeviceToken(deviceToken);
     res.status(200).send("success");
   } catch (e) {
     logger.error(e);

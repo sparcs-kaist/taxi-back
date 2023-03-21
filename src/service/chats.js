@@ -1,6 +1,8 @@
 const { chatModel, userModel } = require("../db/mongo");
 const awsS3 = require("../db/awsS3");
 
+const { emitChatEvent } = require("../route/chats.socket");
+
 const uploadChatImgGetPUrlHandler = async (req, res) => {
   try {
     const type = req.body.type;
@@ -50,7 +52,7 @@ const uploadChatImgDoneHandler = async (req, res) => {
       { id: req.userId },
       "_id nickname profileImageUrl"
     );
-    const chat = await chatModel.findById(req.body.id);
+    const chat = await chatModel.findById(req.body.id).lean();
     if (!user) {
       return res
         .status(500)
@@ -77,30 +79,9 @@ const uploadChatImgDoneHandler = async (req, res) => {
           .status(500)
           .send("Chat/uploadChatImg/getPUrl : internal server error");
       }
-      const chatAfter = await chatModel
-        .findOneAndUpdate(
-          { _id: chat._id },
-          {
-            isValid: true,
-            content: chat._id.toString(),
-          },
-          { new: true }
-        )
-        .lean();
-      if (!chatAfter) {
-        return res
-          .status(500)
-          .send("User/editProfileImg/done : internal server error");
-      }
 
-      chatAfter.authorName = user.nickname;
-      chatAfter.authorProfileUrl = user.profileImageUrl;
-      req.app
-        .get("io")
-        .to(`chatRoom-${chatAfter.roomId}`)
-        .emit("chats-receive", {
-          chat: chatAfter,
-        });
+      chat.content = chat._id;
+      emitChatEvent(req.app.get("io"), chat.roomId, chat);
 
       res.json({
         result: true,

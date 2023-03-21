@@ -261,6 +261,7 @@ const abortHandler = async (req, res) => {
       content: user.id,
       authorId: user._id,
     });
+
     const roomObject = (await room.populate(roomPopulateOption)).toObject();
     const isOver = getIsOver(roomObject, user.id);
 
@@ -447,6 +448,7 @@ const commitPaymentHandler = async (req, res) => {
 
     await user.save();
 
+    // 결제 채팅을 보냅니다.
     await emitChatEvent(req.app.get("io"), roomId, {
       type: "payment",
       content: user.id,
@@ -511,6 +513,7 @@ const settlementHandler = async (req, res) => {
 
     await user.save();
 
+    // 정산 채팅을 보냅니다.
     await emitChatEvent(req.app.get("io"), roomId, {
       type: "settlement",
       content: user.id,
