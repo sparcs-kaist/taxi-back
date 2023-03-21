@@ -1,4 +1,8 @@
-const { getLoginInfo, joinChatRoom, leaveChatRoom } = require("../auth/login");
+const {
+  getLoginInfo,
+  joinChatRoom,
+  leaveChatRoom,
+} = require("../modules/auths/login");
 const { roomModel, userModel, chatModel } = require("../modules/stores/mongo");
 const { getS3Url } = require("../modules/stores/awsS3");
 const validator = require("validator");

@@ -1,11 +1,11 @@
 const { userModel } = require("../modules/stores/mongo");
-const { login } = require("../auth/login");
+const { login } = require("../modules/auths/login");
 
 const {
   registerDeviceToken,
   unregisterDeviceToken,
 } = require("../modules/fcm");
-const jwt = require("../modules/jwt");
+const jwt = require("../modules/auths/jwt");
 const logger = require("../modules/logger");
 
 const { TOKEN_EXPIRED, TOKEN_INVALID } = require("../../loadenv").jwt;

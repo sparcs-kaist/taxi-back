@@ -1,6 +1,6 @@
 // 관리자 유무를 확인하기 위한 미들웨어입니다.
 
-const { isLogin, getLoginInfo } = require("../auth/login");
+const { isLogin, getLoginInfo } = require("../modules/auths/login");
 const { frontUrl } = require("../../loadenv");
 const { userModel, adminIPWhitelistModel } = require("../modules/stores/mongo");
 

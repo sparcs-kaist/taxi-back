@@ -1,6 +1,6 @@
 const { frontUrl } = require("../../loadenv");
 const { userModel } = require("../modules/stores/mongo");
-const { logout, login } = require("../auth/login");
+const { logout, login } = require("../modules/auths/login");
 
 const {
   registerDeviceToken,

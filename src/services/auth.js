@@ -6,7 +6,7 @@ const {
 } = require("../../loadenv");
 const { userModel } = require("../modules/stores/mongo");
 const { user: userPattern } = require("../db/patterns");
-const { getLoginInfo, logout, login } = require("../auth/login");
+const { getLoginInfo, logout, login } = require("../modules/auths/login");
 
 const {
   registerDeviceToken,
@@ -19,10 +19,10 @@ const {
   generateProfileImageUrl,
   getFullUsername,
 } = require("../modules/modifyProfile");
-const jwt = require("../modules/jwt");
+const jwt = require("../modules/auths/jwt");
 
 // SPARCS SSO
-const Client = require("../auth/sparcsso");
+const Client = require("../modules/auths/sparcssso");
 const client = new Client(sparcsssoEnv?.id, sparcsssoEnv?.key);
 
 const transUserData = (userData) => {

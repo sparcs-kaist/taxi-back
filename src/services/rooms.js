@@ -4,7 +4,7 @@ const {
   userModel,
 } = require("../modules/stores/mongo");
 const { emitChatEvent } = require("./socket.chats");
-const { leaveChatRoom } = require("../auth/login");
+const { leaveChatRoom } = require("../modules/auths/login");
 const logger = require("../modules/logger");
 const {
   roomPopulateOption,

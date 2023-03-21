@@ -1,5 +1,5 @@
 const { userModel } = require("../modules/stores/mongo");
-const { getLoginInfo } = require("../auth/login");
+const { getLoginInfo } = require("../modules/auths/login");
 
 const logininfoHandler = (req, res) => {
   const user = getLoginInfo(req);
