@@ -1,7 +1,7 @@
 const { notificationOptionModel } = require("../db/mongo");
 const logger = require("../modules/logger");
 
-const getNotificationOptionsHandler = async (req, res) => {
+const optionsHandler = async (req, res) => {
   try {
     const { deviceToken } = req.query;
 
@@ -28,10 +28,11 @@ const getNotificationOptionsHandler = async (req, res) => {
   }
 };
 
-const changeNotificationOptionsHandler = async (req, res) => {
+const editOptionsHandler = async (req, res) => {
   try {
     const { deviceToken, options } = req.body;
 
+    // FIXME : can refactor with using reduce
     const newOptions = {};
     const booleanFields = [
       "chatting",
@@ -47,6 +48,7 @@ const changeNotificationOptionsHandler = async (req, res) => {
     if (options.keywords) {
       newOptions.keywords = options.keywords;
     }
+
     await notificationOptionModel.updateOne(
       {
         deviceToken,
@@ -84,6 +86,6 @@ const changeNotificationOptionsHandler = async (req, res) => {
 };
 
 module.exports = {
-  getNotificationOptionsHandler,
-  changeNotificationOptionsHandler,
+  optionsHandler,
+  editOptionsHandler,
 };
