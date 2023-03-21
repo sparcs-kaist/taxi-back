@@ -37,13 +37,58 @@ const participantSchema = Schema({
 });
 
 const deviceTokenSchema = Schema({
-  userid: {
+  userId: {
     type: Schema.Types.ObjectId,
     ref: "User",
     required: true,
     unique: true,
   },
-  deviceToken: [{ type: String, required: true }],
+  deviceTokens: [{ type: String, required: true }],
+});
+
+// 각 디바이스의 알림 설정
+const notificationOptionSchema = Schema({
+  deviceToken: {
+    type: String,
+    required: true,
+    unique: true,
+  },
+  chatting: {
+    type: Boolean,
+    default: true,
+    required: true,
+  }, //채팅 알림 수신 여부
+  keywords: [
+    {
+      type: String,
+      required: true,
+    },
+  ], //방 알림 키워드
+  beforeDepart: {
+    type: Boolean,
+    required: true,
+    default: false,
+  }, //출발 전 알림 발송 유무
+  notice: {
+    type: Boolean,
+    default: true,
+    required: true,
+  }, //공지 알림 수신 여부
+  advertisement: {
+    type: Boolean,
+    default: false,
+    required: true,
+  }, //광고성 알림 수신 여부
+});
+
+const topicSubscriptionSchema = Schema({
+  deviceToken: String,
+  topic: String,
+  subscribedAt: {
+    type: Date,
+    default: () => Date.now(),
+    required: true,
+  },
 });
 
 const roomSchema = Schema({
@@ -142,6 +187,14 @@ mongoose.connect(security.mongo, {
 module.exports = {
   userModel: mongoose.model("User", userSchema),
   deviceTokenModel: mongoose.model("DeviceToken", deviceTokenSchema),
+  notificationOptionModel: mongoose.model(
+    "NotificationOption",
+    notificationOptionSchema
+  ),
+  topicSubscriptionModel: mongoose.model(
+    "TopicSubscription",
+    topicSubscriptionSchema
+  ),
   roomModel: mongoose.model("Room", roomSchema),
   locationModel: mongoose.model("Location", locationSchema),
   chatModel: mongoose.model("Chat", chatSchema),

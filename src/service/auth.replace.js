@@ -1,11 +1,18 @@
 const security = require("../../security");
 const { userModel } = require("../db/mongo");
-const { logout, login } = require("../auth/login");
+const { getLoginInfo, logout, login } = require("../auth/login");
+
+const {
+  registerDeviceToken,
+  unregisterDeviceToken,
+} = require("../modules/fcm");
 const {
   generateNickname,
   generateProfileImageUrl,
 } = require("../modules/modifyProfile");
 const logger = require("../modules/logger");
+
+const { registerDeviceTokenHandler } = require("../service/auth");
 
 const loginHtml = `
 <!DOCTYPE html>
@@ -123,8 +130,14 @@ const sparcsssoHandler = (req, res) => {
   res.end(loginHtml);
 };
 
-const logoutHandler = (req, res) => {
+const logoutHandler = async (req, res) => {
   try {
+    // DB에서 deviceToken 레코드를 삭제합니다.
+    const deviceToken = req.session?.deviceToken;
+    if (deviceToken) {
+      await unregisterDeviceToken(deviceToken);
+    }
+
     const ssoLogoutUrl = security.frontUrl + "/login";
     logout(req, res);
     res.json({ ssoLogoutUrl });
@@ -137,4 +150,5 @@ module.exports = {
   tryHandler,
   sparcsssoHandler,
   logoutHandler,
+  registerDeviceTokenHandler,
 };

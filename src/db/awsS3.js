@@ -75,3 +75,8 @@ module.exports.foundObject = (filePath, cb) => {
     }
   );
 };
+
+// function to return full URL of the object
+module.exports.getS3Url = (filePath) => {
+  return `${security.aws.s3Url}${filePath}`;
+};

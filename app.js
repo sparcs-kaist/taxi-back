@@ -6,6 +6,9 @@ const logger = require("./src/modules/logger");
 const logAPIAccess = require("./src/modules/logAPIAccess");
 const startSocketServer = require("./src/modules/socket");
 
+// Firebase Admin 초기설정
+require("./src/modules/fcm").initializeApp();
+
 // 익스프레스 서버 생성
 const app = express();
 
@@ -44,6 +47,7 @@ app.use("/rooms", require("./src/route/rooms"));
 app.use("/chats", require("./src/route/chats"));
 app.use("/locations", require("./src/route/locations"));
 app.use("/reports", require("./src/route/reports"));
+app.use("/notifications", require("./src/route/notifications"));
 
 // express 서버 시작
 const serverHttp = http
