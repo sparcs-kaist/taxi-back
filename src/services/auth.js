@@ -1,4 +1,4 @@
-const security = require("../../security");
+const loadenv = require("../../loadenv");
 const { userModel } = require("../db/mongo");
 const { user: userPattern } = require("../db/patterns");
 const { getLoginInfo, logout, login } = require("../auth/login");
@@ -15,11 +15,10 @@ const {
   getFullUsername,
 } = require("../modules/modifyProfile");
 const jwt = require("../modules/jwt");
-const APP_URI_SCHEME = require("../../security").appUriScheme;
 
 // SPARCS SSO
 const Client = require("../auth/sparcsso");
-const client = new Client(security.sparcssso?.id, security.sparcssso?.key);
+const client = new Client(loadenv.sparcssso?.id, loadenv.sparcssso?.key);
 
 const transUserData = (userData) => {
   const kaistInfo = userData.kaist_info ? JSON.parse(userData.kaist_info) : {};
@@ -81,14 +80,14 @@ const loginDone = (req, res, userData) => {
       else if (result.name != userData.name) update(req, res, userData);
       else {
         login(req, userData.sid, result.id, result.name);
-        res.redirect(security.frontUrl + "/");
+        res.redirect(loadenv.frontUrl + "/");
       }
     }
   );
 };
 
 const loginFail = (req, res, redirectUrl = "") => {
-  res.redirect(redirectUrl || security.frontUrl + "/login/fail");
+  res.redirect(redirectUrl || loadenv.frontUrl + "/login/fail");
 };
 
 const generateTokenHandler = (req, res) => {
@@ -111,7 +110,7 @@ const sparcsssoCallbackHandler = (req, res) => {
     const code = req.body.code || req.query.code;
     client.getUserInfo(code).then((userDataBefore) => {
       const userData = transUserData(userDataBefore);
-      if (userData.isEligible || security.nodeEnv !== "production") {
+      if (userData.isEligible || loadenv.nodeEnv !== "production") {
         if (req.session.isApp) {
           createNewTokenHandler(req, res, userData);
         } else {
@@ -120,7 +119,7 @@ const sparcsssoCallbackHandler = (req, res) => {
       } else {
         // 카이스트 구성원이 아닌 경우, SSO 로그아웃 이후, 로그인 실패 URI 로 이동합니다
         const { sid } = userData;
-        const redirectUrl = security.frontUrl + "/login/fail";
+        const redirectUrl = loadenv.frontUrl + "/login/fail";
         const ssoLogoutUrl = client.getLogoutUrl(sid, redirectUrl);
         loginFail(req, res, ssoLogoutUrl);
       }
@@ -150,7 +149,7 @@ const createNewTokenHandler = (req, res, userData) => {
           type: "refresh",
         });
         res.redirect(
-          APP_URI_SCHEME +
+          loadenv.appUriScheme +
             "://login?accessToken=" +
             accessToken.token +
             "&refreshToken=" +
@@ -171,7 +170,7 @@ const logoutHandler = async (req, res) => {
       await unregisterDeviceToken(deviceToken);
     }
 
-    const redirectUrl = security.frontUrl + "/login";
+    const redirectUrl = loadenv.frontUrl + "/login";
     const ssoLogoutUrl = client.getLogoutUrl(sid, redirectUrl);
     logout(req, res);
     res.json({ ssoLogoutUrl });

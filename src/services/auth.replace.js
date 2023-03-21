@@ -1,4 +1,4 @@
-const security = require("../../security");
+const { frontUrl } = require("../../loadenv");
 const { userModel } = require("../db/mongo");
 const { getLoginInfo, logout, login } = require("../auth/login");
 
@@ -113,7 +113,7 @@ const loginDone = (req, res, userData) => {
       else {
         login(req, userData.sid, result.id, result.name);
         // res.send("successful"); //API 테스트용 코드(프론트 리다이렉트 X)
-        res.redirect(security.frontUrl);
+        res.redirect(frontUrl);
       }
     }
   );
@@ -138,7 +138,7 @@ const logoutHandler = async (req, res) => {
       await unregisterDeviceToken(deviceToken);
     }
 
-    const ssoLogoutUrl = security.frontUrl + "/login";
+    const ssoLogoutUrl = frontUrl + "/login";
     logout(req, res);
     res.json({ ssoLogoutUrl });
   } catch (e) {

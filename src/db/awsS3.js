@@ -1,4 +1,4 @@
-const security = require("../../security");
+const loadenv = require("../../loadenv");
 
 // Load the AWS-SDK and s3
 const AWS = require("aws-sdk");
@@ -12,7 +12,7 @@ const s3 = new AWS.S3({ apiVersion: "2006-03-01" });
 module.exports.getList = (directoryPath, cb) => {
   s3.listObjects(
     {
-      Bucket: security.aws.s3BucketName,
+      Bucket: loadenv.aws.s3BucketName,
       Prefix: directoryPath,
     },
     (err, data) => {
@@ -24,7 +24,7 @@ module.exports.getList = (directoryPath, cb) => {
 // function to generate signed-url for upload(PUT)
 module.exports.getUploadPUrlPut = (filePath, contentType = "image/png") => {
   const presignedUrl = s3.getSignedUrl("putObject", {
-    Bucket: security.aws.s3BucketName,
+    Bucket: loadenv.aws.s3BucketName,
     Key: filePath,
     ContentType: contentType,
     Expires: 60, // 1 min
@@ -36,7 +36,7 @@ module.exports.getUploadPUrlPut = (filePath, contentType = "image/png") => {
 module.exports.getUploadPUrlPost = (filePath, contentType, cb) => {
   s3.createPresignedPost(
     {
-      Bucket: security.aws.s3BucketName,
+      Bucket: loadenv.aws.s3BucketName,
       Expires: 60, // 1 min
       Conditions: [
         { key: filePath },
@@ -54,7 +54,7 @@ module.exports.getUploadPUrlPost = (filePath, contentType, cb) => {
 module.exports.deleteObject = (filePath, cb) => {
   s3.deleteObject(
     {
-      Bucket: security.aws.s3BucketName,
+      Bucket: loadenv.aws.s3BucketName,
       Key: filePath,
     },
     (err, data) => {
@@ -67,7 +67,7 @@ module.exports.deleteObject = (filePath, cb) => {
 module.exports.foundObject = (filePath, cb) => {
   s3.headObject(
     {
-      Bucket: security.aws.s3BucketName,
+      Bucket: loadenv.aws.s3BucketName,
       Key: filePath,
     },
     (err, data) => {
@@ -78,5 +78,5 @@ module.exports.foundObject = (filePath, cb) => {
 
 // function to return full URL of the object
 module.exports.getS3Url = (filePath) => {
-  return `${security.aws.s3Url}${filePath}`;
+  return `${loadenv.aws.s3Url}${filePath}`;
 };

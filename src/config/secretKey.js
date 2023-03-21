@@ -1,4 +1,4 @@
-const { jwtSecretKey, frontUrl } = require("../../security");
+const { jwtSecretKey, frontUrl } = require("../../loadenv");
 
 module.exports = {
   jwtSecretKey: jwtSecretKey,
