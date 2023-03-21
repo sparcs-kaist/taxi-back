@@ -1,5 +1,5 @@
 const jwt = require("jsonwebtoken");
-const { jwtSecretKey, option } = require("../config/secretKey");
+const { secretKey, option } = require("../../loadenv").jwt;
 const { TOKEN_EXPIRED, TOKEN_INVALID } = require("../config/constants");
 
 const signJwt = async ({ id, type }) => {
@@ -18,7 +18,7 @@ const signJwt = async ({ id, type }) => {
   }
 
   const result = {
-    token: jwt.sign(payload, jwtSecretKey, options),
+    token: jwt.sign(payload, secretKey, options),
   };
   return result;
 };
@@ -26,7 +26,7 @@ const signJwt = async ({ id, type }) => {
 const verifyJwt = async (token) => {
   let decoded;
   try {
-    decoded = jwt.verify(token, jwtSecretKey);
+    decoded = jwt.verify(token, secretKey);
   } catch (err) {
     if (err.message === "jwt expired") {
       return TOKEN_EXPIRED;

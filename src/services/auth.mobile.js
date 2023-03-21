@@ -1,5 +1,4 @@
 const { userModel } = require("../db/mongo");
-const { deviceTokenModel } = require("../db/mongo");
 const { login } = require("../auth/login");
 
 const {

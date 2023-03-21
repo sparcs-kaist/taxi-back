@@ -20,7 +20,13 @@ module.exports = {
       process.env.AWS_S3_URL ||
       "https://${process.env.AWS_S3_BUCKET_NAME}.s3.ap-northeast-2.amazonaws.com", // optional
   },
-  jwtSecretKey: process.env.JWT_SECRET_KEY,
+  jwt: {
+    secretKey: process.env.JWT_SECRET_KEY,
+    option: {
+      algorithm: "HS256",
+      issuer: process.env.FRONT_URL || "http://localhost:3000", // optional (default = "http://localhost:3000")
+    },
+  },
   appUriScheme: process.env.APP_URI_SCHEME,
   googleApplicationCredentials:
     process.env.GOOGLE_APPLICATION_CREDENTIALS &&
