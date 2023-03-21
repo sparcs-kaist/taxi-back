@@ -1,7 +1,7 @@
 // 모듈 require
 const express = require("express");
 const http = require("http");
-const loadenv = require("./loadenv");
+const { port: httpPort } = require("./loadenv");
 const logger = require("./src/modules/logger");
 const logAPIAccess = require("./src/modules/logAPIAccess");
 const startSocketServer = require("./src/modules/socket");
@@ -52,8 +52,8 @@ app.use("/notifications", require("./src/routes/notifications"));
 // express 서버 시작
 const serverHttp = http
   .createServer(app)
-  .listen(loadenv.port, () =>
-    logger.info(`Express 서버가 ${loadenv.port}번 포트에서 시작됨.`)
+  .listen(httpPort, () =>
+    logger.info(`Express 서버가 ${httpPort}번 포트에서 시작됨.`)
   );
 
 // socket.io 서버 시작 및 app 인스턴스에 저장

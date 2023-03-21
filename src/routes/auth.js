@@ -7,7 +7,7 @@ const validator = require("../middlewares/validator");
 const authHandlers = require("../services/auth");
 const mobileAuthHandlers = require("../services/auth.mobile");
 
-const loadenv = require("../../loadenv");
+const { sparcssso: sparcsssoEnv } = require("../../loadenv");
 const authReplace = require("./auth.replace");
 
 router.route("/sparcssso").get(authHandlers.sparcsssoHandler);
@@ -29,4 +29,4 @@ router.post(
 );
 
 // 환경변수 SPARCSSSO_CLIENT_ID 유무에 따라 로그인 방식이 변경됩니다.
-module.exports = loadenv.sparcssso?.id ? router : authReplace;
+module.exports = sparcsssoEnv?.id ? router : authReplace;
