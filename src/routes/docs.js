@@ -24,7 +24,7 @@ const swaggerSpec = swaggereJsdoc({
     consumes: ["application/json"],
     produces: ["application/json"],
   },
-  apis: ["src/route/*.js"],
+  apis: ["src/routes/*.js"],
 });
 
 router.use(swaggerUi.serve);

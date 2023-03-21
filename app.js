@@ -31,23 +31,23 @@ app.use(require("./src/middlewares/information"));
 app.use(require("response-time")(logAPIAccess));
 
 // [Router] admin 페이지는 rate limiting을 적용하지 않습니다.
-app.use("/admin", require("./src/route/admin"));
+app.use("/admin", require("./src/routes/admin"));
 
 // [Middleware] 모든 요청에 대하여 rate limiting 적용
 app.use(require("./src/middlewares/limitRate"));
 
 // [Router] Swagger (API 문서)
-app.use("/docs", require("./src/route/docs"));
+app.use("/docs", require("./src/routes/docs"));
 
 // [Router] APIs
-app.use("/auth", require("./src/route/auth"));
-app.use("/logininfo", require("./src/route/logininfo"));
-app.use("/users", require("./src/route/users"));
-app.use("/rooms", require("./src/route/rooms"));
-app.use("/chats", require("./src/route/chats"));
-app.use("/locations", require("./src/route/locations"));
-app.use("/reports", require("./src/route/reports"));
-app.use("/notifications", require("./src/route/notifications"));
+app.use("/auth", require("./src/routes/auth"));
+app.use("/logininfo", require("./src/routes/logininfo"));
+app.use("/users", require("./src/routes/users"));
+app.use("/rooms", require("./src/routes/rooms"));
+app.use("/chats", require("./src/routes/chats"));
+app.use("/locations", require("./src/routes/locations"));
+app.use("/reports", require("./src/routes/reports"));
+app.use("/notifications", require("./src/routes/notifications"));
 
 // express 서버 시작
 const serverHttp = http

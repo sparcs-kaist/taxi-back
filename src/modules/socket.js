@@ -2,7 +2,7 @@ const { Server } = require("socket.io");
 const sharedsession = require("express-socket.io-session");
 const cookieParser = require("cookie-parser");
 const security = require("../../security");
-const { ioListeners } = require("../route/chats.socket");
+const { ioListeners } = require("../routes/chats.socket");
 
 // server: express server
 // session: session middleware

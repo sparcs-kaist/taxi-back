@@ -32,7 +32,7 @@ See [notion page](https://www.notion.so/sparcs/Environment-Variables-1b404bd385f
 Refer to [.env.example](.env.example) and write your own `.env.development` and `.env.test`.
 
 ## Backend Route Information
-See [Backend Route Documentation](src/route/docs/README.md)
+See [Backend Route Documentation](src/routes/docs/README.md)
 
 ## License
 This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details
