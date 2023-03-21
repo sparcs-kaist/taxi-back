@@ -1,13 +1,13 @@
 const express = require("express");
 const { body } = require("express-validator");
-const validator = require("../middleware/validator");
+const validator = require("../middlewares/validator");
 const patterns = require("../db/patterns");
 
 const router = express.Router();
 const chatsHandlers = require("../service/chats");
 
 // 라우터 접근 시 로그인 필요
-router.use(require("../middleware/auth"));
+router.use(require("../middlewares/auth"));
 
 // 채팅 이미지를 업로드할 수 있는 Presigned-url을 발급합니다.
 router.post(

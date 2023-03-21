@@ -3,8 +3,8 @@ const router = express.Router();
 const { body } = require("express-validator");
 
 const authReplaceHandlers = require("../service/auth.replace");
-const authMiddleware = require("../middleware/auth");
-const validator = require("../middleware/validator");
+const authMiddleware = require("../middlewares/auth");
+const validator = require("../middlewares/validator");
 
 // 로그인 시도
 router.route("/try").post(authReplaceHandlers.tryHandler);

@@ -3,10 +3,10 @@ const router = express.Router();
 const { query, body } = require("express-validator");
 
 const notificationHandlers = require("../service/notifications");
-const validator = require("../middleware/validator");
+const validator = require("../middlewares/validator");
 
 // 라우터 접근 시 로그인 필요
-router.use(require("../middleware/auth"));
+router.use(require("../middlewares/auth"));
 
 router.get(
   "/options",

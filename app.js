@@ -20,12 +20,12 @@ app.use(express.json());
 app.use(require("cors")({ origin: true, credentials: true }));
 
 // [Middleware] 세션 및 쿠키
-const session = require("./src/middleware/session");
+const session = require("./src/middlewares/session");
 app.use(session);
 app.use(require("cookie-parser")());
 
 // [Middleware] Timestamp 및 clientIP 확인
-app.use(require("./src/middleware/information"));
+app.use(require("./src/middlewares/information"));
 
 // [Middleware] API 접근 기록 및 응답 시간을 http response의 헤더에 기록합니다.
 app.use(require("response-time")(logAPIAccess));
@@ -34,7 +34,7 @@ app.use(require("response-time")(logAPIAccess));
 app.use("/admin", require("./src/route/admin"));
 
 // [Middleware] 모든 요청에 대하여 rate limiting 적용
-app.use(require("./src/middleware/limitRate"));
+app.use(require("./src/middlewares/limitRate"));
 
 // [Router] Swagger (API 문서)
 app.use("/docs", require("./src/route/docs"));
