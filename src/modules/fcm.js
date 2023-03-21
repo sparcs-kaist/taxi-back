@@ -195,6 +195,12 @@ const sendMessageByTokens = async (tokens, type, title, body, icon, link) => {
           link: link || "/",
         },
       },
+      android: {
+        notification: {
+          icon: icon || "/icons-512.png",
+          imageUrl: icon || "/icons-512.png",
+        },
+      },
     };
     const { responses, failureCount } = await getMessaging().sendMulticast(
       message
