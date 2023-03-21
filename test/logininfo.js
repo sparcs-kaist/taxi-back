@@ -1,6 +1,6 @@
 const expect = require("chai").expect;
 const logininfoHandlers = require("../src/services/logininfo");
-const { userModel } = require("../src/db/mongo");
+const { userModel } = require("../src/modules/stores/mongo");
 
 // logininfo.js 관련 2개의 handler을 테스트 (동기식이므로 httpMocks 사용하지 않음)
 // 1-1. 로그인 한 유저가 없을 시 undefined를 return 하는지 확인

@@ -1,6 +1,6 @@
-const { userModel, roomModel } = require("../db/mongo");
+const { userModel } = require("../modules/stores/mongo");
 const logger = require("../modules/logger");
-const awsS3 = require("../db/awsS3");
+const awsS3 = require("../modules/stores/awsS3");
 
 const agreeOnTermsOfServiceHandler = async (req, res) => {
   try {
@@ -8,9 +8,11 @@ const agreeOnTermsOfServiceHandler = async (req, res) => {
     if (user.agreeOnTermsOfService !== true) {
       user.agreeOnTermsOfService = true;
       await user.save();
-      res.status(200).send(
-        "User/agreeOnTermsOfService : agree on Terms of Service successful"
-      );
+      res
+        .status(200)
+        .send(
+          "User/agreeOnTermsOfService : agree on Terms of Service successful"
+        );
     } else {
       res.status(400).send("User/agreeOnTermsOfService : already agreed");
     }
@@ -39,7 +41,9 @@ const editNicknameHandler = async (req, res) => {
     .findOneAndUpdate({ id: req.userId }, { nickname: newNickname })
     .then((result) => {
       if (result) {
-        res.status(200).send("User/editNickname : edit user nickname successful");
+        res
+          .status(200)
+          .send("User/editNickname : edit user nickname successful");
       } else {
         res.status(400).send("User/editNickname : such user id does not exist");
       }

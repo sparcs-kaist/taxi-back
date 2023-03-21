@@ -1,5 +1,5 @@
-const { chatModel, userModel } = require("../db/mongo");
-const awsS3 = require("../db/awsS3");
+const { chatModel, userModel } = require("../modules/stores/mongo");
+const awsS3 = require("../modules/stores/awsS3");
 
 const { emitChatEvent } = require("./socket.chats");
 

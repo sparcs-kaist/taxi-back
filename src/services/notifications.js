@@ -1,4 +1,4 @@
-const { notificationOptionModel } = require("../db/mongo");
+const { notificationOptionModel } = require("../modules/stores/mongo");
 const logger = require("../modules/logger");
 
 const optionsHandler = async (req, res) => {

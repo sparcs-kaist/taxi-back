@@ -1,7 +1,7 @@
 const request = require("supertest");
 
 const authHandlers = require("../src/services/auth.replace");
-const { userModel } = require("../src/db/mongo");
+const { userModel } = require("../src/modules/stores/mongo");
 const { frontUrl } = require("../loadenv");
 
 // auth.replace.js 관련 1개의 handler을 테스트

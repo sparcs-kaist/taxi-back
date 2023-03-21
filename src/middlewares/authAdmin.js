@@ -2,7 +2,7 @@
 
 const { isLogin, getLoginInfo } = require("../auth/login");
 const { frontUrl } = require("../../loadenv");
-const { userModel, adminIPWhitelistModel } = require("../db/mongo");
+const { userModel, adminIPWhitelistModel } = require("../modules/stores/mongo");
 
 const authAdminMiddleware = async (req, res, next) => {
   try {

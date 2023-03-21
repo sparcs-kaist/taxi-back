@@ -13,7 +13,7 @@ const {
   adminLogModel,
   deviceTokenModel,
   notificationOptionModel,
-} = require("../db/mongo");
+} = require("../modules/stores/mongo");
 
 const router = express.Router();
 

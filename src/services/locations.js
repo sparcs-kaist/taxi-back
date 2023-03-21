@@ -1,4 +1,4 @@
-const { locationModel } = require("../db/mongo");
+const { locationModel } = require("../modules/stores/mongo");
 const logger = require("../modules/logger");
 
 const getAllLocationsHandler = async (_, res) => {

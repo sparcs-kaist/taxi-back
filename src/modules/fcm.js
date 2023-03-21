@@ -4,7 +4,7 @@ const {
   deviceTokenModel,
   notificationOptionModel,
   topicSubscriptionModel,
-} = require("../db/mongo");
+} = require("./stores/mongo");
 const logger = require("../modules/logger");
 const { googleApplicationCredentials } = require("../../loadenv");
 

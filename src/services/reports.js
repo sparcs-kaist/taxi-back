@@ -1,4 +1,4 @@
-const { userModel, reportModel } = require("../db/mongo");
+const { userModel, reportModel } = require("../modules/stores/mongo");
 const logger = require("../modules/logger");
 
 const reportPopulateOption = [

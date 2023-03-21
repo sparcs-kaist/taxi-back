@@ -1,8 +1,8 @@
 const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 
-const { mongo: mongoUrl } = require("../../loadenv");
-const logger = require("../modules/logger");
+const { mongo: mongoUrl } = require("../../../loadenv");
+const logger = require("../logger");
 
 const userSchema = Schema({
   name: { type: String, required: true }, //실명

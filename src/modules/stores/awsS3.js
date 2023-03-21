@@ -1,4 +1,4 @@
-const { aws: awsEnv } = require("../../loadenv");
+const { aws: awsEnv } = require("../../../loadenv");
 
 // Load the AWS-SDK and s3
 const AWS = require("aws-sdk");

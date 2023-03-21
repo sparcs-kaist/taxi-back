@@ -1,4 +1,8 @@
-const { roomModel, locationModel, userModel } = require("../db/mongo");
+const {
+  roomModel,
+  locationModel,
+  userModel,
+} = require("../modules/stores/mongo");
 const { emitChatEvent } = require("./socket.chats");
 const { leaveChatRoom } = require("../auth/login");
 const logger = require("../modules/logger");

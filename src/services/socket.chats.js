@@ -1,6 +1,6 @@
 const { getLoginInfo, joinChatRoom, leaveChatRoom } = require("../auth/login");
-const { roomModel, userModel, chatModel } = require("../db/mongo");
-const { getS3Url } = require("../db/awsS3");
+const { roomModel, userModel, chatModel } = require("../modules/stores/mongo");
+const { getS3Url } = require("../modules/stores/awsS3");
 const validator = require("validator");
 const { getTokensOfUsers, sendMessageByTokens } = require("../modules/fcm");
 const logger = require("../modules/logger");
