@@ -376,6 +376,11 @@ const searchByUserHandler = async (req, res) => {
       })
       .lean();
 
+    // [TODO] 혼자 탑승한 방 정산 automate
+    // 1. ongoing 방 && 혼자 탑승 && 이미 출발
+    // 2. 정산상태 완료 변경
+    // 3. 해당 방은 ongoing 방에서 done 방으로 이동
+
     // 정산완료여부 기준으로 진행중인 방과 완료된 방을 분리해서 응답을 전송합니다.
     const response = {};
     response.ongoing = user.ongoingRoom.map((room) =>
