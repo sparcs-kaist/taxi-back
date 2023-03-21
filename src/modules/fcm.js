@@ -180,6 +180,11 @@ const sendMessageByTokens = async (tokens, type, title, body, icon, link) => {
   try {
     const message = {
       tokens,
+      data: {
+        url: link || "/",
+        icon: icon || "/icons-512.png",
+        click_action: "FLUTTER_NOTIFICATION_CLICK",
+      },
       notification: {
         title,
         body,
