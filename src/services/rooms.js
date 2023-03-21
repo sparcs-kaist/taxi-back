@@ -10,7 +10,7 @@ const {
   roomPopulateOption,
   formatSettlement,
   getIsOver,
-} = require("../db/rooms");
+} = require("../modules/populates/rooms");
 
 const createHandler = async (req, res) => {
   const { name, from, to, time, maxPartLength } = req.body;
