@@ -11,7 +11,7 @@ router.use(require("../middleware/auth"));
 router.get(
   "/options",
   query("deviceToken").isString(),
-  notificationHandlers.getNotificationOptions
+  notificationHandlers.getNotificationOptionsHandler
 );
 
 router.patch(
@@ -25,7 +25,7 @@ router.patch(
   body("options.notice").optional().isBoolean(),
   body("options.advertisement").optional().isBoolean(),
   validator,
-  notificationHandlers.changeNotificationOptions
+  notificationHandlers.changeNotificationOptionsHandler
 );
 
 module.exports = router;

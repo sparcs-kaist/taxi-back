@@ -1,7 +1,7 @@
 const { notificationOptionModel } = require("../db/mongo");
 const logger = require("../modules/logger");
 
-const getNotificationOptions = async (req, res) => {
+const getNotificationOptionsHandler = async (req, res) => {
   try {
     const { deviceToken } = req.query;
 
@@ -28,7 +28,7 @@ const getNotificationOptions = async (req, res) => {
   }
 };
 
-const changeNotificationOptions = async (req, res) => {
+const changeNotificationOptionsHandler = async (req, res) => {
   try {
     const { deviceToken, options } = req.body;
 
@@ -84,6 +84,6 @@ const changeNotificationOptions = async (req, res) => {
 };
 
 module.exports = {
-  getNotificationOptions,
-  changeNotificationOptions,
+  getNotificationOptionsHandler,
+  changeNotificationOptionsHandler,
 };
