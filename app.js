@@ -28,7 +28,6 @@ app.use(require("./src/middleware/information"));
 app.use(require("response-time")(logAPIAccess));
 
 // [Router] admin 페이지는 rate limiting을 적용하지 않습니다.
-app.use("/admin/logs", require("./src/route/admin.logs"));
 app.use("/admin", require("./src/route/admin"));
 
 // [Middleware] 모든 요청에 대하여 rate limiting 적용
