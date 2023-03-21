@@ -1,7 +1,7 @@
 const express = require("express");
 const { body } = require("express-validator");
 const validator = require("../middlewares/validator");
-const patterns = require("../db/patterns");
+const patterns = require("../modules/patterns");
 
 const router = express.Router();
 const chatsHandlers = require("../services/chats");

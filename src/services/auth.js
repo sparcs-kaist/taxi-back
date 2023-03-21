@@ -5,7 +5,7 @@ const {
   appUriScheme,
 } = require("../../loadenv");
 const { userModel } = require("../modules/stores/mongo");
-const { user: userPattern } = require("../db/patterns");
+const { user: userPattern } = require("../modules/patterns");
 const { getLoginInfo, logout, login } = require("../modules/auths/login");
 
 const {
