@@ -2,7 +2,7 @@ const express = require("express");
 const router = express.Router();
 const { body } = require("express-validator");
 
-const authReplaceHandlers = require("../service/auth.replace");
+const authReplaceHandlers = require("../services/auth.replace");
 const authMiddleware = require("../middlewares/auth");
 const validator = require("../middlewares/validator");
 

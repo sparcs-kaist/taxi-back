@@ -1,7 +1,7 @@
 const express = require("express");
 
 const router = express.Router();
-const logininfoHandlers = require("../service/logininfo");
+const logininfoHandlers = require("../services/logininfo");
 
 /**
  * @swagger

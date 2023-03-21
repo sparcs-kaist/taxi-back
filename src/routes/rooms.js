@@ -2,7 +2,7 @@ const express = require("express");
 const { query, body } = require("express-validator");
 const router = express.Router();
 
-const roomHandlers = require("../service/rooms");
+const roomHandlers = require("../services/rooms");
 const validator = require("../middlewares/validator");
 const patterns = require("../db/patterns");
 

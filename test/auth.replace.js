@@ -1,6 +1,6 @@
 const request = require("supertest");
 
-const authHandlers = require("../src/service/auth.replace");
+const authHandlers = require("../src/services/auth.replace");
 const { userModel } = require("../src/db/mongo");
 const security = require("../security");
 

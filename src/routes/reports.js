@@ -3,7 +3,7 @@ const { body } = require("express-validator");
 const validator = require("../middlewares/validator");
 
 const router = express.Router();
-const reportHandlers = require("../service/reports");
+const reportHandlers = require("../services/reports");
 
 // 라우터 접근 시 로그인 필요
 router.use(require("../middlewares/auth"));

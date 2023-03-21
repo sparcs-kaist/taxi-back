@@ -1,7 +1,7 @@
 const express = require("express");
 
 const router = express.Router();
-const locationsHandlers = require("../service/locations");
+const locationsHandlers = require("../services/locations");
 
 /**
  * @swagger

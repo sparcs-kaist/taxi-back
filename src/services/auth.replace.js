@@ -12,7 +12,7 @@ const {
 } = require("../modules/modifyProfile");
 const logger = require("../modules/logger");
 
-const { registerDeviceTokenHandler } = require("../service/auth");
+const { registerDeviceTokenHandler } = require("../services/auth");
 
 const loginHtml = `
 <!DOCTYPE html>

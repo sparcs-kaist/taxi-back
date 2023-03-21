@@ -4,7 +4,7 @@ const validator = require("../middlewares/validator");
 const patterns = require("../db/patterns");
 
 const router = express.Router();
-const chatsHandlers = require("../service/chats");
+const chatsHandlers = require("../services/chats");
 
 // 라우터 접근 시 로그인 필요
 router.use(require("../middlewares/auth"));

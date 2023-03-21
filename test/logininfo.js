@@ -1,5 +1,5 @@
 const expect = require("chai").expect;
-const logininfoHandlers = require("../src/service/logininfo");
+const logininfoHandlers = require("../src/services/logininfo");
 const { userModel } = require("../src/db/mongo");
 
 // logininfo.js 관련 2개의 handler을 테스트 (동기식이므로 httpMocks 사용하지 않음)

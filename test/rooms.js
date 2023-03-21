@@ -1,6 +1,6 @@
 const expect = require("chai").expect;
 const express = require("express");
-const roomsHandlers = require("../src/service/rooms");
+const roomsHandlers = require("../src/services/rooms");
 const { userModel, roomModel, locationModel } = require("../src/db/mongo");
 const { userGenerator, testRemover } = require("./utils");
 const app = express();

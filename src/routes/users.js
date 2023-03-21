@@ -4,7 +4,7 @@ const validator = require("../middlewares/validator");
 const patterns = require("../db/patterns");
 
 const router = express.Router();
-const userHandlers = require("../service/users");
+const userHandlers = require("../services/users");
 
 const { replaceSpaceInNickname } = require("../modules/modifyProfile");
 

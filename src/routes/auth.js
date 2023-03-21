@@ -4,8 +4,8 @@ const { body } = require("express-validator");
 
 const authMiddleware = require("../middlewares/auth");
 const validator = require("../middlewares/validator");
-const authHandlers = require("../service/auth");
-const mobileAuthHandlers = require("../service/auth.mobile");
+const authHandlers = require("../services/auth");
+const mobileAuthHandlers = require("../services/auth.mobile");
 
 const security = require("../../security");
 const authReplace = require("./auth.replace");
