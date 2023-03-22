@@ -1,7 +1,11 @@
 const expect = require("chai").expect;
 const express = require("express");
-const roomsHandlers = require("../src/service/rooms");
-const { userModel, roomModel, locationModel } = require("../src/db/mongo");
+const roomsHandlers = require("../src/services/rooms");
+const {
+  userModel,
+  roomModel,
+  locationModel,
+} = require("../src/modules/stores/mongo");
 const { userGenerator, testRemover } = require("./utils");
 const app = express();
 const httpMocks = require("node-mocks-http");

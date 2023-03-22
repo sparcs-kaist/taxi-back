@@ -4,7 +4,7 @@ const {
   chatModel,
   locationModel,
   reportModel,
-} = require("../src/db/mongo");
+} = require("../src/modules/stores/mongo");
 const { generateProfileImageUrl } = require("../src/modules/modifyProfile");
 
 // 테스트를 위한 유저 생성 함수

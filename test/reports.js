@@ -1,6 +1,6 @@
 const expect = require("chai").expect;
-const reportHandlers = require("../src/service/reports");
-const { userModel } = require("../src/db/mongo");
+const reportHandlers = require("../src/services/reports");
+const { userModel } = require("../src/modules/stores/mongo");
 const { userGenerator, testRemover } = require("./utils");
 const httpMocks = require("node-mocks-http");
 

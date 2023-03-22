@@ -1,9 +1,8 @@
 // 모듈 require
 const express = require("express");
 const http = require("http");
-const security = require("./security");
+const { port: httpPort } = require("./loadenv");
 const logger = require("./src/modules/logger");
-const logAPIAccess = require("./src/modules/logAPIAccess");
 const startSocketServer = require("./src/modules/socket");
 
 // Firebase Admin 초기설정
@@ -20,40 +19,40 @@ app.use(express.json());
 app.use(require("cors")({ origin: true, credentials: true }));
 
 // [Middleware] 세션 및 쿠키
-const session = require("./src/middleware/session");
+const session = require("./src/middlewares/session");
 app.use(session);
 app.use(require("cookie-parser")());
 
 // [Middleware] Timestamp 및 clientIP 확인
-app.use(require("./src/middleware/information"));
+app.use(require("./src/middlewares/information"));
 
 // [Middleware] API 접근 기록 및 응답 시간을 http response의 헤더에 기록합니다.
-app.use(require("response-time")(logAPIAccess));
+app.use(require("./src/middlewares/responseTime"));
 
 // [Router] admin 페이지는 rate limiting을 적용하지 않습니다.
-app.use("/admin", require("./src/route/admin"));
+app.use("/admin", require("./src/routes/admin"));
 
 // [Middleware] 모든 요청에 대하여 rate limiting 적용
-app.use(require("./src/middleware/limitRate"));
+app.use(require("./src/middlewares/limitRate"));
 
 // [Router] Swagger (API 문서)
-app.use("/docs", require("./src/route/docs"));
+app.use("/docs", require("./src/routes/docs"));
 
 // [Router] APIs
-app.use("/auth", require("./src/route/auth"));
-app.use("/logininfo", require("./src/route/logininfo"));
-app.use("/users", require("./src/route/users"));
-app.use("/rooms", require("./src/route/rooms"));
-app.use("/chats", require("./src/route/chats"));
-app.use("/locations", require("./src/route/locations"));
-app.use("/reports", require("./src/route/reports"));
-app.use("/notifications", require("./src/route/notifications"));
+app.use("/auth", require("./src/routes/auth"));
+app.use("/logininfo", require("./src/routes/logininfo"));
+app.use("/users", require("./src/routes/users"));
+app.use("/rooms", require("./src/routes/rooms"));
+app.use("/chats", require("./src/routes/chats"));
+app.use("/locations", require("./src/routes/locations"));
+app.use("/reports", require("./src/routes/reports"));
+app.use("/notifications", require("./src/routes/notifications"));
 
 // express 서버 시작
 const serverHttp = http
   .createServer(app)
-  .listen(security.port, () =>
-    logger.info(`Express 서버가 ${security.port}번 포트에서 시작됨.`)
+  .listen(httpPort, () =>
+    logger.info(`Express 서버가 ${httpPort}번 포트에서 시작됨.`)
   );
 
 // socket.io 서버 시작 및 app 인스턴스에 저장
