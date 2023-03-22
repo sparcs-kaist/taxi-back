@@ -18,7 +18,7 @@ module.exports = {
     s3BucketName: process.env.AWS_S3_BUCKET_NAME, // required
     s3Url:
       process.env.AWS_S3_URL ||
-      "https://${process.env.AWS_S3_BUCKET_NAME}.s3.ap-northeast-2.amazonaws.com", // optional
+      `https://${process.env.AWS_S3_BUCKET_NAME}.s3.ap-northeast-2.amazonaws.com`, // optional
   },
   jwt: {
     secretKey: process.env.JWT_SECRET_KEY,
