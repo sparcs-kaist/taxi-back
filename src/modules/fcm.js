@@ -98,7 +98,6 @@ const removeExpiredTokens = async (deviceTokens, fcmResponses) => {
     deviceTokens.map(async (deviceToken, index) => {
       try {
         // FCM device token이 유효하지 않아 메시지 전송에 실패한 경우, 해당 device token을 DB에서 삭제합니다.
-        logger.info(fcmResponses[index].error.code);
         if (
           fcmResponses[index].error.code ===
           "messaging/registration-token-not-registered"
