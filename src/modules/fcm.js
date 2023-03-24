@@ -107,6 +107,7 @@ const removeExpiredTokens = async (deviceTokens, fcmResponses) => {
         }
         return false;
       } catch (err) {
+        logger.info(err);
         return false;
       }
     })
@@ -179,27 +180,11 @@ const sendMessageByTokens = async (tokens, type, title, body, icon, link) => {
     const message = {
       tokens,
       data: {
+        title,
+        body,
         url: link || "/",
         icon: icon || "/icons-512.png",
         click_action: "FLUTTER_NOTIFICATION_CLICK",
-      },
-      notification: {
-        title,
-        body,
-      },
-      webpush: {
-        notification: {
-          icon: icon || "/icons-512.png",
-        },
-        fcm_options: {
-          link: link || "/",
-        },
-      },
-      android: {
-        notification: {
-          icon: icon || "/icons-512.png",
-          imageUrl: icon || "/icons-512.png",
-        },
       },
     };
     const { responses, failureCount } = await getMessaging().sendMulticast(
@@ -234,27 +219,11 @@ const sendMessageByTopic = async (topic, type, title, body, icon, link) => {
     const message = {
       topic,
       data: {
+        title,
+        body,
         url: link || "/",
         icon: icon || "/icons-512.png",
         click_action: "FLUTTER_NOTIFICATION_CLICK",
-      },
-      notification: {
-        title,
-        body,
-      },
-      webpush: {
-        notification: {
-          icon: icon || "/icons-512.png",
-        },
-        fcm_options: {
-          link: link || "/",
-        },
-      },
-      android: {
-        notification: {
-          icon: icon || "/icons-512.png",
-          imageUrl: icon || "/icons-512.png",
-        },
       },
     };
     await getMessaging().send(message);
