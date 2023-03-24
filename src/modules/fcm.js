@@ -186,12 +186,6 @@ const sendMessageByTokens = async (tokens, type, title, body, icon, link) => {
         icon: icon || "/icons-512.png",
         click_action: "FLUTTER_NOTIFICATION_CLICK",
       },
-      android: {
-        notification: {
-          icon: icon || "/icons-512.png",
-          imageUrl: icon || "/icons-512.png",
-        },
-      },
     };
     const { responses, failureCount } = await getMessaging().sendMulticast(
       message
@@ -230,12 +224,6 @@ const sendMessageByTopic = async (topic, type, title, body, icon, link) => {
         url: link || "/",
         icon: icon || "/icons-512.png",
         click_action: "FLUTTER_NOTIFICATION_CLICK",
-      },
-      android: {
-        notification: {
-          icon: icon || "/icons-512.png",
-          imageUrl: icon || "/icons-512.png",
-        },
       },
     };
     await getMessaging().send(message);
