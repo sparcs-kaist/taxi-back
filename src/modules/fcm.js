@@ -98,6 +98,7 @@ const removeExpiredTokens = async (deviceTokens, fcmResponses) => {
     deviceTokens.map(async (deviceToken, index) => {
       try {
         // FCM device token이 유효하지 않아 메시지 전송에 실패한 경우, 해당 device token을 DB에서 삭제합니다.
+        logger.info(fcmResponses[index].error.code);
         if (
           fcmResponses[index].error.code ===
           "messaging/registration-token-not-registered"
@@ -107,6 +108,7 @@ const removeExpiredTokens = async (deviceTokens, fcmResponses) => {
         }
         return false;
       } catch (err) {
+        logger.info(err);
         return false;
       }
     })
@@ -179,21 +181,11 @@ const sendMessageByTokens = async (tokens, type, title, body, icon, link) => {
     const message = {
       tokens,
       data: {
+        title,
+        body,
         url: link || "/",
         icon: icon || "/icons-512.png",
         click_action: "FLUTTER_NOTIFICATION_CLICK",
-      },
-      notification: {
-        title,
-        body,
-      },
-      webpush: {
-        notification: {
-          icon: icon || "/icons-512.png",
-        },
-        fcm_options: {
-          link: link || "/",
-        },
       },
       android: {
         notification: {
@@ -234,21 +226,11 @@ const sendMessageByTopic = async (topic, type, title, body, icon, link) => {
     const message = {
       topic,
       data: {
+        title,
+        body,
         url: link || "/",
         icon: icon || "/icons-512.png",
         click_action: "FLUTTER_NOTIFICATION_CLICK",
-      },
-      notification: {
-        title,
-        body,
-      },
-      webpush: {
-        notification: {
-          icon: icon || "/icons-512.png",
-        },
-        fcm_options: {
-          link: link || "/",
-        },
       },
       android: {
         notification: {
