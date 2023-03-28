@@ -27,18 +27,15 @@ const swaggerDocs = {
   consumes: ["application/json"],
   produces: ["application/json"],
   paths: {
-    "/reports/create": reportDocs["/reports/create"],
-    "/reports/searchByUser": reportDocs["/reports/searchByUser"],
-    "/logininfo": logininfoDocs["/logininfo"],
-    "/logininfo/detail": logininfoDocs["/logininfo/detail"],
-    "/locations": locationsDocs["/locations"],
+    ...reportDocs,
+    ...logininfoDocs,
+    ...locationsDocs,
   },
   components: {
     schemas: {
-      createHandler: reportsSchema.createHandler,
+      ...reportsSchema,
     },
   },
-  apis: ["src/route/*.js", "src/route/docs/*.json"],
 };
 
 module.exports = swaggerDocs;
