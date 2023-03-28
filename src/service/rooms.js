@@ -354,12 +354,61 @@ const searchHandler = async (req, res) => {
 
 const searchByUserHandler = async (req, res) => {
   try {
-    const user = await userModel
+    var user = await userModel.findOne({ id: req.userId }).populate({
+      path: "ongoingRoom",
+      options: {
+        limit: 5,
+        sort: { time: 1 },
+      },
+      populate: roomPopulateOption,
+    });
+
+    const moving = user.ongoingRoom.filter(
+      (room) => room.part.length === 1 && room.time <= req.timestamp
+    );
+    // console.log(req.timestamp);
+    // console.log("moving", moving);
+
+    const roomFilter = {
+      _id: { $in: moving },
+      part: {
+        $elemMatch: { user: user._id, settlementStatus: "not-departed" },
+      },
+    };
+    const roomUpdate = {
+      $set: { "part.$.settlementStatus": "paid" },
+    };
+    const changingRoomObjects = await roomModel
+      .updateMany(roomFilter, roomUpdate, {
+        new: true,
+      })
+      .lean()
+      .populate(roomPopulateOption);
+
+    // [TODO!] chagingRoomObject는 변경된 documents의 ID를 반환하지 않음, 다른 method 찾기
+
+    // console.log("changingRoomObjects", changingRoomObjects);
+
+    if (!changingRoomObjects) {
+      return res.status(404).json({
+        error: "Rooms/searchByUser: error at update alone settlement",
+      });
+    }
+
+    // const userFilter = { id: req.userId };
+    // const userUpdate = {
+    //   $push: { doneRoom: { $each: changingRoomObjects } },
+    //   $pull: { doneRoom: { $each: changingRoomObjects } },
+    // };
+
+    // await userModel.updateMany(userFilter, userUpdate);
+
+    user = await userModel
       .findOne({ id: req.userId })
       .populate({
         path: "ongoingRoom",
         options: {
-          limit: 1000,
+          limit: 5,
           // ongoingRoom 은 시간 오름차순 정렬
           sort: { time: 1 },
         },
@@ -368,18 +417,13 @@ const searchByUserHandler = async (req, res) => {
       .populate({
         path: "doneRoom",
         options: {
-          limit: 1000,
+          limit: 100,
           // doneRoom 은 시간 내림차순 정렬
           sort: { time: -1 },
         },
         populate: roomPopulateOption,
       })
       .lean();
-
-    // [TODO] 혼자 탑승한 방 정산 automate
-    // 1. ongoing 방 && 혼자 탑승 && 이미 출발
-    // 2. 정산상태 완료 변경
-    // 3. 해당 방은 ongoing 방에서 done 방으로 이동
 
     // 정산완료여부 기준으로 진행중인 방과 완료된 방을 분리해서 응답을 전송합니다.
     const response = {};
