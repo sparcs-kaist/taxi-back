@@ -1,5 +1,5 @@
 const reportsSchema = require("./reportsSchema");
-const reportDocs = require("./reports");
+const reportsDocs = require("./reports");
 const logininfoDocs = require("./logininfo");
 const locationsDocs = require("./locations");
 
@@ -27,7 +27,7 @@ const swaggerDocs = {
   consumes: ["application/json"],
   produces: ["application/json"],
   paths: {
-    ...reportDocs,
+    ...reportsDocs,
     ...logininfoDocs,
     ...locationsDocs,
   },
