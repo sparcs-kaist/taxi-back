@@ -3,6 +3,7 @@ const {
   frontUrl,
   nodeEnv,
   appUriScheme,
+  testAccounts,
 } = require("../../loadenv");
 const { userModel } = require("../modules/stores/mongo");
 const { user: userPattern } = require("../modules/patterns");
@@ -115,7 +116,8 @@ const sparcsssoCallbackHandler = (req, res) => {
     const code = req.body.code || req.query.code;
     client.getUserInfo(code).then((userDataBefore) => {
       const userData = transUserData(userDataBefore);
-      if (userData.isEligible || nodeEnv !== "production") {
+      const isTestAccount = testAccounts.includes(userData.email);
+      if (userData.isEligible || nodeEnv !== "production" || isTestAccount) {
         if (req.session.isApp) {
           createNewTokenHandler(req, res, userData);
         } else {

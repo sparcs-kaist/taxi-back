@@ -33,4 +33,5 @@ module.exports = {
   googleApplicationCredentials:
     process.env.GOOGLE_APPLICATION_CREDENTIALS &&
     JSON.parse(process.env.GOOGLE_APPLICATION_CREDENTIALS),
+  testAccounts: process.env.TEST_ACCOUNTS.split(","),
 };
