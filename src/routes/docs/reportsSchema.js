@@ -24,4 +24,4 @@ const reportsSchema = {
   },
 };
 
-module.exports = reportsSchema.createHandler;
+module.exports = reportsSchema;

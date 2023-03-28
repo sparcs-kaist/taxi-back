@@ -9,7 +9,7 @@ router.use(require("../middlewares/auth"));
 
 router.post(
   "/create",
-  validateBody(reportsSchema),
+  validateBody(reportsSchema.createHandler),
   reportHandlers.createHandler
 );
 
