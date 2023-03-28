@@ -1,15 +1,15 @@
 const { Server } = require("socket.io");
 const sharedsession = require("express-socket.io-session");
 const cookieParser = require("cookie-parser");
-const security = require("../../security");
-const { ioListeners } = require("../route/chats.socket");
+const { frontUrl } = require("../../loadenv");
+const { ioListeners } = require("../services/socket.chats");
 
 // server: express server
 // session: session middleware
 module.exports = (server, session) => {
   const io = new Server(server, {
     cors: {
-      origin: [security.frontUrl],
+      origin: [frontUrl],
       methods: ["GET", "POST"],
       credentials: true,
     },
