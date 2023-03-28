@@ -1,7 +1,6 @@
 const express = require("express");
-const { body } = require("express-validator");
-const validator = require("../middlewares/validator");
-
+const reportsSchema = require("./docs/reportsSchema");
+const { validateBody } = require("../middlewares/ajv");
 const router = express.Router();
 const reportHandlers = require("../services/reports");
 
@@ -10,13 +9,7 @@ router.use(require("../middlewares/auth"));
 
 router.post(
   "/create",
-  [
-    body("reportedId").isMongoId(),
-    body("type").isIn(["no-settlement", "no-show", "etc-reason"]),
-    body("etcDetail").optional().isString().isLength({ max: 30 }),
-    body("time").isISO8601(),
-  ],
-  validator,
+  validateBody(reportsSchema),
   reportHandlers.createHandler
 );
 
