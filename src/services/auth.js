@@ -116,7 +116,7 @@ const sparcsssoCallbackHandler = (req, res) => {
     const code = req.body.code || req.query.code;
     client.getUserInfo(code).then((userDataBefore) => {
       const userData = transUserData(userDataBefore);
-      const isTestAccount = testAccounts.includes(userData.email);
+      const isTestAccount = testAccounts?.includes(userData.email);
       if (userData.isEligible || nodeEnv !== "production" || isTestAccount) {
         if (req.session.isApp) {
           createNewTokenHandler(req, res, userData);
