@@ -386,7 +386,6 @@ const searchByUserHandler = async (req, res) => {
       .populate(roomPopulateOption);
 
     // [TODO!] chagingRoomObject는 변경된 documents의 ID를 반환하지 않음, 다른 method 찾기
-
     // console.log("changingRoomObjects", changingRoomObjects);
 
     if (!changingRoomObjects) {
