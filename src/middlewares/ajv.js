@@ -4,7 +4,7 @@ const addFormats = require("ajv-formats").default;
 
 const ajv = new Ajv({ verbose: true, allErrors: true });
 addFormats(ajv);
-ajvErrors(ajv /*, {singleError: true} */);
+ajvErrors(ajv);
 
 const parseAjvErrors = (errors, res) => {
   const error_message = errors;
