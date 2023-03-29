@@ -1,6 +1,6 @@
 const Ajv = require("ajv");
 const ajvErrors = require("ajv-errors");
-const addFormats = require("ajv-formats").default;
+const { default: addFormats } = require("ajv-formats");
 
 const ajv = new Ajv({ verbose: true, allErrors: true });
 addFormats(ajv);
