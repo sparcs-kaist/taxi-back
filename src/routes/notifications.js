@@ -16,8 +16,6 @@ router.post(
   notificationHandlers.registerDeviceTokenHandler
 );
 
-// @TODO: "/editOptions"
-
 router.get(
   "/options",
   query("deviceToken").isString(),

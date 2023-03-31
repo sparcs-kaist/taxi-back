@@ -38,7 +38,7 @@ const optionsHandler = async (req, res) => {
     const { deviceToken } = req.query;
 
     // 세션에 저장된 deviceToken과 요청에 들어온 deviceToken이 일치하는지 검사합니다.
-    if (req.session.deviceToken !== deviceToken) {
+    if (req.session?.deviceToken !== deviceToken) {
       return res
         .status(400)
         .send("Notifications/options : deviceToken is invalid");
@@ -70,6 +70,13 @@ const editOptionsHandler = async (req, res) => {
   try {
     const { deviceToken, options } = req.body;
 
+    // 세션에 저장된 deviceToken과 요청에 들어온 deviceToken이 일치하는지 검사합니다.
+    if (req.session?.deviceToken !== deviceToken) {
+      return res
+        .status(400)
+        .send("Notifications/editOptions : deviceToken is invalid");
+    }
+
     // FIXME : can refactor with using reduce
     const newOptions = {};
     const booleanFields = [
@@ -87,39 +94,22 @@ const editOptionsHandler = async (req, res) => {
       newOptions.keywords = options.keywords;
     }
 
-    await notificationOptionModel.updateOne(
-      {
-        deviceToken,
-      },
-      {
-        deviceToken,
-        ...newOptions,
-      },
-      {
-        new: true,
-      }
-    );
-
     const updatedNotificationOptions = await notificationOptionModel
-      .findOne(
-        {
-          deviceToken,
-        },
-        "-_id chatting keywords beforeDepart notice advertisement"
-      )
+      .findOneAndUpdate({ deviceToken }, newOptions, { new: true })
       .lean();
 
-    if (!updatedNotificationOptions)
-      res
+    if (!updatedNotificationOptions) {
+      return res
         .status(400)
-        .send("Notification/changeNotificationOptions: deviceToken not found");
+        .send("Notification/editOptions: deviceToken not found");
+    }
 
     res.status(200).json(updatedNotificationOptions);
   } catch (err) {
     logger.error(err);
     return res
       .status(500)
-      .send("Notification/changeNotificationOptions: internal server error");
+      .send("Notification/editOptions: internal server error");
   }
 };
 
