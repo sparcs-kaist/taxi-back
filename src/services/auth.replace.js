@@ -138,6 +138,7 @@ const logoutHandler = async (req, res) => {
       await unregisterDeviceToken(deviceToken);
     }
 
+    // sparcs-sso 로그아웃 URL을 생성 및 반환
     const ssoLogoutUrl = frontUrl + "/login";
     logout(req, res);
     res.json({ ssoLogoutUrl });
