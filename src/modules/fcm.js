@@ -149,18 +149,27 @@ const validateDeviceToken = async (deviceToken) => {
  * @return {Promise<Array<string>>} deviceToken의 Array를 반환합니다. 오류가 발생하면 빈 배열을 반환합니다.
  */
 const getTokensOfUsers = async (userIds, notificationOptions = {}) => {
-  const deviceTokensOfUsers = await Promise.all(
-    userIds.map(async (userId) => {
-      const query = { userId };
-      if (notificationOptions) query.notificationOptions = notificationOptions;
-      const deviceToken = await deviceTokenModel.findOne(query);
-      return deviceToken?.deviceTokens || new Array();
-    })
-  );
-  return deviceTokensOfUsers.reduce(
-    (arrayA, arrayB) => arrayA.concat(arrayB),
-    new Array()
-  );
+  const deviceTokensOfUsers = (
+    await Promise.all(
+      userIds.map(
+        async (userId) =>
+          (await deviceTokenModel.findOne({ userId }))?.deviceTokens || []
+      )
+    )
+  ).flat();
+  const deviceTokensWithOptions = (
+    await Promise.all(
+      deviceTokensOfUsers.map(async (deviceToken) =>
+        (await notificationOptionModel.findOne({
+          deviceToken,
+          ...notificationOptions,
+        }))
+          ? [deviceToken]
+          : []
+      )
+    )
+  ).flat();
+  return deviceTokensWithOptions;
 };
 
 /**
