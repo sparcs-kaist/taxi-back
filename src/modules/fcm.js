@@ -31,11 +31,15 @@ const initializeApp = () => {
  */
 const registerDeviceToken = async (userId, deviceToken) => {
   try {
+    // 디바이스 토큰을 다른 사용자가 사용하고 있는지 확인 및 삭제합니다.
+    await deviceTokenModel.updateMany(
+      { userId: { $ne: userId }, deviceTokens: deviceToken },
+      { $pull: { deviceTokens: deviceToken } }
+    );
+
     // 디바이스 토큰을 DB에 추가합니다.
     const newDeviceToken = await deviceTokenModel.findOneAndUpdate(
-      {
-        userId,
-      },
+      { userId },
       {
         userId,
         $addToSet: { deviceTokens: deviceToken },
