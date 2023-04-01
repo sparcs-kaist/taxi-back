@@ -9,11 +9,7 @@ const { userModel } = require("../modules/stores/mongo");
 const { user: userPattern } = require("../modules/patterns");
 const { getLoginInfo, logout, login } = require("../modules/auths/login");
 
-const {
-  registerDeviceToken,
-  unregisterDeviceToken,
-  validateDeviceToken,
-} = require("../modules/fcm");
+const { unregisterDeviceToken } = require("../modules/fcm");
 const logger = require("../modules/logger");
 const {
   generateNickname,
@@ -177,6 +173,7 @@ const logoutHandler = async (req, res) => {
       await unregisterDeviceToken(deviceToken);
     }
 
+    // 로그아웃 URL을 생성 및 반환
     const redirectUrl = frontUrl + "/login";
     const ssoLogoutUrl = client.getLogoutUrl(sid, redirectUrl);
     logout(req, res);
@@ -186,37 +183,9 @@ const logoutHandler = async (req, res) => {
   }
 };
 
-const registerDeviceTokenHandler = async (req, res) => {
-  try {
-    // 해당 FCM device token이 유효한지 검사합니다.
-    const deviceToken = req.body.deviceToken;
-    const isValid = await validateDeviceToken(deviceToken);
-    if (!isValid) {
-      return res
-        .status(400)
-        .send("Auth/registerDeviceToken : deviceToken is invalid");
-    }
-
-    // 데이터베이스에 deviceToken 레코드를 추가합니다.
-    const user = await userModel.findOne({ id: req.userId }, "_id");
-    const newDeviceToken = await registerDeviceToken(user._id, deviceToken);
-
-    // 세션에 현재 사용자 기기의 deviceToken을 저장합니다.
-    req.session.deviceToken = deviceToken;
-
-    return res.status(200).json({
-      deviceToken: newDeviceToken,
-    });
-  } catch (e) {
-    logger.error(e);
-    res.status(500).send("Auth/registerDeviceToken : internal server error");
-  }
-};
-
 module.exports = {
   sparcsssoHandler,
   sparcsssoCallbackHandler,
   logoutHandler,
   generateTokenHandler,
-  registerDeviceTokenHandler,
 };
