@@ -31,11 +31,15 @@ const initializeApp = () => {
  */
 const registerDeviceToken = async (userId, deviceToken) => {
   try {
+    // 디바이스 토큰을 다른 사용자가 사용하고 있는지 확인 및 삭제합니다.
+    await deviceTokenModel.updateMany(
+      { userId: { $ne: userId }, deviceTokens: deviceToken },
+      { $pull: { deviceTokens: deviceToken } }
+    );
+
     // 디바이스 토큰을 DB에 추가합니다.
     const newDeviceToken = await deviceTokenModel.findOneAndUpdate(
-      {
-        userId,
-      },
+      { userId },
       {
         userId,
         $addToSet: { deviceTokens: deviceToken },
@@ -149,18 +153,27 @@ const validateDeviceToken = async (deviceToken) => {
  * @return {Promise<Array<string>>} deviceToken의 Array를 반환합니다. 오류가 발생하면 빈 배열을 반환합니다.
  */
 const getTokensOfUsers = async (userIds, notificationOptions = {}) => {
-  const deviceTokensOfUsers = await Promise.all(
-    userIds.map(async (userId) => {
-      const query = { userId };
-      if (notificationOptions) query.notificationOptions = notificationOptions;
-      const deviceToken = await deviceTokenModel.findOne(query);
-      return deviceToken?.deviceTokens || new Array();
-    })
-  );
-  return deviceTokensOfUsers.reduce(
-    (arrayA, arrayB) => arrayA.concat(arrayB),
-    new Array()
-  );
+  const deviceTokensOfUsers = (
+    await Promise.all(
+      userIds.map(
+        async (userId) =>
+          (await deviceTokenModel.findOne({ userId }))?.deviceTokens || []
+      )
+    )
+  ).flat();
+  const deviceTokensWithOptions = (
+    await Promise.all(
+      deviceTokensOfUsers.map(async (deviceToken) =>
+        (await notificationOptionModel.findOne({
+          deviceToken,
+          ...notificationOptions,
+        }))
+          ? [deviceToken]
+          : []
+      )
+    )
+  ).flat();
+  return deviceTokensWithOptions;
 };
 
 /**
