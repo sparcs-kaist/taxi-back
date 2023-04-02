@@ -34,5 +34,5 @@ module.exports = {
     process.env.GOOGLE_APPLICATION_CREDENTIALS &&
     JSON.parse(process.env.GOOGLE_APPLICATION_CREDENTIALS),
   testAccounts:
-    process.env.testAccounts && JSON.parse(process.env.TEST_ACCOUNTS),
+    process.env.TEST_ACCOUNTS && JSON.parse(process.env.TEST_ACCOUNTS),
 };
