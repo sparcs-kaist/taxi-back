@@ -1,5 +1,5 @@
 const expect = require("chai").expect;
-const locationHandlers = require("../src/service/locations");
+const locationHandlers = require("../src/services/locations");
 const httpMocks = require("node-mocks-http");
 
 // locations.js 관련 1개의 handler을 테스트
