@@ -1,3 +1,5 @@
+const errorsDocs = require("./errors");
+
 const reportsDocs = {
   "/reports/create": {
     post: {
@@ -26,17 +28,7 @@ const reportsDocs = {
             },
           },
         },
-        500: {
-          description: "internal server error",
-          content: {
-            "text/plain": {
-              schema: {
-                type: "string",
-                example: "internal server error",
-              },
-            },
-          },
-        },
+        500: errorsDocs["500"],
       },
     },
   },
@@ -65,17 +57,7 @@ const reportsDocs = {
             },
           },
         },
-        500: {
-          description: "internal server error",
-          content: {
-            "text/plain": {
-              schema: {
-                type: "string",
-                example: "internal server error",
-              },
-            },
-          },
-        },
+        500: errorsDocs["500"],
       },
     },
   },
