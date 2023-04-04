@@ -132,6 +132,8 @@ const sparcsssoHandler = (req, res) => {
 };
 
 const logoutHandler = async (req, res) => {
+  const redirectPath = decodeURIComponent(req.query?.redirect || "%2F");
+
   try {
     // DB에서 deviceToken 레코드를 삭제합니다.
     const deviceToken = req.session?.deviceToken;
@@ -140,7 +142,7 @@ const logoutHandler = async (req, res) => {
     }
 
     // sparcs-sso 로그아웃 URL을 생성 및 반환
-    const ssoLogoutUrl = frontUrl + "/login";
+    const ssoLogoutUrl = frontUrl + redirectPath;
     logout(req, res);
     res.json({ ssoLogoutUrl });
   } catch (e) {

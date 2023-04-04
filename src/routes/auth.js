@@ -9,15 +9,25 @@ const mobileAuthHandlers = require("../services/auth.mobile");
 const { sparcssso: sparcsssoEnv } = require("../../loadenv");
 const authReplace = require("./auth.replace");
 
-router.route("/sparcssso").get(authHandlers.sparcsssoHandler);
-router.route("/sparcssso/callback").get(authHandlers.sparcsssoCallbackHandler);
-router.route("/logout").get(authHandlers.logoutHandler);
+router.get(
+  "/sparcssso",
+  query("redirect").optional().isString(),
+  validator,
+  authHandlers.sparcsssoHandler
+);
+router.get("/sparcssso/callback", authHandlers.sparcsssoCallbackHandler);
+router.get(
+  "/logout",
+  query("redirect").optional().isString(),
+  validator,
+  authHandlers.logoutHandler
+);
 
-router.route("/app/token/login").get(mobileAuthHandlers.loginWithToken);
-router.route("/app/token/refresh").get(mobileAuthHandlers.refreshAccessToken);
-router.route("/app/device").post(mobileAuthHandlers.registerDeviceTokenHandler);
-router.route("/app/device").delete(mobileAuthHandlers.removeDeviceTokenHandler);
-router.route("/app/token/generate").get(authHandlers.generateTokenHandler);
+router.get("/app/token/login", mobileAuthHandlers.loginWithToken);
+router.get("/app/token/refresh", mobileAuthHandlers.refreshAccessToken);
+router.post("/app/device", mobileAuthHandlers.registerDeviceTokenHandler);
+router.delete("/app/device", mobileAuthHandlers.removeDeviceTokenHandler);
+router.get("/app/token/generate", authHandlers.generateTokenHandler);
 
 // 환경변수 SPARCSSSO_CLIENT_ID 유무에 따라 로그인 방식이 변경됩니다.
 module.exports = sparcsssoEnv?.id ? router : authReplace;
