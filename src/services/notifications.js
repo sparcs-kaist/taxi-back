@@ -35,13 +35,12 @@ const registerDeviceTokenHandler = async (req, res) => {
 
 const optionsHandler = async (req, res) => {
   try {
-    const { deviceToken } = req.query;
-
-    // 세션에 저장된 deviceToken과 요청에 들어온 deviceToken이 일치하는지 검사합니다.
-    if (req.session?.deviceToken !== deviceToken) {
+    // 세션에 deviceToken이 저장되어 있는지 검사합니다.
+    const { deviceToken } = req.session;
+    if (!deviceToken) {
       return res
         .status(400)
-        .send("Notifications/options : deviceToken is invalid");
+        .send("Notifications/options : deviceToken not found");
     }
 
     // deviceToken에 대응되는 알림 설정을 찾아 반환합니다.
@@ -54,7 +53,7 @@ const optionsHandler = async (req, res) => {
     if (!notificationOptions) {
       return res
         .status(400)
-        .send("Notificaiton/options: deviceToken not found");
+        .send("Notificaiton/options: notificationOption not found");
     }
 
     res.status(200).json(notificationOptions);
@@ -68,13 +67,14 @@ const optionsHandler = async (req, res) => {
 
 const editOptionsHandler = async (req, res) => {
   try {
-    const { deviceToken, options } = req.body;
+    const { options } = req.body;
 
-    // 세션에 저장된 deviceToken과 요청에 들어온 deviceToken이 일치하는지 검사합니다.
-    if (req.session?.deviceToken !== deviceToken) {
+    // 세션에 deviceToken이 저장되어 있는지 검사합니다.
+    const { deviceToken } = req.session;
+    if (!deviceToken) {
       return res
         .status(400)
-        .send("Notifications/editOptions : deviceToken is invalid");
+        .send("Notifications/options : deviceToken not found");
     }
 
     // FIXME : can refactor with using reduce
