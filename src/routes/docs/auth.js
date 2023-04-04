@@ -42,6 +42,29 @@ const authDocs = {
       },
     },
   },
+  "/auth/app/token/login": {
+    get: {
+      tags: ["auth"],
+    },
+  },
+  "/auth/app/token/refresh": {
+    get: {
+      tags: ["auth"],
+    },
+  },
+  "/auth/app/device": {
+    post: {
+      tags: ["auth"],
+    },
+    delete: {
+      tags: ["auth"],
+    },
+  },
+  "/auth/app/token/generate": {
+    get: {
+      tags: ["auth"],
+    },
+  },
 };
 
 module.exports = authDocs;
