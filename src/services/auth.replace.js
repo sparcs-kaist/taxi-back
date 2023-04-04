@@ -2,10 +2,7 @@ const { frontUrl } = require("../../loadenv");
 const { userModel } = require("../modules/stores/mongo");
 const { logout, login } = require("../modules/auths/login");
 
-const {
-  registerDeviceToken,
-  unregisterDeviceToken,
-} = require("../modules/fcm");
+const { unregisterDeviceToken } = require("../modules/fcm");
 const {
   generateNickname,
   generateProfileImageUrl,
@@ -47,6 +44,7 @@ const loginHtml = `
                 }
                 $('#btn').click(submitHandler);
                 $('#input-id').on("keyup", enterHandler);
+                $('#input-id').focus();
             });
         </script>
     </head>
@@ -120,10 +118,8 @@ const loginDone = (req, res, userData) => {
 };
 
 const tryHandler = (req, res) => {
-  {
-    const id = req.body.id || req.query.id;
-    loginDone(req, res, makeInfo(id));
-  }
+  const id = req.body.id || req.query.id;
+  loginDone(req, res, makeInfo(id));
 };
 
 const sparcsssoHandler = (req, res) => {
