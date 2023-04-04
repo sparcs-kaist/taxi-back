@@ -7,6 +7,8 @@ const {
   formatSettlement,
   getIsOver,
 } = require("../db/rooms");
+const { use } = require("chai");
+const { combineTranslations } = require("adminjs");
 
 const createHandler = async (req, res) => {
   const { name, from, to, time, maxPartLength } = req.body;
@@ -366,41 +368,46 @@ const searchByUserHandler = async (req, res) => {
     const moving = user.ongoingRoom.filter(
       (room) => room.part.length === 1 && room.time <= req.timestamp
     );
-    // console.log(req.timestamp);
-    // console.log("moving", moving);
 
-    const roomFilter = {
-      _id: { $in: moving },
-      part: {
-        $elemMatch: { user: user._id, settlementStatus: "not-departed" },
-      },
-    };
-    const roomUpdate = {
-      $set: { "part.$.settlementStatus": "paid" },
-    };
-    const changingRoomObjects = await roomModel
-      .updateMany(roomFilter, roomUpdate, {
-        new: true,
-      })
+    console.log(moving);
+
+    const updatedRoomObjects = await roomModel
+      .updateMany(
+        {
+          _id: { $in: moving },
+          part: {
+            $elemMatch: { user: user._id, settlementStatus: "not-departed" },
+          },
+        },
+        {
+          $set: { "part.$.settlementStatus": "paid" },
+        },
+        {
+          new: true,
+        }
+      )
       .lean()
       .populate(roomPopulateOption);
 
-    // [TODO!] chagingRoomObject는 변경된 documents의 ID를 반환하지 않음, 다른 method 찾기
-    // console.log("changingRoomObjects", changingRoomObjects);
-
-    if (!changingRoomObjects) {
+    if (!updatedRoomObjects) {
       return res.status(404).json({
-        error: "Rooms/searchByUser: error at update alone settlement",
+        error: "Rooms/search : cannot updated room for a one person",
       });
     }
 
-    // const userFilter = { id: req.userId };
-    // const userUpdate = {
-    //   $push: { doneRoom: { $each: changingRoomObjects } },
-    //   $pull: { doneRoom: { $each: changingRoomObjects } },
-    // };
+    const updatedUserObjects = await userModel.updateMany(
+      { id: req.userId },
+      {
+        $addToSet: { doneRoom: { $each: moving } },
+        $pullAll: { ongoingRoom: moving },
+      }
+    );
 
-    // await userModel.updateMany(userFilter, userUpdate);
+    if (!updatedUserObjects) {
+      return res.status(404).json({
+        error: "Rooms/search : cannot updated user room info for a one person",
+      });
+    }
 
     user = await userModel
       .findOne({ id: req.userId })
