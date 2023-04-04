@@ -122,7 +122,6 @@ const loginDone = (req, res, userData, redirectPath = "/") => {
 const tryHandler = (req, res) => {
   const { id } = req.body;
   const redirectPath = decodeURIComponent(req.body?.redirect || "%2F");
-  console.log(redirectPath);
   loginDone(req, res, makeInfo(id), redirectPath);
 };
 
