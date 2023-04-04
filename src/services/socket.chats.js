@@ -1,8 +1,4 @@
-const {
-  getLoginInfo,
-  joinChatRoom,
-  leaveChatRoom,
-} = require("../modules/auths/login");
+const { connectUser, disconnectUser } = require("../modules/auths/login");
 const { roomModel, userModel, chatModel } = require("../modules/stores/mongo");
 const { chatPopulateOption } = require("../modules/populates/chats");
 const { getS3Url } = require("../modules/stores/awsS3");
@@ -164,135 +160,38 @@ const transformChatsForRoom = async (chats) => {
   return chatsToSend;
 };
 
-const ioListeners = (io, socket) => {
+const ioListeners = (socket) => {
   const session = socket.handshake.session;
 
-  // 사용자가 Socket.io 서버와 연결될 때마다 발생하는 이벤트
-  socket.on("chats-join", async (roomId) => {
+  socket.on("connection", async (userId) => {
     try {
-      const myUserId = getLoginInfo({ session: session }).id || "";
-      const myUser = await userModel.findOne({ id: myUserId }, "_id id");
+      const myUser = await userModel.findOne({ id: userId }, "_id id");
       if (!myUser)
-        return io.to(socket.id).emit("chats-join", { err: "user not exist" });
+        /* TODO: ERROR HANDLE */
+        return;
 
-      const room = await roomModel.findById(roomId, "part");
-      if (!room) {
-        return io.to(socket.id).emit("chats-join", { err: "room not exist" });
-      }
-      // If the user didn't participate in the room
-      if (!room.part.indexOf(myUser._id) === -1) {
-        return io.to(socket.id).emit("chats-join", { err: "user not joined" });
-      }
-
-      // join chat room
-      joinChatRoom({ session: session }, socket.id, roomId);
-      socket.join(`chatRoom-${roomId}`);
+      // connect to User
+      connectUser({ session }, socket.id);
+      socket.join(`user-${userId}`);
       session.save(); // Socket.io 세션의 변경 사항을 Express 세션에 반영.
-
-      const amount = 30;
-      const chats = await chatModel
-        .find({ roomId: roomId, isValid: true })
-        .sort({ time: -1 })
-        .limit(amount)
-        .lean()
-        .populate(chatPopulateOption);
-
-      if (chats) {
-        chats.reverse();
-        io.to(socket.id).emit("chats-join", {
-          chats: await transformChatsForRoom(chats),
-        });
-      }
     } catch (err) {
       logger.error(err);
-      io.to(socket.id).emit("chats-join", { err: true });
+      /* TODO: ERROR HANDLE PART */
     }
   });
 
-  // 사용자와 Socket.io 서버의 연결이 끊어졌을 때 발생하는 이벤트
-  socket.on("chats-disconnect", async () => {
+  socket.on("disconnection", async (userId) => {
     try {
-      const myUserId = getLoginInfo({ session: session }).id || "";
-      const myUser = await userModel.findOne({ id: myUserId }, "_id nickname");
+      const myUser = await userModel.findOne({ id: userId }, "_id id");
       if (!myUser)
-        return io
-          .to(socket.id)
-          .emit("chats-disconnect", { err: "user not exist" });
+        /* TODO: ERROR HANDLE */
+        return;
 
-      const roomId = session.chatRoomId;
-      if (!roomId)
-        return io
-          .to(socket.id)
-          .emit("chats-disconnect", { err: "user not join chat room" });
-
-      // leave chat room
-      leaveChatRoom({ session: session });
-      socket.leave(`chatRoom-${roomId}`);
+      disconnectUser({ session });
+      socket.leave(`user-${userId}`);
     } catch (err) {
       logger.error(err);
-      io.to(socket.id).emit("chats-disconnect", { err: true });
-    }
-  });
-
-  // 사용자가 채팅 메시지를 전송했을 때 발생하는 이벤트
-  socket.on("chats-send", async (chatMessage) => {
-    try {
-      const myUserId = getLoginInfo({ session: session }).id || "";
-      const myUser = await userModel.findOne(
-        { id: myUserId },
-        "_id id nickname profileImageUrl"
-      );
-      if (!myUser)
-        return io.to(socket.id).emit("chats-send", { err: "user not exist" });
-      const roomId = session.chatRoomId;
-      if (!roomId)
-        return io
-          .to(socket.id)
-          .emit("chats-send", { err: "user not join chat room" });
-      await emitChatEvent(io, roomId, {
-        type: chatMessage.type || "text",
-        content: chatMessage.content,
-        authorId: myUser._id,
-      });
-      io.to(socket.id).emit("chats-send", { done: true });
-    } catch (err) {
-      logger.error(err);
-      io.to(socket.id).emit("chats-send", { err: true });
-    }
-  });
-
-  // 사용자가 과거 채팅 메시지를 로드하려 할 때 발생하는 이벤트
-  socket.on("chats-load", async (lastDate, amount) => {
-    try {
-      const roomId = session.chatRoomId;
-      // 클라이언트로부터 받은 lastDate가 유효한 날짜 문자열일 때만 쿼리를 수행
-      if (lastDate && validator.isISO8601(lastDate)) {
-        // 새로 불러올 메시지 수는 기본 30, 사용자가 입력한 값이 유효하면 그 값을 사용
-        if (validator.isInt(String(amount), { min: 1, max: 50 })) {
-          amount = Number(amount);
-        } else {
-          amount = 30;
-        }
-
-        const chats = await chatModel
-          .find({ roomId, time: { $lt: lastDate } })
-          .sort({ time: -1 })
-          .limit(amount)
-          .lean()
-          .populate(chatPopulateOption);
-
-        if (chats) {
-          chats.reverse();
-          io.to(socket.id).emit("chats-load", {
-            chats: await transformChatsForRoom(chats),
-          });
-        }
-      } else {
-        return io.to(socket.id).emit("chats-load", { err: true });
-      }
-    } catch (err) {
-      logger.error(err);
-      io.to(socket.id).emit("chats-load", { err: true });
+      /* TODO: ERROR HANDLE PART */
     }
   });
 };
