@@ -323,8 +323,8 @@ const searchHandler = async (req, res) => {
     const maxTime = new Date(minTime);
 
     // home -> 7, search -> 14
-    const timeRange = isHome ? 7 : 14;
-    maxTime.setDate(minTime.getDate() + (time ? 1 : timeRange));
+    const dateRange = isHome ? 7 : 14;
+    maxTime.setDate(minTime.getDate() + (time ? 1 : dateRange));
     maxTime.setHours(0);
     maxTime.setMinutes(0);
     maxTime.setSeconds(0);
