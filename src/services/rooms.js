@@ -284,10 +284,9 @@ const searchHandler = async (req, res) => {
 
     // 출발지와 도착지가 같은 경우
     if (from && to && from === to) {
-      res.status(400).json({
+      return res.status(400).json({
         error: "Room/search : Bad request",
       });
-      return;
     }
 
     // 출발지나 도착지가 존재하지 않는 장소일 경우
@@ -307,7 +306,7 @@ const searchHandler = async (req, res) => {
         });
       }
     }
-    const currentTime = new Date();
+    const currentTime = req.timestamp;
     const searchedTime = time ? new Date(time) : currentTime;
     const minTime =
       searchedTime.getTime() >= currentTime.getTime()
@@ -347,6 +346,7 @@ const searchHandler = async (req, res) => {
       .limit(1000)
       .populate(roomPopulateOption)
       .lean();
+
     res.json(
       rooms.map((room) => formatSettlement(room, { includeSettlement: false }))
     );

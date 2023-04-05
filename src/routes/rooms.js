@@ -22,7 +22,7 @@ router.get(
   roomHandlers.searchHandler
 );
 
-// 라우터 접근 시 로그인 필요
+// 이후 API 접근 시 로그인 필요
 router.use(require("../middlewares/auth"));
 
 // 특정 id 방 세부사항 보기
