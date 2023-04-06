@@ -307,7 +307,7 @@ const searchHandler = async (req, res) => {
       }
     }
 
-    const currentTime = new Date(req.timestamp);
+    const currentTime = new Date();
     currentTime.setSeconds(0);
     currentTime.setMilliseconds(0);
 
