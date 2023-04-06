@@ -308,13 +308,17 @@ const searchHandler = async (req, res) => {
     }
 
     const currentTime = new Date(req.timestamp);
+    currentTime.setSeconds(0);
+    currentTime.setMilliseconds(0);
+
     const searchedTime = time ? new Date(time) : currentTime;
     if (!withTime) {
       searchedTime.setHours(0);
       searchedTime.setMinutes(0);
-      searchedTime.setSeconds(0);
-      searchedTime.setMilliseconds(0);
     }
+    searchedTime.setSeconds(0);
+    searchedTime.setMilliseconds(0);
+
     const minTime =
       searchedTime.getTime() >= currentTime.getTime()
         ? searchedTime // time이 현재 시간보다 미래인 경우
