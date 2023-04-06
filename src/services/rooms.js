@@ -306,7 +306,8 @@ const searchHandler = async (req, res) => {
         });
       }
     }
-    const currentTime = new Date(req.timestamp);
+    // const currentTime = new Date(req.timestamp);
+    const currentTime = new Date();
     const searchedTime = time ? new Date(time) : currentTime;
     const minTime =
       searchedTime.getTime() >= currentTime.getTime()
