@@ -81,8 +81,10 @@ const loginDone = (req, res, userData) => {
       else if (!result) joinus(req, res, userData);
       else if (result.name != userData.name) update(req, res, userData);
       else {
+        const redirectPath = req.session?.state_redirectPath || "/";
+        req.session.state_redirectPath = undefined;
         login(req, userData.sid, result.id, result.name);
-        res.redirect(frontUrl + "/");
+        res.redirect(frontUrl + redirectPath);
       }
     }
   );
@@ -98,8 +100,10 @@ const generateTokenHandler = (req, res) => {
 };
 
 const sparcsssoHandler = (req, res) => {
+  const redirectPath = decodeURIComponent(req.query?.redirect || "%2F");
   const { url, state } = client.getLoginParams();
   req.session.state = state;
+  req.session.state_redirectPath = redirectPath;
   res.redirect(url);
 };
 
@@ -164,6 +168,8 @@ const createNewTokenHandler = (req, res, userData) => {
 };
 
 const logoutHandler = async (req, res) => {
+  const redirectPath = decodeURIComponent(req.query?.redirect || "%2F");
+
   try {
     const { sid } = getLoginInfo(req);
 
@@ -174,7 +180,7 @@ const logoutHandler = async (req, res) => {
     }
 
     // 로그아웃 URL을 생성 및 반환
-    const redirectUrl = frontUrl + "/login";
+    const redirectUrl = frontUrl + redirectPath;
     const ssoLogoutUrl = client.getLogoutUrl(sid, redirectUrl);
     logout(req, res);
     res.json({ ssoLogoutUrl });
