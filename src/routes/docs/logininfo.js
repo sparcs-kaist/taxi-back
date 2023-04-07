@@ -1,9 +1,9 @@
 const logininfoDocs = {
-  "/logininfo/detail": {
+  "/logininfo": {
     get: {
       tags: ["logininfo"],
-      summary: "상세한 사용자 정보 반환",
-      description: "로그인되어 있는 사용자의 <b>상세한</b> 정보를 반환",
+      summary: "사용자 정보 반환",
+      description: "로그인되어 있는 사용자의 정보를 반환",
       responses: {
         200: {
           description:
@@ -70,40 +70,6 @@ const logininfoDocs = {
                   },
                   account: {
                     type: "string",
-                  },
-                },
-              },
-            },
-          },
-        },
-      },
-    },
-  },
-  "/logininfo": {
-    get: {
-      tags: ["logininfo"],
-      summary: "사용자 정보 반환",
-      description: "로그인되어 있는 사용자의 정보를 반환",
-      responses: {
-        200: {
-          description:
-            "사용자의 로그인 세션이 유효한 경우, 현재 로그인된 사용자의 정보를 반환, <br/> 세션이 유효하지 않은 경우, 빈 오브젝트를 반환",
-          content: {
-            "application/json": {
-              schema: {
-                type: "object",
-                properties: {
-                  id: {
-                    type: "string",
-                    description: "사용자 id",
-                  },
-                  sid: {
-                    type: "string",
-                    description: "사용자 sid",
-                  },
-                  name: {
-                    type: "string",
-                    description: "사용자 이름",
                   },
                 },
               },

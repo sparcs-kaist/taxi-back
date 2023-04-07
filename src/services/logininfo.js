@@ -2,12 +2,7 @@ const { userModel } = require("../modules/stores/mongo");
 const { getLoginInfo } = require("../modules/auths/login");
 const logger = require("../modules/logger");
 
-const logininfoHandler = (req, res) => {
-  const user = getLoginInfo(req);
-  res.json(user);
-};
-
-const detailHandler = async (req, res) => {
+const logininfoHandler = async (req, res) => {
   try {
     const user = getLoginInfo(req);
     if (!user.id) return res.json({ id: undefined });
@@ -40,5 +35,4 @@ const detailHandler = async (req, res) => {
 
 module.exports = {
   logininfoHandler,
-  detailHandler,
 };
