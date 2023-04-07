@@ -71,6 +71,15 @@ const logininfoDocs = {
                   account: {
                     type: "string",
                   },
+                  deviceToken: {
+                    type: "string",
+                    description:
+                      "클라이언트의 디바이스 토큰, 세션에 저장되어 있지 않은 경우 undefined",
+                  },
+                  deviceType: {
+                    type: "string",
+                    enum: ["web", "app"],
+                  },
                 },
               },
             },

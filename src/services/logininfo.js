@@ -26,6 +26,7 @@ const logininfoHandler = async (req, res) => {
       profileImgUrl: userDetail.profileImageUrl,
       account: userDetail.account ? userDetail.account : "",
       deviceToken: req.session?.deviceToken,
+      deviceType: req.session?.isApp ? "app" : "web",
     });
   } catch (error) {
     logger.error(error);
