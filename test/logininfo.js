@@ -5,7 +5,7 @@ const { userModel } = require("../src/modules/stores/mongo");
 // 1-1. 로그인 한 유저가 없을 시 undefined를 return 하는지 확인
 // 1-2. login 정보를 잘 return 하는지 확인
 // 1-3. 세션이 만료됐을 때 undefined를 잘 return 하는지 확인
-describe("[logininfo] 1.detailHandler", () => {
+describe("[logininfo] 1.loginingoHandler", () => {
   it("should return { id: undefined } when no user is logged in", () => {
     const req = { session: {} };
     const res = {
