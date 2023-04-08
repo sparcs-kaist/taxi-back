@@ -16,15 +16,10 @@ router.post(
   notificationHandlers.registerDeviceTokenHandler
 );
 
-router.get(
-  "/options",
-  query("deviceToken").isString(),
-  notificationHandlers.optionsHandler
-);
+router.get("/options", notificationHandlers.optionsHandler);
 
 router.post(
   "/editOptions",
-  body("deviceToken").isString(),
   body("options").isObject(),
   body("options.chatting").optional().isBoolean(),
   body("options.keywords").optional().isArray(),
