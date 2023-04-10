@@ -15,6 +15,40 @@ class IllegalArgumentsException {
   }
 }
 
+/**
+ * Chat Object의 array가 주어졌을 때 클라이언트에서 처리하기 편한 형태로 Chat Object를 가공합니다.
+ * @param {[Object]} chats - Chats Document에 lean과 populate(chatPopulateOption)을 차례로 적용한 Chat Object의 배열입니다.
+ * @return {Promise<Array>} {type: String, authorId: String, authorName: String, authorProfileUrl: String, content: string, time: Date}로 이루어진 chat 객체의 배열입니다.
+ */
+const transformChatsForRoom = async (chats) => {
+  const chatsToSend = [];
+
+  for (const chat of chats) {
+    // inOutNames 배열(들어오거나 나간 사용자들의 닉네임으로 이루어진 배열)을 생성합니다.
+    chat.inOutNames = [];
+    if (chat.type === "in" || chat.type === "out") {
+      const inOutUserIds = chat.content.split("|");
+      chat.inOutNames = await Promise.all(
+        inOutUserIds.map(async (userId) => {
+          const user = await userModel.findOne({ id: userId }, "nickname");
+          return user.nickname;
+        })
+      );
+    }
+    chatsToSend.push({
+      type: chat.type,
+      authorId: chat.authorId._id,
+      authorName: chat.authorId.nickname,
+      authorProfileUrl: chat.authorId.profileImageUrl,
+      content: chat.content,
+      time: chat.time,
+      isValid: chat.isValid,
+      inOutNames: chat.inOutNames,
+    });
+  }
+  return chatsToSend;
+};
+
 // FCM 알림으로 보내는 content는 채팅 type에 따라 달라집니다.
 // type이 text인 경우 `${nickname}: ${content}`를, 아닌 경우 `${nickname}`를 보냅니다.
 const getMessageBody = (type, nickname, content) => {
@@ -96,17 +130,26 @@ const emitChatEvent = async (io, roomId, chat) => {
     chatDocument.authorName = nickname;
     chatDocument.authorProfileUrl = profileImageUrl;
 
-    // 방의 모든 사용자에게 이미지 수신 이벤트를 발생시킵니다.
-    io.to(`chatRoom-${roomId}`).emit("chats-receive", { chat: chatDocument });
-
     const room = await roomModel.findById(roomId, "name part");
     const urlOnClick = `/myroom/${roomId}`;
+    const userIds = room.part.map((participant) => participant.user);
     const userIdsExceptAuthor = room.part
       .map((participant) => participant.user)
       .filter((userId) => userId.toString() !== authorId.toString());
     const deviceTokens = await getTokensOfUsers(userIdsExceptAuthor, {
       chatting: true,
     });
+
+    // 방의 모든 사용자에게 이미지 수신 이벤트를 발생시킵니다.
+    await Promise.all(
+      userIds.map(
+        async (userId) =>
+          await io.to(`user-${userId}`).emit("chat_push_back", {
+            chats: await transformChatsForRoom([chatDocument]),
+            roomId,
+          })
+      )
+    );
 
     // 해당 방에 참여중인 사용자들에게 알림을 전송합니다.
     await sendMessageByTokens(
@@ -161,6 +204,7 @@ const ioListeners = (socket) => {
 };
 
 module.exports = {
+  transformChatsForRoom,
   emitChatEvent,
   ioListeners,
 };
