@@ -9,6 +9,49 @@ const chatsHandlers = require("../services/chats");
 // 라우터 접근 시 로그인 필요
 router.use(require("../middlewares/auth"));
 
+/**
+ * 가장 최근에 도착한 60개의 채팅을 가져옵니다.
+ */
+router.post(
+  "/",
+  body("roomId").isMongoId(),
+  validator,
+  chatsHandlers.loadRecentChatHandler
+);
+
+/**
+ * lastMsgDate 이전에 도착한 60개의 채팅을 가져옵니다.
+ */
+router.post(
+  "/load/before",
+  body("roomId").isMongoId(),
+  body("lastMsgDate").isISO8601(),
+  validator,
+  chatsHandlers.loadBeforeChatHandler
+);
+
+/**
+ * lastMsgDate 이후에 도착한 60개의 채팅을 가져옵니다.
+ */
+router.post(
+  "/load/after",
+  body("roomId").isMongoId(),
+  body("lastMsgDate").isISO8601(),
+  validator,
+  chatsHandlers.loadAfterChatHandler
+);
+
+/**
+ * 채팅 요청을 처리합니다.
+ * 같은 방에 있는 user들에게 이 채팅을 전송합니다.
+ */
+router.post(
+  "/send",
+  body("roomId").isMongoId(),
+  validator,
+  chatsHandlers.sendChatHandler
+);
+
 // 채팅 이미지를 업로드할 수 있는 Presigned-url을 발급합니다.
 router.post(
   "/uploadChatImg/getPUrl",

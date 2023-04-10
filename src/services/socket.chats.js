@@ -1,8 +1,6 @@
 const { connectUser, disconnectUser } = require("../modules/auths/login");
 const { roomModel, userModel, chatModel } = require("../modules/stores/mongo");
-const { chatPopulateOption } = require("../modules/populates/chats");
 const { getS3Url } = require("../modules/stores/awsS3");
-const validator = require("validator");
 const { getTokensOfUsers, sendMessageByTokens } = require("../modules/fcm");
 const logger = require("../modules/logger");
 
@@ -124,40 +122,6 @@ const emitChatEvent = async (io, roomId, chat) => {
     logger.error(err);
     return false;
   }
-};
-
-/**
- * Chat Object의 array가 주어졌을 때 클라이언트에서 처리하기 편한 형태로 Chat Object를 가공합니다.
- * @param {[Object]} chats - Chats Document에 lean과 populate(chatPopulateOption)을 차례로 적용한 Chat Object의 배열입니다.
- * @return {Promise<Array>} {type: String, authorId: String, authorName: String, authorProfileUrl: String, content: string, time: Date}로 이루어진 chat 객체의 배열입니다.
- */
-const transformChatsForRoom = async (chats) => {
-  const chatsToSend = [];
-
-  for (const chat of chats) {
-    // inOutNames 배열(들어오거나 나간 사용자들의 닉네임으로 이루어진 배열)을 생성합니다.
-    chat.inOutNames = [];
-    if (chat.type === "in" || chat.type === "out") {
-      const inOutUserIds = chat.content.split("|");
-      chat.inOutNames = await Promise.all(
-        inOutUserIds.map(async (userId) => {
-          const user = await userModel.findOne({ id: userId }, "nickname");
-          return user.nickname;
-        })
-      );
-    }
-    chatsToSend.push({
-      type: chat.type,
-      authorId: chat.authorId._id,
-      authorName: chat.authorId.nickname,
-      authorProfileUrl: chat.authorId.profileImageUrl,
-      content: chat.content,
-      time: chat.time,
-      isValid: chat.isValid,
-      inOutNames: chat.inOutNames,
-    });
-  }
-  return chatsToSend;
 };
 
 const ioListeners = (socket) => {
