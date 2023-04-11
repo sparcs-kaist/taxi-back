@@ -3,7 +3,7 @@ const express = require("express");
 const http = require("http");
 const { port: httpPort } = require("./loadenv");
 const logger = require("./src/modules/logger");
-const startSocketServer = require("./src/modules/socket");
+const { startSocketServer } = require("./src/modules/socket");
 
 // Firebase Admin 초기설정
 require("./src/modules/fcm").initializeApp();

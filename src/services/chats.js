@@ -1,8 +1,7 @@
 const { chatModel, userModel } = require("../modules/stores/mongo");
 const { chatPopulateOption } = require("../modules/populates/chats");
 const awsS3 = require("../modules/stores/awsS3");
-
-const { transformChatsForRoom, emitChatEvent } = require("./socket.chats");
+const { transformChatsForRoom, emitChatEvent } = require("../modules/socket");
 
 const loadRecentChatHandler = async (req, res) => {
   try {

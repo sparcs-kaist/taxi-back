@@ -3,7 +3,7 @@ const {
   locationModel,
   userModel,
 } = require("../modules/stores/mongo");
-const { emitChatEvent } = require("./socket.chats");
+const { emitChatEvent } = require("../modules/socket");
 const { leaveChatRoom } = require("../modules/auths/login");
 const logger = require("../modules/logger");
 const {
