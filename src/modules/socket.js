@@ -9,7 +9,6 @@ const { getS3Url } = require("./stores/awsS3");
 const { getTokensOfUsers, sendMessageByTokens } = require("./fcm");
 
 const { frontUrl } = require("../../loadenv");
-const { ioListeners } = require("../services/socket.chats");
 
 /**
  * emitChatEvent의 필수 파라미터가 주어지지 않은 경우 발생하는 예외를 정의하는 클래스입니다.
@@ -149,12 +148,11 @@ const emitChatEvent = async (io, roomId, chat) => {
 
     // 방의 모든 사용자에게 이미지 수신 이벤트를 발생시킵니다.
     await Promise.all(
-      userIds.map(
-        async (userId) =>
-          await io.to(`user-${userId}`).emit("chat_push_back", {
-            chats: await transformChatsForRoom([chatDocument]),
-            roomId,
-          })
+      userIds.map(async (userId) =>
+        io.to(`user-${userId}`).emit("chat_push_back", {
+          chats: await transformChatsForRoom([chatDocument]),
+          roomId,
+        })
       )
     );
 
