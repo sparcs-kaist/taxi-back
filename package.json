@@ -47,8 +47,8 @@
     "supertest": "^6.2.4"
   },
   "scripts": {
-    "start": "npx nodemon app.js",
-    "test": "npm run sample && npm run mocha",
+    "start": "cross-env TZ='Asia/Seoul' npx nodemon app.js",
+    "test": "npm run sample && cross-env TZ='Asia/Seoul' npm run mocha",
     "mocha": "cross-env TZ='Asia/Seoul' NODE_ENV=test mocha --recursive --reporter spec --exit",
     "serve": "cross-env TZ='Asia/Seoul' NODE_ENV=production node app.js",
     "lint": "npx eslint --fix .",
