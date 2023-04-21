@@ -311,7 +311,7 @@ const searchHandler = async (req, res) => {
     currentTime.setSeconds(0);
     currentTime.setMilliseconds(0);
 
-    const searchedTime = time ? new Date(time) : currentTime;
+    const searchedTime = time ? new Date(time) : new Date(currentTime);
     if (!withTime) {
       searchedTime.setHours(0);
       searchedTime.setMinutes(0);
