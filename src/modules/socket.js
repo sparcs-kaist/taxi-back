@@ -3,7 +3,7 @@ const sharedsession = require("express-socket.io-session");
 const cookieParser = require("cookie-parser");
 
 const logger = require("./logger");
-const { connectUser, disconnectUser } = require("./auths/login");
+const { getLoginInfo } = require("./auths/login");
 const { roomModel, userModel, chatModel } = require("./stores/mongo");
 const { getS3Url } = require("./stores/awsS3");
 const { getTokensOfUsers, sendMessageByTokens } = require("./fcm");
@@ -192,12 +192,11 @@ const startSocketServer = (server, session) => {
 
   io.on("connection", async (socket) => {
     try {
-      const userId = session.userId;
-      const myUser = await userModel.findOne({ id: userId }, "_id id");
-      if (!userId || !myUser) return;
+      const { id: userId } = getLoginInfo({ session });
+      if (!userId) return;
 
       // connect to User
-      connectUser({ session }, socket.id);
+      session.socketId = socket.id;
       socket.join(`user-${userId}`);
       session.save(); // Socket.io 세션의 변경 사항을 Express 세션에 반영.
     } catch (err) {
@@ -207,11 +206,10 @@ const startSocketServer = (server, session) => {
     socket.on("disconnect", async () => {
       try {
         const userId = session.userId;
-        const myUser = await userModel.findOne({ id: userId }, "_id id");
-        if (!userId || !myUser) return;
+        if (!userId) return;
 
         // disconnect to User
-        disconnectUser({ session });
+        session.socketId = null;
         socket.leave(`user-${userId}`);
       } catch (err) {
         logger.error(err);

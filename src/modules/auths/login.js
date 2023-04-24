@@ -28,19 +28,10 @@ const logout = (req) => {
   // 로그아웃 전 socket.io 소켓들 연결부터 끊기
   if (req.session.socketId) {
     req.app.get("io").in(req.session.socketId).disconnectSockets(true);
-    disconnectUser(req);
   }
   req.session.destroy((err) => {
     if (err) logger.error(err);
   });
-};
-
-const connectUser = (req, socketId) => {
-  req.session.socketId = socketId;
-};
-
-const disconnectUser = (req) => {
-  req.session.socketId = null;
 };
 
 module.exports = {
@@ -48,6 +39,4 @@ module.exports = {
   isLogin,
   login,
   logout,
-  connectUser,
-  disconnectUser,
 };

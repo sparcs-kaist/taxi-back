@@ -3,29 +3,32 @@ const { chatPopulateOption } = require("../modules/populates/chats");
 const awsS3 = require("../modules/stores/awsS3");
 const { transformChatsForRoom, emitChatEvent } = require("../modules/socket");
 
+const chatCount = 60;
+
 const loadRecentChatHandler = async (req, res) => {
   try {
     const io = req.app.get("io");
-    const roomId = req.body.roomId;
-    const userId = req.session?.userId;
-    const user = await userModel.findOne({ id: userId });
+    const { userId } = req;
+    const { roomId } = req.body;
+    const { socketId } = req.session;
+
     if (!userId) {
-      return res.status(403).send("Chat/ : socket did not connected");
-    }
-    if (!user) {
       return res.status(500).send("Chat/ : internal server error");
+    }
+    if (!socketId || !io) {
+      return res.status(403).send("Chat/ : socket did not connected");
     }
 
     const chats = await chatModel
-      .find({ roomId })
+      .find({ roomId, isValid: true })
       .sort({ time: -1 })
-      .limit(60)
+      .limit(chatCount)
       .lean()
       .populate(chatPopulateOption);
 
     if (chats) {
       chats.reverse();
-      io.to(`user-${userId}`).emit("chat_init", {
+      io.to(socketId).emit("chat_init", {
         chats: await transformChatsForRoom(chats),
         roomId,
       });
@@ -41,28 +44,27 @@ const loadRecentChatHandler = async (req, res) => {
 const loadBeforeChatHandler = async (req, res) => {
   try {
     const io = req.app.get("io");
+    const { userId } = req;
     const { roomId, lastMsgDate } = req.body;
-    const userId = req.session?.userId;
-    const user = await userModel.findOne({ id: userId });
+    const { socketId } = req.session;
+
     if (!userId) {
-      return res
-        .status(403)
-        .send("Chat/load/before : socket did not connected");
-    }
-    if (!user) {
       return res.status(500).send("Chat/load/before : internal server error");
+    }
+    if (!socketId || !io) {
+      return res.status(403).send("Chat/ : socket did not connected");
     }
 
     const chats = await chatModel
-      .find({ roomId, time: { $lt: lastMsgDate } })
+      .find({ roomId, time: { $lt: lastMsgDate }, isValid: true })
       .sort({ time: -1 })
-      .limit(60)
+      .limit(chatCount)
       .lean()
       .populate(chatPopulateOption);
 
     if (chats) {
       chats.reverse();
-      io.to(`user-${userId}`).emit("chat_push_front", {
+      io.to(socketId).emit("chat_push_front", {
         chats: await transformChatsForRoom(chats),
         roomId,
       });
@@ -78,28 +80,27 @@ const loadBeforeChatHandler = async (req, res) => {
 const loadAfterChatHandler = async (req, res) => {
   try {
     const io = req.app.get("io");
+    const { userId } = req;
     const { roomId, lastMsgDate } = req.body;
-    const userId = req.session?.userId;
-    const user = await userModel.findOne({ id: userId });
+    const { socketId } = req.session;
+
     if (!userId) {
-      return res
-        .status(403)
-        .send("Chat/load/before : socket did not connected");
+      return res.status(500).send("Chat/load/before : internal server error");
     }
-    if (!user) {
-      return res.status(500).send("Chat/load/after : internal server error");
+    if (!socketId || !io) {
+      return res.status(403).send("Chat/ : socket did not connected");
     }
 
     const chats = await chatModel
-      .find({ roomId, time: { $gt: lastMsgDate } })
+      .find({ roomId, time: { $gt: lastMsgDate }, isValid: true })
       .sort({ time: -1 })
-      .limit(60)
+      .limit(chatCount)
       .lean()
       .populate(chatPopulateOption);
 
     if (chats) {
       chats.reverse();
-      io.to(`user-${userId}`).emit("chat_push_back", {
+      io.to(socketId).emit("chat_push_back", {
         chats: await transformChatsForRoom(chats),
         roomId,
       });
@@ -115,15 +116,17 @@ const loadAfterChatHandler = async (req, res) => {
 const sendChatHandler = async (req, res) => {
   try {
     const io = req.app.get("io");
+    const { userId } = req;
     const { roomId, type, content } = req.body;
-    const userId = req.session?.userId;
-    const user = await userModel.findOne({ id: userId });
+    const { socketId } = req.session;
+
     if (!userId) {
-      return res.status(403).send("Chat/send : socket did not connected");
+      return res.status(500).send("Chat/load/before : internal server error");
     }
-    if (!user) {
-      return res.status(500).send("Chat/send : internal server error");
+    if (!socketId || !io) {
+      return res.status(403).send("Chat/ : socket did not connected");
     }
+
     const result = await emitChatEvent(io, roomId, {
       type,
       content,

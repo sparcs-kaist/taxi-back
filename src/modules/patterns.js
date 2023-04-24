@@ -12,6 +12,6 @@ module.exports = {
   },
   chat: {
     chatImgType: RegExp("^(image/png|image/jpg|image/jpeg)$"),
-    chatType: RegExp("^(text|in|out|payment|settlement|account)$"),
+    chatSendType: RegExp("^(text|account)$"),
   },
 };
