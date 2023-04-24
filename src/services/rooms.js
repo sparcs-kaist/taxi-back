@@ -284,16 +284,15 @@ const searchHandler = async (req, res) => {
 
     // 출발지와 도착지가 같은 경우
     if (from && to && from === to) {
-      res.status(400).json({
+      return res.status(400).json({
         error: "Room/search : Bad request",
       });
-      return;
     }
 
     // 출발지나 도착지가 존재하지 않는 장소일 경우
     if (from) {
       const fromLocation = await locationModel.findById(from);
-      if (!fromLocation) {
+      if (!fromLocation || fromLocation?.isValid === false) {
         return res.status(400).json({
           error: "Room/search : no corresponding locations",
         });
@@ -301,31 +300,36 @@ const searchHandler = async (req, res) => {
     }
     if (to) {
       const toLocation = await locationModel.findById(to);
-      if (!toLocation) {
+      if (!toLocation || toLocation?.isValid === false) {
         return res.status(400).json({
           error: "Room/search : no corresponding locations",
         });
       }
     }
+
     const currentTime = new Date();
-    const searchedTime = time ? new Date(time) : currentTime;
+    currentTime.setSeconds(0);
+    currentTime.setMilliseconds(0);
+
+    const searchedTime = time ? new Date(time) : new Date(currentTime);
+    if (!withTime) {
+      searchedTime.setHours(0);
+      searchedTime.setMinutes(0);
+    }
+    searchedTime.setSeconds(0);
+    searchedTime.setMilliseconds(0);
+
     const minTime =
       searchedTime.getTime() >= currentTime.getTime()
         ? searchedTime // time이 현재 시간보다 미래인 경우
         : currentTime; // time이 현재 시간보다 과거인 경우
-    if (!withTime && searchedTime.getTime() > currentTime.getTime()) {
-      minTime.setHours(0);
-      minTime.setMinutes(0);
-      minTime.setSeconds(0);
-      minTime.setMilliseconds(0);
-    }
+
+    // 검색 날짜 범위 : home -> 7, search -> 14
+    const dateRange = isHome ? 7 : 14;
 
     // 검색 시간대는 해당 날짜의 자정으로 설정합니다.
     const maxTime = new Date(minTime);
-
-    // home -> 7, search -> 14
-    const timeRange = isHome ? 7 : 14;
-    maxTime.setDate(minTime.getDate() + (time ? 1 : timeRange));
+    maxTime.setDate(minTime.getDate() + (time ? 1 : dateRange));
     maxTime.setHours(0);
     maxTime.setMinutes(0);
     maxTime.setSeconds(0);
@@ -334,12 +338,12 @@ const searchHandler = async (req, res) => {
     // 검색 쿼리를 설정합니다.
     const query = {};
     if (name) query.name = { $regex: new RegExp(name, "i") }; // 'i': 대소문자 무시
+    if (maxPartLength) query.maxPartLength = { $eq: maxPartLength };
     if (from) query.from = from;
     if (to) query.to = to;
 
     query.time = { $gte: minTime, $lt: maxTime };
-    if (maxPartLength) query.maxPartLength = { $eq: maxPartLength };
-    query["part.0"] = { $exists: true }; // 참여자가 1명 이상인 방만 반환한다
+    query["part.0"] = { $exists: true }; // 참여자가 1명 이상인 방만 반환
 
     const rooms = await roomModel
       .find(query)
@@ -347,6 +351,7 @@ const searchHandler = async (req, res) => {
       .limit(1000)
       .populate(roomPopulateOption)
       .lean();
+
     res.json(
       rooms.map((room) => formatSettlement(room, { includeSettlement: false }))
     );
