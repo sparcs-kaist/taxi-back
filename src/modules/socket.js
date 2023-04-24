@@ -88,23 +88,29 @@ const getMessageBody = (type, nickname, content) => {
  * 채팅을 전송하고 채팅 알림을 발생시킵니다.
  * @summary express 라우터에서 채팅 이벤트를 보낼 수 있게 함수를 분리했습니다.
  * @param {Server<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, any>} io - Socket.io 서버 인스턴스입니다. req.app.get("io")를 통해 접근할 수 있습니다.
- * @param {string} roomId - 채팅 및 채팅 알림을 보낼 방의 ObjectId입니다.
  * @param {Object} chat - 채팅 메시지 내용입니다.
+ * @param {string} chat.roomId - 채팅 및 채팅 알림을 보낼 방의 ObjectId입니다.
  * @param {string} chat.type - 채팅 메시지의 유형입니다. "text" | "s3img" | "in" | "out" | "payment" | "settlement" 입니다.
  * @param {string} chat.content - 채팅 메시지의 본문입니다. chat.type이 "s3img"인 경우에는 채팅의 objectId입니다. chat.type이 "in"이거나 "out"인 경우 입퇴장한 사용자의 id(!==ObjectId)입니다.
  * @param {string} chat.authorId - 채팅을 보낸 사용자의 ObjectId입니다.
  * @param {Date?} chat.time - optional. 채팅 메시지 전송 시각입니다.
  * @return {Promise<Boolean>} 채팅 및 알림 전송에 성공하면 true, 중간에 오류가 발생하면 false를 반환합니다.
  */
-const emitChatEvent = async (io, roomId, chat) => {
+const emitChatEvent = async (io, chat) => {
   try {
     // chat must contain type, content and authorId
     // chat can contain time or not.
-    if (!io || !roomId || !chat?.type || !chat?.content || !chat?.authorId) {
+    if (
+      !io ||
+      !chat?.roomId ||
+      !chat?.type ||
+      !chat?.content ||
+      !chat?.authorId
+    ) {
       throw new IllegalArgumentsException();
     }
 
-    const { type, content, authorId } = chat;
+    const { roomId, type, content, authorId } = chat;
     const time = chat?.time || Date.now();
     const { nickname, profileImageUrl } = await userModel.findById(
       authorId,

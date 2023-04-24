@@ -74,7 +74,8 @@ const createHandler = async (req, res) => {
     await user.save();
 
     // 입장 채팅을 보냅니다.
-    await emitChatEvent(req.app.get("io"), room._id, {
+    await emitChatEvent(req.app.get("io"), {
+      roomId: room._id,
       type: "in",
       content: user.id,
       authorId: user._id,
@@ -168,7 +169,8 @@ const joinHandler = async (req, res) => {
     await room.save();
 
     // 입장 채팅을 보냅니다.
-    await emitChatEvent(req.app.get("io"), room._id, {
+    await emitChatEvent(req.app.get("io"), {
+      roomId: room._id,
       type: "in",
       content: user.id,
       authorId: user._id,
@@ -260,7 +262,8 @@ const abortHandler = async (req, res) => {
     // }
 
     // 퇴장 채팅을 보냅니다.
-    await emitChatEvent(req.app.get("io"), room._id, {
+    await emitChatEvent(req.app.get("io"), {
+      roomId: room._id,
       type: "out",
       content: user.id,
       authorId: user._id,
@@ -458,7 +461,8 @@ const commitPaymentHandler = async (req, res) => {
     await user.save();
 
     // 결제 채팅을 보냅니다.
-    await emitChatEvent(req.app.get("io"), roomId, {
+    await emitChatEvent(req.app.get("io"), {
+      roomId,
       type: "payment",
       content: user.id,
       authorId: user._id,
@@ -523,7 +527,8 @@ const settlementHandler = async (req, res) => {
     await user.save();
 
     // 정산 채팅을 보냅니다.
-    await emitChatEvent(req.app.get("io"), roomId, {
+    await emitChatEvent(req.app.get("io"), {
+      roomId,
       type: "settlement",
       content: user.id,
       authorId: user._id,

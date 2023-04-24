@@ -30,7 +30,6 @@ const loadRecentChatHandler = async (req, res) => {
       chats.reverse();
       io.to(socketId).emit("chat_init", {
         chats: await transformChatsForRoom(chats),
-        roomId,
       });
       res.json({ result: true });
     } else {
@@ -66,7 +65,6 @@ const loadBeforeChatHandler = async (req, res) => {
       chats.reverse();
       io.to(socketId).emit("chat_push_front", {
         chats: await transformChatsForRoom(chats),
-        roomId,
       });
       res.json({ result: true });
     } else {
@@ -102,7 +100,6 @@ const loadAfterChatHandler = async (req, res) => {
       chats.reverse();
       io.to(socketId).emit("chat_push_back", {
         chats: await transformChatsForRoom(chats),
-        roomId,
       });
       res.json({ result: true });
     } else {
@@ -127,7 +124,8 @@ const sendChatHandler = async (req, res) => {
       return res.status(403).send("Chat/ : socket did not connected");
     }
 
-    const result = await emitChatEvent(io, roomId, {
+    const result = await emitChatEvent(io, {
+      roomId,
       type,
       content,
       authorId: userId,
@@ -217,7 +215,7 @@ const uploadChatImgDoneHandler = async (req, res) => {
       }
 
       chat.content = chat._id;
-      emitChatEvent(req.app.get("io"), chat.roomId, chat);
+      emitChatEvent(req.app.get("io"), chat);
 
       res.json({
         result: true,
