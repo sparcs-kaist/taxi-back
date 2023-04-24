@@ -2,10 +2,7 @@ const { frontUrl } = require("../../loadenv");
 const { userModel } = require("../modules/stores/mongo");
 const { logout, login } = require("../modules/auths/login");
 
-const {
-  registerDeviceToken,
-  unregisterDeviceToken,
-} = require("../modules/fcm");
+const { unregisterDeviceToken } = require("../modules/fcm");
 const {
   generateNickname,
   generateProfileImageUrl,
@@ -14,7 +11,7 @@ const logger = require("../modules/logger");
 
 const { registerDeviceTokenHandler } = require("../services/auth");
 
-const loginHtml = `
+const loginHtmlBuilder = (redirectPath) => `
 <!DOCTYPE html>
 <html lang="ko">
     <head>
@@ -24,7 +21,7 @@ const loginHtml = `
         <script src="https://code.jquery.com/jquery-latest.min.js"></script>
         <script>
             $(document).ready(function(){
-                function post(path, params){
+                const post = (path, params) => {
                     var form = document.createElement("form");
                     form.setAttribute("method", "post");
                     form.setAttribute("action", path);
@@ -40,13 +37,17 @@ const loginHtml = `
                 }
                 const submitHandler = () => {
                     const value = document.getElementById("input-id").value;
-                    if(value) post('/auth/try', { id: value });
+                    if(value) post('/auth/try', {
+                      id: value,
+                      redirect: "${encodeURIComponent(redirectPath)}",
+                    });
                 }
                 const enterHandler = (e) => {
                     if (e.keyCode === 13) submitHandler();
                 }
                 $('#btn').click(submitHandler);
                 $('#input-id').on("keyup", enterHandler);
+                $('#input-id').focus();
             });
         </script>
     </head>
@@ -76,7 +77,7 @@ const makeInfo = (id) => {
 
 // 새로운 유저 만들기
 // 이거 왜 이름이 joinus?
-const joinus = (req, res, userData) => {
+const joinus = (req, res, userData, redirectPath = "/") => {
   const newUser = new userModel({
     id: userData.id,
     name: userData.name,
@@ -96,41 +97,42 @@ const joinus = (req, res, userData) => {
       logger.error(err);
       return;
     }
-    loginDone(req, res, userData);
+    loginDone(req, res, userData, redirectPath);
   });
 };
 
 // 주어진 데이터로 DB 검색
 // 만약 없으면 새로운 유저 만들기
 // 있으면 로그인 진행 후 리다이렉트
-const loginDone = (req, res, userData) => {
+const loginDone = (req, res, userData, redirectPath = "/") => {
   userModel.findOne(
     { id: userData.id },
     "name id withdraw ban",
     (err, result) => {
       if (err) logger.error(logger.error(err));
-      else if (!result) joinus(req, res, userData);
+      else if (!result) joinus(req, res, userData, redirectPath);
       else {
         login(req, userData.sid, result.id, result.name);
-        // res.send("successful"); //API 테스트용 코드(프론트 리다이렉트 X)
-        res.redirect(frontUrl);
+        res.redirect(frontUrl + redirectPath);
       }
     }
   );
 };
 
 const tryHandler = (req, res) => {
-  {
-    const id = req.body.id || req.query.id;
-    loginDone(req, res, makeInfo(id));
-  }
+  const { id } = req.body;
+  const redirectPath = decodeURIComponent(req.body?.redirect || "%2F");
+  loginDone(req, res, makeInfo(id), redirectPath);
 };
 
 const sparcsssoHandler = (req, res) => {
-  res.end(loginHtml);
+  const redirectPath = decodeURIComponent(req.query?.redirect || "%2F");
+  res.end(loginHtmlBuilder(redirectPath));
 };
 
 const logoutHandler = async (req, res) => {
+  const redirectPath = decodeURIComponent(req.query?.redirect || "%2F");
+
   try {
     // DB에서 deviceToken 레코드를 삭제합니다.
     const deviceToken = req.session?.deviceToken;
@@ -139,7 +141,7 @@ const logoutHandler = async (req, res) => {
     }
 
     // sparcs-sso 로그아웃 URL을 생성 및 반환
-    const ssoLogoutUrl = frontUrl + "/login";
+    const ssoLogoutUrl = frontUrl + redirectPath;
     logout(req, res);
     res.json({ ssoLogoutUrl });
   } catch (e) {
