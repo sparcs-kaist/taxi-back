@@ -49,6 +49,7 @@ router.post(
   "/send",
   body("roomId").isMongoId(),
   body("type").matches(patterns.chat.chatSendType),
+  body("content").isString(),
   validator,
   chatsHandlers.sendChatHandler
 );

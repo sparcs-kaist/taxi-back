@@ -1,4 +1,4 @@
-const { chatModel, userModel } = require("../modules/stores/mongo");
+const { chatModel, userModel, roomModel } = require("../modules/stores/mongo");
 const { chatPopulateOption } = require("../modules/populates/chats");
 const awsS3 = require("../modules/stores/awsS3");
 const { transformChatsForRoom, emitChatEvent } = require("../modules/socket");
@@ -11,12 +11,18 @@ const loadRecentChatHandler = async (req, res) => {
     const { userId } = req;
     const { roomId } = req.body;
     const { socketId } = req.session;
-
     if (!userId) {
       return res.status(500).send("Chat/ : internal server error");
     }
     if (!socketId || !io) {
       return res.status(403).send("Chat/ : socket did not connected");
+    }
+
+    const isPart = await isUserInRoom(userId, roomId);
+    if (!isPart) {
+      return res
+        .status(403)
+        .send("Chat/ : user did not participated in the room");
     }
 
     const chats = await chatModel
@@ -33,7 +39,7 @@ const loadRecentChatHandler = async (req, res) => {
       });
       res.json({ result: true });
     } else {
-      res.json({ result: false });
+      res.status(500).send("Chat/ : internal server error");
     }
   } catch (e) {
     res.status(500).send("Chat/ : internal server error");
@@ -46,12 +52,20 @@ const loadBeforeChatHandler = async (req, res) => {
     const { userId } = req;
     const { roomId, lastMsgDate } = req.body;
     const { socketId } = req.session;
-
     if (!userId) {
       return res.status(500).send("Chat/load/before : internal server error");
     }
     if (!socketId || !io) {
-      return res.status(403).send("Chat/ : socket did not connected");
+      return res
+        .status(403)
+        .send("Chat/load/before : socket did not connected");
+    }
+
+    const isPart = await isUserInRoom(userId, roomId);
+    if (!isPart) {
+      return res
+        .status(403)
+        .send("Chat/load/before : user did not participated in the room");
     }
 
     const chats = await chatModel
@@ -68,7 +82,7 @@ const loadBeforeChatHandler = async (req, res) => {
       });
       res.json({ result: true });
     } else {
-      res.json({ result: false });
+      res.status(500).send("Chat/load/before : internal server error");
     }
   } catch (e) {
     res.status(500).send("Chat/load/before : internal server error");
@@ -81,12 +95,18 @@ const loadAfterChatHandler = async (req, res) => {
     const { userId } = req;
     const { roomId, lastMsgDate } = req.body;
     const { socketId } = req.session;
-
     if (!userId) {
-      return res.status(500).send("Chat/load/before : internal server error");
+      return res.status(500).send("Chat/load/after : internal server error");
     }
     if (!socketId || !io) {
-      return res.status(403).send("Chat/ : socket did not connected");
+      return res.status(403).send("Chat/load/after : socket did not connected");
+    }
+
+    const isPart = await isUserInRoom(userId, roomId);
+    if (!isPart) {
+      return res
+        .status(403)
+        .send("Chat/load/after : user did not participated in the room");
     }
 
     const chats = await chatModel
@@ -103,7 +123,7 @@ const loadAfterChatHandler = async (req, res) => {
       });
       res.json({ result: true });
     } else {
-      res.json({ result: false });
+      res.status(500).send("Chat/load/after : internal server error");
     }
   } catch (e) {
     res.status(500).send("Chat/load/after : internal server error");
@@ -116,12 +136,18 @@ const sendChatHandler = async (req, res) => {
     const { userId } = req;
     const { roomId, type, content } = req.body;
     const { socketId } = req.session;
-
     if (!userId) {
-      return res.status(500).send("Chat/load/before : internal server error");
+      return res.status(500).send("Chat/send : internal server error");
     }
     if (!socketId || !io) {
-      return res.status(403).send("Chat/ : socket did not connected");
+      return res.status(403).send("Chat/send : socket did not connected");
+    }
+
+    const isPart = await isUserInRoom(userId, roomId);
+    if (!isPart) {
+      return res
+        .status(403)
+        .send("Chat/send : user did not participated in the room");
     }
 
     const result = await emitChatEvent(io, {
@@ -224,6 +250,19 @@ const uploadChatImgDoneHandler = async (req, res) => {
   } catch (e) {
     res.status(500).send("Chat/uploadChatImg/done : internal server error");
   }
+};
+
+/**
+ * 주어진 유저가 주어진 방에 참여하는 중인지 확인합니다.
+ * @summary 채팅 load/send 관련 api에서 검증을 위하여 함수로 분리하였습니다.
+ * @param {string} userId - 확인하고픈 user의 userId입니다.
+ * @param {string} roomId - 참여하는지 확인하고픈 방의 roomId입니다.
+ * @return {Promise<Boolean>} userId가 방에 포함되어 있다면 true, 그 외의 경우 false를 반환합니다.
+ */
+const isUserInRoom = async (userId, roomId) => {
+  const { part } = await roomModel.findById(roomId);
+  if (!part) return false;
+  return part.map((participant) => participant.user).includes(userId);
 };
 
 module.exports = {
