@@ -16,7 +16,9 @@ app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
 
 // [Middleware] CORS 설정
-app.use(require("cors")({ origin: true, credentials: true }));
+app.use(
+  require("cors")({ origin: true, credentials: true, exposedHeaders: ["Date"] })
+);
 
 // [Middleware] 세션 및 쿠키
 const session = require("./src/middlewares/session");
