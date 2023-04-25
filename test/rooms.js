@@ -16,7 +16,7 @@ const removeTestData = async () => {
   await testRemover(testData);
 };
 
-// rooms.js 관련 8개의 handler을 테스트
+// rooms.js 관련 9개의 handler을 테스트
 // 1. test1이 1분 뒤에 출발하는 test-room 방을 생성, 제대로 생성 되었는지 확인
 describe("[rooms] 1.createHandler", () => {
   it("should create room which departs after 1 minute", async () => {
@@ -62,8 +62,24 @@ describe("[rooms] 2.infoHandler", () => {
   });
 });
 
-// 3. test2가 test-room에 join, 방에 잘 join 했는지 확인
-describe("[rooms] 3.joinHandler", () => {
+// 3. 로그인되지 않은 유저가 방의 정보를 제대로 가져오는지 확인
+describe("[rooms] 3.publicInfoHandler", () => {
+  it("should return information of room", async () => {
+    const testRoom = await roomModel.findOne({ name: "test-room" });
+    let req = httpMocks.createRequest({
+      query: { id: testRoom._id },
+    });
+    let res = httpMocks.createResponse();
+    await roomsHandlers.publicInfoHandler(req, res);
+
+    const resData = res._getData();
+    expect(resData).to.has.property("name", "test-room");
+    expect(resData).to.has.property("isOver", undefined);
+  });
+});
+
+// 4. test2가 test-room에 join, 방에 잘 join 했는지 확인
+describe("[rooms] 4.joinHandler", () => {
   it("should return information of room and join", async () => {
     const testUser2 = await userGenerator("test2", testData);
     const testRoom = await roomModel.findOne({ name: "test-room" });
@@ -83,8 +99,8 @@ describe("[rooms] 3.joinHandler", () => {
   });
 });
 
-// 4. 방의 정보를 통해 검색, 검색 정보가 예상과 일치하는지 확인
-describe("[rooms] 4.searchHandler", () => {
+// 5. 방의 정보를 통해 검색, 검색 정보가 예상과 일치하는지 확인
+describe("[rooms] 5.searchHandler", () => {
   it("should return information of searching room", async () => {
     const testFrom = await locationModel.findOne({ koName: "대전역" });
     const testTo = await locationModel.findOne({ koName: "택시승강장" });
@@ -107,9 +123,9 @@ describe("[rooms] 4.searchHandler", () => {
   });
 });
 
-// 5. 방에 속한 유저를 통해 검색
+// 6. 방에 속한 유저를 통해 검색
 // ongoing은 test-room이 검색되고, done은 아무것도 검색되지 않아야함
-describe("[rooms] 5.searchByUserHandler", () => {
+describe("[rooms] 6.searchByUserHandler", () => {
   it("should return information of searching room", async () => {
     const testUser1 = await userModel.findOne({ id: "test1" });
     let req = httpMocks.createRequest({
@@ -124,8 +140,8 @@ describe("[rooms] 5.searchByUserHandler", () => {
   });
 });
 
-// 6.1분이 지난 후, 정산 정보를 불러옴. 예상과 같은 정보를 불러오는지 확인
-describe("[rooms] 6.commitPaymentHandler", () => {
+// 7. 1분이 지난 후, 정산 정보를 불러옴. 예상과 같은 정보를 불러오는지 확인
+describe("[rooms] 7.commitPaymentHandler", () => {
   it("should return information of room and commit payment", async () => {
     const testUser1 = await userModel.findOne({ id: "test1" });
     const testRoom = await roomModel.findOne({ name: "test-room" });
@@ -145,8 +161,8 @@ describe("[rooms] 6.commitPaymentHandler", () => {
   });
 });
 
-// 7. 도착 정보를 불러옴. 예상과 같은 정보를 불러오는지 확인
-describe("[rooms] 7.settlementHandler", () => {
+// 8. 도착 정보를 불러옴. 예상과 같은 정보를 불러오는지 확인
+describe("[rooms] 8.settlementHandler", () => {
   it("should return information of room and set settlement", async () => {
     const testUser2 = await userModel.findOne({ id: "test2" });
     const testRoom = await roomModel.findOne({ name: "test-room" });
@@ -165,8 +181,8 @@ describe("[rooms] 7.settlementHandler", () => {
   });
 });
 
-// 8. test2 방에서 퇴장, 제대로 방에서 나갔는지 확인하고 생성해준 data 모두 삭제
-describe("[rooms] 8.abortHandler", () => {
+// 9. test2 방에서 퇴장, 제대로 방에서 나갔는지 확인하고 생성해준 data 모두 삭제
+describe("[rooms] 9.abortHandler", () => {
   it("should return information of room and abort user", async () => {
     const testUser2 = await userModel.findOne({ id: "test2" });
     const testRoom = await roomModel.findOne({ name: "test-room" });
