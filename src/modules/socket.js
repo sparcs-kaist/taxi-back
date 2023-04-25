@@ -100,23 +100,20 @@ const emitChatEvent = async (io, chat) => {
   try {
     // chat must contain type, content and authorId
     // chat can contain time or not.
-    if (
-      !io ||
-      !chat?.roomId ||
-      !chat?.type ||
-      !chat?.content ||
-      !chat?.authorId
-    ) {
+    const { roomId, type, content, authorId } = chat;
+
+    if (!io || !roomId || !type || !content || !authorId) {
       throw new IllegalArgumentsException();
     }
 
-    const { roomId, type, content, authorId } = chat;
     const time = chat?.time || Date.now();
+    const { name, part } = await roomModel.findById(roomId, "name part");
     const { nickname, profileImageUrl } = await userModel.findById(
       authorId,
       "nickname profileImageUrl"
     );
-    if (!nickname) {
+
+    if (!nickname || !profileImageUrl || !name || !part) {
       throw new IllegalArgumentsException();
     }
 
@@ -142,21 +139,21 @@ const emitChatEvent = async (io, chat) => {
     chatDocument.authorName = nickname;
     chatDocument.authorProfileUrl = profileImageUrl;
 
-    const room = await roomModel.findById(roomId, "name part");
     const urlOnClick = `/myroom/${roomId}`;
-    const userIds = room.part.map((participant) => participant.user);
-    const userIdsExceptAuthor = room.part
+    const userIds = part.map((participant) => participant.user);
+    const userIdsExceptAuthor = part
       .map((participant) => participant.user)
       .filter((userId) => userId.toString() !== authorId.toString());
     const deviceTokens = await getTokensOfUsers(userIdsExceptAuthor, {
       chatting: true,
     });
 
-    // 방의 모든 사용자에게 이미지 수신 이벤트를 발생시킵니다.
+    // 방의 모든 사용자에게 socket 메세지 수신 이벤트를 발생시킵니다.
+    const chatsForRoom = await transformChatsForRoom([chatDocument]);
     await Promise.all(
       userIds.map(async (userId) =>
         io.to(`user-${userId}`).emit("chat_push_back", {
-          chats: await transformChatsForRoom([chatDocument]),
+          chats: chatsForRoom,
           roomId,
         })
       )
@@ -166,7 +163,7 @@ const emitChatEvent = async (io, chat) => {
     await sendMessageByTokens(
       deviceTokens,
       type,
-      room.name,
+      name,
       getMessageBody(type, nickname, content),
       getS3Url(`/profile-img/${profileImageUrl}`),
       urlOnClick
@@ -180,7 +177,7 @@ const emitChatEvent = async (io, chat) => {
 
 // server: express server
 // session: session middleware
-const startSocketServer = (server, session) => {
+const startSocketServer = (server, _session) => {
   const io = new Server(server, {
     cors: {
       origin: [frontUrl],
@@ -191,13 +188,14 @@ const startSocketServer = (server, session) => {
 
   // socket.io와 express 사이에서 session을 공유합니다.
   io.use(
-    sharedsession(session, cookieParser(), {
+    sharedsession(_session, cookieParser(), {
       autoSave: true,
     })
   );
 
-  io.on("connection", async (socket) => {
+  io.on("connection", (socket) => {
     try {
+      const session = socket.handshake.session;
       const { id: userId } = getLoginInfo({ session });
       if (!userId) return;
 
@@ -209,14 +207,14 @@ const startSocketServer = (server, session) => {
       logger.error(err);
     }
 
-    socket.on("disconnect", async () => {
+    socket.on("disconnect", () => {
       try {
-        const userId = session.userId;
+        const session = socket.handshake.session;
+        const { userId } = session;
         if (!userId) return;
 
         // disconnect to User
         session.socketId = null;
-        socket.leave(`user-${userId}`);
       } catch (err) {
         logger.error(err);
       }
