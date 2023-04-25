@@ -10,5 +10,6 @@ module.exports = {
   },
   rules: {
     "no-unused-vars": 1,
+    "mocha/no-mocha-arrows": 0,
   },
 };
