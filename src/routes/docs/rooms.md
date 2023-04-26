@@ -1,6 +1,4 @@
 # `/rooms` API
-**개발 도중 Room 구조가 바뀌어 `/rooms/v2`로 접근하여 사용할 수 있었던 API 입니다.**
-**현재도 호환성 유지를 위해 `/rooms/v2`로 접근하여 API를 사용할 수 있습니다.**
 
 ## Table of contents
 
@@ -8,51 +6,55 @@
   - [Table of contents](#table-of-contents)
   - [Description](#description)
   - [Available endpoints](#available-endpoints)
-    - [`/info` **(GET)**](#info-get)
+    - [`/publicInfo` **(GET)**](#publicinfo-get)
       - [URL parameters](#url-parameters)
       - [Response](#response)
       - [Errors](#errors)
+    - [`/info` **(GET)**](#info-get)
+      - [URL parameters](#url-parameters-1)
+      - [Response](#response-1)
+      - [Errors](#errors-1)
     - [`/create` **(POST)**](#create-post)
       - [POST request form](#post-request-form)
-      - [Errors](#errors-1)
-      - [Response](#response-1)
+      - [Errors](#errors-2)
+      - [Response](#response-2)
     - [`/join` (POST)](#join-post)
       - [request JSON form](#request-json-form)
-      - [Errors](#errors-2)
+      - [Errors](#errors-3)
     - [`/abort` (POST)](#abort-post)
       - [request JSON form](#request-json-form-1)
-      - [Errors](#errors-3)
-    - [`/search` **(GET)**](#search-get)
-      - [URL parameters](#url-parameters-1)
-      - [Response](#response-2)
       - [Errors](#errors-4)
-    - [`/searchByUser` **(GET)**](#searchbyuser-get)
+    - [`/search` **(GET)**](#search-get)
       - [URL parameters](#url-parameters-2)
       - [Response](#response-3)
       - [Errors](#errors-5)
-    - [`/commitPayment` **(POST)**](#commitpayment-post)
-      - [Request Body](#request-body)
+    - [`/searchByUser` **(GET)**](#searchbyuser-get)
+      - [URL parameters](#url-parameters-3)
       - [Response](#response-4)
       - [Errors](#errors-6)
-    - [`/commitSettlement/` **(POST)**](#commitsettlement-post)
-      - [Request Body](#request-body-1)
+    - [`/commitPayment` **(POST)**](#commitpayment-post)
+      - [Request Body](#request-body)
       - [Response](#response-5)
       - [Errors](#errors-7)
-    - [`/edit/` **(POST)** **(for dev)**](#edit-post-for-dev)
-      - [POST request form](#post-request-form-1)
+    - [`/commitSettlement/` **(POST)**](#commitsettlement-post)
+      - [Request Body](#request-body-1)
       - [Response](#response-6)
       - [Errors](#errors-8)
+    - [`/edit/` **(POST)** **(for dev)**](#edit-post-for-dev)
+      - [POST request form](#post-request-form-1)
+      - [Response](#response-7)
+      - [Errors](#errors-9)
     - [`/getAllRoom` **(GET)** (for dev)](#getallroom-get-for-dev)
     - [`/removeAllRoom` **(GET)** (for dev)](#removeallroom-get-for-dev)
     - [`/:id/delete/` **(GET)** **(for dev)**](#iddelete-get-for-dev)
-      - [URL Parameters](#url-parameters-3)
-      - [Response](#response-7)
-      - [Errors](#errors-9)
+      - [URL Parameters](#url-parameters-4)
+      - [Response](#response-8)
+      - [Errors](#errors-10)
 
 ## Description
 
 - 방 생성/수정/삭제/조회 기능을 지원하는 API.
-- 로그인된 상태에서만 접근 가능
+- `/publicInfo`, `/search`를 제외한 endpoint는 로그인된 상태에서만 접근 가능
 - Request form에서 요구하는 property 이름에 ? 이 붙은 경우 필수가 아니라는 뜻
 - 방을 반환할 경우 그 type은 다음과 같다.
 
@@ -77,17 +79,16 @@ Room {
       _id: ObjectId, // part의 ObjectId
       user: {
         _id: ObjectId, // 참여 중인 사용자 Document의 ObjectId
-        id: String, // 참여 중인 사용자 id
         name: String, // 참여 중인 사용자 이름
         nickname: String, // 참여 중인 사용자 닉네임
         profileImageUrl: String, // 프로필 사진 url 
+        isSettlement: String || undefined, //해당 사용자의 정산 상태 (주의: "/publicInfo"와 "/search"에서는 isSettlement 속성이 undefined로 설정됨).
       }, 
-      settlementStatus: String, //해당 사용자의 정산 상태 (주의: rooms/search에서는 isSettlement 속성을 반환하지 않고 undefined를 반환함).
     }
   ], 
   maxPartLength: Number(2~4), //방의 최대 인원 수
   madeat: String(ISO 8601), // ex) 방 생성 시각. '2022-01-12T13:58:20.180Z'
-  settlementTotal: Number(2~4), // 정산이 완료된 사용자 수 (주의: rooms/search에서는 settlementTotal 속성을 반환하지 않고 undefined를 반환함).
+  settlementTotal: Number(2~4), // 정산이 완료된 사용자 수 (주의: "/publicInfo"와 "/search"에서는 settlementTotal 속성이 undefined로 설정됨).
   isOver: Boolean, // 요청을 보낸 사용자가 해당 방의 정산을 완료됐는지 여부(완료 시 true) (주의: rooms/search에서는 isOver 속성을 반환하지 않고 undefined를 반환함).
   __v: Number, // 문서 버전. mongoDB 내부적으로 사용됨.
 }
@@ -101,6 +102,24 @@ Room {
 4. `"sent"` : 정산 상태가`"send-required"`인 사용자가 "정산하기" 버튼을 눌렀을 때 그 사용자에게 설정되는 정산 상태.
 
 ## Available endpoints
+
+### `/publicInfo` **(GET)**
+
+ID를 parameter로 받아 해당 ID의 room의 정보 출력
+
+#### URL parameters
+
+- id : 조회할 room의 ID
+
+#### Response
+
+- 해당 방의 정보
+- 각 참여자의 isSettlement 속성과 방의 settlementTotal 속성은 undefined로 설정됨.
+
+#### Errors
+
+- 404 "id does not exist"
+- 500 "internal server error"
 
 ### `/info` **(GET)**
 

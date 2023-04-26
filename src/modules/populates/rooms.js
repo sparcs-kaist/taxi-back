@@ -13,7 +13,7 @@ const roomPopulateOption = [
 ];
 
 /**
- * Room Object가 주어졌을 때 room의 part array의 각 요소를 API 명세에서와 같이 {userId: String, ... , settlementStatus: String}으로 가공합니다.
+ * Room Object가 주어졌을 때 room의 part array의 각 요소를 API 명세에서와 같이 {userId: String, ... , isSettlement: String}으로 가공합니다.
  * 또한, 방이 현재 출발했는지 유무인 isDeparted 속성을 추가합니다.
  * @param {Object} roomObject - 정산 정보를 가공할 room Object로, Mongoose Document가 아닌 순수 Javascript Object여야 합니다.
  * @param {Object} options - 추가 파라미터로, 기본값은 {}입니다.

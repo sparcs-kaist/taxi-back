@@ -91,6 +91,28 @@ const createHandler = async (req, res) => {
   }
 };
 
+const publicInfoHandler = async (req, res) => {
+  try {
+    const roomObject = await roomModel
+      .findOne({ _id: req.query.id })
+      .lean()
+      .populate(roomPopulateOption);
+    if (roomObject) {
+      // 방의 정산 정보는 개인정보로 방에 참여하기 전까지는 반환하지 않습니다.
+      res.send(formatSettlement(roomObject, { includeSettlement: false }));
+    } else {
+      res.status(404).json({
+        error: "Rooms/info : id does not exist",
+      });
+    }
+  } catch (err) {
+    logger.error(err);
+    res.status(500).json({
+      error: "Rooms/info : internal server error",
+    });
+  }
+};
+
 const infoHandler = async (req, res) => {
   try {
     const user = await userModel.findOne({ id: req.userId });
@@ -620,6 +642,7 @@ const settlementHandler = async (req, res) => {
 // };
 
 module.exports = {
+  publicInfoHandler,
   infoHandler,
   createHandler,
   joinHandler,

@@ -22,6 +22,14 @@ router.get(
   roomHandlers.searchHandler
 );
 
+// 특정 id 방의 정산 정보를 제외한 세부사항을 반환한다.
+router.get(
+  "/publicInfo",
+  query("id").isMongoId(),
+  validator,
+  roomHandlers.publicInfoHandler
+);
+
 // 이후 API 접근 시 로그인 필요
 router.use(require("../middlewares/auth"));
 
