@@ -193,15 +193,16 @@ const startSocketServer = (server, _session) => {
     })
   );
 
-  io.on("connection", (socket) => {
+  io.on("connection", async (socket) => {
     try {
       const session = socket.handshake.session;
       const { id: userId } = getLoginInfo({ session });
-      if (!userId) return;
+      const user = await userModel.findOne({ id: userId });
+      if (!userId || !user) return;
 
       // connect to User
       session.socketId = socket.id;
-      socket.join(`user-${userId}`);
+      socket.join(`user-${user._id}`);
       session.save(); // Socket.io 세션의 변경 사항을 Express 세션에 반영.
     } catch (err) {
       logger.error(err);
