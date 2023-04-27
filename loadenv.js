@@ -29,7 +29,7 @@ module.exports = {
     TOKEN_EXPIRED: -3,
     TOKEN_INVALID: -2,
   },
-  appUriScheme: process.env.APP_URI_SCHEME,
+  appUriScheme: process.env.APP_URI_SCHEME, // FIXME: 사용하지 않음
   googleApplicationCredentials:
     process.env.GOOGLE_APPLICATION_CREDENTIALS &&
     JSON.parse(process.env.GOOGLE_APPLICATION_CREDENTIALS),

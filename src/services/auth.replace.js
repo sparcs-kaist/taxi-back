@@ -8,6 +8,7 @@ const {
   generateProfileImageUrl,
 } = require("../modules/modifyProfile");
 const logger = require("../modules/logger");
+const jwt = require("../modules/auths/jwt");
 
 const { registerDeviceTokenHandler } = require("../services/auth");
 
@@ -107,11 +108,24 @@ const joinus = (req, res, userData, redirectPath = "/") => {
 const loginDone = (req, res, userData, redirectPath = "/") => {
   userModel.findOne(
     { id: userData.id },
-    "name id withdraw ban",
-    (err, result) => {
+    "_id name id withdraw ban",
+    async (err, result) => {
       if (err) logger.error(logger.error(err));
       else if (!result) joinus(req, res, userData, redirectPath);
       else {
+        if (req.session.isApp) {
+          const { token: accessToken } = await jwt.sign({
+            id: result._id,
+            type: "access",
+          });
+          const { token: refreshToken } = await jwt.sign({
+            id: result._id,
+            type: "refresh",
+          });
+          req.session.accessToken = accessToken;
+          req.session.refreshToken = refreshToken;
+        }
+
         login(req, userData.sid, result.id, result.name);
         res.redirect(frontUrl + redirectPath);
       }
@@ -127,6 +141,9 @@ const loginReplaceHandler = (req, res) => {
 
 const sparcsssoHandler = (req, res) => {
   const redirectPath = decodeURIComponent(req.query?.redirect || "%2F");
+  const isApp = !!req.query.isApp;
+
+  req.session.isApp = isApp;
   res.end(loginHtmlBuilder(redirectPath));
 };
 

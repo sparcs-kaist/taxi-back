@@ -40,8 +40,6 @@ router.get(
   (isAuthReplace ? authReplaceHandlers : authHandlers).logoutHandler
 );
 
-router.get("/app/token/generate", authHandlers.generateTokenHandler);
-// ? 이거 왜 이리 만듬
 router.get("/app/token/login", mobileAuthHandlers.tokenLoginHandler);
 // FIXME: accessToken, deviceToken validation 추가
 router.get("/app/token/refresh", mobileAuthHandlers.tokenRefreshHandler);

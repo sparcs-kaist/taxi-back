@@ -2,7 +2,6 @@ const {
   sparcssso: sparcsssoEnv,
   frontUrl,
   nodeEnv,
-  appUriScheme,
   testAccounts,
 } = require("../../loadenv");
 const { userModel } = require("../modules/stores/mongo");
@@ -10,7 +9,6 @@ const { user: userPattern } = require("../modules/patterns");
 const { getLoginInfo, logout, login } = require("../modules/auths/login");
 
 const { unregisterDeviceToken } = require("../modules/fcm");
-const logger = require("../modules/logger");
 const {
   generateNickname,
   generateProfileImageUrl,
@@ -75,12 +73,25 @@ const update = async (req, res, userData) => {
 const loginDone = (req, res, userData) => {
   userModel.findOne(
     { id: userData.id },
-    "name id withdraw ban",
-    (err, result) => {
+    "_id name id withdraw ban",
+    async (err, result) => {
       if (err) loginFail(req, res);
       else if (!result) joinus(req, res, userData);
       else if (result.name != userData.name) update(req, res, userData);
       else {
+        if (req.session.isApp) {
+          const { token: accessToken } = await jwt.sign({
+            id: result._id,
+            type: "access",
+          });
+          const { token: refreshToken } = await jwt.sign({
+            id: result._id,
+            type: "refresh",
+          });
+          req.session.accessToken = accessToken;
+          req.session.refreshToken = refreshToken;
+        }
+
         const redirectPath = req.session?.state_redirectPath || "/";
         req.session.state_redirectPath = undefined;
         login(req, userData.sid, result.id, result.name);
@@ -94,16 +105,14 @@ const loginFail = (req, res, redirectUrl = "") => {
   res.redirect(redirectUrl || frontUrl + "/login/fail");
 };
 
-const generateTokenHandler = (req, res) => {
-  req.session.isApp = true;
-  sparcsssoHandler(req, res);
-};
-
 const sparcsssoHandler = (req, res) => {
   const redirectPath = decodeURIComponent(req.query?.redirect || "%2F");
+  const isApp = !!req.query.isApp;
   const { url, state } = client.getLoginParams();
+
   req.session.state = state;
   req.session.state_redirectPath = redirectPath;
+  req.session.isApp = isApp;
   res.redirect(url);
 };
 
@@ -118,11 +127,7 @@ const sparcsssoCallbackHandler = (req, res) => {
       const userData = transUserData(userDataBefore);
       const isTestAccount = testAccounts?.includes(userData.email);
       if (userData.isEligible || nodeEnv !== "production" || isTestAccount) {
-        if (req.session.isApp) {
-          createNewTokenHandler(req, res, userData);
-        } else {
-          loginDone(req, res, userData);
-        }
+        loginDone(req, res, userData);
       } else {
         // 카이스트 구성원이 아닌 경우, SSO 로그아웃 이후, 로그인 실패 URI 로 이동합니다
         const { sid } = userData;
@@ -138,39 +143,6 @@ const loginReplaceHandler = (req, res) => {
   res.status(400).json({
     error: "Auths/login/replace : Bad Request",
   });
-};
-
-const createNewTokenHandler = (req, res, userData) => {
-  userModel.findOne(
-    { id: userData.id },
-    "name id withdraw ban",
-    async (err, result) => {
-      if (err) {
-        logger.error(err);
-        loginFail(req, res);
-      } else if (!result) joinus(req, res, userData);
-      else if (result.name !== userData.name) update(req, res, userData);
-      else {
-        const accessToken = await jwt.sign({
-          id: result._id,
-          deviceToken: req.body.deviceToken,
-          type: "access",
-        });
-        const refreshToken = await jwt.sign({
-          id: result._id,
-          deviceToken: req.body.deviceToken,
-          type: "refresh",
-        });
-        res.redirect(
-          appUriScheme +
-            "://login?accessToken=" +
-            accessToken.token +
-            "&refreshToken=" +
-            refreshToken.token
-        );
-      }
-    }
-  );
 };
 
 const logoutHandler = async (req, res) => {
@@ -200,5 +172,4 @@ module.exports = {
   sparcsssoCallbackHandler,
   loginReplaceHandler,
   logoutHandler,
-  generateTokenHandler,
 };
