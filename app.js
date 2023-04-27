@@ -58,4 +58,4 @@ const serverHttp = http
   );
 
 // socket.io 서버 시작 및 app 인스턴스에 저장
-app.set("io", startSocketServer(serverHttp, session));
+app.set("io", startSocketServer(serverHttp));

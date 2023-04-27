@@ -1,7 +1,6 @@
 const { Server } = require("socket.io");
-const sharedsession = require("express-socket.io-session");
-const cookieParser = require("cookie-parser");
 
+const sessionMiddleware = require("../middlewares/session");
 const logger = require("./logger");
 const { getLoginInfo } = require("./auths/login");
 const { roomModel, userModel, chatModel } = require("./stores/mongo");
@@ -175,42 +174,32 @@ const emitChatEvent = async (io, chat) => {
   }
 };
 
-// server: express server
-// session: session middleware
-const startSocketServer = (server, _session) => {
-  /**
-   * {@link https://socket.io/how-to/use-with-express-session}
-   */
-  const allowRequest = (req, callback) => {
-    // with HTTP long-polling, we have access to the HTTP response here, but this is not
-    // the case with WebSocket, so we provide a dummy response object
-    const fakeRes = {
-      getHeader() {
-        return [];
-      },
-      setHeader(key, values) {
-        req.cookieHolder = values[0];
-      },
-      writeHead() {},
-    };
-    _session(req, fakeRes, () => {
-      if (req.session) {
-        // trigger the setHeader() above
-        fakeRes.writeHead();
-        // manually save the session (normally triggered by res.end())
-        req.session.save();
-      }
-      callback(null, true);
-    });
-  };
-
+// https://socket.io/how-to/use-with-express-session 참고
+const startSocketServer = (server) => {
   const io = new Server(server, {
+    allowRequest: (req, callback) => {
+      const fakeRes = {
+        getHeader() {
+          return [];
+        },
+        setHeader(key, values) {
+          req.cookieHolder = values[0];
+        },
+        writeHead() {},
+      };
+      sessionMiddleware(req, fakeRes, () => {
+        if (req.session) {
+          fakeRes.writeHead();
+          req.session.save();
+        }
+        callback(null, true);
+      });
+    },
     cors: {
       origin: [frontUrl],
       methods: ["GET", "POST"],
       credentials: true,
     },
-    allowRequest,
   });
 
   io.engine.on("initial_headers", (headers, req) => {
@@ -219,9 +208,6 @@ const startSocketServer = (server, _session) => {
       delete req.cookieHolder;
     }
   });
-
-  // socket.io와 express 사이에서 session을 공유합니다.
-  // io.use(sharedsession(_session, cookieParser(), { autoSave: true }));
 
   io.on("connection", (socket) => {
     try {
@@ -234,19 +220,10 @@ const startSocketServer = (server, _session) => {
 
         socket.join(`user-${userOid}`);
         req.session.socketId = socket.id;
-        console.log(" > regi socket-id = " + req.session.socketId);
         req.session.save();
-        // console.log("try socket with anom"); // REMOVE ME
-        // console.log("join with " + `user-${userOid}`); // REMOVE ME
-        // console.log("socket ID = " + socket.id); // REMOVE ME
       });
 
-      socket.on("disconnect", () => {
-        // disconnect to User
-        // 빠른 새로고침 시, "connection" 이벤트와 "disconnect" 이벤트가 비동기적으로 동시에 발생할 가능성?
-        // socket.handshake.session.socketId = null;
-        // socket.handshake.session.save();
-      });
+      socket.on("disconnect", () => {});
     } catch (err) {
       logger.error(err);
     }

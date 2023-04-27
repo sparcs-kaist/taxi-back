@@ -14,10 +14,6 @@ const loadRecentChatHandler = async (req, res) => {
     if (!userId) {
       return res.status(500).send("Chat/ : internal server error");
     }
-    console.log(" > api socket-id : " + socketId);
-    req.session.reload(() => {
-      console.log(" > re + api socket-id : " + socketId);
-    });
     if (!socketId || !io) {
       return res.status(403).send("Chat/ : socket did not connected");
     }
