@@ -178,29 +178,64 @@ const emitChatEvent = async (io, chat) => {
 // server: express server
 // session: session middleware
 const startSocketServer = (server, _session) => {
+  /**
+   * {@link https://socket.io/how-to/use-with-express-session}
+   */
+  const allowRequest = (req, callback) => {
+    // with HTTP long-polling, we have access to the HTTP response here, but this is not
+    // the case with WebSocket, so we provide a dummy response object
+    const fakeRes = {
+      getHeader() {
+        return [];
+      },
+      setHeader(key, values) {
+        req.cookieHolder = values[0];
+      },
+      writeHead() {},
+    };
+    _session(req, fakeRes, () => {
+      if (req.session) {
+        // trigger the setHeader() above
+        fakeRes.writeHead();
+        // manually save the session (normally triggered by res.end())
+        req.session.save();
+      }
+      callback(null, true);
+    });
+  };
+
   const io = new Server(server, {
     cors: {
       origin: [frontUrl],
       methods: ["GET", "POST"],
       credentials: true,
     },
+    allowRequest,
+  });
+
+  io.engine.on("initial_headers", (headers, req) => {
+    if (req.cookieHolder) {
+      headers["set-cookie"] = req.cookieHolder;
+      delete req.cookieHolder;
+    }
   });
 
   // socket.io와 express 사이에서 session을 공유합니다.
-  io.use(sharedsession(_session, cookieParser(), { autoSave: true }));
+  // io.use(sharedsession(_session, cookieParser(), { autoSave: true }));
 
   io.on("connection", (socket) => {
     try {
-      const { session } = socket.handshake;
-      session.reload((err) => {
+      const req = socket.request;
+      req.session.reload((err) => {
         if (err) throw err;
 
-        const { oid: userOid } = getLoginInfo({ session });
+        const { oid: userOid } = getLoginInfo(req);
         if (!userOid) return;
 
         socket.join(`user-${userOid}`);
-        session.socketId = socket.id;
-        session.save();
+        req.session.socketId = socket.id;
+        console.log(" > regi socket-id = " + req.session.socketId);
+        req.session.save();
         // console.log("try socket with anom"); // REMOVE ME
         // console.log("join with " + `user-${userOid}`); // REMOVE ME
         // console.log("socket ID = " + socket.id); // REMOVE ME
