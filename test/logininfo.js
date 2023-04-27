@@ -48,8 +48,10 @@ describe("[logininfo] 1.logininfoHandler", () => {
           email: result.email,
           profileImgUrl: result.profileImageUrl,
           account: "",
-          deviceToken: undefined,
           deviceType: "web",
+          deviceToken: undefined,
+          accessToken: undefined,
+          refreshToken: undefined,
         });
       },
     };
