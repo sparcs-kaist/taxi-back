@@ -168,8 +168,7 @@ const sendChatHandler = async (req, res) => {
 
 const uploadChatImgGetPUrlHandler = async (req, res) => {
   try {
-    const type = req.body.type;
-    const roomId = req.session?.chatRoomId;
+    const { type, roomId } = req.body;
     const user = await userModel.findOne({ id: req.userId });
     if (!roomId) {
       return res

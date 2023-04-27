@@ -4,7 +4,6 @@ const {
   userModel,
 } = require("../modules/stores/mongo");
 const { emitChatEvent } = require("../modules/socket");
-const { leaveChatRoom } = require("../modules/auths/login");
 const logger = require("../modules/logger");
 const {
   roomPopulateOption,
@@ -231,9 +230,8 @@ const abortHandler = async (req, res) => {
     }
 
     // 사용자가 채팅방에 들어와있는 경우, 소켓 연결을 먼저 끊습니다.
-    if (req.session.socketId && req.session.chatRoomId) {
+    if (req.session.socketId) {
       req.app.get("io").in(req.session.socketId).disconnectSockets(true);
-      leaveChatRoom({ session: req.session });
     }
 
     // 해당 방의 참여자 목록에서 사용자를 제거합니다.
