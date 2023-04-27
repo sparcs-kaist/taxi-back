@@ -37,7 +37,7 @@ const loginHtmlBuilder = (redirectPath) => `
                 }
                 const submitHandler = () => {
                     const value = document.getElementById("input-id").value;
-                    if(value) post('/auth/try', {
+                    if(value) post('/auth/login/replace', {
                       id: value,
                       redirect: "${encodeURIComponent(redirectPath)}",
                     });
@@ -119,7 +119,7 @@ const loginDone = (req, res, userData, redirectPath = "/") => {
   );
 };
 
-const tryHandler = (req, res) => {
+const loginReplaceHandler = (req, res) => {
   const { id } = req.body;
   const redirectPath = decodeURIComponent(req.body?.redirect || "%2F");
   loginDone(req, res, makeInfo(id), redirectPath);
@@ -150,7 +150,7 @@ const logoutHandler = async (req, res) => {
 };
 
 module.exports = {
-  tryHandler,
+  loginReplaceHandler,
   sparcsssoHandler,
   logoutHandler,
   registerDeviceTokenHandler,

@@ -134,6 +134,12 @@ const sparcsssoCallbackHandler = (req, res) => {
   }
 };
 
+const loginReplaceHandler = (req, res) => {
+  res.status(400).json({
+    error: "Auths/login/replace : Bad Request",
+  });
+};
+
 const createNewTokenHandler = (req, res, userData) => {
   userModel.findOne(
     { id: userData.id },
@@ -192,6 +198,7 @@ const logoutHandler = async (req, res) => {
 module.exports = {
   sparcsssoHandler,
   sparcsssoCallbackHandler,
+  loginReplaceHandler,
   logoutHandler,
   generateTokenHandler,
 };
