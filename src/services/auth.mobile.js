@@ -1,4 +1,4 @@
-Fix: const { userModel } = require("../modules/stores/mongo");
+const { userModel } = require("../modules/stores/mongo");
 const { login } = require("../modules/auths/login");
 
 const {
