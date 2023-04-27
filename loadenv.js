@@ -21,7 +21,7 @@ module.exports = {
       `https://${process.env.AWS_S3_BUCKET_NAME}.s3.ap-northeast-2.amazonaws.com`, // optional
   },
   jwt: {
-    secretKey: process.env.JWT_SECRET_KEY,
+    secretKey: process.env.JWT_SECRET_KEY || "TAXI_JWT_KEY",
     option: {
       algorithm: "HS256",
       issuer: process.env.FRONT_URL || "http://localhost:3000", // optional (default = "http://localhost:3000")
