@@ -107,12 +107,12 @@ const joinus = (req, res, userData, redirectPath = "/") => {
 const loginDone = (req, res, userData, redirectPath = "/") => {
   userModel.findOne(
     { id: userData.id },
-    "name id withdraw ban",
+    "_id name id withdraw ban",
     (err, result) => {
       if (err) logger.error(logger.error(err));
       else if (!result) joinus(req, res, userData, redirectPath);
       else {
-        login(req, userData.sid, result.id, result.name);
+        login(req, userData.sid, result.id, result._id, result.name);
         res.redirect(frontUrl + redirectPath);
       }
     }

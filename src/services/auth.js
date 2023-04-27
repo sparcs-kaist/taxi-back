@@ -75,7 +75,7 @@ const update = async (req, res, userData) => {
 const loginDone = (req, res, userData) => {
   userModel.findOne(
     { id: userData.id },
-    "name id withdraw ban",
+    "_id name id withdraw ban",
     (err, result) => {
       if (err) loginFail(req, res);
       else if (!result) joinus(req, res, userData);
@@ -83,7 +83,7 @@ const loginDone = (req, res, userData) => {
       else {
         const redirectPath = req.session?.state_redirectPath || "/";
         req.session.state_redirectPath = undefined;
-        login(req, userData.sid, result.id, result.name);
+        login(req, userData.sid, result.id, result._id, result.name);
         res.redirect(frontUrl + redirectPath);
       }
     }

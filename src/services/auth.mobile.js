@@ -35,7 +35,7 @@ const loginWithToken = async (req, res) => {
     if (!userInfo)
       return res.status(401).json({ message: "No corresponding user" });
     else {
-      login(req, userInfo.sid, userInfo.id, userInfo.name);
+      login(req, userInfo.sid, userInfo.id, userInfo._id, userInfo.name);
       req.session.deviceToken = deviceToken;
       return res.status(200).json({ message: "success" });
     }

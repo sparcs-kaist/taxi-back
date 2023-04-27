@@ -2,16 +2,16 @@ const logger = require("../logger");
 
 const getLoginInfo = (req) => {
   if (req.session.loginInfo) {
-    const { id, sid, name, time } = req.session.loginInfo;
+    const { id, sid, oid, name, time } = req.session.loginInfo;
     const timeFlow = Date.now() - time;
-    if (timeFlow > 14 * 24 * 3600 * 1000 /* 14일 */)
-      // if (timeFlow > 1 * 3600 * 1000 /* 1시간 */)
-      return { id: undefined, sid: undefined, name: undefined };
-    else {
-      req.session.loginInfo.time = Date.now();
-      return { id, sid, name };
+    if (timeFlow > 14 * 24 * 3600 * 1000 /* 14일 */) {
+      // if (timeFlow > 1 * 3600 * 1000 /* 1시간 */) {
+      return { id: undefined, sid: undefined, oid: undefined, name: undefined };
     }
-  } else return { id: undefined, sid: undefined, name: undefined };
+    req.session.loginInfo.time = Date.now();
+    return { id, sid, oid, name };
+  }
+  return { id: undefined, sid: undefined, oid: undefined, name: undefined };
 };
 
 const isLogin = (req) => {
@@ -20,8 +20,8 @@ const isLogin = (req) => {
   else return false;
 };
 
-const login = (req, sid, id, name) => {
-  req.session.loginInfo = { sid, id, name, time: Date.now() };
+const login = (req, sid, id, oid, name) => {
+  req.session.loginInfo = { sid, id, oid, name, time: Date.now() };
 };
 
 const logout = (req) => {

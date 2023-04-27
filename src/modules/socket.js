@@ -187,39 +187,34 @@ const startSocketServer = (server, _session) => {
   });
 
   // socket.io와 express 사이에서 session을 공유합니다.
-  io.use(
-    sharedsession(_session, cookieParser(), {
-      autoSave: true,
-    })
-  );
+  io.use(sharedsession(_session, cookieParser(), { autoSave: true }));
 
-  io.on("connection", async (socket) => {
+  io.on("connection", (socket) => {
     try {
-      const session = socket.handshake.session;
-      const { id: userId } = getLoginInfo({ session });
-      const user = await userModel.findOne({ id: userId });
-      if (!userId || !user) return;
+      const { session } = socket.handshake;
+      session.reload((err) => {
+        if (err) throw err;
 
-      // connect to User
-      session.socketId = socket.id;
-      socket.join(`user-${user._id}`);
-      session.save(); // Socket.io 세션의 변경 사항을 Express 세션에 반영.
+        const { oid: userOid } = getLoginInfo({ session });
+        if (!userOid) return;
+
+        socket.join(`user-${userOid}`);
+        session.socketId = socket.id;
+        session.save();
+        // console.log("try socket with anom"); // REMOVE ME
+        // console.log("join with " + `user-${userOid}`); // REMOVE ME
+        // console.log("socket ID = " + socket.id); // REMOVE ME
+      });
+
+      socket.on("disconnect", () => {
+        // disconnect to User
+        // 빠른 새로고침 시, "connection" 이벤트와 "disconnect" 이벤트가 비동기적으로 동시에 발생할 가능성?
+        // socket.handshake.session.socketId = null;
+        // socket.handshake.session.save();
+      });
     } catch (err) {
       logger.error(err);
     }
-
-    socket.on("disconnect", () => {
-      try {
-        const session = socket.handshake.session;
-        const { userId } = session;
-        if (!userId) return;
-
-        // disconnect to User
-        session.socketId = null;
-      } catch (err) {
-        logger.error(err);
-      }
-    });
   });
 
   return io;
