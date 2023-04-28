@@ -21,7 +21,7 @@ module.exports = {
       `https://${process.env.AWS_S3_BUCKET_NAME}.s3.ap-northeast-2.amazonaws.com`, // optional
   },
   jwt: {
-    secretKey: process.env.JWT_SECRET_KEY,
+    secretKey: process.env.JWT_SECRET_KEY || "TAXI_JWT_KEY",
     option: {
       algorithm: "HS256",
       issuer: process.env.FRONT_URL || "http://localhost:3000", // optional (default = "http://localhost:3000")
@@ -29,7 +29,7 @@ module.exports = {
     TOKEN_EXPIRED: -3,
     TOKEN_INVALID: -2,
   },
-  appUriScheme: process.env.APP_URI_SCHEME,
+  appUriScheme: process.env.APP_URI_SCHEME, // FIXME: 사용하지 않음
   googleApplicationCredentials:
     process.env.GOOGLE_APPLICATION_CREDENTIALS &&
     JSON.parse(process.env.GOOGLE_APPLICATION_CREDENTIALS),
