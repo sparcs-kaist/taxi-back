@@ -94,7 +94,7 @@ const loginDone = (req, res, userData) => {
 
         const redirectPath = req.session?.state_redirectPath || "/";
         req.session.state_redirectPath = undefined;
-        login(req, userData.sid, result.id, result.name);
+        login(req, userData.sid, result.id, result._id, result.name);
         res.redirect(frontUrl + redirectPath);
       }
     }

@@ -1,12 +1,174 @@
-const { chatModel, userModel } = require("../modules/stores/mongo");
+const { chatModel, userModel, roomModel } = require("../modules/stores/mongo");
+const { chatPopulateOption } = require("../modules/populates/chats");
 const awsS3 = require("../modules/stores/awsS3");
+const { transformChatsForRoom, emitChatEvent } = require("../modules/socket");
 
-const { emitChatEvent } = require("./socket.chats");
+const chatCount = 60;
+
+const loadRecentChatHandler = async (req, res) => {
+  try {
+    const io = req.app.get("io");
+    const { userId } = req;
+    const { roomId } = req.body;
+    const { socketId } = req.session;
+    if (!userId) {
+      return res.status(500).send("Chat/ : internal server error");
+    }
+    if (!socketId || !io) {
+      return res.status(403).send("Chat/ : socket did not connected");
+    }
+
+    const isPart = await isUserInRoom(userId, roomId);
+    if (!isPart) {
+      return res
+        .status(403)
+        .send("Chat/ : user did not participated in the room");
+    }
+
+    const chats = await chatModel
+      .find({ roomId, isValid: true })
+      .sort({ time: -1 })
+      .limit(chatCount)
+      .lean()
+      .populate(chatPopulateOption);
+
+    if (chats) {
+      chats.reverse();
+      io.to(socketId).emit("chat_init", {
+        chats: await transformChatsForRoom(chats),
+      });
+      res.json({ result: true });
+    } else {
+      res.status(500).send("Chat/ : internal server error");
+    }
+  } catch (e) {
+    res.status(500).send("Chat/ : internal server error");
+  }
+};
+
+const loadBeforeChatHandler = async (req, res) => {
+  try {
+    const io = req.app.get("io");
+    const { userId } = req;
+    const { roomId, lastMsgDate } = req.body;
+    const { socketId } = req.session;
+    if (!userId) {
+      return res.status(500).send("Chat/load/before : internal server error");
+    }
+    if (!socketId || !io) {
+      return res
+        .status(403)
+        .send("Chat/load/before : socket did not connected");
+    }
+
+    const isPart = await isUserInRoom(userId, roomId);
+    if (!isPart) {
+      return res
+        .status(403)
+        .send("Chat/load/before : user did not participated in the room");
+    }
+
+    const chats = await chatModel
+      .find({ roomId, time: { $lt: lastMsgDate }, isValid: true })
+      .sort({ time: -1 })
+      .limit(chatCount)
+      .lean()
+      .populate(chatPopulateOption);
+
+    if (chats) {
+      chats.reverse();
+      io.to(socketId).emit("chat_push_front", {
+        chats: await transformChatsForRoom(chats),
+      });
+      res.json({ result: true });
+    } else {
+      res.status(500).send("Chat/load/before : internal server error");
+    }
+  } catch (e) {
+    res.status(500).send("Chat/load/before : internal server error");
+  }
+};
+
+const loadAfterChatHandler = async (req, res) => {
+  try {
+    const io = req.app.get("io");
+    const { userId } = req;
+    const { roomId, lastMsgDate } = req.body;
+    const { socketId } = req.session;
+    if (!userId) {
+      return res.status(500).send("Chat/load/after : internal server error");
+    }
+    if (!socketId || !io) {
+      return res.status(403).send("Chat/load/after : socket did not connected");
+    }
+
+    const isPart = await isUserInRoom(userId, roomId);
+    if (!isPart) {
+      return res
+        .status(403)
+        .send("Chat/load/after : user did not participated in the room");
+    }
+
+    const chats = await chatModel
+      .find({ roomId, time: { $gt: lastMsgDate }, isValid: true })
+      .sort({ time: 1 })
+      .limit(chatCount)
+      .lean()
+      .populate(chatPopulateOption);
+
+    if (chats) {
+      io.to(socketId).emit("chat_push_back", {
+        chats: await transformChatsForRoom(chats),
+      });
+      res.json({ result: true });
+    } else {
+      res.status(500).send("Chat/load/after : internal server error");
+    }
+  } catch (e) {
+    res.status(500).send("Chat/load/after : internal server error");
+  }
+};
+
+const sendChatHandler = async (req, res) => {
+  try {
+    const io = req.app.get("io");
+    const { userId } = req;
+    const { roomId, type, content } = req.body;
+    const { socketId } = req.session;
+    const user = await userModel.findOne({ id: userId });
+
+    if (!userId || !user) {
+      return res.status(500).send("Chat/send : internal server error");
+    }
+    if (!socketId || !io) {
+      return res.status(403).send("Chat/send : socket did not connected");
+    }
+
+    const isPart = await isUserInRoom(userId, roomId);
+    if (!isPart) {
+      return res
+        .status(403)
+        .send("Chat/send : user did not participated in the room");
+    }
+
+    if (
+      await emitChatEvent(io, {
+        roomId,
+        type,
+        content,
+        authorId: user._id,
+      })
+    )
+      res.json({ result: true });
+    else res.status(500).send("Chat/send : internal server error");
+  } catch (e) {
+    res.status(500).send("Chat/send : internal server error");
+  }
+};
 
 const uploadChatImgGetPUrlHandler = async (req, res) => {
   try {
-    const type = req.body.type;
-    const roomId = req.session?.chatRoomId;
+    const { type, roomId } = req.body;
     const user = await userModel.findOne({ id: req.userId });
     if (!roomId) {
       return res
@@ -81,7 +243,7 @@ const uploadChatImgDoneHandler = async (req, res) => {
       }
 
       chat.content = chat._id;
-      emitChatEvent(req.app.get("io"), chat.roomId, chat);
+      emitChatEvent(req.app.get("io"), chat);
 
       res.json({
         result: true,
@@ -92,7 +254,28 @@ const uploadChatImgDoneHandler = async (req, res) => {
   }
 };
 
+/**
+ * 주어진 유저가 주어진 방에 참여하는 중인지 확인합니다.
+ * @summary 채팅 load/send 관련 api에서 검증을 위하여 함수로 분리하였습니다.
+ * @param {string} userId - 확인하고픈 user의 Id 입니다.
+ * @param {string} roomId - 참여하는지 확인하고픈 방의 objectId 입니다.
+ * @return {Promise<Boolean>} userId가 방에 포함되어 있다면 true, 그 외의 경우 false를 반환합니다.
+ */
+const isUserInRoom = async (userId, roomId) => {
+  const user = await userModel.findOne({ id: userId });
+  const { part } = await roomModel.findById(roomId);
+
+  if (!part || !user) return false;
+  return part
+    .map((participant) => participant.user)
+    .some((user) => user.equals(user._id));
+};
+
 module.exports = {
+  loadRecentChatHandler,
+  loadBeforeChatHandler,
+  loadAfterChatHandler,
+  sendChatHandler,
   uploadChatImgGetPUrlHandler,
   uploadChatImgDoneHandler,
 };

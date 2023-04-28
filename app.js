@@ -3,7 +3,7 @@ const express = require("express");
 const http = require("http");
 const { port: httpPort } = require("./loadenv");
 const logger = require("./src/modules/logger");
-const startSocketServer = require("./src/modules/socket");
+const { startSocketServer } = require("./src/modules/socket");
 
 // Firebase Admin 초기설정
 require("./src/modules/fcm").initializeApp();
@@ -58,4 +58,4 @@ const serverHttp = http
   );
 
 // socket.io 서버 시작 및 app 인스턴스에 저장
-app.set("io", startSocketServer(serverHttp, session));
+app.set("io", startSocketServer(serverHttp));

@@ -33,7 +33,7 @@ const tokenLoginHandler = async (req, res) => {
       return res.status(401).json({ message: "No corresponding user" });
     }
 
-    login(req, user.sid, user.id, user.name);
+    login(req, user.sid, user.id, user._id, user.name);
     req.session.isApp = true;
     req.session.deviceToken = deviceToken;
     return res.status(200).json({ message: "success" });
