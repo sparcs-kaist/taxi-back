@@ -223,6 +223,17 @@ const startSocketServer = (server) => {
         req.session.save();
       });
 
+      socket.on("health", () => {
+        req.session.reload((err) => {
+          if (req.session.socketId === socket.id) {
+            socket.emit("health", true);
+          } else {
+            req.session.socketId = socket.id;
+            req.session.save();
+            socket.emit("health", false);
+          }
+        });
+      });
       socket.on("disconnect", () => {});
     } catch (err) {
       logger.error(err);
