@@ -126,7 +126,7 @@ const loginDone = (req, res, userData, redirectPath = "/") => {
           req.session.refreshToken = refreshToken;
         }
 
-        login(req, userData.sid, result.id, result.name);
+        login(req, userData.sid, result.id, result._id, result.name);
         res.redirect(frontUrl + redirectPath);
       }
     }

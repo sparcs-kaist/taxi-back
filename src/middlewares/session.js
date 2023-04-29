@@ -24,7 +24,7 @@ if (redisUrl) {
 
 module.exports = expressSession({
   secret: sessionSecret,
-  resave: true,
-  saveUninitialized: true,
+  resave: false,
+  saveUninitialized: false,
   store: sessionStore,
 });
