@@ -8,6 +8,7 @@ const { getS3Url } = require("./stores/awsS3");
 const { getTokensOfUsers, sendMessageByTokens } = require("./fcm");
 
 const { frontUrl } = require("../../loadenv");
+const { chatPopulateOption } = require("./populates/chats");
 
 /**
  * emitChatEvent의 필수 파라미터가 주어지지 않은 경우 발생하는 예외를 정의하는 클래스입니다.
@@ -134,7 +135,9 @@ const emitChatEvent = async (io, chat) => {
         },
         { upsert: true, new: true }
       )
-      .lean();
+      .lean()
+      .populate(chatPopulateOption);
+
     chatDocument.authorName = nickname;
     chatDocument.authorProfileUrl = profileImageUrl;
 
@@ -151,7 +154,7 @@ const emitChatEvent = async (io, chat) => {
     const chatsForRoom = await transformChatsForRoom([chatDocument]);
     await Promise.all(
       userIds.map(async (userId) =>
-        io.to(`user-${userId}`).emit("chat_push_back", {
+        io.in(`user-${userId}`).emit("chat_push_back", {
           chats: chatsForRoom,
           roomId,
         })
@@ -218,22 +221,10 @@ const startSocketServer = (server) => {
         const { oid: userOid } = getLoginInfo(req);
         if (!userOid) return;
 
+        socket.join(`session-${req.session.id}`);
         socket.join(`user-${userOid}`);
-        req.session.socketId = socket.id;
-        req.session.save();
       });
 
-      socket.on("health", () => {
-        req.session.reload((err) => {
-          if (req.session.socketId === socket.id) {
-            socket.emit("health", true);
-          } else {
-            req.session.socketId = socket.id;
-            req.session.save();
-            socket.emit("health", false);
-          }
-        });
-      });
       socket.on("disconnect", () => {});
     } catch (err) {
       logger.error(err);

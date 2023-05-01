@@ -26,9 +26,9 @@ const login = (req, sid, id, oid, name) => {
 
 const logout = (req) => {
   // 로그아웃 전 socket.io 소켓들 연결부터 끊기
-  if (req.session.socketId) {
-    req.app.get("io").in(req.session.socketId).disconnectSockets(true);
-  }
+  const io = req.app.get("io");
+  if (io) io.in(req.session.id).disconnectSockets(true);
+
   req.session.destroy((err) => {
     if (err) logger.error(err);
   });
