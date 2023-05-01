@@ -223,7 +223,6 @@ const startSocketServer = (server) => {
 
         socket.join(`session-${req.session.id}`);
         socket.join(`user-${userOid}`);
-        req.session.save();
       });
 
       socket.on("disconnect", () => {});
