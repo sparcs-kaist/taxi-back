@@ -8,6 +8,7 @@ const { getS3Url } = require("./stores/awsS3");
 const { getTokensOfUsers, sendMessageByTokens } = require("./fcm");
 
 const { frontUrl } = require("../../loadenv");
+const { chatPopulateOption } = require("./populates/chats");
 
 /**
  * emitChatEvent의 필수 파라미터가 주어지지 않은 경우 발생하는 예외를 정의하는 클래스입니다.
@@ -134,7 +135,9 @@ const emitChatEvent = async (io, chat) => {
         },
         { upsert: true, new: true }
       )
-      .lean();
+      .lean()
+      .populate(chatPopulateOption);
+
     chatDocument.authorName = nickname;
     chatDocument.authorProfileUrl = profileImageUrl;
 
