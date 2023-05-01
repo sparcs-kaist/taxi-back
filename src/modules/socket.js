@@ -154,7 +154,7 @@ const emitChatEvent = async (io, chat) => {
     const chatsForRoom = await transformChatsForRoom([chatDocument]);
     await Promise.all(
       userIds.map(async (userId) =>
-        io.to(`user-${userId}`).emit("chat_push_back", {
+        io.in(`user-${userId}`).emit("chat_push_back", {
           chats: chatsForRoom,
           roomId,
         })
@@ -221,22 +221,10 @@ const startSocketServer = (server) => {
         const { oid: userOid } = getLoginInfo(req);
         if (!userOid) return;
 
+        socket.join(`session-${req.session.id}`);
         socket.join(`user-${userOid}`);
-        req.session.socketId = socket.id;
-        req.session.save();
       });
 
-      socket.on("health", () => {
-        req.session.reload((err) => {
-          if (req.session.socketId === socket.id) {
-            socket.emit("health", true);
-          } else {
-            req.session.socketId = socket.id;
-            req.session.save();
-            socket.emit("health", false);
-          }
-        });
-      });
       socket.on("disconnect", () => {});
     } catch (err) {
       logger.error(err);

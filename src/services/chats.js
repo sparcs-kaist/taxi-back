@@ -10,11 +10,11 @@ const loadRecentChatHandler = async (req, res) => {
     const io = req.app.get("io");
     const { userId } = req;
     const { roomId } = req.body;
-    const { socketId } = req.session;
+    const { id: sessionId } = req.session;
     if (!userId) {
       return res.status(500).send("Chat/ : internal server error");
     }
-    if (!socketId || !io) {
+    if (!io) {
       return res.status(403).send("Chat/ : socket did not connected");
     }
 
@@ -34,7 +34,7 @@ const loadRecentChatHandler = async (req, res) => {
 
     if (chats) {
       chats.reverse();
-      io.to(socketId).emit("chat_init", {
+      io.in(`session-${sessionId}`).emit("chat_init", {
         chats: await transformChatsForRoom(chats),
       });
       res.json({ result: true });
@@ -51,11 +51,11 @@ const loadBeforeChatHandler = async (req, res) => {
     const io = req.app.get("io");
     const { userId } = req;
     const { roomId, lastMsgDate } = req.body;
-    const { socketId } = req.session;
+    const { id: sessionId } = req.session;
     if (!userId) {
       return res.status(500).send("Chat/load/before : internal server error");
     }
-    if (!socketId || !io) {
+    if (!io) {
       return res
         .status(403)
         .send("Chat/load/before : socket did not connected");
@@ -77,7 +77,7 @@ const loadBeforeChatHandler = async (req, res) => {
 
     if (chats) {
       chats.reverse();
-      io.to(socketId).emit("chat_push_front", {
+      io.in(`session-${sessionId}`).emit("chat_push_front", {
         chats: await transformChatsForRoom(chats),
       });
       res.json({ result: true });
@@ -94,11 +94,11 @@ const loadAfterChatHandler = async (req, res) => {
     const io = req.app.get("io");
     const { userId } = req;
     const { roomId, lastMsgDate } = req.body;
-    const { socketId } = req.session;
+    const { id: sessionId } = req.session;
     if (!userId) {
       return res.status(500).send("Chat/load/after : internal server error");
     }
-    if (!socketId || !io) {
+    if (!io) {
       return res.status(403).send("Chat/load/after : socket did not connected");
     }
 
@@ -117,7 +117,7 @@ const loadAfterChatHandler = async (req, res) => {
       .populate(chatPopulateOption);
 
     if (chats) {
-      io.to(socketId).emit("chat_push_back", {
+      io.in(`session-${sessionId}`).emit("chat_push_back", {
         chats: await transformChatsForRoom(chats),
       });
       res.json({ result: true });
@@ -134,13 +134,12 @@ const sendChatHandler = async (req, res) => {
     const io = req.app.get("io");
     const { userId } = req;
     const { roomId, type, content } = req.body;
-    const { socketId } = req.session;
     const user = await userModel.findOne({ id: userId });
 
     if (!userId || !user) {
       return res.status(500).send("Chat/send : internal server error");
     }
-    if (!socketId || !io) {
+    if (!io) {
       return res.status(403).send("Chat/send : socket did not connected");
     }
 
