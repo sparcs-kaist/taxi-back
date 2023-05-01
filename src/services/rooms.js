@@ -229,11 +229,6 @@ const abortHandler = async (req, res) => {
       return;
     }
 
-    // 사용자가 채팅방에 들어와있는 경우, 소켓 연결을 먼저 끊습니다.
-    if (req.session.socketId) {
-      req.app.get("io").in(req.session.socketId).disconnectSockets(true);
-    }
-
     // 해당 방의 참여자 목록에서 사용자를 제거합니다.
     // 사용자가 해당 룸의 구성원이 아닌 경우, 403 오류를 반환합니다.
     const roomPartIndex = room.part
