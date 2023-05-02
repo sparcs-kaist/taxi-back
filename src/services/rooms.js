@@ -3,8 +3,7 @@ const {
   locationModel,
   userModel,
 } = require("../modules/stores/mongo");
-const { emitChatEvent } = require("./socket.chats");
-const { leaveChatRoom } = require("../modules/auths/login");
+const { emitChatEvent } = require("../modules/socket");
 const logger = require("../modules/logger");
 const {
   roomPopulateOption,
@@ -74,7 +73,8 @@ const createHandler = async (req, res) => {
     await user.save();
 
     // 입장 채팅을 보냅니다.
-    await emitChatEvent(req.app.get("io"), room._id, {
+    await emitChatEvent(req.app.get("io"), {
+      roomId: room._id,
       type: "in",
       content: user.id,
       authorId: user._id,
@@ -190,7 +190,8 @@ const joinHandler = async (req, res) => {
     await room.save();
 
     // 입장 채팅을 보냅니다.
-    await emitChatEvent(req.app.get("io"), room._id, {
+    await emitChatEvent(req.app.get("io"), {
+      roomId: room._id,
       type: "in",
       content: user.id,
       authorId: user._id,
@@ -226,12 +227,6 @@ const abortHandler = async (req, res) => {
         error: "Rooms/abort : no corresponding room",
       });
       return;
-    }
-
-    // 사용자가 채팅방에 들어와있는 경우, 소켓 연결을 먼저 끊습니다.
-    if (req.session.socketId && req.session.chatRoomId) {
-      req.app.get("io").in(req.session.socketId).disconnectSockets(true);
-      leaveChatRoom({ session: req.session });
     }
 
     // 해당 방의 참여자 목록에서 사용자를 제거합니다.
@@ -282,7 +277,8 @@ const abortHandler = async (req, res) => {
     // }
 
     // 퇴장 채팅을 보냅니다.
-    await emitChatEvent(req.app.get("io"), room._id, {
+    await emitChatEvent(req.app.get("io"), {
+      roomId: room._id,
       type: "out",
       content: user.id,
       authorId: user._id,
@@ -480,7 +476,8 @@ const commitPaymentHandler = async (req, res) => {
     await user.save();
 
     // 결제 채팅을 보냅니다.
-    await emitChatEvent(req.app.get("io"), roomId, {
+    await emitChatEvent(req.app.get("io"), {
+      roomId,
       type: "payment",
       content: user.id,
       authorId: user._id,
@@ -545,7 +542,8 @@ const settlementHandler = async (req, res) => {
     await user.save();
 
     // 정산 채팅을 보냅니다.
-    await emitChatEvent(req.app.get("io"), roomId, {
+    await emitChatEvent(req.app.get("io"), {
+      roomId,
       type: "settlement",
       content: user.id,
       authorId: user._id,

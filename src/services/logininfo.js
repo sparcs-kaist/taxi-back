@@ -25,8 +25,10 @@ const logininfoHandler = async (req, res) => {
       email: userDetail.email,
       profileImgUrl: userDetail.profileImageUrl,
       account: userDetail.account ? userDetail.account : "",
-      deviceToken: req.session?.deviceToken,
       deviceType: req.session?.isApp ? "app" : "web",
+      deviceToken: req.session?.deviceToken,
+      accessToken: req.session?.accessToken,
+      refreshToken: req.session?.refreshToken,
     });
   } catch (error) {
     logger.error(error);

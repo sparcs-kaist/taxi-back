@@ -8,6 +8,7 @@ const {
   generateProfileImageUrl,
 } = require("../modules/modifyProfile");
 const logger = require("../modules/logger");
+const jwt = require("../modules/auths/jwt");
 
 const { registerDeviceTokenHandler } = require("../services/auth");
 
@@ -37,7 +38,7 @@ const loginHtmlBuilder = (redirectPath) => `
                 }
                 const submitHandler = () => {
                     const value = document.getElementById("input-id").value;
-                    if(value) post('/auth/try', {
+                    if(value) post('/auth/login/replace', {
                       id: value,
                       redirect: "${encodeURIComponent(redirectPath)}",
                     });
@@ -107,19 +108,32 @@ const joinus = (req, res, userData, redirectPath = "/") => {
 const loginDone = (req, res, userData, redirectPath = "/") => {
   userModel.findOne(
     { id: userData.id },
-    "name id withdraw ban",
-    (err, result) => {
+    "_id name id withdraw ban",
+    async (err, result) => {
       if (err) logger.error(logger.error(err));
       else if (!result) joinus(req, res, userData, redirectPath);
       else {
-        login(req, userData.sid, result.id, result.name);
+        if (req.session.isApp) {
+          const { token: accessToken } = await jwt.sign({
+            id: result._id,
+            type: "access",
+          });
+          const { token: refreshToken } = await jwt.sign({
+            id: result._id,
+            type: "refresh",
+          });
+          req.session.accessToken = accessToken;
+          req.session.refreshToken = refreshToken;
+        }
+
+        login(req, userData.sid, result.id, result._id, result.name);
         res.redirect(frontUrl + redirectPath);
       }
     }
   );
 };
 
-const tryHandler = (req, res) => {
+const loginReplaceHandler = (req, res) => {
   const { id } = req.body;
   const redirectPath = decodeURIComponent(req.body?.redirect || "%2F");
   loginDone(req, res, makeInfo(id), redirectPath);
@@ -127,6 +141,9 @@ const tryHandler = (req, res) => {
 
 const sparcsssoHandler = (req, res) => {
   const redirectPath = decodeURIComponent(req.query?.redirect || "%2F");
+  const isApp = !!req.query.isApp;
+
+  req.session.isApp = isApp;
   res.end(loginHtmlBuilder(redirectPath));
 };
 
@@ -150,7 +167,7 @@ const logoutHandler = async (req, res) => {
 };
 
 module.exports = {
-  tryHandler,
+  loginReplaceHandler,
   sparcsssoHandler,
   logoutHandler,
   registerDeviceTokenHandler,
