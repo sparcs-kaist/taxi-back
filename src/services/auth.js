@@ -113,7 +113,7 @@ const sparcsssoHandler = (req, res) => {
   req.session.state = state;
   req.session.state_redirectPath = redirectPath;
   req.session.isApp = isApp;
-  res.redirect(url);
+  res.redirect(url + "&social_enabled=0&show_disabled_button=0");
 };
 
 const sparcsssoCallbackHandler = (req, res) => {
