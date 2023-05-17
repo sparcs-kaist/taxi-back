@@ -199,6 +199,14 @@ const sendMessageByTokens = async (tokens, type, title, body, icon, link) => {
         icon: icon || "/icons-512.png",
         click_action: "FLUTTER_NOTIFICATION_CLICK",
       },
+      apns: {
+        payload: {
+          aps: {
+            contentAvailable: true,
+            sound: "default",
+          },
+        },
+      },
     };
     const { responses, failureCount } = await getMessaging().sendMulticast(
       message
