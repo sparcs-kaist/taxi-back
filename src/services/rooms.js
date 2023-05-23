@@ -421,6 +421,7 @@ const searchByUserHandler = async (req, res) => {
   }
 };
 
+// here!~!
 const commitPaymentHandler = async (req, res) => {
   try {
     const user = await userModel.findOne({ id: req.userId });
