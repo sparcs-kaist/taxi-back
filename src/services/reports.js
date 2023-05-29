@@ -1,5 +1,6 @@
 const { userModel, reportModel } = require("../modules/stores/mongo");
 const { reportPopulateOption } = require("../modules/populates/reports");
+const { sendReportEmail } = require("../modules/stores/aws");
 const logger = require("../modules/logger");
 
 const createHandler = async (req, res) => {
@@ -24,6 +25,9 @@ const createHandler = async (req, res) => {
     });
 
     await report.save();
+
+    sendReportEmail(user.nickname, reported.email, report);
+
     res.status(200).send("User/report : report successful");
   } catch (err) {
     logger.error(err);

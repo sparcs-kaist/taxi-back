@@ -83,7 +83,7 @@ module.exports.getS3Url = (filePath) => {
   return `${awsEnv.s3Url}${filePath}`;
 };
 
-module.exports.sendReportEmail = (reportUser, reportedEmail) => {
+module.exports.sendReportEmail = (reportUser, reportedEmail, report) => {
   const params = {
     Destination: {
       ToAddresses: [reportedEmail],
@@ -92,7 +92,7 @@ module.exports.sendReportEmail = (reportUser, reportedEmail) => {
       Body: {
         Text: {
           Charset: "UTF-8",
-          Data: `본문`,
+          Data: `본문(추가예정)`,
         },
       },
       Subject: {
