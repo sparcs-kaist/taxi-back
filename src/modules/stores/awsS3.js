@@ -6,7 +6,9 @@ AWS.config.update({
   region: "ap-northeast-2",
   signatureVersion: "v4",
 });
+
 const s3 = new AWS.S3({ apiVersion: "2006-03-01" });
+const ses = new AWS.SES({ apiVersion: "2010-12-01" });
 
 // function to list Object
 module.exports.getList = (directoryPath, cb) => {
@@ -79,4 +81,33 @@ module.exports.foundObject = (filePath, cb) => {
 // function to return full URL of the object
 module.exports.getS3Url = (filePath) => {
   return `${awsEnv.s3Url}${filePath}`;
+};
+
+module.exports.sendReportEmail = (reportUser, reportedEmail) => {
+  const params = {
+    Destination: {
+      ToAddresses: [reportedEmail],
+    },
+    Message: {
+      Body: {
+        Text: {
+          Charset: "UTF-8",
+          Data: `본문`,
+        },
+      },
+      Subject: {
+        Charset: "UTF-8",
+        Data: `[SPARCS TAXI] ${reportUser}님으로부터 신고가 접수되었습니다.`,
+      },
+    },
+    Source: "sparcs-taxi@gmail.com",
+  };
+
+  ses.sendEmail(params, (err, data) => {
+    if (err) {
+      console.log("Error sending email:", err);
+    } else {
+      console.log("Email sent successfully:", data);
+    }
+  });
 };
