@@ -165,6 +165,33 @@ const sendChatHandler = async (req, res) => {
   }
 };
 
+const updateChatHandler = async (req, res) => {
+  try {
+    const io = req.app.get("io");
+    const { userId } = req;
+    const { roomId, lastMsgDate } = req.body;
+    const user = await userModel.findOne({ id: userId });
+
+    if (!userId || !user) {
+      return res.status(500).send("Chat/update : internal server error");
+    }
+    if (!io) {
+      return res.status(403).send("Chat/update : socket did not connected");
+    }
+
+    const isPart = await isUserInRoom(userId, roomId);
+    if (!isPart) {
+      return res
+        .status(403)
+        .send("Chat/send : user did not participated in the room");
+    }
+
+    /* TODO */
+  } catch (e) {
+    res.status(500).send("Chat/update : internal server error");
+  }
+};
+
 const uploadChatImgGetPUrlHandler = async (req, res) => {
   try {
     const { type, roomId } = req.body;
@@ -277,4 +304,5 @@ module.exports = {
   sendChatHandler,
   uploadChatImgGetPUrlHandler,
   uploadChatImgDoneHandler,
+  updateChatHandler,
 };

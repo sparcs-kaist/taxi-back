@@ -54,6 +54,18 @@ router.post(
   chatsHandlers.sendChatHandler
 );
 
+/**
+ * 채팅 정보를 업데이트 한 후,
+ * 같은 방에 있는 user들에게 업데이트를 요청합니다.
+ */
+router.post(
+  "/update",
+  body("roomId").isMongoId(),
+  body("lastMsgDate").isISO8601(),
+  validator,
+  chatsHandlers.updateChatHandler
+);
+
 // 채팅 이미지를 업로드할 수 있는 Presigned-url을 발급합니다.
 router.post(
   "/uploadChatImg/getPUrl",
