@@ -177,6 +177,35 @@ const emitChatEvent = async (io, chat) => {
   }
 };
 
+const emitUpdateEvent = async (io, roomId, userId) => {
+  try {
+    // 방의 모든 사용자에게 socket 메세지 업데이트 이벤트를 발생시킵니다.
+    if (!io || !roomId || !userId) {
+      throw new IllegalArgumentsException();
+    }
+
+    const { name, part } = await roomModel.findById(roomId, "name part");
+
+    if (!name || !part) {
+      throw new IllegalArgumentsException();
+    }
+
+    const userIds = part.map((participant) => participant.user);
+    await Promise.all(
+      userIds.map(async (userId) =>
+        io.in(`user-${userId}`).emit("chat_update", {
+          roomId,
+        })
+      )
+    );
+
+    return true;
+  } catch (err) {
+    logger.error(err);
+    return false;
+  }
+};
+
 // https://socket.io/how-to/use-with-express-session 참고
 const startSocketServer = (server) => {
   const io = new Server(server, {
@@ -237,5 +266,6 @@ const startSocketServer = (server) => {
 module.exports = {
   transformChatsForRoom,
   emitChatEvent,
+  emitUpdateEvent,
   startSocketServer,
 };
