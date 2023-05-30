@@ -1,7 +1,15 @@
 const { chatModel, userModel, roomModel } = require("../modules/stores/mongo");
 const { chatPopulateOption } = require("../modules/populates/chats");
 const awsS3 = require("../modules/stores/awsS3");
-const { transformChatsForRoom, emitChatEvent } = require("../modules/socket");
+const {
+  transformChatsForRoom,
+  emitChatEvent,
+  emitUpdateEvent,
+} = require("../modules/socket");
+const {
+  roomPopulateOption,
+  formatSettlement,
+} = require("../modules/populates/rooms");
 
 const chatCount = 60;
 
@@ -178,15 +186,40 @@ const updateChatHandler = async (req, res) => {
     if (!io) {
       return res.status(403).send("Chat/update : socket did not connected");
     }
-
     const isPart = await isUserInRoom(userId, roomId);
     if (!isPart) {
       return res
         .status(403)
-        .send("Chat/send : user did not participated in the room");
+        .send("Chat/update : user did not participated in the room");
     }
 
-    /* TODO */
+    const roomObject = await roomModel
+      .findOneAndUpdate(
+        {
+          _id: roomId,
+          part: {
+            $elemMatch: {
+              user: user._id,
+            },
+          },
+        },
+        {
+          $set: { "part.$[updater].readAt": lastMsgDate },
+        },
+        {
+          new: true,
+          arrayFilters: [{ "updater.user": { $eq: user._id } }],
+        }
+      )
+      .lean()
+      .populate(roomPopulateOption);
+    if (!roomObject) {
+      return res.status(404).send("Chat/update : cannot find room info");
+    }
+
+    /* TODO: Return Formatting */
+    if (await emitUpdateEvent(io)) res.json({ part: roomObject.part });
+    else res.status(500).send("Chat/update : internal server error");
   } catch (e) {
     res.status(500).send("Chat/update : internal server error");
   }
