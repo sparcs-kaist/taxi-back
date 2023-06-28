@@ -100,7 +100,7 @@ module.exports.sendReportEmail = (reportUser, reportedEmail, report) => {
         Data: `[SPARCS TAXI] ${reportUser}님으로부터 신고가 접수되었습니다.`,
       },
     },
-    Source: "sparcs-taxi@gmail.com",
+    Source: "taxi.sparcs@gmail.com",
   };
 
   ses.sendEmail(params, (err, data) => {
