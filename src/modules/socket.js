@@ -81,6 +81,8 @@ const getMessageBody = (type, nickname, content) => {
         ? " 님이 결제를 완료하였습니다"
         : " 님이 정산을 완료하였습니다";
     return `${nickname} ${suffix}`;
+  } else if (type === "department") {
+    return "출발 15분전 입니다";
   }
 };
 
@@ -102,7 +104,7 @@ const emitChatEvent = async (io, chat) => {
     // chat can contain time or not.
     const { roomId, type, content, authorId } = chat;
 
-    if (!io || !roomId || !type || !content || !authorId) {
+    if (!io || !roomId || !type || !content) {
       throw new IllegalArgumentsException();
     }
 

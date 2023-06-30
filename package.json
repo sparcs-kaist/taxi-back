@@ -28,6 +28,7 @@
     "firebase-admin": "^11.4.1",
     "jsonwebtoken": "^8.5.1",
     "mongoose": "^6.5.2",
+    "node-cron": "3.0.2",
     "node-mocks-http": "^1.12.1",
     "querystring": "^0.2.1",
     "redis": "^4.2.0",

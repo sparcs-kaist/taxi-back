@@ -121,7 +121,16 @@ const chatSchema = Schema({
   roomId: { type: Schema.Types.ObjectId, ref: "Room", required: true },
   type: {
     type: String,
-    enum: ["text", "in", "out", "s3img", "payment", "settlement", "account"],
+    enum: [
+      "text",
+      "in",
+      "out",
+      "s3img",
+      "payment",
+      "settlement",
+      "account",
+      "department",
+    ],
   }, // 메시지 종류
   authorId: { type: Schema.Types.ObjectId, ref: "User", required: true }, // 작성자 id
   content: { type: String, default: "" },
