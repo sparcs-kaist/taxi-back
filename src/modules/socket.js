@@ -104,7 +104,7 @@ const emitChatEvent = async (io, chat) => {
     // chat can contain time or not.
     const { roomId, type, content, authorId } = chat;
 
-    if (!io || !roomId || !type || !content) {
+    if (!io || !roomId || !type || !content || !authorId) {
       throw new IllegalArgumentsException();
     }
 
