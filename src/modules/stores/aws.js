@@ -84,7 +84,7 @@ module.exports.getS3Url = (filePath) => {
   return `${awsEnv.s3Url}${filePath}`;
 };
 
-module.exports.sendReportEmail = async (reportUser, reportedEmail, report) => {
+module.exports.sendReportEmail = (reportUser, reportedEmail, report) => {
   const params = {
     Destination: {
       ToAddresses: [reportedEmail],
