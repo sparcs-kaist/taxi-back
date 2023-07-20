@@ -1,24 +1,24 @@
 const { frontUrl } = require("../../loadenv");
-const emailReportPage = require("./emailReportPage");
+const emailPage = require("./emailPage");
 
 module.exports = (name, nickname, roomName, payer, roomId) =>
-  emailReportPage(
+  emailPage(
     "미정산 내역 관련 안내",
     `<b><font color="#6E3678">${name} (${nickname})</font></b> 님께<br><br>
     안녕하세요, ${name} (${nickname}) 님.<br>
     KAIST 학부 총학생회 산하 특별기구 SPARCS의 Taxi 팀입니다.<br><br>
     최근 참여하신 방에서 정산이 이루어지지 않았다는 사용자의 문의가 접수되어 메일을 보내드립니다.<br><br>
-    <div class="email" style="padding: 16px 32px; background: #EEEEEE; border-radius: 20px;">
+    <div class="email" style="padding: 16px 24px; background: #EEEEEE; border-radius: 20px;">
       <div class="email">
-        <span style="width: 88px; display: inline-block;"><b>방 제목</b></span>
+        <span style="width: 64px; display: inline-block;"><b>방 제목</b></span>
         ${roomName}
       </div>
       <div class="email">
-        <span style="width: 88px; display: inline-block;"><b>결제자</b></span>
+        <span style="width: 64px; display: inline-block;"><b>결제자</b></span>
         ${payer}
       </div>
       <div class="email">
-        <span style="width: 88px; display: inline-block;"><b>링크</b></span>
+        <span style="width: 64px; display: inline-block;"><b>링크</b></span>
         <a href="${frontUrl}/myroom/${roomId}" target="_blank">${frontUrl}/myroom/${roomId}</a>
       </div>
     </div><br>

@@ -15,40 +15,40 @@ module.exports = (title, content) => `<style>
   margin: 0 auto;
 }
 .email-header {
-  height: 204px;
+  height: 102px;
   background: #6E3678;
   margin-bottom: 48px;
 }
 .email-header > img {
-  height: 108px;
-  margin: 48px;
+  height: 54px;
+  margin: 24px 32px;
 }
 .email-title {
   line-height: 160%;
-  letter-spacing: -1.5px;
-  font-size: 48px;
+  letter-spacing: 0px;
+  font-size: 32px;
   font-weight: bold;
-  margin-bottom: 48px;
+  margin-bottom: 32px;
 }
 .email-content {
   line-height: 160%;
-  letter-spacing: -1.5px;
-  font-size: 24px;
+  letter-spacing: 0px;
+  font-size: 16px;
   font-weight: regular;
   color: #000000;
 }
 .email-footer {
-  margin-top: 240px;
+  margin-top: 120px;
   padding-top: 24px;
   border-top: 2px solid #999999;
   text-align: center;
 }
 .email-footer > img {
-  height: 86.4px;
+  height: 54px;
 }
 .footer-text {
-  margin-top: 8px;
-  font-size: 20px;
+  margin-top: 4px;
+  font-size: 12px;
   font-weight: lighter;
   text-decoration-line: underline;
   color: #999999;
