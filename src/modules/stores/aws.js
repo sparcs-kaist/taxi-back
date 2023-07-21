@@ -1,5 +1,6 @@
-const { aws: awsEnv } = require("../../../loadenv");
-
+const { aws: awsEnv, slackWebhookUrl: slackUrl } = require("../../../loadenv");
+const axios = require("axios");
+const logger = require("../logger");
 // Load the AWS-SDK and s3
 const AWS = require("aws-sdk");
 AWS.config.update({
@@ -105,9 +106,31 @@ module.exports.sendReportEmail = (reportUser, reportedEmail, report) => {
 
   ses.sendEmail(params, (err, data) => {
     if (err) {
-      console.log("Error sending email:", err);
+      logger.info("Fail to send email", err);
     } else {
-      console.log("Email sent successfully:", data);
+      const reportTypeMap = {
+        "no-settlement": "정산을 하지 않음",
+        "no-show": "택시에 동승하지 않음",
+        "etc-reason": "기타 사유"
+      }
+      const data = {
+        'text' : 
+        `${reportUser}님으로부터 신고가 접수되었습니다.
+
+        신고자 ID: ${report.creatorId}
+        신고 ID: ${report.reportedId}
+        사유: ${reportTypeMap[report.type]}
+        기타: ${report.etcDetail}
+        `};
+      const config = {"Content-Type": 'application/json'};
+      
+      axios.post(slackUrl, data, config).then(res => {
+        logger.info("Slack webhook sent successfully")
+      }).catch(err => {
+        logger.info("Fail to send slack webhook", err)
+      })
+
+      logger.info("Email sent successfully");
     }
   });
 };
