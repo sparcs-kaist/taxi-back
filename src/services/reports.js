@@ -2,6 +2,7 @@ const { userModel, reportModel } = require("../modules/stores/mongo");
 const { reportPopulateOption } = require("../modules/populates/reports");
 const { sendReportEmail } = require("../modules/stores/aws");
 const logger = require("../modules/logger");
+const emailPage = require("../views/emailNoSettlementPage")
 
 const createHandler = async (req, res) => {
   try {
@@ -25,8 +26,11 @@ const createHandler = async (req, res) => {
     });
 
     await report.save();
-
-    sendReportEmail(user.nickname, reported.email, report);
+    
+    if(report.type==="no-settlement"){
+      const emailHtml = emailPage(reported.name, reported.nickname, 0, user.nickname, 0)
+      sendReportEmail(user.nickname, reported.email, report, emailHtml);
+    }
 
     res.status(200).send("User/report : report successful");
   } catch (err) {
