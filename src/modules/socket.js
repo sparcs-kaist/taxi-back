@@ -42,6 +42,7 @@ const transformChatsForRoom = async (chats) => {
       );
     }
     chatsToSend.push({
+      roomId: chat.roomId,
       type: chat.type,
       authorId: chat.authorId._id,
       authorName: chat.authorId.nickname,
@@ -52,6 +53,7 @@ const transformChatsForRoom = async (chats) => {
       inOutNames: chat.inOutNames,
     });
   }
+  
   return chatsToSend;
 };
 
