@@ -1,4 +1,4 @@
-const { userModel, reportModel } = require("../modules/stores/mongo");
+const { userModel, reportModel, roomModel } = require("../modules/stores/mongo");
 const { reportPopulateOption } = require("../modules/populates/reports");
 const { sendReportEmail } = require("../modules/stores/aws");
 const logger = require("../modules/logger");
@@ -6,7 +6,7 @@ const emailPage = require("../views/emailNoSettlementPage")
 
 const createHandler = async (req, res) => {
   try {
-    const { reportedId, type, etcDetail, time } = req.body;
+    const { reportedId, type, etcDetail, time, roomId } = req.body;
     const user = await userModel.findOne({ id: req.userId });
     const creatorId = user._id;
 
@@ -28,7 +28,10 @@ const createHandler = async (req, res) => {
     await report.save();
     
     if(report.type==="no-settlement"){
-      const emailHtml = emailPage(reported.name, reported.nickname, 0, user.nickname, 0)
+      const room = await roomModel.findById(roomId);
+      const emailRoomName = room ? room.name : "";
+      const emailRoomId = room ? room._id : "";
+      const emailHtml = emailPage(reported.name, reported.nickname, emailRoomName, user.nickname, emailRoomId)
       sendReportEmail(user.nickname, reported.email, report, emailHtml);
     }
 

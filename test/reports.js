@@ -10,7 +10,7 @@ const removeTestData = async () => {
 };
 
 // reports.js 관련 2개의 handler을 테스트
-// 1. test1 유저가 test2 유저를 미결제로 신고, 성공 메세지가 제대로 오는지 확인
+// 1. test1 유저가 test2 유저를 기타 이유로 신고, 성공 메세지가 제대로 오는지 확인
 describe("[reports] 1.createHandler", () => {
   it("should return correct response from handler", async () => {
     const testUser1 = await userGenerator("test1", testData);
@@ -20,8 +20,8 @@ describe("[reports] 1.createHandler", () => {
       userId: testUser1.id,
       body: {
         reportedId: testUser2._id,
-        type: "no-settlement",
-        etcDetail: "",
+        type: "etc-reason",
+        etcDetail: "etc-detail",
         time: Date.now(),
       },
     });

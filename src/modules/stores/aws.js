@@ -119,16 +119,17 @@ module.exports.sendReportEmail = (reportUser, reportedEmail, report, html) => {
 
         신고자 ID: ${report.creatorId}
         신고 ID: ${report.reportedId}
+        방 ID: ${report.roomId ?? ""}
         사유: ${reportTypeMap[report.type]}
         기타: ${report.etcDetail}
         `};
       const config = {"Content-Type": 'application/json'};
       
-      // axios.post(slackUrl, data, config).then(res => {
-      //   logger.info("Slack webhook sent successfully")
-      // }).catch(err => {
-      //   logger.info("Fail to send slack webhook", err)
-      // })
+      axios.post(slackUrl, data, config).then(res => {
+        logger.info("Slack webhook sent successfully")
+      }).catch(err => {
+        logger.info("Fail to send slack webhook", err)
+      })
 
       logger.info("Email sent successfully");
     }
