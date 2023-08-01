@@ -7,6 +7,7 @@ const { reportPopulateOption } = require("../modules/populates/reports");
 const { sendReportEmail } = require("../modules/stores/aws");
 const logger = require("../modules/logger");
 const emailPage = require("../views/emailNoSettlementPage");
+const { notifyToReportChannel } = require("../modules/slackNotification");
 
 const createHandler = async (req, res) => {
   try {
@@ -31,6 +32,8 @@ const createHandler = async (req, res) => {
 
     await report.save();
 
+    notifyToReportChannel(user.nickname, report);
+
     if (report.type === "no-settlement") {
       const room = await roomModel.findById(roomId);
       const emailRoomName = room ? room.name : "";
@@ -42,7 +45,7 @@ const createHandler = async (req, res) => {
         user.nickname,
         emailRoomId
       );
-      sendReportEmail(user.nickname, reported.email, report, emailHtml);
+      sendReportEmail(reported.email, report, emailHtml);
     }
 
     res.status(200).send("User/report : report successful");
