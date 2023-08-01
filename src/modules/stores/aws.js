@@ -88,8 +88,8 @@ module.exports.sendReportEmail = (reportUser, reportedEmail, report, html) => {
   const reportTypeMap = {
     "no-settlement": "정산을 하지 않음",
     "no-show": "택시에 동승하지 않음",
-    "etc-reason": "기타 사유"
-  }
+    "etc-reason": "기타 사유",
+  };
 
   const params = {
     Destination: {
@@ -98,12 +98,14 @@ module.exports.sendReportEmail = (reportUser, reportedEmail, report, html) => {
     Message: {
       Body: {
         Html: {
-          Data: html
-        }
+          Data: html,
+        },
       },
       Subject: {
         Charset: "UTF-8",
-        Data: `[SPARCS TAXI] 신고가 접수되었습니다 (사유: ${reportTypeMap[report.type]})`,
+        Data: `[SPARCS TAXI] 신고가 접수되었습니다 (사유: ${
+          reportTypeMap[report.type]
+        })`,
       },
     },
     Source: "taxi.sparcs@gmail.com",
@@ -114,22 +116,25 @@ module.exports.sendReportEmail = (reportUser, reportedEmail, report, html) => {
       logger.info("Fail to send email", err);
     } else {
       const data = {
-        'text' : 
-        `${reportUser}님으로부터 신고가 접수되었습니다.
+        text: `${reportUser}님으로부터 신고가 접수되었습니다.
 
         신고자 ID: ${report.creatorId}
         신고 ID: ${report.reportedId}
         방 ID: ${report.roomId ?? ""}
         사유: ${reportTypeMap[report.type]}
         기타: ${report.etcDetail}
-        `};
-      const config = {"Content-Type": 'application/json'};
-      
-      axios.post(slackUrl, data, config).then(res => {
-        logger.info("Slack webhook sent successfully")
-      }).catch(err => {
-        logger.info("Fail to send slack webhook", err)
-      })
+        `,
+      };
+      const config = { "Content-Type": "application/json" };
+
+      axios
+        .post(slackUrl, data, config)
+        .then((res) => {
+          logger.info("Slack webhook sent successfully");
+        })
+        .catch((err) => {
+          logger.info("Fail to send slack webhook", err);
+        });
 
       logger.info("Email sent successfully");
     }

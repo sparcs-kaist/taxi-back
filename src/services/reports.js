@@ -1,8 +1,12 @@
-const { userModel, reportModel, roomModel } = require("../modules/stores/mongo");
+const {
+  userModel,
+  reportModel,
+  roomModel,
+} = require("../modules/stores/mongo");
 const { reportPopulateOption } = require("../modules/populates/reports");
 const { sendReportEmail } = require("../modules/stores/aws");
 const logger = require("../modules/logger");
-const emailPage = require("../views/emailNoSettlementPage")
+const emailPage = require("../views/emailNoSettlementPage");
 
 const createHandler = async (req, res) => {
   try {
@@ -26,12 +30,18 @@ const createHandler = async (req, res) => {
     });
 
     await report.save();
-    
-    if(report.type==="no-settlement"){
+
+    if (report.type === "no-settlement") {
       const room = await roomModel.findById(roomId);
       const emailRoomName = room ? room.name : "";
       const emailRoomId = room ? room._id : "";
-      const emailHtml = emailPage(reported.name, reported.nickname, emailRoomName, user.nickname, emailRoomId)
+      const emailHtml = emailPage(
+        reported.name,
+        reported.nickname,
+        emailRoomName,
+        user.nickname,
+        emailRoomId
+      );
       sendReportEmail(user.nickname, reported.email, report, emailHtml);
     }
 

@@ -53,7 +53,7 @@ const transformChatsForRoom = async (chats) => {
       inOutNames: chat.inOutNames,
     });
   }
-  
+
   return chatsToSend;
 };
 
