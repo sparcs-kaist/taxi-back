@@ -128,7 +128,7 @@ module.exports.sendReportEmail = (reportUser, reportedEmail, report, html) => {
       const config = { "Content-Type": "application/json" };
 
       axios
-        .post(slackUrl, data, config)
+        .post(slackUrl.report, data, config)
         .then((res) => {
           logger.info("Slack webhook sent successfully");
         })
