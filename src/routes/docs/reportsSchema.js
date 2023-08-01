@@ -6,12 +6,10 @@ const reportsSchema = {
       reportedId: {
         type: "string",
         pattern: "^[a-fA-F\\d]{24}$",
-        required: true,
       },
       type: {
         type: "string",
         enum: ["no-settlement", "no-show", "etc-reason"],
-        required: true,
       },
       etcDetail: {
         type: "string",
@@ -21,7 +19,6 @@ const reportsSchema = {
       time: {
         type: "string",
         format: "date-time",
-        required: true,
       },
       roomId: {
         type: "string",
