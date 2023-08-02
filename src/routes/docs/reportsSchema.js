@@ -1,7 +1,7 @@
 const reportsSchema = {
   createHandler: {
     type: "object",
-    required: ["reportedId", "type", "time"],
+    required: ["reportedId", "type", "time", "roomId"],
     properties: {
       reportedId: {
         type: "string",
