@@ -103,9 +103,7 @@ module.exports.sendReportEmail = (reportedEmail, report, html) => {
       },
       Subject: {
         Charset: "UTF-8",
-        Data: `[SPARCS TAXI] 신고가 접수되었습니다 (사유: ${
-          reportTypeMap[report.type]
-        })`,
+        Data: `[SPARCS TAXI] 신고가 접수되었습니다 (사유: ${reportTypeMap[report.type]})`,
       },
     },
     Source: "taxi.sparcs@gmail.com",
@@ -113,7 +111,7 @@ module.exports.sendReportEmail = (reportedEmail, report, html) => {
 
   ses.sendEmail(params, (err, data) => {
     if (err) {
-      logger.info("Fail to send email", err);
+      logger.error("Fail to send email", err);
     } else {
       logger.info("Email sent successfully");
     }

@@ -23,6 +23,6 @@ module.exports.notifyToReportChannel = (reportUser, report) => {
       logger.info("Slack webhook sent successfully");
     })
     .catch((err) => {
-      logger.info("Fail to send slack webhook", err);
+      logger.error("Fail to send slack webhook", err);
     });
 };
