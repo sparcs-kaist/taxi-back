@@ -22,12 +22,20 @@ const createHandler = async (req, res) => {
       });
     }
 
+    const room = await roomModel.findById(roomId);
+    if (!room) {
+      return res.status(400).json({
+        error: "User/report: no corresponding room",
+      });
+    }
+
     const report = new reportModel({
       creatorId,
       reportedId,
       type,
       etcDetail,
       time,
+      roomId
     });
 
     await report.save();
@@ -35,7 +43,6 @@ const createHandler = async (req, res) => {
     notifyToReportChannel(user.nickname, report);
 
     if (report.type === "no-settlement") {
-      const room = await roomModel.findById(roomId);
       const emailRoomName = room ? room.name : "";
       const emailRoomId = room ? room._id : "";
       const emailHtml = emailPage(
