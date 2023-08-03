@@ -1,7 +1,7 @@
 const expect = require("chai").expect;
 const reportHandlers = require("../src/services/reports");
 const { userModel } = require("../src/modules/stores/mongo");
-const { userGenerator, testRemover } = require("./utils");
+const { userGenerator, roomGenerator, testRemover } = require("./utils");
 const httpMocks = require("node-mocks-http");
 
 let testData = { rooms: [], users: [], chat: [], location: [], report: [] };
@@ -15,6 +15,7 @@ describe("[reports] 1.createHandler", () => {
   it("should return correct response from handler", async () => {
     const testUser1 = await userGenerator("test1", testData);
     const testUser2 = await userGenerator("test2", testData);
+    const testRoom = await roomGenerator("test1", testData);
     const msg = "User/report : report successful";
     let req = httpMocks.createRequest({
       userId: testUser1.id,
@@ -23,6 +24,7 @@ describe("[reports] 1.createHandler", () => {
         type: "etc-reason",
         etcDetail: "etc-detail",
         time: Date.now(),
+        roomId: testRoom._id
       },
     });
     let res = httpMocks.createResponse();
