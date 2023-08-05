@@ -1,12 +1,15 @@
 const { aws: awsEnv } = require("../../../loadenv");
 
+const logger = require("../logger");
 // Load the AWS-SDK and s3
 const AWS = require("aws-sdk");
 AWS.config.update({
   region: "ap-northeast-2",
   signatureVersion: "v4",
 });
+
 const s3 = new AWS.S3({ apiVersion: "2006-03-01" });
+const ses = new AWS.SES({ apiVersion: "2010-12-01" });
 
 // function to list Object
 module.exports.getList = (directoryPath, cb) => {
@@ -79,4 +82,38 @@ module.exports.foundObject = (filePath, cb) => {
 // function to return full URL of the object
 module.exports.getS3Url = (filePath) => {
   return `${awsEnv.s3Url}${filePath}`;
+};
+
+module.exports.sendReportEmail = (reportedEmail, report, html) => {
+  const reportTypeMap = {
+    "no-settlement": "정산을 하지 않음",
+    "no-show": "택시에 동승하지 않음",
+    "etc-reason": "기타 사유",
+  };
+
+  const params = {
+    Destination: {
+      ToAddresses: [reportedEmail],
+    },
+    Message: {
+      Body: {
+        Html: {
+          Data: html,
+        },
+      },
+      Subject: {
+        Charset: "UTF-8",
+        Data: `[SPARCS TAXI] 신고가 접수되었습니다 (사유: ${reportTypeMap[report.type]})`,
+      },
+    },
+    Source: "taxi.sparcs@gmail.com",
+  };
+
+  ses.sendEmail(params, (err, data) => {
+    if (err) {
+      logger.error("Fail to send email", err);
+    } else {
+      logger.info("Email sent successfully");
+    }
+  });
 };
