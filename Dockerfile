@@ -22,8 +22,8 @@ ENV DB_PATH=mongodb://localhost:27017/local \
     OCCURENCE_OF_ABORT=0.1
 
 # Install requirements
-RUN npm install
+RUN pnpm i --force --frozen-lockfile
 
 # Start mongo service
 EXPOSE 27017
-CMD ["sh", "-c", "mongod & npm start & tail -f /dev/null"]
+CMD ["sh", "-c", "mongod & pnpm run start & tail -f /dev/null"]
