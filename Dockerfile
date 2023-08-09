@@ -9,7 +9,7 @@ RUN apk update && apk add curl
 RUN npm install --global pnpm@8.6.6 serve@14.1.2
 
 # Install requirements
-RUN pnpm install
+RUN pnpm i --force --frozen-lockfile
 
 # Run container
 EXPOSE 80
