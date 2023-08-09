@@ -9,7 +9,7 @@
 **SETUP**
 
 1. 로컬 저장소에 레포지토리를 클론합니다.
-1. `npm install`로 필요한 패키지를 설치합니다.
+1. `pnpm install`로 필요한 패키지를 설치합니다.
 1. 클론한 디렉토리(index.js가 있는 디렉토리)에 .env 파일을 아래와 같이 추가합니다.
    ```
    #mongoDB 경로 (직접 입력해야 함 - 기본값은 mongodb://localhost:27017/local)
@@ -26,7 +26,7 @@
 1. sampleData.json에 장소, 유저, 방 데이터를 입력합니다.
    javascript `User { "id": "sampleId", 사용자 id }`
 
-1. `npm start`로 샘플 채팅 데이터를 만들 수 있습니다.
+1. `pnpm start`로 샘플 채팅 데이터를 만들 수 있습니다.
 
-1. `npm run dumpDB`으로 현재 DB를 덤프할 수 있습니다.
-1. `npm run restoreDB`로 과거 DB를 덤프 파일로부터 복원할 수 있습니다.
+1. `pnpm run dumpDB`으로 현재 DB를 덤프할 수 있습니다.
+1. `pnpm run restoreDB`로 과거 DB를 덤프 파일로부터 복원할 수 있습니다.
