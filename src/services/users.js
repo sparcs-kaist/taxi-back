@@ -1,6 +1,6 @@
 const { userModel } = require("../modules/stores/mongo");
 const logger = require("../modules/logger");
-const awsS3 = require("../modules/stores/awsS3");
+const aws = require("../modules/stores/aws");
 
 const agreeOnTermsOfServiceHandler = async (req, res) => {
   try {
@@ -83,7 +83,7 @@ const editProfileImgGetPUrlHandler = async (req, res) => {
         .send("User/editProfileImg/getPUrl : internal server error");
     }
     const key = `profile-img/${user._id}`;
-    awsS3.getUploadPUrlPost(key, type, (err, data) => {
+    aws.getUploadPUrlPost(key, type, (err, data) => {
       if (err) {
         return res
           .status(500)
@@ -110,7 +110,7 @@ const editProfileImgDoneHandler = async (req, res) => {
         .send("User/editProfileImg/done : internal server error");
     }
     const key = `profile-img/${user._id}`;
-    awsS3.foundObject(key, async (err) => {
+    aws.foundObject(key, async (err) => {
       if (err) {
         logger.error(err);
         return res

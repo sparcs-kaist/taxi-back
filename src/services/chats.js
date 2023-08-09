@@ -1,6 +1,6 @@
 const { chatModel, userModel, roomModel } = require("../modules/stores/mongo");
 const { chatPopulateOption } = require("../modules/populates/chats");
-const awsS3 = require("../modules/stores/awsS3");
+const aws = require("../modules/stores/aws");
 const {
   transformChatsForRoom,
   emitChatEvent,
@@ -248,7 +248,7 @@ const uploadChatImgGetPUrlHandler = async (req, res) => {
     });
     const chat = await chatDocument.save();
     const key = `chat-img/${chat._id}`;
-    awsS3.getUploadPUrlPost(key, type, (err, data) => {
+    aws.getUploadPUrlPost(key, type, (err, data) => {
       if (err) {
         return res
           .status(500)
@@ -294,7 +294,7 @@ const uploadChatImgDoneHandler = async (req, res) => {
       });
     }
     const key = `chat-img/${chat._id}`;
-    awsS3.foundObject(key, async (err, data) => {
+    aws.foundObject(key, async (err, data) => {
       if (err) {
         return res
           .status(500)

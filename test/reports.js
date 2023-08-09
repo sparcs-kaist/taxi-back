@@ -1,7 +1,7 @@
 const expect = require("chai").expect;
 const reportHandlers = require("../src/services/reports");
 const { userModel } = require("../src/modules/stores/mongo");
-const { userGenerator, testRemover } = require("./utils");
+const { userGenerator, roomGenerator, testRemover } = require("./utils");
 const httpMocks = require("node-mocks-http");
 
 let testData = { rooms: [], users: [], chat: [], location: [], report: [] };
@@ -10,19 +10,21 @@ const removeTestData = async () => {
 };
 
 // reports.js 관련 2개의 handler을 테스트
-// 1. test1 유저가 test2 유저를 미결제로 신고, 성공 메세지가 제대로 오는지 확인
+// 1. test1 유저가 test2 유저를 기타 이유로 신고, 성공 메세지가 제대로 오는지 확인
 describe("[reports] 1.createHandler", () => {
   it("should return correct response from handler", async () => {
     const testUser1 = await userGenerator("test1", testData);
     const testUser2 = await userGenerator("test2", testData);
+    const testRoom = await roomGenerator("test1", testData);
     const msg = "User/report : report successful";
     let req = httpMocks.createRequest({
       userId: testUser1.id,
       body: {
         reportedId: testUser2._id,
-        type: "no-settlement",
-        etcDetail: "",
+        type: "etc-reason",
+        etcDetail: "etc-detail",
         time: Date.now(),
+        roomId: testRoom._id
       },
     });
     let res = httpMocks.createResponse();

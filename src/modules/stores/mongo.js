@@ -141,6 +141,7 @@ const reportSchema = Schema({
   },
   etcDetail: { type: String, default: "" }, // 기타 세부 사유
   time: { type: Date, required: true },
+  roomId: { type: Schema.Types.ObjectId, ref: "Room" }, // 신고한 방 id
 });
 
 const adminIPWhitelistSchema = Schema({
