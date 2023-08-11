@@ -32,9 +32,9 @@ module.exports = {
   },
   googleApplicationCredentials:
     process.env.GOOGLE_APPLICATION_CREDENTIALS &&
-    JSON.parse(process.env.GOOGLE_APPLICATION_CREDENTIALS),
+    JSON.parse(process.env.GOOGLE_APPLICATION_CREDENTIALS), // optional
   testAccounts:
-    process.env.TEST_ACCOUNTS && JSON.parse(process.env.TEST_ACCOUNTS),
+    (process.env.TEST_ACCOUNTS && JSON.parse(process.env.TEST_ACCOUNTS)) || [], // optional
   slackWebhookUrl: {
     report: process.env.SLACK_REPORT_WEBHOOK_URL || "", // optional
   },
