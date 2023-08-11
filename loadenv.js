@@ -11,6 +11,8 @@ module.exports = {
     key: process.env.SPARCSSSO_CLIENT_KEY || "", // optional
   },
   port: process.env.PORT || 80, // optional (default = 80)
+  corsWhiteList: (process.env.CORS_WHITELIST &&
+    JSON.parse(process.env.CORS_WHITELIST)) || [true], // optional (default = [true])
   frontUrl: process.env.FRONT_URL || "http://localhost:3000", // optional (default = "http://localhost:3000")
   aws: {
     accessKeyId: process.env.AWS_ACCESS_KEY_ID, // required

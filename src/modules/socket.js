@@ -7,7 +7,7 @@ const { roomModel, userModel, chatModel } = require("./stores/mongo");
 const { getS3Url } = require("./stores/aws");
 const { getTokensOfUsers, sendMessageByTokens } = require("./fcm");
 
-const { frontUrl } = require("../../loadenv");
+const { corsWhiteList } = require("../../loadenv");
 const { chatPopulateOption } = require("./populates/chats");
 
 /**
@@ -209,7 +209,7 @@ const startSocketServer = (server) => {
       });
     },
     cors: {
-      origin: [frontUrl],
+      origin: corsWhiteList,
       methods: ["GET", "POST"],
       credentials: true,
     },
