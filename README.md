@@ -29,7 +29,7 @@ $ npm install --save
 
 ### Set Environment Configuration
 See [notion page](https://www.notion.so/sparcs/Environment-Variables-1b404bd385fa495bac6d5517b57d72bf).
-Refer to [.env.example](.env.example) and write your own `.env.development` and `.env.test`.
+Refer to [.env.easy.example](.env.easy.example) or [.env.hard.example](.env.hard.example) and write your own `.env`.
 
 ## Backend Route Information
 See [Backend Route Documentation](src/routes/docs/README.md)
