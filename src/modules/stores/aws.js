@@ -2,14 +2,15 @@ const { aws: awsEnv } = require("../../../loadenv");
 
 const logger = require("../logger");
 // Load the AWS-SDK and s3
-const AWS = require("aws-sdk");
-AWS.config.update({
-  region: "ap-northeast-2",
-  signatureVersion: "v4",
-});
+const {getSignedUrl} = require("@aws-sdk/s3-request-presigner")
+const {PutObjectCommand,S3} = require("@aws-sdk/client-s3")
+const { SES } = require("@aws-sdk/client-ses");
 
-const s3 = new AWS.S3({ apiVersion: "2006-03-01" });
-const ses = new AWS.SES({ apiVersion: "2010-12-01" });
+const s3 = new S3({
+  apiVersion: "2006-03-01",
+  region: 'ap-northeast-2'
+  });
+const ses = new SES({ apiVersion: "2010-12-01",region: 'ap-northeast-2' });
 
 // function to list Object
 module.exports.getList = (directoryPath, cb) => {
@@ -26,11 +27,12 @@ module.exports.getList = (directoryPath, cb) => {
 
 // function to generate signed-url for upload(PUT)
 module.exports.getUploadPUrlPut = (filePath, contentType = "image/png") => {
-  const presignedUrl = s3.getSignedUrl("putObject", {
+  const presignedUrl = getSignedUrl(s3, new PutObjectCommand({
     Bucket: awsEnv.s3BucketName,
     Key: filePath,
-    ContentType: contentType,
-    Expires: 60, // 1 min
+    ContentType: contentType
+  }), {
+    expiresIn: 60
   });
   return presignedUrl;
 };
