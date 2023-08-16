@@ -1,7 +1,7 @@
 const reportsSchema = {
   createHandler: {
     type: "object",
-    required: ["reportedId", "type", "time"],
+    required: ["reportedId", "type", "time", "roomId"],
     properties: {
       reportedId: {
         type: "string",
@@ -14,10 +14,15 @@ const reportsSchema = {
       etcDetail: {
         type: "string",
         maxLength: 30,
+        default: "",
       },
       time: {
         type: "string",
         format: "date-time",
+      },
+      roomId: {
+        type: "string",
+        pattern: "^[a-fA-F\\d]{24}$",
       },
     },
     errorMessage: "validation: bad request",

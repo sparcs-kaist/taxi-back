@@ -4,7 +4,7 @@ const sessionMiddleware = require("../middlewares/session");
 const logger = require("./logger");
 const { getLoginInfo } = require("./auths/login");
 const { roomModel, userModel, chatModel } = require("./stores/mongo");
-const { getS3Url } = require("./stores/awsS3");
+const { getS3Url } = require("./stores/aws");
 const { getTokensOfUsers, sendMessageByTokens } = require("./fcm");
 
 const { frontUrl } = require("../../loadenv");
@@ -42,6 +42,7 @@ const transformChatsForRoom = async (chats) => {
       );
     }
     chatsToSend.push({
+      roomId: chat.roomId,
       type: chat.type,
       authorId: chat.authorId._id,
       authorName: chat.authorId.nickname,
@@ -52,6 +53,7 @@ const transformChatsForRoom = async (chats) => {
       inOutNames: chat.inOutNames,
     });
   }
+
   return chatsToSend;
 };
 
