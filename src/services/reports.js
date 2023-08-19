@@ -35,7 +35,7 @@ const createHandler = async (req, res) => {
       type,
       etcDetail,
       time,
-      roomId
+      roomId,
     });
 
     await report.save();
@@ -46,6 +46,7 @@ const createHandler = async (req, res) => {
       const emailRoomName = room ? room.name : "";
       const emailRoomId = room ? room._id : "";
       const emailHtml = emailPage(
+        req.origin,
         reported.name,
         reported.nickname,
         emailRoomName,

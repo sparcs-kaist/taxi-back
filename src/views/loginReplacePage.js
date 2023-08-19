@@ -1,4 +1,4 @@
-module.exports = (redirectPath) => `
+module.exports = `
 <!DOCTYPE html>
 <html lang="ko">
     <head>
@@ -26,7 +26,6 @@ module.exports = (redirectPath) => `
                     const value = document.getElementById("input-id").value;
                     if(value) post('/auth/login/replace', {
                       id: value,
-                      redirect: "${encodeURIComponent(redirectPath)}",
                     });
                 }
                 const enterHandler = (e) => {
