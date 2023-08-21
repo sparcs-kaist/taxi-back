@@ -9,7 +9,6 @@ const logger = require("../modules/logger");
  * @param {Express.Request} req - 요청 객체
  * @param {Express.Response} res - 응답 객체
  * @param {Function} next - 다음 미들웨어 함수. Express에서는 next 함수에 err 인자를 넘겨주면 기본 global error handler가 호출됩니다.
- * @return {ReturnValueDataTypeHere} Brief description of the returning value here.
  */
 const errorHandler = (err, req, res, next) => {
   // 이미 클라이언트에 HTTP 응답 헤더를 전송한 경우, 응답 헤더를 다시 전송하지 않아야 합니다.
