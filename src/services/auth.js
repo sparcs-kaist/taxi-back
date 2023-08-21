@@ -114,7 +114,10 @@ const sparcsssoHandler = (req, res) => {
 };
 
 const sparcsssoCallbackHandler = (req, res) => {
-  const { state, redirectOrigin, redirectPath } = req.session?.loginAfterState;
+  const loginAfterState = req.session?.loginAfterState;
+  if (!loginAfterState)
+    return res.status(400).send("SparcsssoCallbackHandler : invalid request");
+  const { state, redirectOrigin, redirectPath } = loginAfterState;
   const stateForCmp = req.body.state || req.query.state;
 
   req.session.loginAfterState = undefined;
