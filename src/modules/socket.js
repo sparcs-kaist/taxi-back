@@ -106,9 +106,10 @@ const getMessageBody = (type, nickname, content) => {
  * @param {string} chat.content - 채팅 메시지의 본문입니다. chat.type이 "s3img"인 경우에는 채팅의 objectId입니다. chat.type이 "in"이거나 "out"인 경우 입퇴장한 사용자의 id(!==ObjectId)입니다.
  * @param {string} chat.authorId - 채팅을 보낸 사용자의 ObjectId입니다.
  * @param {Date?} chat.time - optional. 채팅 메시지 전송 시각입니다.
+ * @param {Boolean} excludeAuthor - optional. 메시지 알림을 보내는 대상으로부터 authorId를 제외할 지 여부입니다. 기본값은 true입니다.
  * @return {Promise<Boolean>} 채팅 및 알림 전송에 성공하면 true, 중간에 오류가 발생하면 false를 반환합니다.
  */
-const emitChatEvent = async (io, chat) => {
+const emitChatEvent = async (io, chat, excludeAuthor = true) => {
   try {
     // chat must contain type, content and authorId
     // chat can contain time or not.
@@ -158,9 +159,12 @@ const emitChatEvent = async (io, chat) => {
     const userIdsExceptAuthor = part
       .map((participant) => participant.user)
       .filter((userId) => userId.toString() !== authorId.toString());
-    const deviceTokens = await getTokensOfUsers(userIdsExceptAuthor, {
-      chatting: true,
-    });
+    const deviceTokens = await getTokensOfUsers(
+      excludeAuthor ? userIdsExceptAuthor : userIds,
+      {
+        chatting: true,
+      }
+    );
 
     // 방의 모든 사용자에게 socket 메세지 수신 이벤트를 발생시킵니다.
     const chatsForRoom = await transformChatsForRoom([chatDocument]);
