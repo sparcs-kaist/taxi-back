@@ -48,6 +48,9 @@ app.use("/locations", require("./src/routes/locations"));
 app.use("/reports", require("./src/routes/reports"));
 app.use("/notifications", require("./src/routes/notifications"));
 
+// [Middleware] 전역 에러 핸들러. 에러 핸들러는 router들보다 아래에 등록되어야 합니다.
+app.use(require("./src/middlewares/errorHandler"));
+
 // express 서버 시작
 const serverHttp = http
   .createServer(app)
