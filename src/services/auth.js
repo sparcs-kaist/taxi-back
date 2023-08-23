@@ -39,7 +39,7 @@ const transUserData = (userData) => {
   return info;
 };
 
-const joinus = async (userData) => {
+const joinus = async (req, userData) => {
   const newUser = new userModel({
     id: userData.id,
     name: userData.name,
@@ -69,7 +69,7 @@ const tryLogin = async (req, res, userData, redirectOrigin, redirectPath) => {
       "_id name id withdraw ban"
     );
     if (!user) {
-      await joinus(userData);
+      await joinus(req, userData);
       return tryLogin(req, res, userData, redirectOrigin, redirectPath);
     }
     if (user.name != userData.name) {
@@ -95,7 +95,7 @@ const tryLogin = async (req, res, userData, redirectOrigin, redirectPath) => {
   } catch (err) {
     logger.error(err);
     const redirectUrl = new URL("/login/fail", redirectOrigin).href;
-    res.redirect(ssoLogoutUrl);
+    res.redirect(redirectUrl);
   }
 };
 
@@ -114,7 +114,10 @@ const sparcsssoHandler = (req, res) => {
 };
 
 const sparcsssoCallbackHandler = (req, res) => {
-  const { state, redirectOrigin, redirectPath } = req.session?.loginAfterState;
+  const loginAfterState = req.session?.loginAfterState;
+  if (!loginAfterState)
+    return res.status(400).send("SparcsssoCallbackHandler : invalid request");
+  const { state, redirectOrigin, redirectPath } = loginAfterState;
   const stateForCmp = req.body.state || req.query.state;
 
   req.session.loginAfterState = undefined;
