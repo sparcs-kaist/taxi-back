@@ -11,7 +11,8 @@ module.exports = {
     key: process.env.SPARCSSSO_CLIENT_KEY || "", // optional
   },
   port: process.env.PORT || 80, // optional (default = 80)
-  frontUrl: process.env.FRONT_URL || "http://localhost:3000", // optional (default = "http://localhost:3000")
+  corsWhiteList: (process.env.CORS_WHITELIST &&
+    JSON.parse(process.env.CORS_WHITELIST)) || [true], // optional (default = [true])
   aws: {
     accessKeyId: process.env.AWS_ACCESS_KEY_ID, // required
     secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY, // required
@@ -29,12 +30,11 @@ module.exports = {
     TOKEN_EXPIRED: -3,
     TOKEN_INVALID: -2,
   },
-  appUriScheme: process.env.APP_URI_SCHEME, // FIXME: 사용하지 않음
   googleApplicationCredentials:
     process.env.GOOGLE_APPLICATION_CREDENTIALS &&
-    JSON.parse(process.env.GOOGLE_APPLICATION_CREDENTIALS),
+    JSON.parse(process.env.GOOGLE_APPLICATION_CREDENTIALS), // optional
   testAccounts:
-    process.env.TEST_ACCOUNTS && JSON.parse(process.env.TEST_ACCOUNTS),
+    (process.env.TEST_ACCOUNTS && JSON.parse(process.env.TEST_ACCOUNTS)) || [], // optional
   slackWebhookUrl: {
     report: process.env.SLACK_REPORT_WEBHOOK_URL || "", // optional
   },

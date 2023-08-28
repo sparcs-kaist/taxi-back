@@ -16,9 +16,7 @@ app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
 
 // [Middleware] CORS 설정
-app.use(
-  require("cors")({ origin: true, credentials: true, exposedHeaders: ["Date"] })
-);
+app.use(require("./src/middlewares/cors"));
 
 // [Middleware] 세션 및 쿠키
 const session = require("./src/middlewares/session");
@@ -49,6 +47,9 @@ app.use("/chats", require("./src/routes/chats"));
 app.use("/locations", require("./src/routes/locations"));
 app.use("/reports", require("./src/routes/reports"));
 app.use("/notifications", require("./src/routes/notifications"));
+
+// [Middleware] 전역 에러 핸들러. 에러 핸들러는 router들보다 아래에 등록되어야 합니다.
+app.use(require("./src/middlewares/errorHandler"));
 
 // express 서버 시작
 const serverHttp = http

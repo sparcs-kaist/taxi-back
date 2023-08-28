@@ -115,8 +115,8 @@ const locationSchema = Schema({
   koName: { type: String, required: true },
   priority: { type: Number, default: 0 },
   isValid: { type: Boolean, default: true },
-  // latitude: { type: Number, required: true },
-  // longitude: { type: Number, required: true }
+  latitude: { type: Number }, // 이후 required: true 로 수정 필요
+  longitude: { type: Number }, // 이후 required: true 로 수정 필요
 });
 const chatSchema = Schema({
   roomId: { type: Schema.Types.ObjectId, ref: "Room", required: true },

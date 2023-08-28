@@ -1,4 +1,3 @@
-const { frontUrl } = require("../../loadenv");
 const { userModel } = require("../modules/stores/mongo");
 const { logout, login } = require("../modules/auths/login");
 
@@ -10,10 +9,10 @@ const {
 const logger = require("../modules/logger");
 const jwt = require("../modules/auths/jwt");
 
-const { registerDeviceTokenHandler } = require("../services/auth");
+const { registerDeviceTokenHandler, tryLogin } = require("../services/auth");
 const loginReplacePage = require("../views/loginReplacePage");
 
-const makeInfo = (id) => {
+const createUserData = (id) => {
   const info = {
     id: id,
     sid: id + "-sid",
@@ -29,75 +28,25 @@ const makeInfo = (id) => {
   return info;
 };
 
-// 새로운 유저 만들기
-// 이거 왜 이름이 joinus?
-const joinus = (req, res, userData, redirectPath = "/") => {
-  const newUser = new userModel({
-    id: userData.id,
-    name: userData.name,
-    nickname: userData.nickname,
-    profileImageUrl: userData.profileImageUrl,
-    joinat: req.timestamp,
-    subinfo: {
-      kaist: userData.kaist,
-      sparcs: userData.sparcs,
-      facebook: userData.facebook,
-      twitter: userData.twitter,
-    },
-    email: userData.email,
-  });
-  newUser.save((err) => {
-    if (err) {
-      logger.error(err);
-      return;
-    }
-    loginDone(req, res, userData, redirectPath);
-  });
-};
-
-// 주어진 데이터로 DB 검색
-// 만약 없으면 새로운 유저 만들기
-// 있으면 로그인 진행 후 리다이렉트
-const loginDone = (req, res, userData, redirectPath = "/") => {
-  userModel.findOne(
-    { id: userData.id },
-    "_id name id withdraw ban",
-    async (err, result) => {
-      if (err) logger.error(logger.error(err));
-      else if (!result) joinus(req, res, userData, redirectPath);
-      else {
-        if (req.session.isApp) {
-          const { token: accessToken } = await jwt.sign({
-            id: result._id,
-            type: "access",
-          });
-          const { token: refreshToken } = await jwt.sign({
-            id: result._id,
-            type: "refresh",
-          });
-          req.session.accessToken = accessToken;
-          req.session.refreshToken = refreshToken;
-        }
-
-        login(req, userData.sid, result.id, result._id, result.name);
-        res.redirect(frontUrl + redirectPath);
-      }
-    }
-  );
-};
-
 const loginReplaceHandler = (req, res) => {
   const { id } = req.body;
-  const redirectPath = decodeURIComponent(req.body?.redirect || "%2F");
-  loginDone(req, res, makeInfo(id), redirectPath);
+  const loginAfterState = req.session?.loginAfterState;
+  if (!loginAfterState)
+    return res.status(400).send("SparcsssoCallbackHandler : invalid request");
+  const { redirectOrigin, redirectPath } = loginAfterState;
+  tryLogin(req, res, createUserData(id), redirectOrigin, redirectPath);
 };
 
 const sparcsssoHandler = (req, res) => {
   const redirectPath = decodeURIComponent(req.query?.redirect || "%2F");
   const isApp = !!req.query.isApp;
 
+  req.session.loginAfterState = {
+    redirectOrigin: req.origin,
+    redirectPath: redirectPath,
+  };
   req.session.isApp = isApp;
-  res.end(loginReplacePage(redirectPath));
+  res.end(loginReplacePage);
 };
 
 const logoutHandler = async (req, res) => {
@@ -111,7 +60,7 @@ const logoutHandler = async (req, res) => {
     }
 
     // sparcs-sso 로그아웃 URL을 생성 및 반환
-    const ssoLogoutUrl = frontUrl + redirectPath;
+    const ssoLogoutUrl = new URL(redirectPath, req.origin).href;
     logout(req, res);
     res.json({ ssoLogoutUrl });
   } catch (e) {
