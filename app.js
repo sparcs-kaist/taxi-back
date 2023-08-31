@@ -38,6 +38,9 @@ app.use(require("./src/middlewares/limitRate"));
 // [Router] Swagger (API 문서)
 app.use("/docs", require("./src/routes/docs"));
 
+// [Middleware] 모든 API 요청에 대하여 origin 검증
+app.use(require("./src/middlewares/originValidator"));
+
 // [Router] APIs
 app.use("/auth", require("./src/routes/auth"));
 app.use("/logininfo", require("./src/routes/logininfo"));
