@@ -38,6 +38,9 @@ app.use(require("./src/middlewares/limitRate"));
 // [Router] Swagger (API 문서)
 app.use("/docs", require("./src/routes/docs"));
 
+// [Middleware] 모든 API 요청에 대하여 origin 검증
+app.use(require("./src/middlewares/originValidator"));
+
 // [Router] APIs
 app.use("/auth", require("./src/routes/auth"));
 app.use("/logininfo", require("./src/routes/logininfo"));
@@ -47,6 +50,9 @@ app.use("/chats", require("./src/routes/chats"));
 app.use("/locations", require("./src/routes/locations"));
 app.use("/reports", require("./src/routes/reports"));
 app.use("/notifications", require("./src/routes/notifications"));
+
+// [Middleware] 전역 에러 핸들러. 에러 핸들러는 router들보다 아래에 등록되어야 합니다.
+app.use(require("./src/middlewares/errorHandler"));
 
 // express 서버 시작
 const serverHttp = http
