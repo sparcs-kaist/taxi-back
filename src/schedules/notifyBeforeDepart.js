@@ -2,8 +2,6 @@ const { roomModel } = require("../modules/stores/mongo");
 const { roomPopulateOption } = require("../modules/populates/rooms");
 const { emitChatEvent } = require("../modules/socket");
 
-// const expression = "*/5 * * * *";
-const expression = "* * * * *";
 const MS_PER_MINUTE = 60000;
 
 /**
@@ -12,7 +10,8 @@ const MS_PER_MINUTE = 60000;
  * @return {Promise<Number>} 알림 전송에 실패한 기기 수를 반환합니다.
  */
 
-const sendReminder = async (io) => {
+module.exports = (app) => async () => {
+  const io = app.get("io");
   const departDate = new Date(Date.now() + 15 * MS_PER_MINUTE).toISOString();
   const currentDate = new Date(Date.now()).toISOString();
 
@@ -34,14 +33,9 @@ const sendReminder = async (io) => {
   roomIds.map(async (roomId, index) => {
     await emitChatEvent(io, {
       roomId: roomId,
-      type: "department",
+      type: "departure",
       content: roomId,
       authorId: authorIds[index],
     });
   });
-};
-
-module.exports = {
-  expression,
-  sendReminder,
 };

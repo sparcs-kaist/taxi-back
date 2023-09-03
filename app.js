@@ -61,7 +61,8 @@ const serverHttp = http
     logger.info(`Express 서버가 ${httpPort}번 포트에서 시작됨.`)
   );
 
-// socket.io 서버 시작 및 app 인스턴스에 저장
+// socket.io 서버 시작
 app.set("io", startSocketServer(serverHttp));
 
-require("./src/schedules/index")(app.get("io"));
+// [Schedule] 스케줄러 시작
+require("./src/schedules")(app);
