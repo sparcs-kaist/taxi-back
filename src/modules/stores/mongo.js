@@ -130,7 +130,7 @@ const chatSchema = Schema({
       "settlement",
       "account",
       "departure", // 출발 15분 전 알림
-      "arrival", // 출발 (1|25)시간 이후 알림 - 정산/송금 권유
+      "arrival", // 출발 (1|24)시간 이후 알림 - 정산/송금 권유
     ],
   }, // 메시지 종류
   authorId: { type: Schema.Types.ObjectId, ref: "User" }, // 작성자 id

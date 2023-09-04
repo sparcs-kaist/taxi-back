@@ -1,5 +1,4 @@
 const { roomModel, chatModel } = require("../modules/stores/mongo");
-// const { roomPopulateOption } = require("../modules/populates/rooms");
 const { emitChatEvent } = require("../modules/socket");
 const logger = require("../modules/logger");
 
@@ -14,13 +13,13 @@ const MS_PER_MINUTE = 60000;
 module.exports = (app) => async () => {
   try {
     const io = app.get("io");
-    const departDate = new Date(Date.now() + 15 * MS_PER_MINUTE).toISOString();
     const currentDate = new Date(Date.now()).toISOString();
+    const departDate = new Date(Date.now() + 15 * MS_PER_MINUTE).toISOString();
 
     const candidatesRooms = await roomModel.find({
       $and: [
-        { time: { $lte: departDate } },
         { time: { $gte: currentDate } },
+        { time: { $lte: departDate } },
         { "part.1": { $exists: true } },
       ],
     });
