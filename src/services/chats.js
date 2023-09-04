@@ -213,12 +213,13 @@ const updateChatHandler = async (req, res) => {
       )
       .lean()
       .populate(roomPopulateOption);
+
     if (!roomObject) {
       return res.status(404).send("Chat/update : cannot find room info");
     }
 
     /* TODO: Return Formatting */
-    if (await emitUpdateEvent(io)) res.json({ part: roomObject.part });
+    if (await emitUpdateEvent(io, roomId, userId)) res.json({ part: roomObject.part });
     else res.status(500).send("Chat/update : internal server error");
   } catch (e) {
     res.status(500).send("Chat/update : internal server error");

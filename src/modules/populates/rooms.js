@@ -7,7 +7,7 @@ const roomPopulateOption = [
   { path: "to", select: "_id koName enName" },
   {
     path: "part",
-    select: "-_id user settlementStatus",
+    select: "-_id user settlementStatus readAt",
     populate: { path: "user", select: "_id id name nickname profileImageUrl" },
   },
 ];

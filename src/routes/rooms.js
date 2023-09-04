@@ -41,6 +41,15 @@ router.get(
   roomHandlers.infoHandler
 );
 
+// 특정 id 방 part 정보 보기
+router.get(
+  "/info/part",
+  query("id").isMongoId(),
+  validator,
+  roomHandlers.partInfoHandler
+);
+
+
 // JSON으로 받은 정보로 방을 생성한다.
 router.post(
   "/create",
