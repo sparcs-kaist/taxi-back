@@ -2,6 +2,7 @@ const { chatModel, userModel, roomModel } = require("../modules/stores/mongo");
 const { chatPopulateOption } = require("../modules/populates/chats");
 const aws = require("../modules/stores/aws");
 const { transformChatsForRoom, emitChatEvent } = require("../modules/socket");
+const logger = require("../modules/logger");
 
 const chatCount = 60;
 
@@ -42,6 +43,7 @@ const loadRecentChatHandler = async (req, res) => {
       res.status(500).send("Chat/ : internal server error");
     }
   } catch (e) {
+    logger.error(e);
     res.status(500).send("Chat/ : internal server error");
   }
 };
@@ -85,6 +87,7 @@ const loadBeforeChatHandler = async (req, res) => {
       res.status(500).send("Chat/load/before : internal server error");
     }
   } catch (e) {
+    logger.error(e);
     res.status(500).send("Chat/load/before : internal server error");
   }
 };
@@ -125,6 +128,7 @@ const loadAfterChatHandler = async (req, res) => {
       res.status(500).send("Chat/load/after : internal server error");
     }
   } catch (e) {
+    logger.error(e);
     res.status(500).send("Chat/load/after : internal server error");
   }
 };
@@ -161,6 +165,7 @@ const sendChatHandler = async (req, res) => {
       res.json({ result: true });
     else res.status(500).send("Chat/send : internal server error");
   } catch (e) {
+    logger.error(e);
     res.status(500).send("Chat/send : internal server error");
   }
 };
@@ -203,6 +208,7 @@ const uploadChatImgGetPUrlHandler = async (req, res) => {
       });
     });
   } catch (e) {
+    logger.error(e);
     res.status(500).send("Chat/uploadChatImg/getPUrl : internal server error");
   }
 };
@@ -249,6 +255,7 @@ const uploadChatImgDoneHandler = async (req, res) => {
       });
     });
   } catch (e) {
+    logger.error(e);
     res.status(500).send("Chat/uploadChatImg/done : internal server error");
   }
 };

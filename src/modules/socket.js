@@ -44,9 +44,9 @@ const transformChatsForRoom = async (chats) => {
     chatsToSend.push({
       roomId: chat.roomId,
       type: chat.type,
-      authorId: chat.authorId._id,
-      authorName: chat.authorId.nickname,
-      authorProfileUrl: chat.authorId.profileImageUrl,
+      authorId: chat.authorId?._id,
+      authorName: chat.authorId?.nickname,
+      authorProfileUrl: chat.authorId?.profileImageUrl,
       content: chat.content,
       time: chat.time,
       isValid: chat.isValid,
@@ -61,7 +61,7 @@ const transformChatsForRoom = async (chats) => {
  * FCM 알림으로 보내는 content는 채팅 type에 따라 달라집니다.
  * 예를 들어, type이 "text"인 경우 `${nickname}: ${content}`를 보냅니다.
  */
-const getMessageBody = (type, nickname, content) => {
+const getMessageBody = (type, nickname = "", content = "") => {
   // 닉네임이 9글자를 넘어가면 "..."으로 표시합니다.
   const ellipsisedNickname =
     nickname.length > 9 ? nickname.slice(0, 7) + "..." : nickname;
@@ -96,7 +96,7 @@ const getMessageBody = (type, nickname, content) => {
       return `${ellipsisedNickname} ${suffix}`;
     }
     case "departure":
-      return `출발 ${content}분전 입니다`;
+      return `택시 출발 ${content}분 전 입니다`;
     case "arrival":
       return "아직 정산 시작을 하지 않았거나 송금을 완료하지 않은 사용자가 있습니다";
     default:
@@ -111,30 +111,35 @@ const getMessageBody = (type, nickname, content) => {
  * @param {Server<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, any>} io - Socket.io 서버 인스턴스입니다. req.app.get("io")를 통해 접근할 수 있습니다.
  * @param {Object} chat - 채팅 메시지 내용입니다.
  * @param {string} chat.roomId - 채팅 및 채팅 알림을 보낼 방의 ObjectId입니다.
- * @param {string} chat.type - 채팅 메시지의 유형입니다. "text" | "s3img" | "in" | "out" | "payment" | "settlement" 입니다.
+ * @param {string} chat.type - 채팅 메시지의 유형입니다. "text" | "s3img" | "in" | "out" | "payment" | "settlement" | "account" | "departure" | "arrival" 입니다.
  * @param {string} chat.content - 채팅 메시지의 본문입니다. chat.type이 "s3img"인 경우에는 채팅의 objectId입니다. chat.type이 "in"이거나 "out"인 경우 입퇴장한 사용자의 id(!==ObjectId)입니다.
- * @param {string} chat.authorId - 채팅을 보낸 사용자의 ObjectId입니다.
+ * @param {string} chat.authorId - optional. 채팅을 보낸 사용자의 ObjectId입니다.
  * @param {Date?} chat.time - optional. 채팅 메시지 전송 시각입니다.
  * @return {Promise<Boolean>} 채팅 및 알림 전송에 성공하면 true, 중간에 오류가 발생하면 false를 반환합니다.
  */
 const emitChatEvent = async (io, chat) => {
   try {
-    // chat must contain type, content and authorId
-    // chat can contain time or not.
     const { roomId, type, content, authorId } = chat;
 
-    if (!io || !roomId || !type || !content || !authorId) {
+    // chat must contains roomId, type, and content
+    if (!io || !roomId || !type || !content) {
       throw new IllegalArgumentsException();
     }
 
+    // chat optionally contains time
     const time = chat?.time || Date.now();
-    const { name, part } = await roomModel.findById(roomId, "name part");
-    const { nickname, profileImageUrl } = await userModel.findById(
-      authorId,
-      "nickname profileImageUrl"
-    );
 
-    if (!nickname || !profileImageUrl || !name || !part) {
+    // roomId must be valid
+    const { name, part } = await roomModel.findById(roomId, "name part");
+    if (!name || !part) {
+      throw new IllegalArgumentsException();
+    }
+
+    // chat optionally contains authorId
+    const { nickname, profileImageUrl } = authorId
+      ? await userModel.findById(authorId, "nickname profileImageUrl")
+      : {};
+    if (authorId && (!nickname || !profileImageUrl)) {
       throw new IllegalArgumentsException();
     }
 
@@ -162,14 +167,12 @@ const emitChatEvent = async (io, chat) => {
     chatDocument.authorName = nickname;
     chatDocument.authorProfileUrl = profileImageUrl;
 
-    const urlOnClick = `/myroom/${roomId}`;
     const userIds = part.map((participant) => participant.user);
-    const userIdsExceptAuthor = part
-      .map((participant) => participant.user)
-      .filter((userId) => userId.toString() !== authorId.toString());
-    const deviceTokens = await getTokensOfUsers(userIdsExceptAuthor, {
-      chatting: true,
-    });
+    const userIdsExceptAuthor = authorId
+      ? part
+          .map((participant) => participant.user)
+          .filter((userId) => userId.toString() !== authorId.toString())
+      : userIds;
 
     // 방의 모든 사용자에게 socket 메세지 수신 이벤트를 발생시킵니다.
     const chatsForRoom = await transformChatsForRoom([chatDocument]);
@@ -182,15 +185,20 @@ const emitChatEvent = async (io, chat) => {
       )
     );
 
-    // 해당 방에 참여중인 사용자들에게 알림을 전송합니다.
+    // 방의 작성자를 제외한 참여중인 사용자들에게 푸시 알림을 전송합니다.
+    const deviceTokensExceptAuthor = await getTokensOfUsers(
+      userIdsExceptAuthor,
+      { chatting: true }
+    );
     await sendMessageByTokens(
-      deviceTokens,
+      deviceTokensExceptAuthor,
       type,
       name,
       getMessageBody(type, nickname, content),
       getS3Url(`/profile-img/${profileImageUrl}`),
-      urlOnClick
+      `/myroom/${roomId}`
     );
+
     return true;
   } catch (err) {
     logger.error(err);
