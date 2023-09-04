@@ -12,9 +12,7 @@ const MS_PER_MINUTE = 60000;
 module.exports = (app) => async () => {
   try {
     const io = app.get("io");
-    const expiredDate = new Date(
-      Date.now() - 200 * MS_PER_MINUTE // @fixme
-    ).toISOString();
+    const expiredDate = new Date(Date.now() - 90 * MS_PER_MINUTE).toISOString();
     const arrivalDate = new Date(Date.now() - 60 * MS_PER_MINUTE).toISOString();
 
     const candidateRooms = await roomModel.find({
