@@ -173,7 +173,7 @@ const sendChatHandler = async (req, res) => {
   }
 };
 
-const updateChatHandler = async (req, res) => {
+const readChatHandler = async (req, res) => {
   try {
     const io = req.app.get("io");
     const { userId } = req;
@@ -181,16 +181,16 @@ const updateChatHandler = async (req, res) => {
     const user = await userModel.findOne({ id: userId });
 
     if (!userId || !user) {
-      return res.status(500).send("Chat/update : internal server error");
+      return res.status(500).send("Chat/read : internal server error");
     }
     if (!io) {
-      return res.status(403).send("Chat/update : socket did not connected");
+      return res.status(403).send("Chat/read : socket did not connected");
     }
     const isPart = await isUserInRoom(userId, roomId);
     if (!isPart) {
       return res
         .status(403)
-        .send("Chat/update : user did not participated in the room");
+        .send("Chat/read : user did not participated in the room");
     }
 
     const roomObject = await roomModel
@@ -215,14 +215,13 @@ const updateChatHandler = async (req, res) => {
       .populate(roomPopulateOption);
 
     if (!roomObject) {
-      return res.status(404).send("Chat/update : cannot find room info");
+      return res.status(404).send("Chat/read : cannot find room info");
     }
 
-    /* TODO: Return Formatting */
-    if (await emitUpdateEvent(io, roomId, userId)) res.json({ part: roomObject.part });
-    else res.status(500).send("Chat/update : internal server error");
+    if (await emitUpdateEvent(io, roomId, userId)) res.json({ result: true });
+    else res.status(500).send("Chat/read : failed to emit socket events");
   } catch (e) {
-    res.status(500).send("Chat/update : internal server error");
+    res.status(500).send("Chat/read : internal server error");
   }
 };
 
@@ -338,5 +337,5 @@ module.exports = {
   sendChatHandler,
   uploadChatImgGetPUrlHandler,
   uploadChatImgDoneHandler,
-  updateChatHandler,
+  readChatHandler,
 };
