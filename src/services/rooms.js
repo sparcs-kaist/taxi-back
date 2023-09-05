@@ -136,28 +136,6 @@ const infoHandler = async (req, res) => {
   }
 };
 
-const partInfoHandler = async (req, res) => {
-  try {
-    const user = await userModel.findOne({ id: req.userId });
-    const roomObject = await roomModel
-      .findOne({ _id: req.query.id, "part.user": user._id })
-      .lean()
-      .populate(roomPopulateOption);
-    if (roomObject) {
-      res.send(roomObject.part.filter((p) => p.user._id.equals(user._id))[0]);
-    } else {
-      res.status(404).json({
-        error: "Rooms/info : id does not exist",
-      });
-    }
-  } catch (err) {
-    logger.error(err);
-    res.status(500).json({
-      error: "Rooms/info : internal server error",
-    });
-  }
-}
-
 const joinHandler = async (req, res) => {
   try {
     const user = await userModel
@@ -425,7 +403,7 @@ const searchByUserHandler = async (req, res) => {
         populate: roomPopulateOption,
       })
       .lean();
-    console.log(user);
+
     // 정산완료여부 기준으로 진행중인 방과 완료된 방을 분리해서 응답을 전송합니다.
     const response = {};
     response.ongoing = user.ongoingRoom.map((room) =>
@@ -664,7 +642,6 @@ const settlementHandler = async (req, res) => {
 module.exports = {
   publicInfoHandler,
   infoHandler,
-  partInfoHandler,
   createHandler,
   joinHandler,
   abortHandler,
