@@ -59,7 +59,7 @@ router.post(
  * 같은 방에 있는 user들에게 업데이트를 요청합니다.
  */
 router.post(
-  "/readat",
+  "/read",
   body("roomId").isMongoId(),
   body("lastMsgDate").isISO8601(),
   validator,
