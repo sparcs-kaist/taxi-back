@@ -218,7 +218,7 @@ const readChatHandler = async (req, res) => {
       return res.status(404).send("Chat/read : cannot find room info");
     }
 
-    if (await emitUpdateEvent(io, roomId, userId)) res.json({ result: true });
+    if (await emitUpdateEvent(io, roomId)) res.json({ result: true });
     else res.status(500).send("Chat/read : failed to emit socket events");
   } catch (e) {
     res.status(500).send("Chat/read : internal server error");

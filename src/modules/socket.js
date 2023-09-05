@@ -187,10 +187,10 @@ const emitChatEvent = async (io, chat) => {
   }
 };
 
-const emitUpdateEvent = async (io, roomId, userId) => {
+const emitUpdateEvent = async (io, roomId) => {
   try {
     // 방의 모든 사용자에게 socket 메세지 업데이트 이벤트를 발생시킵니다.
-    if (!io || !roomId || !userId) {
+    if (!io || !roomId) {
       throw new IllegalArgumentsException();
     }
 
