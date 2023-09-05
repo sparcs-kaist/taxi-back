@@ -8,7 +8,6 @@ const {
 } = require("../modules/socket");
 const {
   roomPopulateOption,
-  formatSettlement,
 } = require("../modules/populates/rooms");
 
 const chatCount = 60;
