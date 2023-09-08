@@ -10,7 +10,7 @@ const listHandler = async (_, res) => {
     res.json({ items });
   } catch (err) {
     logger.error(err);
-    res.status(500).json({ error: "items/list : internal server error" });
+    res.status(500).json({ error: "Items/List : internal server error" });
   }
 };
 
