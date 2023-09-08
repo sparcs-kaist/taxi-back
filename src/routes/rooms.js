@@ -76,7 +76,7 @@ router.post(
 );
 
 // 로그인된 사용자의 모든 방들을 반환한다.
-router.get("/searchByUser", setTimestamp, roomHandlers.searchByUserHandler);
+router.get("/searchByUser", roomHandlers.searchByUserHandler);
 
 router.post(
   "/commitPayment",
