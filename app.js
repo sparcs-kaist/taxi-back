@@ -55,6 +55,9 @@ app.use("/locations", require("./src/routes/locations"));
 app.use("/reports", require("./src/routes/reports"));
 app.use("/notifications", require("./src/routes/notifications"));
 
+// 2023 추석 이벤트 전용 라우터입니다.
+app.use("/event/23-chuseok", require("./src/lottery2023fall").lotteryRouter);
+
 // [Middleware] 전역 에러 핸들러. 에러 핸들러는 router들보다 아래에 등록되어야 합니다.
 app.use(require("./src/middlewares/errorHandler"));
 

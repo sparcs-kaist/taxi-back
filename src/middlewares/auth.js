@@ -8,8 +8,9 @@ const authMiddleware = (req, res, next) => {
       error: "not logged in",
     });
   } else {
-    const { id } = getLoginInfo(req);
+    const { id, oid } = getLoginInfo(req);
     req.userId = id;
+    req.userOid = oid;
     next();
   }
 };
