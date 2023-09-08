@@ -1,6 +1,11 @@
 const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 
+const integerValidator = {
+  validator: Number.isInteger,
+  message: "{VALUE} is not an integer value",
+};
+
 const eventStatusSchema = Schema({
   userId: {
     type: Schema.Types.ObjectId,
@@ -15,6 +20,8 @@ const eventStatusSchema = Schema({
   creditAmount: {
     type: Number,
     default: 0,
+    min: 0,
+    validate: integerValidator,
   },
 });
 
@@ -26,10 +33,14 @@ const eventSchema = Schema({
   rewardAmount: {
     type: Number,
     required: true,
+    min: 0,
+    validate: integerValidator,
   },
   maxCount: {
     type: Number,
     default: 1,
+    min: 0,
+    validate: integerValidator,
   },
   expireat: {
     type: Date,
@@ -53,6 +64,8 @@ const itemSchema = Schema({
   price: {
     type: Number,
     required: true,
+    min: 0,
+    validate: integerValidator,
   },
   description: {
     type: String,
@@ -65,6 +78,8 @@ const itemSchema = Schema({
   stock: {
     type: Number,
     required: true,
+    min: 0,
+    validate: integerValidator,
   },
   itemType: {
     type: Number,
@@ -78,6 +93,8 @@ const itemSchema = Schema({
   randomWeight: {
     type: Number,
     required: true,
+    min: 0,
+    validate: integerValidator,
   },
 });
 
@@ -90,6 +107,8 @@ const transactionSchema = Schema({
   amount: {
     type: Number,
     required: true,
+    min: 0,
+    validate: integerValidator,
   },
   userId: {
     type: Schema.Types.ObjectId,
