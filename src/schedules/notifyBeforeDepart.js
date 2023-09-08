@@ -6,8 +6,6 @@ const MS_PER_MINUTE = 60000;
 
 /**
  * 출발까지 15분 남은 방들에 참여하고 있는 사용자들에게 리마인더 알림을 전송합니다.
- * @summary 메시지는 보내지 않습니다. ㅎㅎ
- * @return {Promise<Number>} 알림 전송에 실패한 기기 수를 반환합니다.
  */
 
 module.exports = (app) => async () => {
@@ -16,6 +14,11 @@ module.exports = (app) => async () => {
     const currentDate = new Date(Date.now()).toISOString();
     const departDate = new Date(Date.now() + 15 * MS_PER_MINUTE).toISOString();
 
+    /**
+     * 알림을 전송하는 방의 첫 번째 조건은 다음과 같습니다.
+     * - 출출발까지 15분 이하가 남아있어야 합니다.
+     * - 2명 이상이 방에 참여 중이어야 합니다.
+     */
     const candidatesRooms = await roomModel.find({
       $and: [
         { time: { $gte: currentDate } },
@@ -26,6 +29,11 @@ module.exports = (app) => async () => {
 
     await Promise.all(
       candidatesRooms.map(async ({ _id: roomId, time }) => {
+        /**
+         * 알림을 전송하는 방의 두 번째 조건은 다음과 같습니다.
+         * - '출발 후 알림'이 아직 전송되지 않았어야 합니다.
+         * 모든 조건에 만족이 되면 해당 방에 참여 중인 모든 사용자에게 알림이 전송됩니다.
+         */
         const countDepartureChat = await chatModel.countDocuments({
           roomId,
           type: "departure",
