@@ -1,50 +1,68 @@
-// 외부 모듈 require
+// 모듈 require
 const express = require("express");
 const http = require("http");
-
-const cookieParser = require("cookie-parser");
-const cors = require("cors");
-
-// 내부 모듈
-const security = require("./security");
+const { port: httpPort } = require("./loadenv");
 const logger = require("./src/modules/logger");
-const logAPIAccess = require("./src/modules/logAPIAccess");
-const startSocketServer = require("./src/modules/socket");
+const { startSocketServer } = require("./src/modules/socket");
+
+// Firebase Admin 초기설정
+require("./src/modules/fcm").initializeApp();
 
 // 익스프레스 서버 생성
 const app = express();
+
+// [Middleware] request body 파싱
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
-app.use(cors({ origin: true, credentials: true }));
 
-// 세션 및 쿠키
-const session = require("./src/middleware/session");
+// [Middleware] CORS 설정
+app.use(require("./src/middlewares/cors"));
+
+// [Middleware] 세션 및 쿠키
+const session = require("./src/middlewares/session");
 app.use(session);
-app.use(cookieParser());
+app.use(require("cookie-parser")());
 
-// API 접근 기록 및 응답 시간을 http response의 헤더에 기록합니다.
-app.use(require("response-time")(logAPIAccess));
+// [Middleware] Timestamp 및 clientIP 확인
+app.use(require("./src/middlewares/information"));
 
-// admin 페이지는 rate limiting을 적용하지 않습니다.
-app.use("/admin", require("./src/route/admin"));
+// [Middleware] API 접근 기록 및 응답 시간을 http response의 헤더에 기록합니다.
+app.use(require("./src/middlewares/responseTime"));
 
-// Apply the rate limiting middleware to all requests
-app.use(require("./src/middleware/limitRate"));
+// [Router] admin 페이지는 rate limiting을 적용하지 않습니다.
+app.use("/admin", require("./src/routes/admin"));
 
-// 라우터 및 리액트
-// /rooms/v2에 요청을 보내는 기존 클라이언트 코드 호환성 유지
-app.use("/auth", require("./src/route/auth"));
-app.use("/json/logininfo", require("./src/route/logininfo"));
-app.use("/users", require("./src/route/users"));
-app.use(["/rooms/v2", "/rooms"], require("./src/route/rooms"));
-app.use("/chats", require("./src/route/chats"));
-app.use("/locations", require("./src/route/locations"));
-app.use("/reports", require("./src/route/reports"));
+// [Middleware] 모든 요청에 대하여 rate limiting 적용
+app.use(require("./src/middlewares/limitRate"));
+
+// [Router] Swagger (API 문서)
+app.use("/docs", require("./src/routes/docs"));
+
+// [Middleware] 모든 API 요청에 대하여 origin 검증
+app.use(require("./src/middlewares/originValidator"));
+
+// [Router] APIs
+app.use("/auth", require("./src/routes/auth"));
+app.use("/logininfo", require("./src/routes/logininfo"));
+app.use("/users", require("./src/routes/users"));
+app.use("/rooms", require("./src/routes/rooms"));
+app.use("/chats", require("./src/routes/chats"));
+app.use("/locations", require("./src/routes/locations"));
+app.use("/reports", require("./src/routes/reports"));
+app.use("/notifications", require("./src/routes/notifications"));
+
+// [Middleware] 전역 에러 핸들러. 에러 핸들러는 router들보다 아래에 등록되어야 합니다.
+app.use(require("./src/middlewares/errorHandler"));
 
 // express 서버 시작
-const serverHttp = http.createServer(app).listen(security.port, () => {
-  logger.info(`Express 서버가 ${security.port}번 포트에서 시작됨.`);
-});
+const serverHttp = http
+  .createServer(app)
+  .listen(httpPort, () =>
+    logger.info(`Express 서버가 ${httpPort}번 포트에서 시작됨.`)
+  );
 
-// socket.io 서버 시작 및 app 인스턴스에 저장
-app.set("io", startSocketServer(serverHttp, session));
+// socket.io 서버 시작
+app.set("io", startSocketServer(serverHttp));
+
+// [Schedule] 스케줄러 시작
+require("./src/schedules")(app);

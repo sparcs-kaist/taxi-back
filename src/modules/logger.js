@@ -2,7 +2,7 @@ const { createLogger, format, transports } = require("winston");
 const dailyRotateFileTransport = require("winston-daily-rotate-file");
 const path = require("path");
 
-const { nodeEnv } = require("../../security");
+const { nodeEnv } = require("../../loadenv");
 
 // 로깅에 사용하기 위한 포맷을 추가로 정의합니다.
 const customFormat = {
