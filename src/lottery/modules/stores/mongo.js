@@ -94,7 +94,7 @@ const transactionSchema = Schema({
   userId: {
     type: Schema.Types.ObjectId,
     ref: "User",
-    require: true,
+    required: true,
   },
   eventId: {
     type: Schema.Types.ObjectId,
