@@ -121,9 +121,19 @@ const chatSchema = Schema({
   roomId: { type: Schema.Types.ObjectId, ref: "Room", required: true },
   type: {
     type: String,
-    enum: ["text", "in", "out", "s3img", "payment", "settlement", "account"],
+    enum: [
+      "text",
+      "in",
+      "out",
+      "s3img",
+      "payment",
+      "settlement",
+      "account",
+      "departure", // 출발 15분 전 알림
+      "arrival", // 출발 (1|24)시간 이후 알림 - 정산/송금 권유
+    ],
   }, // 메시지 종류
-  authorId: { type: Schema.Types.ObjectId, ref: "User", required: true }, // 작성자 id
+  authorId: { type: Schema.Types.ObjectId, ref: "User" }, // 작성자 id
   content: { type: String, default: "" },
   time: { type: Date, required: true },
   isValid: { type: Boolean, default: true },
