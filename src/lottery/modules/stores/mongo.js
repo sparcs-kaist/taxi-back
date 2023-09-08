@@ -99,12 +99,10 @@ const transactionSchema = Schema({
   eventId: {
     type: Schema.Types.ObjectId,
     ref: "Event",
-    required: true, // null이 될 수도 있지만 대부분의 경우 null이 아닐 것이기에, 안전성을 위해 true로 설정합니다.
   },
   itemId: {
     type: Schema.Types.ObjectId,
     ref: "Item",
-    default: null,
   },
   comment: {
     type: String,
