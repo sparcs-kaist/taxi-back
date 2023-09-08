@@ -3,6 +3,7 @@ const express = require("express");
 const http = require("http");
 const { port: httpPort } = require("./loadenv");
 const logger = require("./src/modules/logger");
+const { connectDatabase } = require("./src/modules/stores/mongo");
 const { startSocketServer } = require("./src/modules/socket");
 
 // Firebase Admin 초기설정
@@ -10,6 +11,9 @@ require("./src/modules/fcm").initializeApp();
 
 // 익스프레스 서버 생성
 const app = express();
+
+// 데이터베이스 연결
+connectDatabase();
 
 // [Middleware] request body 파싱
 app.use(express.urlencoded({ extended: false }));
