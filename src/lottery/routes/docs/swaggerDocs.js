@@ -6,7 +6,6 @@ const apiPrefix = `/events/${eventMode}`;
 const eventSwaggerDocs = {
   tags: [
     {
-      // TODO: edit
       name: `${apiPrefix}/items`,
       description: "이벤트 - 아이템 관련 API",
     },
