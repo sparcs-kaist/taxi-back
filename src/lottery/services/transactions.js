@@ -5,7 +5,7 @@ const getUserTransactionsHandler = async (req, res) => {
   try {
     const transactions = await transactionModel.find(
       { userId: req.userOid },
-      { userId: 0 }
+      "-userId"
     );
     res.json({ transactions }); // userId는 이미 Frontend에서 알고 있고, 중복되는 값이므로 제외합니다.
   } catch (err) {
