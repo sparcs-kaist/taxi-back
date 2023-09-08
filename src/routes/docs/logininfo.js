@@ -40,7 +40,7 @@ const logininfoDocs = {
                   agreeOnTermsOfService: {
                     type: "boolean",
                   },
-                  subinfio: {
+                  subinfo: {
                     type: "object",
                     properties: {
                       kaist: {
