@@ -1,7 +1,7 @@
 // 모듈 require
 const express = require("express");
 const http = require("http");
-const { port: httpPort } = require("./loadenv");
+const { port: httpPort, eventMode } = require("./loadenv");
 const logger = require("./src/modules/logger");
 const { connectDatabase } = require("./src/modules/stores/mongo");
 const { startSocketServer } = require("./src/modules/socket");
@@ -54,6 +54,10 @@ app.use("/chats", require("./src/routes/chats"));
 app.use("/locations", require("./src/routes/locations"));
 app.use("/reports", require("./src/routes/reports"));
 app.use("/notifications", require("./src/routes/notifications"));
+
+// 2023 추석 이벤트 전용 라우터입니다.
+eventMode &&
+  app.use(`/events/${eventMode}`, require("./src/lottery").lotteryRouter);
 
 // [Middleware] 전역 에러 핸들러. 에러 핸들러는 router들보다 아래에 등록되어야 합니다.
 app.use(require("./src/middlewares/errorHandler"));
