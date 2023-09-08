@@ -5,6 +5,18 @@ const {
 } = require("../modules/stores/mongo");
 const logger = require("../../modules/logger");
 
+const getUserCreditAmount = async (req) => {
+  const eventStatus = await eventStatusModel.findOne({ userId: req.userOid });
+
+  return {
+    creditAmount: eventStatus.creditAmount,
+    creditUpdate: async (delta) => {
+      eventStatus.creditAmount += delta;
+      await eventStatus.save();
+    },
+  };
+};
+
 const getUserGlobalStateHandler = async (req, res) => {
   try {
     const eventStatus = await eventStatusModel.findOne({ userId: req.userOid });
@@ -42,5 +54,6 @@ const getUserGlobalStateHandler = async (req, res) => {
 };
 
 module.exports = {
+  getUserCreditAmount,
   getUserGlobalStateHandler,
 };
