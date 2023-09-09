@@ -75,5 +75,73 @@ itemsDocs[`${apiPrefix}/list`] = {
     },
   },
 };
+itemsDocs[`${apiPrefix}/purchase/:itemId`] = {
+  post: {
+    tags: [`${apiPrefix}`],
+    summary: "상품 구매",
+    description: "상품을 구매합니다.",
+    responses: {
+      200: {
+        description: "",
+        content: {
+          "application/json": {
+            schema: {
+              type: "object",
+              required: ["result"],
+              properties: {
+                result: {
+                  type: "boolean",
+                  description: "성공 여부. 항상 true입니다.",
+                  example: true,
+                },
+                reward: {
+                  type: "object",
+                  description: "랜덤박스를 구입한 경우에만 포함됩니다.",
+                  properties: {
+                    _id: {
+                      type: "string",
+                      description: "Item의 ObjectId",
+                      example: "OBJECT ID",
+                    },
+                    name: {
+                      type: "string",
+                      description: "상품의 이름",
+                      example: "진짜송편",
+                    },
+                    imageUrl: {
+                      type: "string",
+                      description: "이미지 썸네일 URL",
+                      example: "THUMBNAIL URL",
+                    },
+                    price: {
+                      type: "number",
+                      description: "상품의 가격. 0 이상입니다.",
+                      example: 400,
+                    },
+                    description: {
+                      type: "string",
+                      description: "상품의 설명",
+                      example: "맛있는 송편입니다.",
+                    },
+                    isDisabled: {
+                      type: "boolean",
+                      description: "판매 중지 여부",
+                      example: false,
+                    },
+                    stock: {
+                      type: "number",
+                      description: "남은 상품 재고. 0 이상입니다.",
+                      example: 10,
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+  },
+};
 
 module.exports = itemsDocs;
