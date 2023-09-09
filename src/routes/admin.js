@@ -37,13 +37,7 @@ const baseResources = [
   notificationOptionModel,
 ].map(buildResource());
 const resources = baseResources.concat(
-  (() => {
-    if (eventMode === "2023fall") {
-      return require("../lottery").resources;
-    } else {
-      return [];
-    }
-  })()
+  eventMode === "2023fall" ? require("../lottery").resources : []
 );
 
 // Create router for admin page
