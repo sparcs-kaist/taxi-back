@@ -3,18 +3,18 @@ const logger = require("../../modules/logger");
 const { useUserCreditAmount } = require("../modules/credit");
 
 const getRandomItem = async (req, depth) => {
-  if (depth === 10) return null;
-
-  const randomItems = [];
+  if (depth >= 10) return null;
 
   const items = await itemModel.find({
     isRandomItem: true,
     stock: { $gt: 0 },
     isDisabled: false,
   });
-  items.forEach((item) =>
-    randomItems.push(...Array(item.randomWeight).fill(item))
-  );
+  const randomItems = items
+    .map((item) => {
+      return Array(item.randomWeight).fill(item);
+    })
+    .reduce((a, b) => a.concat(b), []);
 
   logger.info(
     `유저 "${req.userOid}"에 의해 getRandomItem(depth=${depth})가 호출되었습니다.`
