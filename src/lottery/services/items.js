@@ -30,17 +30,18 @@ const getRandomItem = async (req, depth) => {
   const randomItem =
     randomItems[Math.floor(Math.random() * randomItems.length)];
   try {
-    await itemModel.updateOne(
+    const newRandomItem = await itemModel.findOneAndUpdate(
       { _id: randomItem._id },
       {
         $inc: {
           stock: -1,
         },
+      },
+      {
+        runValidators: true,
+        new: true,
       }
     );
-
-    randomItem.stock--;
-    await randomItem.save();
 
     const transaction = new transactionModel({
       type: "use",
@@ -51,7 +52,7 @@ const getRandomItem = async (req, depth) => {
     });
     await transaction.save();
 
-    return randomItem;
+    return newRandomItem;
   } catch (err) {
     logger.warn(
       `유저 "${req.userOid}"의 랜덤박스 추첨이 실패했습니다. 오류 정보: ${err}`
@@ -108,6 +109,9 @@ const purchaseHandler = async (req, res) => {
         $inc: {
           stock: -1,
         },
+      },
+      {
+        runValidators: true,
       }
     );
 
