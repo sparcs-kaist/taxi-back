@@ -38,5 +38,5 @@ module.exports = {
   slackWebhookUrl: {
     report: process.env.SLACK_REPORT_WEBHOOK_URL || "", // optional
   },
-  eventMode: "2023fall",
+  eventMode: undefined,
 };
