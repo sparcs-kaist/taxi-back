@@ -1,16 +1,16 @@
 const { useUserCreditAmount } = require("./credit");
 const { transactionModel } = require("./stores/mongo");
+const { recordAction } = require("../../modules/adminResource");
 
 // eventId가 없는 경우 null이 아닌 undefined를 넣어야 합니다.
-const creditTransfer = async (req, amount, eventId, comment) => {
-  const user = await useUserCreditAmount(req);
-
+const creditTransfer = async (userId, amount, eventId, comment) => {
+  const user = await useUserCreditAmount(userId);
   await user.creditUpdate(amount);
 
   const transaction = new transactionModel({
     type: "get",
     amount,
-    userId: req.userOid,
+    userId,
     eventId,
     comment,
   });
@@ -18,22 +18,37 @@ const creditTransfer = async (req, amount, eventId, comment) => {
 };
 
 // itemId가 없는 경우 null이 아닌 undefined를 넣어야 합니다.
-const creditWithdraw = async (req, amount, itemId, comment) => {
-  const user = await useUserCreditAmount(req);
-
+const creditWithdraw = async (userId, amount, itemId, comment) => {
+  const user = await useUserCreditAmount(userId);
   await user.creditUpdate(-amount);
 
   const transaction = new transactionModel({
     type: "use",
     amount,
-    userId: req.userOid,
+    userId,
     itemId,
     comment,
   });
   await transaction.save();
 };
 
+const instagramRewardAction = recordAction(
+  "instagramReward",
+  async (req, res, context) => {
+    await creditTransfer(
+      context?.record?.params?.userId,
+      500 /*TODO: 송편개수*/,
+      "64fc99136b599860bff4780f" /*TODO: 이벤트ID*/,
+      "뿌슝빠슝" /*TODO: 코멘트*/
+    );
+
+    let record = context.record.toJSON(context.currentAdmin);
+    record.params.creditAmount += 500; // 송편개수
+
+    return { record };
+  }
+);
+
 module.exports = {
-  creditTransfer,
-  creditWithdraw,
+  instagramRewardAction,
 };
