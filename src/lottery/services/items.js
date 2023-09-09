@@ -1,6 +1,6 @@
 const { itemModel, transactionModel } = require("../modules/stores/mongo");
 const logger = require("../../modules/logger");
-const { getUserCreditAmount } = require("../modules/credit");
+const { useUserCreditAmount } = require("../modules/credit");
 
 const getRandomItem = async (req, depth) => {
   if (depth === 10) return null;
@@ -70,7 +70,7 @@ const purchaseHandler = async (req, res) => {
     if (!item)
       return res.status(400).json({ error: "Items/Purchase : invalid Item" });
 
-    const user = await getUserCreditAmount(req);
+    const user = await useUserCreditAmount(req);
     if (!user)
       return res
         .status(400)
