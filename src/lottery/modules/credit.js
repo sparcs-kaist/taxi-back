@@ -7,8 +7,14 @@ const useUserCreditAmount = async (req) => {
   return {
     creditAmount: eventStatus.creditAmount,
     creditUpdate: async (delta) => {
-      eventStatus.creditAmount += delta;
-      await eventStatus.save();
+      await eventStatusModel.updateOne(
+        { _id: eventStatus._id },
+        {
+          $inc: {
+            creditAmount: delta,
+          },
+        }
+      );
     },
   };
 };

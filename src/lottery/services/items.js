@@ -28,6 +28,15 @@ const getRandomItem = async (req, depth) => {
   const randomItem =
     randomItems[Math.floor(Math.random() * randomItems.length)];
   try {
+    await itemModel.updateOne(
+      { _id: randomItem._id },
+      {
+        $inc: {
+          stock: -1,
+        },
+      }
+    );
+
     randomItem.stock--;
     await randomItem.save();
 
@@ -91,8 +100,14 @@ const purchaseHandler = async (req, res) => {
     // 1단계: 재고를 차감합니다.
     // 재고가 차감됐으나 유저 크레딧이 차감되지 않은 경우, 나중에 Transaction 기록 분석을 통해 오류 복구가 가능합니다.
     // 하지만 유저 크레딧이 차감됐으나 재고가 차감되지 않은 경우, 다른 유저가 품절된 상품을 구입할 수 있게 되고, 이는 다수의 유저에게 불편을 야기할 수 있습니다.
-    item.stock--;
-    await item.save();
+    await itemModel.updateOne(
+      { _id: item._id },
+      {
+        $inc: {
+          stock: -1,
+        },
+      }
+    );
 
     // 2단계: 유저의 크레딧을 차감합니다.
     await user.creditUpdate(-item.price);
