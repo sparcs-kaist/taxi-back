@@ -58,6 +58,12 @@ itemsDocs[`${apiPrefix}/list`] = {
                         description: "남은 상품 재고. 0 이상입니다.",
                         example: 10,
                       },
+                      itemType: {
+                        type: "number",
+                        description:
+                          "아이템 유형. 0: 티켓아님, 1:티켓 타입1, 2: 티켓 타입 2, 3: 랜덤박스",
+                        example: 0,
+                      },
                     },
                   },
                 },
