@@ -53,6 +53,5 @@ const getUserGlobalStateHandler = async (req, res) => {
 };
 
 module.exports = {
-  getUserCreditAmount,
   getUserGlobalStateHandler,
 };
