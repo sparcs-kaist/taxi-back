@@ -11,6 +11,12 @@ const checkReward = (req, res, next) => {
 const lotteryRouter = express.Router();
 
 // [Router] APIs
+lotteryRouter.use("/admin", require("./routes/admin"));
+
+// [Middleware] 모든 API 요청에 대하여 origin 검증
+lotteryRouter.use(require("../middlewares/originValidator"));
+
+// [Router] APIs
 lotteryRouter.use("/global-state", require("./routes/globalState"));
 lotteryRouter.use("/transactions", require("./routes/transactions"));
 lotteryRouter.use("/items", require("./routes/items"));
