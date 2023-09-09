@@ -74,7 +74,7 @@ const listHandler = async (_, res) => {
 
 const purchaseHandler = async (req, res) => {
   try {
-    const itemId = req.params.itemId;
+    const { itemId } = req.params;
     const item = await itemModel.findOne({ _id: itemId });
     if (!item)
       return res.status(400).json({ error: "Items/Purchase : invalid Item" });
