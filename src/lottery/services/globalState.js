@@ -30,6 +30,9 @@ const getUserGlobalStateHandler = async (req, res) => {
       await eventStatus.save();
     }
 
+    let ticket1Amount = 0;
+    let ticket2Amount = 0;
+
     const itemPurchaseTransactions = await transactionModel.find({
       userId: req.userOid,
       type: "use",
@@ -38,18 +41,17 @@ const getUserGlobalStateHandler = async (req, res) => {
         $ne: null,
       },
     });
-    let ticket1Amount = 0;
-    let ticket2Amount = 0;
+    await Promise.all(
+      itemPurchaseTransactions.map(async (purchase) => {
+        const item = await itemModel.findOne({ _id: purchase.itemId });
 
-    for (const purchase of itemPurchaseTransactions) {
-      const item = await itemModel.findOne({ _id: purchase.itemId });
-
-      if (item.itemType == 1) {
-        ticket1Amount++;
-      } else if (item.itemType == 2) {
-        ticket2Amount++;
-      }
-    }
+        if (item.itemType === 1) {
+          ticket1Amount++;
+        } else if (item.itemType === 2) {
+          ticket2Amount++;
+        }
+      })
+    );
 
     res.json({
       creditAmount: eventStatus.creditAmount,
