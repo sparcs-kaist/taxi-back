@@ -15,6 +15,8 @@ const creditTransfer = async (userId, amount, eventId, comment) => {
     comment,
   });
   await transaction.save();
+
+  return transaction._id;
 };
 
 // itemId가 없는 경우 null이 아닌 undefined를 넣어야 합니다.
@@ -30,23 +32,38 @@ const creditWithdraw = async (userId, amount, itemId, comment) => {
     comment,
   });
   await transaction.save();
+
+  return transaction._id;
 };
+
+const instagramRewardActionHandler = async (req, res, context) => {
+  const transactionId = await creditTransfer(
+    context?.record?.params?.userId,
+    500 /*TODO: 송편개수*/,
+    "64fc99136b599860bff4780f" /*TODO: 이벤트ID*/,
+    "뿌슝빠슝" /*TODO: 코멘트*/
+  );
+
+  let record = context.record.toJSON(context.currentAdmin);
+  record.params.creditAmount += 500; // 송편개수
+
+  return {
+    record,
+    transactionId,
+  };
+};
+const instagramRewardActionLogs = [
+  "update",
+  {
+    action: "create",
+    target: (res, req, context) => `Transaction(_id = ${res.transactionId})`,
+  },
+];
 
 const instagramRewardAction = recordAction(
   "instagramReward",
-  async (req, res, context) => {
-    await creditTransfer(
-      context?.record?.params?.userId,
-      500 /*TODO: 송편개수*/,
-      "64fc99136b599860bff4780f" /*TODO: 이벤트ID*/,
-      "뿌슝빠슝" /*TODO: 코멘트*/
-    );
-
-    let record = context.record.toJSON(context.currentAdmin);
-    record.params.creditAmount += 500; // 송편개수
-
-    return { record };
-  }
+  instagramRewardActionHandler,
+  instagramRewardActionLogs
 );
 
 module.exports = {
