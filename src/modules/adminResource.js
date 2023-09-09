@@ -60,7 +60,7 @@ const recordActionAfterHandler = (actions) => async (res, req, context) => {
   const actionsWrapper = Array.isArray(actions) ? actions : [actions];
   for (const action of actionsWrapper) {
     if (typeof action === "string") {
-      const target = generateTarget(context, isList);
+      const target = generateTarget(context, false);
       await createLog(req, action, target);
     } else {
       await createLog(req, action.action, action.target(res, req, context));
