@@ -14,6 +14,7 @@ const {
   deviceTokenModel,
   notificationOptionModel,
 } = require("../modules/stores/mongo");
+const { eventMode } = require("../../loadenv");
 
 const router = express.Router();
 
@@ -76,19 +77,30 @@ const resourceWrapper = (resource) => ({
   ],
 });
 
+const baseResources = [
+  userModel,
+  roomModel,
+  locationModel,
+  chatModel,
+  reportModel,
+  adminIPWhitelistModel,
+  adminLogModel,
+  deviceTokenModel,
+  notificationOptionModel,
+];
+const resources = baseResources.concat(
+  (() => {
+    if (eventMode === "2023fall") {
+      return require("../lottery").models;
+    } else {
+      return [];
+    }
+  })()
+);
+
 // Create router for admin page
 const adminJS = new AdminJS({
-  resources: [
-    userModel,
-    roomModel,
-    locationModel,
-    chatModel,
-    reportModel,
-    adminIPWhitelistModel,
-    adminLogModel,
-    deviceTokenModel,
-    notificationOptionModel,
-  ].map(resourceWrapper),
+  resources: resources.map(resourceWrapper),
 });
 router.use(AdminJSExpress.buildRouter(adminJS));
 

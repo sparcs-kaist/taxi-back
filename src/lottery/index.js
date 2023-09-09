@@ -1,4 +1,10 @@
 const express = require("express");
+const {
+  eventStatusModel,
+  eventModel,
+  itemModel,
+  transactionModel,
+} = require("./modules/stores/mongo");
 
 // [Routes] 기존 docs 라우터의 docs extend
 require("./routes/docs")();
@@ -9,9 +15,6 @@ const checkReward = (req, res, next) => {
 };
 
 const lotteryRouter = express.Router();
-
-// [Router] APIs
-lotteryRouter.use("/admin", require("./routes/admin"));
 
 // [Middleware] 모든 API 요청에 대하여 origin 검증
 lotteryRouter.use(require("../middlewares/originValidator"));
@@ -24,4 +27,5 @@ lotteryRouter.use("/items", require("./routes/items"));
 module.exports = {
   checkReward,
   lotteryRouter,
+  models: [eventStatusModel, eventModel, itemModel, transactionModel],
 };
