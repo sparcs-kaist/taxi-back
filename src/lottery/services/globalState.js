@@ -7,6 +7,7 @@ const logger = require("../../modules/logger");
 
 const getUserCreditAmount = async (req) => {
   const eventStatus = await eventStatusModel.findOne({ userId: req.userOid });
+  if (!eventStatus) return null;
 
   return {
     creditAmount: eventStatus.creditAmount,
