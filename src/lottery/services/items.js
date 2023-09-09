@@ -25,6 +25,8 @@ const getRandomItem = async (req, depth) => {
       .join(",")}]`
   );
 
+  if (randomItems.length === 0) return null;
+
   const randomItem =
     randomItems[Math.floor(Math.random() * randomItems.length)];
   try {
@@ -92,7 +94,7 @@ const purchaseHandler = async (req, res) => {
       return res
         .status(400)
         .json({ error: "Items/Purchase : not enough credit" });
-    if (item.stock === 0)
+    if (item.stock <= 0)
       return res
         .status(400)
         .json({ error: "Items/Purchase : item out of stock" });
