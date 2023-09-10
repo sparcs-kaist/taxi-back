@@ -6,7 +6,7 @@ const { eventEnv } = require("../../../loadenv");
 /** eventId가 없는 경우 null이 아닌 undefined를 넣어야 합니다. */
 const creditTransfer = async (userId, amount, eventId, comment) => {
   const user = await useUserCreditAmount(userId);
-  await user.creditUpdate(amount);
+  await user.update(amount);
 
   const transaction = new transactionModel({
     type: "get",
@@ -23,7 +23,7 @@ const creditTransfer = async (userId, amount, eventId, comment) => {
 /** itemId가 없는 경우 null이 아닌 undefined를 넣어야 합니다. */
 const creditWithdraw = async (userId, amount, itemId, comment) => {
   const user = await useUserCreditAmount(userId);
-  await user.creditUpdate(-amount);
+  await user.update(-amount);
 
   const transaction = new transactionModel({
     type: "use",

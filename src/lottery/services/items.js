@@ -5,11 +5,13 @@ const { useUserCreditAmount } = require("../modules/credit");
 const getRandomItem = async (req, depth) => {
   if (depth >= 10) return null;
 
-  const items = await itemModel.find({
-    isRandomItem: true,
-    stock: { $gt: 0 },
-    isDisabled: false,
-  });
+  const items = await itemModel
+    .find({
+      isRandomItem: true,
+      stock: { $gt: 0 },
+      isDisabled: false,
+    })
+    .lean();
   const randomItems = items
     .map((item) => {
       return Array(item.randomWeight).fill(item);
@@ -30,18 +32,25 @@ const getRandomItem = async (req, depth) => {
   const randomItem =
     randomItems[Math.floor(Math.random() * randomItems.length)];
   try {
-    const newRandomItem = await itemModel.findOneAndUpdate(
-      { _id: randomItem._id },
-      {
-        $inc: {
-          stock: -1,
+    const newRandomItem = await itemModel
+      .findOneAndUpdate(
+        { _id: randomItem._id },
+        {
+          $inc: {
+            stock: -1,
+          },
         },
-      },
-      {
-        runValidators: true,
-        new: true,
-      }
-    );
+        {
+          runValidators: true,
+          new: true,
+          fields: {
+            itemType: 0,
+            isRandomItem: 0,
+            randomWeight: 0,
+          },
+        }
+      )
+      .lean();
 
     const transaction = new transactionModel({
       type: "use",
@@ -64,10 +73,9 @@ const getRandomItem = async (req, depth) => {
 
 const listHandler = async (_, res) => {
   try {
-    const items = await itemModel.find(
-      {},
-      "name imageUrl price description isDisabled stock itemType"
-    );
+    const items = await itemModel
+      .find({}, "name imageUrl price description isDisabled stock itemType")
+      .lean();
     res.json({ items });
   } catch (err) {
     logger.error(err);
@@ -78,7 +86,7 @@ const listHandler = async (_, res) => {
 const purchaseHandler = async (req, res) => {
   try {
     const { itemId } = req.params;
-    const item = await itemModel.findOne({ _id: itemId });
+    const item = await itemModel.findOne({ _id: itemId }).lean();
     if (!item)
       return res.status(400).json({ error: "Items/Purchase : invalid Item" });
 
@@ -91,7 +99,7 @@ const purchaseHandler = async (req, res) => {
     // 구매 가능 조건: 크레딧이 충분하며, 재고가 남아있으며, 판매 중인 아이템이어야 합니다.
     if (item.isDisabled)
       return res.status(400).json({ error: "Items/Purchase : disabled item" });
-    if (user.creditAmount < item.price)
+    if (user.amount < item.price)
       return res
         .status(400)
         .json({ error: "Items/Purchase : not enough credit" });
@@ -116,7 +124,7 @@ const purchaseHandler = async (req, res) => {
     );
 
     // 2단계: 유저의 크레딧을 차감합니다.
-    await user.creditUpdate(-item.price);
+    await user.update(-item.price);
 
     // 3단계: Transaction을 추가합니다.
     // Transaction은 가장 마지막에 추가해야 다른 문서와의 불일치를 감지할 수 있습니다.
@@ -140,15 +148,7 @@ const purchaseHandler = async (req, res) => {
 
     res.json({
       result: true,
-      reward: {
-        _id: randomItem._id,
-        name: randomItem.name,
-        imageUrl: randomItem.imageUrl,
-        price: randomItem.price,
-        description: randomItem.description,
-        isDisabled: randomItem.isDisabled,
-        stock: randomItem.stock,
-      },
+      reward: randomItem,
     });
   } catch (err) {
     logger.error(err);
