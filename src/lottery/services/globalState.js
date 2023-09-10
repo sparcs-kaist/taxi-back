@@ -1,5 +1,6 @@
 const {
   eventStatusModel,
+  eventModel,
   transactionModel,
   itemModel,
 } = require("../modules/stores/mongo");
@@ -30,7 +31,7 @@ const getUserGlobalStateHandler = async (req, res) => {
     });
     await Promise.all(
       itemPurchaseTransactions.map(async (purchase) => {
-        const item = await itemModel.findOne({ _id: purchase.itemId });
+        const item = await itemModel.findOne({ _id: purchase.item });
 
         if (item.itemType === 1) {
           ticket1Amount++;
@@ -40,11 +41,14 @@ const getUserGlobalStateHandler = async (req, res) => {
       })
     );
 
+    const events = await eventModel.find({}, "-__v");
+
     res.json({
       creditAmount: eventStatus.creditAmount,
       eventStatus: eventStatus.eventList.map((id) => id.toString()),
       ticket1Amount,
       ticket2Amount,
+      events,
     });
   } catch (err) {
     logger.error(err);
