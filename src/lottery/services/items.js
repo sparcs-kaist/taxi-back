@@ -82,7 +82,7 @@ const purchaseHandler = async (req, res) => {
     if (!item)
       return res.status(400).json({ error: "Items/Purchase : invalid Item" });
 
-    const user = await useUserCreditAmount(req);
+    const user = await useUserCreditAmount(req.userOid);
     if (!user)
       return res
         .status(400)

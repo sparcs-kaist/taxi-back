@@ -1,7 +1,7 @@
 const { eventStatusModel } = require("../modules/stores/mongo");
 
-const useUserCreditAmount = async (req) => {
-  const eventStatus = await eventStatusModel.findOne({ userId: req.userOid });
+const useUserCreditAmount = async (userId) => {
+  const eventStatus = await eventStatusModel.findOne({ userId });
   if (!eventStatus) return null;
 
   return {
