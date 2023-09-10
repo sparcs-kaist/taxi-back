@@ -3,7 +3,7 @@ const { transactionModel } = require("./stores/mongo");
 const { recordAction } = require("../../modules/adminResource");
 const { eventEnv } = require("../../../loadenv");
 
-// eventId가 없는 경우 null이 아닌 undefined를 넣어야 합니다.
+/** eventId가 없는 경우 null이 아닌 undefined를 넣어야 합니다. */
 const creditTransfer = async (userId, amount, eventId, comment) => {
   const user = await useUserCreditAmount(userId);
   await user.creditUpdate(amount);
