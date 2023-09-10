@@ -17,14 +17,15 @@ const getRandomItem = async (req, depth) => {
       return Array(item.randomWeight).fill(item);
     })
     .reduce((a, b) => a.concat(b), []);
+  const dumpRandomItems = randomItems
+    .map((item) => item._id.toString())
+    .join(",");
 
   logger.info(
-    `유저 "${req.userOid}"에 의해 getRandomItem(depth=${depth})가 호출되었습니다.`
+    `[RandomBox] getRandomItem(depth=${depth}) is called by the user(id=${req.userOid}).`
   );
   logger.info(
-    `유저 "${req.userOid}"의 랜덤박스 확률 정보입니다: [${randomItems
-      .map((item) => item._id.toString())
-      .join(",")}]`
+    `[RandomBox] randomItems of the user(id=${req.userOid}) is [${dumpRandomItems}].`
   );
 
   if (randomItems.length === 0) return null;
@@ -64,10 +65,10 @@ const getRandomItem = async (req, depth) => {
     return newRandomItem;
   } catch (err) {
     logger.warn(
-      `유저 "${req.userOid}"의 랜덤박스 추첨이 실패했습니다. 오류 정보: ${err}`
+      `[RandomBox] getRandomItem(depth=${depth}) by the user(id=${req.userOid}) failed due to ${err}.`
     );
 
-    return await getRandomItem(depth + 1);
+    return await getRandomItem(req, depth + 1);
   }
 };
 
