@@ -20,7 +20,7 @@ const creditTransfer = async (userId, amount, eventId, comment) => {
   return transaction._id;
 };
 
-// itemId가 없는 경우 null이 아닌 undefined를 넣어야 합니다.
+/** itemId가 없는 경우 null이 아닌 undefined를 넣어야 합니다. */
 const creditWithdraw = async (userId, amount, itemId, comment) => {
   const user = await useUserCreditAmount(userId);
   await user.creditUpdate(-amount);
