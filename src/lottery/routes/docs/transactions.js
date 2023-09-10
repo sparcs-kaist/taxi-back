@@ -37,8 +37,8 @@ transactionsDocs[`${apiPrefix}/`] = {
                         description: "재화의 변화량의 절댓값",
                         example: 50,
                       },
-                      eventId: {
-                        type: "string",
+                      event: {
+                        type: "object",
                         description:
                           "Transaction과 관련된 이벤트의 Object. 이벤트와 관련된 Transaction인 경우에만 포함됩니다.",
                         properties: {
@@ -74,7 +74,7 @@ transactionsDocs[`${apiPrefix}/`] = {
                           },
                         },
                       },
-                      itemId: {
+                      item: {
                         type: "object",
                         description:
                           "Transaction과 관련된 아이템의 Object. 아이템과 관련된 Transaction인 경우에만 포함됩니다.",

@@ -115,11 +115,11 @@ const transactionSchema = Schema({
     ref: "User",
     required: true,
   },
-  eventId: {
+  event: {
     type: Schema.Types.ObjectId,
     ref: "Event",
   },
-  itemId: {
+  item: {
     type: Schema.Types.ObjectId,
     ref: "Item",
   },

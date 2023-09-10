@@ -47,7 +47,7 @@ const getRandomItem = async (req, depth) => {
       type: "use",
       amount: 0,
       userId: req.userOid,
-      itemId: randomItem._id,
+      item: randomItem._id,
       comment: `랜덤박스에서 ${randomItem.name} 획득 - 0개 차감`,
     });
     await transaction.save();
@@ -124,7 +124,7 @@ const purchaseHandler = async (req, res) => {
       type: "use",
       amount: item.price,
       userId: req.userOid,
-      itemId: item._id,
+      item: item._id,
       comment: `${item.name} 구입 - ${item.price}개 차감`,
     });
     await transaction.save();

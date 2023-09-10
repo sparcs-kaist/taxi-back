@@ -7,9 +7,14 @@ const {
 const getUserTransactionsHandler = async (req, res) => {
   try {
     const transactions = await transactionModel
-      .find({ userId: req.userOid }, "-userId")
+      .find({ userId: req.userOid }, "-userId -__v")
       .populate(transactionPopulateOption);
-    res.json({ transactions }); // userId는 이미 Frontend에서 알고 있고, 중복되는 값이므로 제외합니다.
+    if (transactions)
+      res.json({
+        transactions,
+      }); // userId는 이미 Frontend에서 알고 있고, 중복되는 값이므로 제외합니다.
+    else
+      res.status(500).json({ error: "Transactions/ : internal server error" });
   } catch (err) {
     logger.error(err);
     res.status(500).json({ error: "Transactions/ : internal server error" });
