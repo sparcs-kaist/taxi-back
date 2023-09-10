@@ -21,7 +21,8 @@ const creditTransfer = async (userId, amount, eventId, comment) => {
 };
 
 /** itemId가 없는 경우 null이 아닌 undefined를 넣어야 합니다. */
-const creditWithdraw = async (userId, amount, itemId, comment) => {
+/** itemType이 없는 경우 null이 아닌 undefined를 넣어야 합니다. */
+const creditWithdraw = async (userId, amount, itemId, itemType, comment) => {
   const user = await useUserCreditAmount(userId);
   await user.update(-amount);
 
@@ -30,6 +31,7 @@ const creditWithdraw = async (userId, amount, itemId, comment) => {
     amount,
     userId,
     item: itemId,
+    itemType,
     comment,
   });
   await transaction.save();

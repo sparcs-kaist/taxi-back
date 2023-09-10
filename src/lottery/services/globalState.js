@@ -20,31 +20,24 @@ const getUserGlobalStateHandler = async (req, res) => {
       await eventStatus.save();
     }
 
-    let ticket1Amount = 0;
-    let ticket2Amount = 0;
-
-    const itemPurchaseTransactions = await transactionModel
-      .find({
-        userId: req.userOid,
-        type: "use",
-        item: {
-          $exists: true,
-          $ne: null,
-        },
-      })
-      .lean();
-    await Promise.all(
-      itemPurchaseTransactions.map(async (purchase) => {
-        const item = await itemModel.findOne({ _id: purchase.item }).lean();
-
-        if (item.itemType === 1) {
-          ticket1Amount++;
-        } else if (item.itemType === 2) {
-          ticket2Amount++;
-        }
-      })
-    );
-
+    const ticket1Amount = await transactionModel.count({
+      userId: req.userOid,
+      type: "use",
+      item: {
+        $exists: true,
+        $ne: null,
+      },
+      itemType: 1,
+    });
+    const ticket2Amount = await transactionModel.count({
+      userId: req.userOid,
+      type: "use",
+      item: {
+        $exists: true,
+        $ne: null,
+      },
+      itemType: 2,
+    });
     const events = await eventModel.find({}, "-__v").lean();
 
     res.json({

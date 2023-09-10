@@ -123,6 +123,10 @@ const transactionSchema = Schema({
     type: Schema.Types.ObjectId,
     ref: "Item",
   },
+  itemType: {
+    type: Number,
+    enum: [0, 1, 2, 3],
+  },
   comment: {
     type: String,
     required: true,
