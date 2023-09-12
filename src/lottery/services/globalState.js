@@ -23,7 +23,7 @@ const getUserGlobalStateHandler = async (req, res) => {
     const itemPurchaseTransactions = await transactionModel.find({
       userId: req.userOid,
       type: "use",
-      itemId: {
+      item: {
         $exists: true,
         $ne: null,
       },

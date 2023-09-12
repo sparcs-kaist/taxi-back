@@ -12,7 +12,7 @@ const creditTransfer = async (userId, amount, eventId, comment) => {
     type: "get",
     amount,
     userId,
-    eventId,
+    event: eventId,
     comment,
   });
   await transaction.save();
@@ -29,7 +29,7 @@ const creditWithdraw = async (userId, amount, itemId, comment) => {
     type: "use",
     amount,
     userId,
-    itemId,
+    item: itemId,
     comment,
   });
   await transaction.save();
