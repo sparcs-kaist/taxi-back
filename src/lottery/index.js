@@ -8,14 +8,10 @@ const {
 
 const { eventMode } = require("../../loadenv");
 const { buildResource } = require("../modules/adminResource");
+const logger = require("../modules/logger");
 
 // [Routes] 기존 docs 라우터의 docs extend
 require("./routes/docs")();
-
-// [Middleware] 목표 달성 여부 검증
-const checkReward = (req, res, next) => {
-  next();
-};
 
 const lotteryRouter = express.Router();
 
@@ -34,11 +30,19 @@ const resources = [
   transactionModel,
 ].map(buildResource());
 
-const contracts = require(`./modules/contracts/${eventMode}`);
+const contracts = eventMode ? require(`./modules/contracts/${eventMode}`) : {};
+const getContract = (name) => {
+  const contract = contracts[name];
+  if (contract) return contract;
+
+  if (eventMode) {
+    logger.error(`Contract ${name}를 찾을 수 없습니다.`);
+  }
+  return () => null;
+};
 
 module.exports = {
-  checkReward,
   lotteryRouter,
   resources,
-  contracts,
+  getContract,
 };

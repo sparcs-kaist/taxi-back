@@ -3,7 +3,7 @@ const logger = require("../modules/logger");
 const aws = require("../modules/stores/aws");
 
 // 이벤트 코드입니다.
-const { contracts } = require("../lottery");
+const { getContract } = require("../lottery");
 
 const agreeOnTermsOfServiceHandler = async (req, res) => {
   try {
@@ -46,7 +46,7 @@ const editNicknameHandler = async (req, res) => {
 
     if (result) {
       // 이벤트 코드입니다.
-      await contracts.requestNicknameChangingEvent(req.userOid);
+      await getContract("requestNicknameChangingEvent")(req.userOid);
 
       res.status(200).send("User/editNickname : edit user nickname successful");
     } else {
@@ -68,7 +68,7 @@ const editAccountHandler = async (req, res) => {
 
     if (result) {
       // 이벤트 코드입니다.
-      await contracts.requestAccountChangingEvent(req.userOid);
+      await getContract("requestAccountChangingEvent")(req.userOid);
 
       res.status(200).send("User/editAccount : edit user account successful");
     } else {

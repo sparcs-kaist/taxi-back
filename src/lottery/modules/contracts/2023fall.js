@@ -1,18 +1,15 @@
-const { eventMode, eventIds } = require("../../../../loadenv");
+const { eventIds } = require("../../../../loadenv");
 const { eventHandler } = require("../events");
 
 // 로그인할 때마다 호출해 주세요.
 // 사용된 곳: auth/tryLogin, auth.mobile/tokenLoginHandler
 const requestFirstLoginEvent = async (userId) => {
-  if (eventMode !== "2023fall") return null;
-
   return await eventHandler(userId, eventIds.firstLogin);
 };
 
 // 정산 요청 또는 송금이 이루어질 때마다 호출해 주세요.
 // 사용된 곳: rooms/commitPaymentHandler, rooms/settlementHandler
 const requestPayingAndSendingEvent = async (roomObject) => {
-  if (eventMode !== "2023fall") return null;
   if (roomObject.part.length < 2) return null;
   if (roomObject.part.length > roomObject.settlementTotal) return null;
 
@@ -27,8 +24,6 @@ const requestPayingAndSendingEvent = async (roomObject) => {
 // 방을 만들 때마다 호출해 주세요.
 // 사용된 곳: rooms/createHandler
 const requestFirstRoomCreation = async (userId) => {
-  if (eventMode !== "2023fall") return null;
-
   return await eventHandler(userId, eventIds.firstRoomCreation);
 };
 
@@ -39,7 +34,6 @@ const requestRoomSharingEvent = async () => {
 // 정산 요청이 이루어질 때마다 호출해 주세요.
 // 사용된 곳: rooms/commitPaymentHandler
 const requestPayingEvent = async (userId, roomObject) => {
-  if (eventMode !== "2023fall") return null;
   if (roomObject.part.length < 2) return null;
 
   return await eventHandler(userId, eventIds.paying);
@@ -48,7 +42,6 @@ const requestPayingEvent = async (userId, roomObject) => {
 // 송금이 이루어질 때마다 호출해 주세요.
 // 사용된 곳: rooms/settlementHandler
 const requestSendingEvent = async (userId, roomObject) => {
-  if (eventMode !== "2023fall") return null;
   if (roomObject.part.length < 2) return null;
 
   return await eventHandler(userId, eventIds.sending);
@@ -57,16 +50,12 @@ const requestSendingEvent = async (userId, roomObject) => {
 // 닉네임을 변경할 때마다 호출해 주세요.
 // 사용된 곳: users/editNicknameHandler
 const requestNicknameChangingEvent = async (userId) => {
-  if (eventMode !== "2023fall") return null;
-
   return await eventHandler(userId, eventIds.nicknameChanging);
 };
 
 // 계좌를 변경할 때마다 호출해 주세요.
 // 사용된 곳: users/editAccountHandler
 const requestAccountChangingEvent = async (userId) => {
-  if (eventMode !== "2023fall") return null;
-
   return await eventHandler(userId, eventIds.accountChanging);
 };
 
