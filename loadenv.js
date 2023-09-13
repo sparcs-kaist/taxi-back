@@ -49,7 +49,7 @@ module.exports = {
     sending: process.env.EVENT_2023FALL_SENDING_ID,
     nicknameChanging: process.env.EVENT_2023FALL_NICKNAME_CHANGING_ID,
     accountChanging: process.env.EVENT_2023FALL_ACCOUNT_CHANGING_ID,
-    AdPushAgreement: process.env.EVENT_2023FALL_AD_PUSH_AGREEMENT_ID,
+    adPushAgreement: process.env.EVENT_2023FALL_AD_PUSH_AGREEMENT_ID,
     eventSharingOnInstagram:
       process.env.EVENT_2023FALL_EVENT_SHARING_ON_INSTAGRAM_ID,
     purchaseSharingOnInstagram:
