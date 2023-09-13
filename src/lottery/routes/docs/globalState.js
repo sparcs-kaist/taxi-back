@@ -81,6 +81,12 @@ globalStateDocs[`${apiPrefix}/`] = {
                         description: "이미지 썸네일 URL",
                         example: "THUMBNAIL URL",
                       },
+                      description: {
+                        type: "string",
+                        description: "이벤트의 설명",
+                        example:
+                          "처음으로 이벤트 기간 중 Taxi에 로그인하면 송편을 드립니다.",
+                      },
                     },
                   },
                 },

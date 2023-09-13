@@ -54,6 +54,10 @@ const eventSchema = Schema({
     type: String,
     required: true,
   },
+  description: {
+    type: String,
+    required: true,
+  },
 });
 
 const itemSchema = Schema({
