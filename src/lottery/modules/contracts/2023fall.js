@@ -2,6 +2,7 @@ const { eventIds } = require("../../../../loadenv");
 const { eventHandler } = require("../events");
 
 // 로그인할 때마다 호출해 주세요.
+// 사용된 곳: auth/tryLogin, auth.mobile/tryLoginHandler
 const requestFirstLoginEvent = async (userId) => {
   return await eventHandler(userId, eventIds.firstLogin);
 };

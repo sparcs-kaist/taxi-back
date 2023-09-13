@@ -10,6 +10,8 @@ const logger = require("../modules/logger");
 
 const { TOKEN_EXPIRED, TOKEN_INVALID } = require("../../loadenv").jwt;
 
+const { contracts } = require("../lottery");
+
 const tokenLoginHandler = async (req, res) => {
   const { accessToken, deviceToken } = req.query;
   try {
@@ -36,6 +38,7 @@ const tokenLoginHandler = async (req, res) => {
     login(req, user.sid, user.id, user._id, user.name);
     req.session.isApp = true;
     req.session.deviceToken = deviceToken;
+    await contracts.requestFirstLoginEvent(user._id);
     return res.status(200).json({ message: "success" });
   } catch (e) {
     logger.error(e);
