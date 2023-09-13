@@ -9,8 +9,19 @@ const requestFirstLoginEvent = async (userId) => {
   return await eventHandler(userId, eventIds.firstLogin);
 };
 
-const requestPayingAndSendingEvent = async () => {
-  // TODO
+// 정산 요청 또는 송금이 이루어질 때마다 호출해 주세요.
+// 사용된 곳: rooms/commitPaymentHandler, rooms/settlementHandler
+const requestPayingAndSendingEvent = async (roomObject) => {
+  if (eventMode !== "2023fall") return null;
+  if (roomObject.part.length < 2) return null;
+  if (roomObject.part.length > roomObject.settlementTotal) return null;
+
+  return await Promise.all(
+    roomObject.part.map(
+      async (participant) =>
+        await eventHandler(participant.user._id, eventIds.payingAndSending)
+    )
+  );
 };
 
 // 방을 만들 때마다 호출해 주세요.
