@@ -7,7 +7,6 @@ const {
 } = require("./modules/stores/mongo");
 
 const { buildResource } = require("../modules/adminResource");
-const { instagramRewardAction } = require("./modules/admin");
 
 // [Routes] 기존 docs 라우터의 docs extend
 require("./routes/docs")();
@@ -27,15 +26,15 @@ lotteryRouter.use("/global-state", require("./routes/globalState"));
 lotteryRouter.use("/transactions", require("./routes/transactions"));
 lotteryRouter.use("/items", require("./routes/items"));
 
-const eventStatusResource = buildResource([instagramRewardAction])(
-  eventStatusModel
-);
-const otherResources = [eventModel, itemModel, transactionModel].map(
-  buildResource()
-);
+const resources = [
+  eventStatusModel,
+  eventModel,
+  itemModel,
+  transactionModel,
+].map(buildResource());
 
 module.exports = {
   checkReward,
   lotteryRouter,
-  resources: [eventStatusResource, ...otherResources],
+  resources,
 };
