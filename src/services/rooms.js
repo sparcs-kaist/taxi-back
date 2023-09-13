@@ -491,6 +491,9 @@ const commitPaymentHandler = async (req, res) => {
       authorId: user._id,
     });
 
+    // 이벤트 코드입니다.
+    await contracts.requestPayingEvent(req.userOid, roomObject);
+
     // 수정한 방 정보를 반환합니다.
     res.send(formatSettlement(roomObject, { isOver: true }));
   } catch (err) {
@@ -556,6 +559,9 @@ const settlementHandler = async (req, res) => {
       content: user.id,
       authorId: user._id,
     });
+
+    // 이벤트 코드입니다.
+    await contracts.requestSendingEvent(req.userOid, roomObject);
 
     // 수정한 방 정보를 반환합니다.
     res.send(formatSettlement(roomObject, { isOver: true }));

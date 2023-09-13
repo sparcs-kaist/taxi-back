@@ -25,12 +25,22 @@ const requestRoomSharingEvent = async () => {
   // TODO
 };
 
-const requestPayingEvent = async () => {
-  // TODO
+// 정산 요청이 이루어질 때마다 호출해 주세요.
+// 사용된 곳: rooms/commitPaymentHandler
+const requestPayingEvent = async (userId, roomObject) => {
+  if (eventMode !== "2023fall") return null;
+  if (roomObject.part.length < 2) return null;
+
+  return await eventHandler(userId, eventIds.paying);
 };
 
-const requestSendingEvent = async () => {
-  // TODO
+// 송금이 이루어질 때마다 호출해 주세요.
+// 사용된 곳: rooms/settlementHandler
+const requestSendingEvent = async (userId, roomObject) => {
+  if (eventMode !== "2023fall") return null;
+  if (roomObject.part.length < 2) return null;
+
+  return await eventHandler(userId, eventIds.sending);
 };
 
 // 닉네임을 변경할 때마다 호출해 주세요.
