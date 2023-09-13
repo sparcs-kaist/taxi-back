@@ -42,6 +42,10 @@ const eventSchema = Schema({
     min: 0,
     validate: integerValidator,
   },
+  startat: {
+    type: Date,
+    required: true,
+  },
   expireat: {
     type: Date,
     required: true,
