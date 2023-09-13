@@ -1,9 +1,11 @@
-const { eventIds } = require("../../../../loadenv");
+const { eventMode, eventIds } = require("../../../../loadenv");
 const { eventHandler } = require("../events");
 
 // 로그인할 때마다 호출해 주세요.
-// 사용된 곳: auth/tryLogin, auth.mobile/tryLoginHandler
+// 사용된 곳: auth/tryLogin, auth.mobile/tokenLoginHandler
 const requestFirstLoginEvent = async (userId) => {
+  if (eventMode !== "2023fall") return null;
+
   return await eventHandler(userId, eventIds.firstLogin);
 };
 
@@ -12,7 +14,10 @@ const requestPayingAndSendingEvent = async () => {
 };
 
 // 방을 만들 때마다 호출해 주세요.
+// 사용된 곳: rooms/createHandler
 const requestFirstRoomCreation = async (userId) => {
+  if (eventMode !== "2023fall") return null;
+
   return await eventHandler(userId, eventIds.firstRoomCreation);
 };
 
@@ -30,11 +35,15 @@ const requestSendingEvent = async () => {
 
 // 닉네임을 변경할 때마다 호출해 주세요.
 const requestNicknameChangingEvent = async (userId) => {
+  if (eventMode !== "2023fall") return null;
+
   return await eventHandler(userId, eventIds.nicknameChanging);
 };
 
 // 계좌를 변경할 때마다 호출해 주세요.
 const requestAccountChangingEvent = async (userId) => {
+  if (eventMode !== "2023fall") return null;
+
   return await eventHandler(userId, eventIds.accountChanging);
 };
 

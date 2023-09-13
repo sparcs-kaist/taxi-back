@@ -11,6 +11,9 @@ const {
   getIsOver,
 } = require("../modules/populates/rooms");
 
+// 이벤트 코드입니다.
+const { contracts } = require("../lottery");
+
 const createHandler = async (req, res) => {
   const { name, from, to, time, maxPartLength } = req.body;
 
@@ -81,7 +84,12 @@ const createHandler = async (req, res) => {
     });
 
     const roomObject = (await room.populate(roomPopulateOption)).toObject();
-    return res.send(formatSettlement(roomObject));
+    const roomObjectFormated = formatSettlement(roomObject);
+
+    // 이벤트 코드입니다.
+    await contracts.requestFirstRoomCreation(user._id);
+
+    return res.send(roomObjectFormated);
   } catch (err) {
     logger.error(err);
     res.status(500).json({
