@@ -18,6 +18,9 @@ const eventHandler = async (userId, eventId) => {
   ).length;
   if (eventCount >= event.maxCount) return null; // 이미 최대로 달성한 이벤트입니다.
 
+  const now = Date.now();
+  if (now < event.startat || now > event.expireat) return null;
+
   await eventStatusModel.updateOne(
     { userId },
     {
