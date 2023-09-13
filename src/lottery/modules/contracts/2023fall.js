@@ -34,6 +34,7 @@ const requestSendingEvent = async () => {
 };
 
 // 닉네임을 변경할 때마다 호출해 주세요.
+// 사용된 곳: users/editNicknameHandler
 const requestNicknameChangingEvent = async (userId) => {
   if (eventMode !== "2023fall") return null;
 
@@ -41,6 +42,7 @@ const requestNicknameChangingEvent = async (userId) => {
 };
 
 // 계좌를 변경할 때마다 호출해 주세요.
+// 사용된 곳: users/editAccountHandler
 const requestAccountChangingEvent = async (userId) => {
   if (eventMode !== "2023fall") return null;
 
