@@ -72,6 +72,11 @@ transactionsDocs[`${apiPrefix}/`] = {
                             description: "달성 불가능 여부",
                             example: false,
                           },
+                          imageUrl: {
+                            type: "string",
+                            description: "이미지 썸네일 URL",
+                            example: "THUMBNAIL URL",
+                          },
                         },
                       },
                       item: {

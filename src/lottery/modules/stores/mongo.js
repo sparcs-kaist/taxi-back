@@ -50,6 +50,10 @@ const eventSchema = Schema({
     type: Boolean,
     default: false,
   },
+  imageUrl: {
+    type: String,
+    required: true,
+  },
 });
 
 const itemSchema = Schema({
