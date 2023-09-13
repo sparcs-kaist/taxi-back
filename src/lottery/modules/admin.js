@@ -1,65 +1,42 @@
-const { useUserCreditAmount } = require("./credit");
-const { transactionModel } = require("./stores/mongo");
 const { recordAction } = require("../../modules/adminResource");
 const { eventEnv } = require("../../../loadenv");
 
-/** eventId가 없는 경우 null이 아닌 undefined를 넣어야 합니다. */
-const creditTransfer = async (userId, amount, eventId, comment) => {
-  const user = await useUserCreditAmount(userId);
-  await user.update(amount);
-
-  const transaction = new transactionModel({
-    type: "get",
-    amount,
-    userId,
-    event: eventId,
-    comment,
-  });
-  await transaction.save();
-
-  return transaction._id;
-};
-
-/** itemId가 없는 경우 null이 아닌 undefined를 넣어야 합니다. */
-/** itemType이 없는 경우 null이 아닌 undefined를 넣어야 합니다. */
-const creditWithdraw = async (userId, amount, itemId, itemType, comment) => {
-  const user = await useUserCreditAmount(userId);
-  await user.update(-amount);
-
-  const transaction = new transactionModel({
-    type: "use",
-    amount,
-    userId,
-    item: itemId,
-    itemType,
-    comment,
-  });
-  await transaction.save();
-
-  return transaction._id;
-};
+const { eventHandler } = require("./events");
 
 const instagramRewardActionHandler = async (req, res, context) => {
-  const transactionId = await creditTransfer(
+  const result = await eventHandler(
     context?.record?.params?.userId,
-    eventEnv.instagramReward,
-    eventEnv.instagramEventId,
-    eventEnv.instagramComment
+    eventEnv.instagramEventId
   );
+  const record = context.record.toJSON(context.currentAdmin);
 
-  let record = context.record.toJSON(context.currentAdmin);
-  record.params.creditAmount += eventEnv.instagramReward;
+  if (result) {
+    record.params.creditAmount += result.event.rewardAmount;
 
-  return {
-    record,
-    transactionId,
-  };
+    return {
+      record,
+      notice: {
+        message: "성공적으로 보상을 지급했습니다.",
+      },
+      response: {
+        transactionId: result.transactionId,
+      },
+    };
+  } else
+    return {
+      record,
+      notice: {
+        message: "보상을 지급하지 못했습니다. 이미 보상을 받은 유저입니다.",
+        type: "error",
+      },
+    };
 };
 const instagramRewardActionLogs = [
   "update",
   {
     action: "create",
-    target: (res, req, context) => `Transaction(_id = ${res.transactionId})`,
+    target: (res, req, context) =>
+      `Transaction(_id = ${res.response.transactionId})`,
   },
 ];
 
