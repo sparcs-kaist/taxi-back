@@ -15,6 +15,13 @@ globalStateDocs[`${apiPrefix}/`] = {
           "application/json": {
             schema: {
               type: "object",
+              required: [
+                "creditAmount",
+                "eventStatus",
+                "ticket1Amount",
+                "ticket2Amount",
+                "events",
+              ],
               properties: {
                 creditAmount: {
                   type: "number",
@@ -28,66 +35,24 @@ globalStateDocs[`${apiPrefix}/`] = {
                   items: {
                     type: "string",
                     description: "Event의 ObjectId",
+                    example: "OBJECT ID",
                   },
                 },
                 ticket1Amount: {
                   type: "number",
-                  description: "추첨권 (1)의 개수. 0 이상입니다.",
+                  description: "일반 티켓의 개수. 0 이상입니다.",
                   example: 10,
                 },
                 ticket2Amount: {
                   type: "number",
-                  description: "추첨권 (2)의 개수. 0 이상입니다.",
+                  description: "고급 티켓의 개수. 0 이상입니다.",
                   example: 10,
                 },
                 events: {
                   type: "array",
                   description: "Event의 배열",
                   items: {
-                    type: "object",
-                    properties: {
-                      _id: {
-                        type: "string",
-                        description: "Event의 ObjectId",
-                        example: "OBJECT ID",
-                      },
-                      name: {
-                        type: "string",
-                        description: "이벤트의 이름",
-                        example: "최초 로그인 이벤트",
-                      },
-                      rewardAmount: {
-                        type: "number",
-                        description: "달성 보상",
-                        example: 100,
-                      },
-                      maxCount: {
-                        type: "number",
-                        description: "최대 달성 가능 횟수",
-                        example: 1,
-                      },
-                      expireat: {
-                        type: "string",
-                        description: "달성할 수 있는 마지막 시각",
-                        example: "2023-01-01 00:00:00",
-                      },
-                      isDisabled: {
-                        type: "boolean",
-                        description: "달성 불가능 여부",
-                        example: false,
-                      },
-                      imageUrl: {
-                        type: "string",
-                        description: "이미지 썸네일 URL",
-                        example: "THUMBNAIL URL",
-                      },
-                      description: {
-                        type: "string",
-                        description: "이벤트의 설명",
-                        example:
-                          "처음으로 이벤트 기간 중 Taxi에 로그인하면 송편을 드립니다.",
-                      },
-                    },
+                    $ref: "#/components/schemas/event",
                   },
                 },
               },
