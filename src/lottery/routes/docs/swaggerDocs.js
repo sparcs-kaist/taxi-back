@@ -3,6 +3,7 @@ const globalStateDocs = require("./globalState");
 const itemsDocs = require("./items");
 const transactionsDocs = require("./transactions");
 const eventsDocs = require("./events");
+const publicNoticeDocs = require("./publicNotice");
 
 const apiPrefix = `/events/${eventMode}`;
 
@@ -24,12 +25,17 @@ const eventSwaggerDocs = {
       name: `${apiPrefix}/instagram`,
       description: "이벤트 - 인스타그램 이벤트 관련 API",
     },
+    {
+      name: `${apiPrefix}/public-notice`,
+      description: "이벤트 - 아이템 구매, 뽑기, 획득 공지 관련 API",
+    },
   ],
   paths: {
     ...globalStateDocs,
     ...itemsDocs,
     ...transactionsDocs,
     ...eventsDocs,
+    ...publicNoticeDocs,
   },
   components: {
     schemas: {},

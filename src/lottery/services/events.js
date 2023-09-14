@@ -4,7 +4,9 @@ const eventHandler = require("../modules/events");
 const instagramEventShareHandler = async (req, res) => {
   try {
     const userId = req.userOid;
-    // const eventId =
+    const eventId = "650302f799c6f338d5ea5427";
+    const transactionResult = await eventHandler(userId, eventId);
+    res.json({ result: !!transactionResult ? true : false });
   } catch (err) {
     logger.err(err);
     res.status(500).json({ error: "Events/Insagram/Share-Event" });
@@ -15,7 +17,9 @@ const instagramEventShareHandler = async (req, res) => {
 const instagramPurchaseShareHandler = async (req, res) => {
   try {
     const userId = req.userOid;
-    // const eventId =
+    const eventId = "6503030e99c6f338d5ea5433";
+    const transactionResult = await eventHandler(userId, eventId);
+    res.json({ result: !!transactionResult ? true : false });
   } catch (err) {
     logger.err(err);
     res.status(500).json({ error: "Events/Insagram/Share-Purchase" });
