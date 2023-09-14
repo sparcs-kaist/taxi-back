@@ -5,25 +5,27 @@ const {
 } = require("./stores/mongo");
 const logger = require("../../modules/logger");
 
-const eventHandler = async (userId, eventId) => {
+const eventHandler = async (userId, eventName) => {
   try {
     logger.info(
-      `eventHandler(userId=${userId}, eventId=${eventId}) 함수가 호출되었습니다.`
+      `eventHandler(userId=${userId}, eventName="${eventName}") 함수가 호출되었습니다.`
     );
 
-    const event = await eventModel.findOne({ _id: eventId }).lean();
+    const event = await eventModel.findOne({ name: eventName }).lean();
     if (!event) {
-      logger.error(`알 수 없는 이벤트 ID 입니다: ${eventId}`); // 프로그래머의 실수로 인해서만 발생하므로 logger를 통해 오류를 알립니다.
+      logger.error(
+        `eventHandler(userId=${userId}, eventName="${eventName}") 함수에서 예외가 발생했습니다: 알 수 없는 이벤트 이름입니다.`
+      );
       return null;
     }
 
     const eventStatus = await eventStatusModel.findOne({ userId }).lean();
     const eventCount = eventStatus.eventList.filter(
-      (event) => event.toString() === eventId
+      (achievedEventId) => achievedEventId.toString() === event.id.toString()
     ).length;
     if (eventCount >= event.maxCount) {
       logger.info(
-        `eventHandler(userId=${userId}, eventId=${eventId}) 함수가 종료되었습니다: 이미 최대로 달성한 이벤트입니다.`
+        `eventHandler(userId=${userId}, eventName="${eventName}") 함수가 종료되었습니다: 이미 최대로 달성한 이벤트입니다.`
       );
       return null;
     }
@@ -31,7 +33,7 @@ const eventHandler = async (userId, eventId) => {
     const now = Date.now();
     if (now < event.startat || now > event.expireat) {
       logger.info(
-        `eventHandler(userId=${userId}, eventId=${eventId}) 함수가 종료되었습니다: 달성할 수 있는 기간이 아닙니다.`
+        `eventHandler(userId=${userId}, eventName="${eventName}") 함수가 종료되었습니다: 달성할 수 있는 기간이 아닙니다.`
       );
       return null;
     }
@@ -43,7 +45,7 @@ const eventHandler = async (userId, eventId) => {
           creditAmount: event.rewardAmount,
         },
         $push: {
-          eventList: eventId,
+          eventList: event._id,
         },
       }
     );
@@ -52,13 +54,13 @@ const eventHandler = async (userId, eventId) => {
       type: "get",
       amount: event.rewardAmount,
       userId,
-      event: eventId,
+      event: event._id,
       comment: `${event.name} 달성 - ${event.rewardAmount}개 획득`,
     });
     await transaction.save();
 
     logger.info(
-      `eventHandler(userId=${userId}, eventId=${eventId}) 함수가 종료되었습니다: 성공했습니다.`
+      `eventHandler(userId=${userId}, eventName="${eventName}") 함수가 종료되었습니다: 성공했습니다.`
     );
     return {
       event,
@@ -66,7 +68,7 @@ const eventHandler = async (userId, eventId) => {
     };
   } catch (err) {
     logger.error(
-      `eventHandler(userId=${userId}, eventId=${eventId}) 함수에서 예외가 발생했습니다: ${err}`
+      `eventHandler(userId=${userId}, eventName="${eventName}") 함수에서 예외가 발생했습니다: ${err}`
     );
     return null;
   }

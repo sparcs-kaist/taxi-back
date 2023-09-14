@@ -1,4 +1,3 @@
-const { eventIds } = require("../../../../loadenv");
 const { eventHandler } = require("../events");
 
 /** 
@@ -8,7 +7,7 @@ const { eventHandler } = require("../events");
   * @usage auth/tryLogin, auth/mobile/tokenLoginHandler
  */
 const requestFirstLoginEvent = async (userId) => {
-  return await eventHandler(userId, eventIds.firstLogin);
+  return await eventHandler(userId, "이벤트 기간 첫 로그인");
 };
 
 /**
@@ -25,7 +24,10 @@ const requestPayingAndSendingEvent = async (roomObject) => {
   return await Promise.all(
     roomObject.part.map(
       async (participant) =>
-        await eventHandler(participant.user._id, eventIds.payingAndSending)
+        await eventHandler(
+          participant.user._id,
+          "2명 이상 탑승한 방에서 정산/송금 완료"
+        )
     )
   );
 };
@@ -38,7 +40,7 @@ const requestPayingAndSendingEvent = async (roomObject) => {
  * @usage rooms/createHandler
  */
 const requestFirstRoomCreation = async (userId) => {
-  return await eventHandler(userId, eventIds.firstRoomCreation);
+  return await eventHandler(userId, "첫 방 개설");
 };
 
 const requestRoomSharingEvent = async () => {
@@ -56,7 +58,7 @@ const requestRoomSharingEvent = async () => {
 const requestPayingEvent = async (userId, roomObject) => {
   if (roomObject.part.length < 2) return null;
 
-  return await eventHandler(userId, eventIds.paying);
+  return await eventHandler(userId, "2명 이상 탑승한 방에서 정산하기");
 };
 
 /**
@@ -70,7 +72,7 @@ const requestPayingEvent = async (userId, roomObject) => {
 const requestSendingEvent = async (userId, roomObject) => {
   if (roomObject.part.length < 2) return null;
 
-  return await eventHandler(userId, eventIds.sending);
+  return await eventHandler(userId, "2명 이상 탑승한 방에서 송금하기");
 };
 
 /**
@@ -81,7 +83,7 @@ const requestSendingEvent = async (userId, roomObject) => {
  * @usage users/editNicknameHandler
  */
 const requestNicknameChangingEvent = async (userId) => {
-  return await eventHandler(userId, eventIds.nicknameChanging);
+  return await eventHandler(userId, "닉네임 변경");
 };
 
 /**
@@ -92,7 +94,7 @@ const requestNicknameChangingEvent = async (userId) => {
  * @usage users/editAccountHandler
  */
 const requestAccountChangingEvent = async (userId) => {
-  return await eventHandler(userId, eventIds.accountChanging);
+  return await eventHandler(userId, "계좌 등록 또는 수정");
 };
 
 const requestAdPushAgreementEvent = async () => {

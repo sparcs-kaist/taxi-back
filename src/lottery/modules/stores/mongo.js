@@ -29,6 +29,7 @@ const eventSchema = Schema({
   name: {
     type: String,
     required: true,
+    unique: true,
   },
   rewardAmount: {
     type: Number,
