@@ -8,7 +8,6 @@ const {
 
 const { eventMode } = require("../../loadenv");
 const { buildResource } = require("../modules/adminResource");
-const logger = require("../modules/logger");
 
 // [Routes] 기존 docs 라우터의 docs extend
 require("./routes/docs")();
