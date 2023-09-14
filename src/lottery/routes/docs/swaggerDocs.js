@@ -2,6 +2,7 @@ const { eventMode } = require("../../../../loadenv");
 const globalStateDocs = require("./globalState");
 const itemsDocs = require("./items");
 const transactionsDocs = require("./transactions");
+const eventsDocs = require("./events");
 
 const apiPrefix = `/events/${eventMode}`;
 
@@ -19,11 +20,16 @@ const eventSwaggerDocs = {
       name: `${apiPrefix}/transactions`,
       description: "이벤트 - 입출금 내역 관련 API",
     },
+    {
+      name: `${apiPrefix}/instagram`,
+      description: "이벤트 - 인스타그램 이벤트 관련 API",
+    },
   ],
   paths: {
     ...globalStateDocs,
     ...itemsDocs,
     ...transactionsDocs,
+    ...eventsDocs,
   },
   components: {
     schemas: {},
