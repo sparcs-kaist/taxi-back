@@ -17,7 +17,7 @@ const jwt = require("../modules/auths/jwt");
 const logger = require("../modules/logger");
 
 // 이벤트 코드입니다.
-const { getContract } = require("../lottery");
+const { contracts } = require("../lottery");
 
 // SPARCS SSO
 const Client = require("../modules/auths/sparcssso");
@@ -96,7 +96,7 @@ const tryLogin = async (req, res, userData, redirectOrigin, redirectPath) => {
     login(req, userData.sid, user.id, user._id, user.name);
 
     // 이벤트 코드입니다.
-    await getContract("requestFirstLoginEvent")(user._id);
+    contracts ? await contracts.requestFirstLoginEvent(user._id) : undefined;
 
     res.redirect(new URL(redirectPath, redirectOrigin).href);
   } catch (err) {

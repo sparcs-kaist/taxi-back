@@ -30,19 +30,12 @@ const resources = [
   transactionModel,
 ].map(buildResource());
 
-const contracts = eventMode ? require(`./modules/contracts/${eventMode}`) : {};
-const getContract = (name) => {
-  const contract = contracts[name];
-  if (contract) return contract;
-
-  if (eventMode) {
-    logger.error(`Contract ${name}를 찾을 수 없습니다.`);
-  }
-  return () => null;
-};
+const contracts = eventMode
+  ? require(`./modules/contracts/${eventMode}`)
+  : undefined;
 
 module.exports = {
   lotteryRouter,
   resources,
-  getContract,
+  contracts,
 };

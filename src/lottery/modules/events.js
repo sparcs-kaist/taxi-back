@@ -17,11 +17,16 @@ const eventHandler = async (userId, eventName) => {
         `eventHandler(userId=${userId}, eventName="${eventName}") 함수에서 예외가 발생했습니다: 알 수 없는 이벤트 이름입니다.`
       );
       return null;
+    } else if (event.isDisabled) {
+      logger.info(
+        `eventHandler(userId=${userId}, eventName="${eventName}") 함수가 종료되었습니다: 달성할 수 없는 이벤트입니다.`
+      );
+      return null;
     }
 
     const eventStatus = await eventStatusModel.findOne({ userId }).lean();
     const eventCount = eventStatus.eventList.filter(
-      (achievedEventId) => achievedEventId.toString() === event.id.toString()
+      (achievedEventId) => achievedEventId.toString() === event._id.toString()
     ).length;
     if (eventCount >= event.maxCount) {
       logger.info(

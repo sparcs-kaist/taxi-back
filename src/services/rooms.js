@@ -12,7 +12,7 @@ const {
 } = require("../modules/populates/rooms");
 
 // 이벤트 코드입니다.
-const { getContract } = require("../lottery");
+const { contracts } = require("../lottery");
 
 const createHandler = async (req, res) => {
   const { name, from, to, time, maxPartLength } = req.body;
@@ -87,7 +87,7 @@ const createHandler = async (req, res) => {
     const roomObjectFormated = formatSettlement(roomObject);
 
     // 이벤트 코드입니다.
-    await getContract("requestFirstRoomCreation")(user._id);
+    contracts ? await contracts.requestFirstRoomCreation(user._id) : undefined;
 
     return res.send(roomObjectFormated);
   } catch (err) {
@@ -492,8 +492,12 @@ const commitPaymentHandler = async (req, res) => {
     });
 
     // 이벤트 코드입니다.
-    await getContract("requestPayingEvent")(req.userOid, roomObject);
-    await getContract("requestPayingAndSendingEvent")(roomObject);
+    contracts
+      ? await contracts.requestPayingEvent(user._id, roomObject)
+      : undefined;
+    contracts
+      ? await contracts.requestPayingAndSendingEvent(roomObject)
+      : undefined;
 
     // 수정한 방 정보를 반환합니다.
     res.send(formatSettlement(roomObject, { isOver: true }));
@@ -562,8 +566,12 @@ const settlementHandler = async (req, res) => {
     });
 
     // 이벤트 코드입니다.
-    await getContract("requestSendingEvent")(req.userOid, roomObject);
-    await getContract("requestPayingAndSendingEvent")(roomObject);
+    contracts
+      ? await contracts.requestSendingEvent(user._id, roomObject)
+      : undefined;
+    contracts
+      ? await contracts.requestPayingAndSendingEvent(roomObject)
+      : undefined;
 
     // 수정한 방 정보를 반환합니다.
     res.send(formatSettlement(roomObject, { isOver: true }));

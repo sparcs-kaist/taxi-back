@@ -11,7 +11,7 @@ const logger = require("../modules/logger");
 const { TOKEN_EXPIRED, TOKEN_INVALID } = require("../../loadenv").jwt;
 
 // 이벤트 코드입니다.
-const { getContract } = require("../lottery");
+const { contracts } = require("../lottery");
 
 const tokenLoginHandler = async (req, res) => {
   const { accessToken, deviceToken } = req.query;
@@ -41,7 +41,7 @@ const tokenLoginHandler = async (req, res) => {
     req.session.deviceToken = deviceToken;
 
     // 이벤트 코드입니다.
-    await getContract("requestFirstLoginEvent")(user._id);
+    contracts ? await contracts.requestFirstLoginEvent(user._id) : undefined;
 
     return res.status(200).json({ message: "success" });
   } catch (e) {
