@@ -1,14 +1,23 @@
 const { eventIds } = require("../../../../loadenv");
 const { eventHandler } = require("../events");
 
-// 로그인할 때마다 호출해 주세요.
-// 사용된 곳: auth/tryLogin, auth.mobile/tokenLoginHandler
+/** 
+  * @param {string} userId
+  * @returns {Promise}
+  * @description 로그인할 때마다 호출해 주세요.
+  * @usage auth/tryLogin, auth/mobile/tokenLoginHandler
+ */
 const requestFirstLoginEvent = async (userId) => {
   return await eventHandler(userId, eventIds.firstLogin);
 };
 
-// 정산 요청 또는 송금이 이루어질 때마다 호출해 주세요.
-// 사용된 곳: rooms/commitPaymentHandler, rooms/settlementHandler
+/**
+ * 
+ * @param {*} roomObject 
+ * @returns {Promise}
+ * @description 정산 요청 또는 송금이 이루어질 때마다 호출해 주세요.
+ * @usage rooms/commitPaymentHandler, rooms/settlementHandler
+ */
 const requestPayingAndSendingEvent = async (roomObject) => {
   if (roomObject.part.length < 2) return null;
   if (roomObject.part.length > roomObject.settlementTotal) return null;
@@ -21,8 +30,13 @@ const requestPayingAndSendingEvent = async (roomObject) => {
   );
 };
 
-// 방을 만들 때마다 호출해 주세요.
-// 사용된 곳: rooms/createHandler
+/**
+ * 
+ * @param {*} userId 
+ * @returns {Promise}
+ * @description 방을 만들 때마다 호출해 주세요.
+ * @usage rooms/createHandler
+ */
 const requestFirstRoomCreation = async (userId) => {
   return await eventHandler(userId, eventIds.firstRoomCreation);
 };
@@ -31,30 +45,52 @@ const requestRoomSharingEvent = async () => {
   // TODO
 };
 
-// 정산 요청이 이루어질 때마다 호출해 주세요.
-// 사용된 곳: rooms/commitPaymentHandler
+/**
+ * 
+ * @param {*} userId 
+ * @param {*} roomObject 
+ * @returns {Promise}
+ * @description 정산 요청이 이루어질 때마다 호출해 주세요.
+ * @usage rooms/commitPaymentHandler
+ */
 const requestPayingEvent = async (userId, roomObject) => {
   if (roomObject.part.length < 2) return null;
 
   return await eventHandler(userId, eventIds.paying);
 };
 
-// 송금이 이루어질 때마다 호출해 주세요.
-// 사용된 곳: rooms/settlementHandler
+/**
+ * 
+ * @param {*} userId 
+ * @param {*} roomObject 
+ * @returns {Promise}
+ * @description 송금이 이루어질 때마다 호출해 주세요.
+ * @usage rooms/settlementHandler
+ */
 const requestSendingEvent = async (userId, roomObject) => {
   if (roomObject.part.length < 2) return null;
 
   return await eventHandler(userId, eventIds.sending);
 };
 
-// 닉네임을 변경할 때마다 호출해 주세요.
-// 사용된 곳: users/editNicknameHandler
+/**
+ * 
+ * @param {*} userId
+ * @returns {Promise}
+ * @description 닉네임을 변경할 때마다 호출해 주세요.
+ * @usage users/editNicknameHandler
+ */
 const requestNicknameChangingEvent = async (userId) => {
   return await eventHandler(userId, eventIds.nicknameChanging);
 };
 
-// 계좌를 변경할 때마다 호출해 주세요.
-// 사용된 곳: users/editAccountHandler
+/**
+ * 
+ * @param {*} userId 
+ * @returns {Promise}
+ * @description 계좌를 변경할 때마다 호출해 주세요.
+ * @usage users/editAccountHandler
+ */
 const requestAccountChangingEvent = async (userId) => {
   return await eventHandler(userId, eventIds.accountChanging);
 };
