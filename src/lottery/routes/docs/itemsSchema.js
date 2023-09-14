@@ -1,3 +1,4 @@
+/** Item에 대한 기본적인 프로퍼티를 갖고 있는 스키마입니다. */
 const itemBase = {
   type: "object",
   required: [
@@ -47,6 +48,8 @@ const itemBase = {
     },
   },
 };
+
+/** itemBase에 itemType(상품 유형) 프로퍼티가 추가된 스키마입니다. */
 const itemWithType = {
   type: itemBase.type,
   required: itemBase.required.concat(["itemType"]),

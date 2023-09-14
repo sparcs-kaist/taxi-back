@@ -1,3 +1,4 @@
+/** Event에 대한 기본적인 프로퍼티를 갖고 있는 스키마입니다. */
 const eventBase = {
   type: "object",
   required: [
