@@ -1,9 +1,4 @@
-const {
-  eventStatusModel,
-  eventModel,
-  transactionModel,
-  itemModel,
-} = require("../modules/stores/mongo");
+const { eventStatusModel, eventModel } = require("../modules/stores/mongo");
 const logger = require("../../modules/logger");
 
 const getUserGlobalStateHandler = async (req, res) => {
