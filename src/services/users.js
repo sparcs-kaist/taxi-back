@@ -46,9 +46,7 @@ const editNicknameHandler = async (req, res) => {
 
     if (result) {
       // 이벤트 코드입니다.
-      contracts
-        ? await contracts.requestNicknameChangingEvent(req.userOid)
-        : undefined;
+      await contracts?.requestNicknameChangingEvent(req.userOid);
 
       res.status(200).send("User/editNickname : edit user nickname successful");
     } else {
@@ -70,9 +68,7 @@ const editAccountHandler = async (req, res) => {
 
     if (result) {
       // 이벤트 코드입니다.
-      contracts
-        ? await contracts.requestAccountChangingEvent(req.userOid)
-        : undefined;
+      await contracts?.requestAccountChangingEvent(req.userOid);
 
       res.status(200).send("User/editAccount : edit user account successful");
     } else {

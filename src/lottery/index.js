@@ -29,9 +29,7 @@ const resources = [
   transactionModel,
 ].map(buildResource());
 
-const contracts = eventMode
-  ? require(`./modules/contracts/${eventMode}`)
-  : undefined;
+const contracts = eventMode && require(`./modules/contracts/${eventMode}`);
 
 module.exports = {
   lotteryRouter,

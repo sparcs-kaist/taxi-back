@@ -41,7 +41,7 @@ const tokenLoginHandler = async (req, res) => {
     req.session.deviceToken = deviceToken;
 
     // 이벤트 코드입니다.
-    contracts ? await contracts.requestFirstLoginEvent(user._id) : undefined;
+    await contracts?.requestFirstLoginEvent(user._id);
 
     return res.status(200).json({ message: "success" });
   } catch (e) {

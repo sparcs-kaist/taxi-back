@@ -96,7 +96,7 @@ const tryLogin = async (req, res, userData, redirectOrigin, redirectPath) => {
     login(req, userData.sid, user.id, user._id, user.name);
 
     // 이벤트 코드입니다.
-    contracts ? await contracts.requestFirstLoginEvent(user._id) : undefined;
+    await contracts?.requestFirstLoginEvent(user._id);
 
     res.redirect(new URL(redirectPath, redirectOrigin).href);
   } catch (err) {

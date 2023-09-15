@@ -87,7 +87,7 @@ const createHandler = async (req, res) => {
     const roomObjectFormated = formatSettlement(roomObject);
 
     // 이벤트 코드입니다.
-    contracts ? await contracts.requestFirstRoomCreation(user._id) : undefined;
+    await contracts?.requestFirstRoomCreation(user._id);
 
     return res.send(roomObjectFormated);
   } catch (err) {
@@ -492,12 +492,8 @@ const commitPaymentHandler = async (req, res) => {
     });
 
     // 이벤트 코드입니다.
-    contracts
-      ? await contracts.requestPayingEvent(user._id, roomObject)
-      : undefined;
-    contracts
-      ? await contracts.requestPayingAndSendingEvent(roomObject)
-      : undefined;
+    await contracts?.requestPayingEvent(user._id, roomObject);
+    await contracts?.requestPayingAndSendingEvent(roomObject);
 
     // 수정한 방 정보를 반환합니다.
     res.send(formatSettlement(roomObject, { isOver: true }));
@@ -566,12 +562,8 @@ const settlementHandler = async (req, res) => {
     });
 
     // 이벤트 코드입니다.
-    contracts
-      ? await contracts.requestSendingEvent(user._id, roomObject)
-      : undefined;
-    contracts
-      ? await contracts.requestPayingAndSendingEvent(roomObject)
-      : undefined;
+    await contracts?.requestSendingEvent(user._id, roomObject);
+    await contracts?.requestPayingAndSendingEvent(roomObject);
 
     // 수정한 방 정보를 반환합니다.
     res.send(formatSettlement(roomObject, { isOver: true }));

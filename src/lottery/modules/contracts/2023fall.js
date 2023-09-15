@@ -5,14 +5,13 @@ const mongoose = require("mongoose");
  * @param {string|mongoose.Types.ObjectId} userId - 이벤트를 달성한 사용자의 ObjectId입니다.
  * @returns {Promise}
  * @description 로그인할 때마다 호출해 주세요.
- * @usage auth/tryLogin, auth/mobile/tokenLoginHandler
+ * @usage auth/tryLogin, auth.mobile/tokenLoginHandler
  */
 const requestFirstLoginEvent = async (userId) => {
   return await eventHandler(userId, "이벤트 기간 첫 로그인");
 };
 
 /**
- *
  * @param {Object} roomObject - 방의 정보입니다.
  * @param {Array<{ user: mongoose.Types.ObjectId }>} roomObject.part - 참여자 목록입니다.
  * @param {number} roomObject.settlementTotal - 정산 또는 송금이 완료된 참여자 수입니다.
@@ -36,7 +35,6 @@ const requestPayingAndSendingEvent = async (roomObject) => {
 };
 
 /**
- *
  * @param {string|mongoose.Types.ObjectId} userId - 이벤트를 달성한 사용자의 ObjectId입니다.
  * @returns {Promise}
  * @description 방을 만들 때마다 호출해 주세요.
@@ -51,7 +49,6 @@ const requestRoomSharingEvent = async () => {
 };
 
 /**
- *
  * @param {string|mongoose.Types.ObjectId} userId - 이벤트를 달성한 사용자의 ObjectId입니다.
  * @param {Object} roomObject - 방의 정보입니다.
  * @param {Array<{ user: mongoose.Types.ObjectId }>} roomObject.part - 참여자 목록입니다.
@@ -66,7 +63,6 @@ const requestPayingEvent = async (userId, roomObject) => {
 };
 
 /**
- *
  * @param {string|mongoose.Types.ObjectId} userId - 이벤트를 달성한 사용자의 ObjectId입니다.
  * @param {Object} roomObject - 방의 정보입니다.
  * @param {Array<{ user: mongoose.Types.ObjectId }>} roomObject.part - 참여자 목록입니다.
@@ -81,7 +77,6 @@ const requestSendingEvent = async (userId, roomObject) => {
 };
 
 /**
- *
  * @param {string|mongoose.Types.ObjectId} userId - 이벤트를 달성한 사용자의 ObjectId입니다.
  * @returns {Promise}
  * @description 닉네임을 변경할 때마다 호출해 주세요.
@@ -92,7 +87,6 @@ const requestNicknameChangingEvent = async (userId) => {
 };
 
 /**
- *
  * @param {string|mongoose.Types.ObjectId} userId - 이벤트를 달성한 사용자의 ObjectId입니다.
  * @returns {Promise}
  * @description 계좌를 변경할 때마다 호출해 주세요.
