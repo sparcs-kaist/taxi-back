@@ -1,6 +1,14 @@
 const { eventStatusModel } = require("../modules/stores/mongo");
 const { userModel } = require("../../modules/stores/mongo");
 const logger = require("../../modules/logger");
+const { isLogin, getLoginInfo } = require("../../modules/auths/login");
+
+const login = (req) => {
+  if (isLogin(req)) {
+    const { oid } = getLoginInfo(req);
+    return oid;
+  } else return null;
+};
 
 const getTicketLeaderboardHandler = async (req, res) => {
   try {
@@ -31,8 +39,9 @@ const getTicketLeaderboardHandler = async (req, res) => {
       .sort((a, b) => a.weight > b.weight);
 
     let rank = -1;
+    const userId = login(req);
     const weightSum = sortedUsers.reduce((before, user, index) => {
-      if (user.userId === req.userOid) {
+      if (user.userId === userId) {
         rank = index;
       }
       return before + user.weight;
