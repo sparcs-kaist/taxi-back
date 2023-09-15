@@ -6,6 +6,7 @@ const {
   transactionModel,
 } = require("./modules/stores/mongo");
 
+const { eventMode } = require("../../loadenv");
 const { buildResource } = require("../modules/adminResource");
 
 // [Routes] 기존 docs 라우터의 docs extend
@@ -35,8 +36,11 @@ const resources = [
   transactionModel,
 ].map(buildResource());
 
+const contracts = require(`./modules/contracts/${eventMode}`);
+
 module.exports = {
   checkReward,
   lotteryRouter,
   resources,
+  contracts,
 };

@@ -16,6 +16,8 @@ const {
 const jwt = require("../modules/auths/jwt");
 const logger = require("../modules/logger");
 
+const { contracts } = require("../lottery");
+
 // SPARCS SSO
 const Client = require("../modules/auths/sparcssso");
 const client = new Client(sparcsssoEnv?.id, sparcsssoEnv?.key);
@@ -91,6 +93,7 @@ const tryLogin = async (req, res, userData, redirectOrigin, redirectPath) => {
     }
 
     login(req, userData.sid, user.id, user._id, user.name);
+    await contracts.requestFirstLoginEvent(user._id);
     res.redirect(new URL(redirectPath, redirectOrigin).href);
   } catch (err) {
     logger.error(err);
