@@ -2,10 +2,7 @@ const publicNoticePopulateOption = [
   { path: "event" },
   {
     path: "item",
-    select: "name imageUrl price description isDisabled stock itemType",
-  },
-  {
-    path: "",
+    select: "name price description itemType",
   },
 ];
 
