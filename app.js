@@ -1,8 +1,9 @@
 // 모듈 require
 const express = require("express");
 const http = require("http");
-const { port: httpPort } = require("./loadenv");
+const { port: httpPort, eventMode } = require("./loadenv");
 const logger = require("./src/modules/logger");
+const { connectDatabase } = require("./src/modules/stores/mongo");
 const { startSocketServer } = require("./src/modules/socket");
 
 // Firebase Admin 초기설정
@@ -11,14 +12,15 @@ require("./src/modules/fcm").initializeApp();
 // 익스프레스 서버 생성
 const app = express();
 
+// 데이터베이스 연결
+connectDatabase();
+
 // [Middleware] request body 파싱
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
 
 // [Middleware] CORS 설정
-app.use(
-  require("cors")({ origin: true, credentials: true, exposedHeaders: ["Date"] })
-);
+app.use(require("./src/middlewares/cors"));
 
 // [Middleware] 세션 및 쿠키
 const session = require("./src/middlewares/session");
@@ -40,6 +42,13 @@ app.use(require("./src/middlewares/limitRate"));
 // [Router] Swagger (API 문서)
 app.use("/docs", require("./src/routes/docs"));
 
+// 2023 추석 이벤트 전용 라우터입니다.
+eventMode &&
+  app.use(`/events/${eventMode}`, require("./src/lottery").lotteryRouter);
+
+// [Middleware] 모든 API 요청에 대하여 origin 검증
+app.use(require("./src/middlewares/originValidator"));
+
 // [Router] APIs
 app.use("/auth", require("./src/routes/auth"));
 app.use("/logininfo", require("./src/routes/logininfo"));
@@ -50,6 +59,9 @@ app.use("/locations", require("./src/routes/locations"));
 app.use("/reports", require("./src/routes/reports"));
 app.use("/notifications", require("./src/routes/notifications"));
 
+// [Middleware] 전역 에러 핸들러. 에러 핸들러는 router들보다 아래에 등록되어야 합니다.
+app.use(require("./src/middlewares/errorHandler"));
+
 // express 서버 시작
 const serverHttp = http
   .createServer(app)
@@ -57,5 +69,8 @@ const serverHttp = http
     logger.info(`Express 서버가 ${httpPort}번 포트에서 시작됨.`)
   );
 
-// socket.io 서버 시작 및 app 인스턴스에 저장
+// socket.io 서버 시작
 app.set("io", startSocketServer(serverHttp));
+
+// [Schedule] 스케줄러 시작
+require("./src/schedules")(app);

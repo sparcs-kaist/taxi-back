@@ -1,6 +1,5 @@
 const {
   sparcssso: sparcsssoEnv,
-  frontUrl,
   nodeEnv,
   testAccounts,
 } = require("../../loadenv");
@@ -15,6 +14,7 @@ const {
   getFullUsername,
 } = require("../modules/modifyProfile");
 const jwt = require("../modules/auths/jwt");
+const logger = require("../modules/logger");
 
 // SPARCS SSO
 const Client = require("../modules/auths/sparcssso");
@@ -39,8 +39,7 @@ const transUserData = (userData) => {
   return info;
 };
 
-// 가입시키기
-const joinus = (req, res, userData) => {
+const joinus = async (req, userData) => {
   const newUser = new userModel({
     id: userData.id,
     name: userData.name,
@@ -55,54 +54,49 @@ const joinus = (req, res, userData) => {
     },
     email: userData.email,
   });
-  newUser.save((err) => {
-    if (err) {
-      loginFail(req, res);
-      return;
-    }
-    loginDone(req, res, userData);
-  });
+  await newUser.save();
 };
 
-const update = async (req, res, userData) => {
+const update = async (userData) => {
   const updateInfo = { name: userData.name };
   await userModel.updateOne({ id: userData.id }, updateInfo);
-  loginDone(req, res, userData);
 };
 
-const loginDone = (req, res, userData) => {
-  userModel.findOne(
-    { id: userData.id },
-    "_id name id withdraw ban",
-    async (err, result) => {
-      if (err) loginFail(req, res);
-      else if (!result) joinus(req, res, userData);
-      else if (result.name != userData.name) update(req, res, userData);
-      else {
-        if (req.session.isApp) {
-          const { token: accessToken } = await jwt.sign({
-            id: result._id,
-            type: "access",
-          });
-          const { token: refreshToken } = await jwt.sign({
-            id: result._id,
-            type: "refresh",
-          });
-          req.session.accessToken = accessToken;
-          req.session.refreshToken = refreshToken;
-        }
-
-        const redirectPath = req.session?.state_redirectPath || "/";
-        req.session.state_redirectPath = undefined;
-        login(req, userData.sid, result.id, result._id, result.name);
-        res.redirect(frontUrl + redirectPath);
-      }
+const tryLogin = async (req, res, userData, redirectOrigin, redirectPath) => {
+  try {
+    const user = await userModel.findOne(
+      { id: userData.id },
+      "_id name id withdraw ban"
+    );
+    if (!user) {
+      await joinus(req, userData);
+      return tryLogin(req, res, userData, redirectOrigin, redirectPath);
     }
-  );
-};
+    if (user.name != userData.name) {
+      await update(userData);
+      return tryLogin(req, res, userData, redirectOrigin, redirectPath);
+    }
 
-const loginFail = (req, res, redirectUrl = "") => {
-  res.redirect(redirectUrl || frontUrl + "/login/fail");
+    if (req.session.isApp) {
+      const { token: accessToken } = await jwt.sign({
+        id: user._id,
+        type: "access",
+      });
+      const { token: refreshToken } = await jwt.sign({
+        id: user._id,
+        type: "refresh",
+      });
+      req.session.accessToken = accessToken;
+      req.session.refreshToken = refreshToken;
+    }
+
+    login(req, userData.sid, user.id, user._id, user.name);
+    res.redirect(new URL(redirectPath, redirectOrigin).href);
+  } catch (err) {
+    logger.error(err);
+    const redirectUrl = new URL("/login/fail", redirectOrigin).href;
+    res.redirect(redirectUrl);
+  }
 };
 
 const sparcsssoHandler = (req, res) => {
@@ -110,33 +104,47 @@ const sparcsssoHandler = (req, res) => {
   const isApp = !!req.query.isApp;
   const { url, state } = client.getLoginParams();
 
-  req.session.state = state;
-  req.session.state_redirectPath = redirectPath;
+  req.session.loginAfterState = {
+    state: state,
+    redirectOrigin: req.origin,
+    redirectPath: redirectPath,
+  };
   req.session.isApp = isApp;
   res.redirect(url + "&social_enabled=0&show_disabled_button=0");
 };
 
 const sparcsssoCallbackHandler = (req, res) => {
-  const state1 = req.session.state;
-  const state2 = req.body.state || req.query.state;
+  const loginAfterState = req.session?.loginAfterState;
+  const { state: stateForCmp, code } = req.query;
 
-  if (state1 !== state2) loginFail(req, res);
-  else {
-    const code = req.body.code || req.query.code;
-    client.getUserInfo(code).then((userDataBefore) => {
-      const userData = transUserData(userDataBefore);
-      const isTestAccount = testAccounts?.includes(userData.email);
-      if (userData.isEligible || nodeEnv !== "production" || isTestAccount) {
-        loginDone(req, res, userData);
-      } else {
-        // 카이스트 구성원이 아닌 경우, SSO 로그아웃 이후, 로그인 실패 URI 로 이동합니다
-        const { sid } = userData;
-        const redirectUrl = frontUrl + "/login/fail";
-        const ssoLogoutUrl = client.getLogoutUrl(sid, redirectUrl);
-        loginFail(req, res, ssoLogoutUrl);
-      }
-    });
+  if (!loginAfterState)
+    return res.status(400).send("SparcsssoCallbackHandler : invalid request");
+
+  const { state, redirectOrigin, redirectPath } = loginAfterState;
+  req.session.loginAfterState = undefined;
+
+  if (!state || !redirectOrigin || !redirectPath) {
+    return res.status(400).send("SparcsssoCallbackHandler : invalid request");
   }
+
+  if (state !== stateForCmp) {
+    const redirectUrl = new URL("/login/fail", redirectOrigin).href;
+    return res.redirect(redirectUrl);
+  }
+
+  client.getUserInfo(code).then((userDataBefore) => {
+    const userData = transUserData(userDataBefore);
+    const isTestAccount = testAccounts?.includes(userData.email);
+    if (userData.isEligible || nodeEnv !== "production" || isTestAccount) {
+      tryLogin(req, res, userData, redirectOrigin, redirectPath);
+    } else {
+      // 카이스트 구성원이 아닌 경우, SSO 로그아웃 이후, 로그인 실패 URI 로 이동합니다
+      const { sid } = userData;
+      const redirectUrl = new URL("/login/fail", redirectOrigin).href;
+      const ssoLogoutUrl = client.getLogoutUrl(sid, redirectUrl);
+      res.redirect(ssoLogoutUrl);
+    }
+  });
 };
 
 const loginReplaceHandler = (req, res) => {
@@ -158,7 +166,7 @@ const logoutHandler = async (req, res) => {
     }
 
     // 로그아웃 URL을 생성 및 반환
-    const redirectUrl = frontUrl + redirectPath;
+    const redirectUrl = new URL(redirectPath, req.origin).href;
     const ssoLogoutUrl = client.getLogoutUrl(sid, redirectUrl);
     logout(req, res);
     res.json({ ssoLogoutUrl });
@@ -168,6 +176,7 @@ const logoutHandler = async (req, res) => {
 };
 
 module.exports = {
+  tryLogin,
   sparcsssoHandler,
   sparcsssoCallbackHandler,
   loginReplaceHandler,

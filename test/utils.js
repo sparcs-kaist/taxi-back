@@ -4,8 +4,11 @@ const {
   chatModel,
   locationModel,
   reportModel,
+  connectDatabase,
 } = require("../src/modules/stores/mongo");
 const { generateProfileImageUrl } = require("../src/modules/modifyProfile");
+
+connectDatabase();
 
 // 테스트를 위한 유저 생성 함수
 const userGenerator = async (username, testData) => {
@@ -32,6 +35,24 @@ const userGenerator = async (username, testData) => {
   return testUser;
 };
 
+const roomGenerator = async (roomname, testData) => {
+  const testFrom = await locationModel.findOne({ koName: "대전역" });
+  const testTo = await locationModel.findOne({ koName: "택시승강장" });
+  const testRoom = new roomModel({
+    name: roomname + "-room",
+    from: testFrom._id,
+    to: testTo._id,
+    time: Date.now() + 60 * 1000,
+    part: [],
+    madeat: Date.now(),
+    maxPartLength: 4,
+    settlementTotal: 0,
+  });
+  await testRoom.save();
+  testData["rooms"].push(testRoom);
+  return testRoom;
+};
+
 // 매 테스트가 끝나고 테스트 데이터를 초기화 해주기 위한 함수
 // 더미 데이터를 생성할 경우 이 함수를 통해 제거
 const testRemover = async (testData) => {
@@ -56,4 +77,4 @@ const testRemover = async (testData) => {
   }
 };
 
-module.exports = { userGenerator, testRemover };
+module.exports = { userGenerator, roomGenerator, testRemover };

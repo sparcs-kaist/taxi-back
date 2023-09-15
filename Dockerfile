@@ -6,11 +6,13 @@ COPY . .
 
 # Install curl (for taxi-docker)
 RUN apk update && apk add curl
+RUN npm install --global pnpm@8.6.6 serve@14.1.2
 
 # Install requirements
-RUN npm ci
+RUN pnpm i --force --frozen-lockfile
 
 # Run container
 EXPOSE 80
 ENV PORT 80
-CMD ["npm", "run", "serve"]
+CMD ["pnpm", "run", "serve"]
+
