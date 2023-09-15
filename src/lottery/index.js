@@ -12,11 +12,6 @@ const { buildResource } = require("../modules/adminResource");
 // [Routes] 기존 docs 라우터의 docs extend
 require("./routes/docs")();
 
-// [Middleware] 목표 달성 여부 검증
-const checkReward = (req, res, next) => {
-  next();
-};
-
 const lotteryRouter = express.Router();
 
 // [Middleware] 모든 API 요청에 대하여 origin 검증
@@ -36,10 +31,11 @@ const resources = [
   transactionModel,
 ].map(buildResource());
 
-const contracts = require(`./modules/contracts/${eventMode}`);
+const contracts = eventMode
+  ? require(`./modules/contracts/${eventMode}`)
+  : undefined;
 
 module.exports = {
-  checkReward,
   lotteryRouter,
   resources,
   contracts,

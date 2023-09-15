@@ -10,6 +10,7 @@ const logger = require("../modules/logger");
 
 const { TOKEN_EXPIRED, TOKEN_INVALID } = require("../../loadenv").jwt;
 
+// 이벤트 코드입니다.
 const { contracts } = require("../lottery");
 
 const tokenLoginHandler = async (req, res) => {
@@ -38,7 +39,10 @@ const tokenLoginHandler = async (req, res) => {
     login(req, user.sid, user.id, user._id, user.name);
     req.session.isApp = true;
     req.session.deviceToken = deviceToken;
-    await contracts.requestFirstLoginEvent(user._id);
+
+    // 이벤트 코드입니다.
+    contracts ? await contracts.requestFirstLoginEvent(user._id) : undefined;
+
     return res.status(200).json({ message: "success" });
   } catch (e) {
     logger.error(e);

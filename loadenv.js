@@ -39,20 +39,4 @@ module.exports = {
     report: process.env.SLACK_REPORT_WEBHOOK_URL || "", // optional
   },
   eventMode: undefined,
-  eventIds: {
-    // required if eventMode === "2023fall"
-    firstLogin: process.env.EVENT_2023FALL_FIRST_LOGIN_ID,
-    payingAndSending: process.env.EVENT_2023FALL_PAYING_AND_SENDING_ID,
-    firstRoomCreation: process.env.EVENT_2023FALL_FIRST_ROOM_CREATION_ID,
-    roomSharing: process.env.EVENT_2023FALL_ROOM_SHARING_ID,
-    paying: process.env.EVENT_2023FALL_PAYING_ID,
-    sending: process.env.EVENT_2023FALL_SENDING_ID,
-    nicknameChanging: process.env.EVENT_2023FALL_NICKNAME_CHANGING_ID,
-    accountChanging: process.env.EVENT_2023FALL_ACCOUNT_CHANGING_ID,
-    adPushAgreement: process.env.EVENT_2023FALL_AD_PUSH_AGREEMENT_ID,
-    eventSharingOnInstagram:
-      process.env.EVENT_2023FALL_EVENT_SHARING_ON_INSTAGRAM_ID,
-    purchaseSharingOnInstagram:
-      process.env.EVENT_2023FALL_PURCHASE_SHARING_ON_INSTAGRAM_ID,
-  },
 };
