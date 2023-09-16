@@ -21,7 +21,7 @@ transactionsDocs[`${apiPrefix}/`] = {
                   description: "유저의 재화 입출금 기록의 배열",
                   items: {
                     type: "object",
-                    required: ["_id", "type", "amount", "comment", "doneat"],
+                    required: ["_id", "type", "amount", "comment", "createAt"],
                     properties: {
                       _id: {
                         type: "string",
@@ -53,7 +53,7 @@ transactionsDocs[`${apiPrefix}/`] = {
                         description: "입출금 내역에 대한 설명",
                         example: "랜덤 상자 구입 - 50개 차감",
                       },
-                      doneat: {
+                      createAt: {
                         type: "string",
                         description: "입출금이 일어난 시각",
                         example: "2023-01-01 00:00:00",
