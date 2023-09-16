@@ -7,7 +7,7 @@ globalStateDocs[`${apiPrefix}/`] = {
     tags: [`${apiPrefix}`],
     summary: "Frontend에서 Global state로 관리하는 정보 반환",
     description:
-      "유저의 재화 개수, 퀘스트 달성 상태 등 Frontend에서 Global state로 관리할 정보를 가져옵니다. 유저에 대한 EventStatus Document가 없을 경우 새롭게 생성하며, 유일한 생성 지점입니다.",
+      "유저의 재화 개수, 퀘스트 달성 상태 등 Frontend에서 Global state로 관리할 정보를 가져옵니다. 유저에 대한 EventStatus Document가 없을 경우 새롭게 생성합니다.",
     responses: {
       200: {
         description: "",

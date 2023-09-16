@@ -99,7 +99,7 @@ const eventPeriod = {
  * @usage auth/tryLogin, auth.mobile/tokenLoginHandler
  */
 const completeFirstLoginQuest = async (userId) => {
-  return await completeQuest(userId, quests.firstLogin);
+  return await completeQuest(userId, eventPeriod, quests.firstLogin);
 };
 
 /**
@@ -118,7 +118,11 @@ const completePayingAndSendingQuest = async (roomObject) => {
   return await Promise.all(
     roomObject.part.map(
       async (participant) =>
-        await completeQuest(participant.user._id, quests.payingAndSending)
+        await completeQuest(
+          participant.user._id,
+          eventPeriod,
+          quests.payingAndSending
+        )
     )
   );
 };
@@ -131,7 +135,7 @@ const completePayingAndSendingQuest = async (roomObject) => {
  * @usage rooms/createHandler
  */
 const completeFirstRoomCreationQuest = async (userId) => {
-  return await completeQuest(userId, quests.firstRoomCreation);
+  return await completeQuest(userId, eventPeriod, quests.firstRoomCreation);
 };
 
 const completeRoomSharingQuest = async () => {
@@ -150,7 +154,7 @@ const completeRoomSharingQuest = async () => {
 const completePayingQuest = async (userId, roomObject) => {
   if (roomObject.part.length < 2) return null;
 
-  return await completeQuest(userId, quests.paying);
+  return await completeQuest(userId, eventPeriod, quests.paying);
 };
 
 /**
@@ -165,7 +169,7 @@ const completePayingQuest = async (userId, roomObject) => {
 const completeSendingQuest = async (userId, roomObject) => {
   if (roomObject.part.length < 2) return null;
 
-  return await completeQuest(userId, quests.sending);
+  return await completeQuest(userId, eventPeriod, quests.sending);
 };
 
 /**
@@ -176,7 +180,7 @@ const completeSendingQuest = async (userId, roomObject) => {
  * @usage users/editNicknameHandler
  */
 const completeNicknameChangingQuest = async (userId) => {
-  return await completeQuest(userId, quests.nicknameChaning);
+  return await completeQuest(userId, eventPeriod, quests.nicknameChaning);
 };
 
 /**
@@ -187,7 +191,7 @@ const completeNicknameChangingQuest = async (userId) => {
  * @usage users/editAccountHandler
  */
 const completeAccountChangingQuest = async (userId) => {
-  return await completeQuest(userId, quests.accountChanging);
+  return await completeQuest(userId, eventPeriod, quests.accountChanging);
 };
 
 const completeAdPushAgreementQuest = async () => {

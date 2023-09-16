@@ -15,8 +15,6 @@ const getUserGlobalStateHandler = async (req, res) => {
       .findOne({ userId: req.userOid })
       .lean();
     if (!eventStatus) {
-      // User마다 EventStatus를 가져야 하고, 현재 Taxi에는 회원 탈퇴 시스템이 없으므로, EventStatus가 없으면 새롭게 생성하도록 구현합니다.
-      // EventStatus의 생성은 이곳에서만 이루어집니다!!
       eventStatus = new eventStatusModel({
         userId: req.userOid,
       });
