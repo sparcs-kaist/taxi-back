@@ -1,7 +1,7 @@
 const express = require("express");
 const {
   eventStatusModel,
-  eventModel,
+  questModel,
   itemModel,
   transactionModel,
 } = require("./modules/stores/mongo");
@@ -24,7 +24,7 @@ lotteryRouter.use("/items", require("./routes/items"));
 
 const resources = [
   eventStatusModel,
-  eventModel,
+  questModel,
   itemModel,
   transactionModel,
 ].map(buildResource());

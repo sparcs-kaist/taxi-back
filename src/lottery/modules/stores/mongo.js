@@ -12,7 +12,7 @@ const eventStatusSchema = Schema({
     ref: "User",
     required: true,
   },
-  eventList: {
+  completedQuests: {
     type: [String],
     default: [],
   },
@@ -24,7 +24,7 @@ const eventStatusSchema = Schema({
   },
 });
 
-const eventSchema = Schema({
+const questSchema = Schema({
   id: {
     type: String,
     required: true,
@@ -32,14 +32,6 @@ const eventSchema = Schema({
   },
   isDisabled: {
     type: Boolean,
-    required: true,
-  },
-  imageUrl: {
-    type: String,
-    required: true,
-  },
-  description: {
-    type: String,
     required: true,
   },
 });
@@ -107,7 +99,7 @@ const transactionSchema = Schema({
     ref: "User",
     required: true,
   },
-  eventId: {
+  questId: {
     type: String,
   },
   item: {
@@ -130,7 +122,7 @@ transactionSchema.set("timestamps", {
 
 module.exports = {
   eventStatusModel: mongoose.model("EventStatus", eventStatusSchema),
-  eventModel: mongoose.model("Event", eventSchema),
+  questModel: mongoose.model("Quest", questSchema),
   itemModel: mongoose.model("Item", itemSchema),
   transactionModel: mongoose.model("Transaction", transactionSchema),
 };

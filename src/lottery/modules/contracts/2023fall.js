@@ -1,7 +1,7 @@
-const { eventHandler } = require("../events");
+const { completeQuest } = require("../quests");
 const mongoose = require("mongoose");
 
-const events = {
+const quests = {
   firstLogin: {
     name: "이벤트 기간 첫 로그인",
     description: "",
@@ -81,18 +81,18 @@ const events = {
   },
 };
 
-for (const [id, event] of Object.entries(events)) {
-  event.id = id;
+for (const [id, quest] of Object.entries(quests)) {
+  quest.id = id;
 }
 
 /**
- * @param {string|mongoose.Types.ObjectId} userId - 이벤트를 달성한 사용자의 ObjectId입니다.
+ * @param {string|mongoose.Types.ObjectId} userId - 퀘스트를 달성한 사용자의 ObjectId입니다.
  * @returns {Promise}
  * @description 로그인할 때마다 호출해 주세요.
  * @usage auth/tryLogin, auth.mobile/tokenLoginHandler
  */
-const requestFirstLoginEvent = async (userId) => {
-  return await eventHandler(userId, events.firstLogin);
+const completeFirstLoginQuest = async (userId) => {
+  return await completeQuest(userId, quests.firstLogin);
 };
 
 /**
@@ -103,103 +103,103 @@ const requestFirstLoginEvent = async (userId) => {
  * @description 정산 요청 또는 송금이 이루어질 때마다 호출해 주세요.
  * @usage rooms/commitPaymentHandler, rooms/settlementHandler
  */
-const requestPayingAndSendingEvent = async (roomObject) => {
+const completePayingAndSendingQuest = async (roomObject) => {
   if (roomObject.part.length < 2) return null;
   if (roomObject.part.length > roomObject.settlementTotal) return null;
 
   return await Promise.all(
     roomObject.part.map(
       async (participant) =>
-        await eventHandler(participant.user._id, events.payingAndSending)
+        await completeQuest(participant.user._id, quests.payingAndSending)
     )
   );
 };
 
 /**
- * @param {string|mongoose.Types.ObjectId} userId - 이벤트를 달성한 사용자의 ObjectId입니다.
+ * @param {string|mongoose.Types.ObjectId} userId - 퀘스트를 달성한 사용자의 ObjectId입니다.
  * @returns {Promise}
  * @description 방을 만들 때마다 호출해 주세요.
  * @usage rooms/createHandler
  */
-const requestFirstRoomCreation = async (userId) => {
-  return await eventHandler(userId, events.firstRoomCreation);
+const completeFirstRoomCreationQuest = async (userId) => {
+  return await completeQuest(userId, quests.firstRoomCreation);
 };
 
-const requestRoomSharingEvent = async () => {
+const completeRoomSharingQuest = async () => {
   // TODO
 };
 
 /**
- * @param {string|mongoose.Types.ObjectId} userId - 이벤트를 달성한 사용자의 ObjectId입니다.
+ * @param {string|mongoose.Types.ObjectId} userId - 퀘스트를 달성한 사용자의 ObjectId입니다.
  * @param {Object} roomObject - 방의 정보입니다.
  * @param {Array<{ user: mongoose.Types.ObjectId }>} roomObject.part - 참여자 목록입니다.
  * @returns {Promise}
  * @description 정산 요청이 이루어질 때마다 호출해 주세요.
  * @usage rooms/commitPaymentHandler
  */
-const requestPayingEvent = async (userId, roomObject) => {
+const completePayingQuest = async (userId, roomObject) => {
   if (roomObject.part.length < 2) return null;
 
-  return await eventHandler(userId, events.paying);
+  return await completeQuest(userId, quests.paying);
 };
 
 /**
- * @param {string|mongoose.Types.ObjectId} userId - 이벤트를 달성한 사용자의 ObjectId입니다.
+ * @param {string|mongoose.Types.ObjectId} userId - 퀘스트를 달성한 사용자의 ObjectId입니다.
  * @param {Object} roomObject - 방의 정보입니다.
  * @param {Array<{ user: mongoose.Types.ObjectId }>} roomObject.part - 참여자 목록입니다.
  * @returns {Promise}
  * @description 송금이 이루어질 때마다 호출해 주세요.
  * @usage rooms/settlementHandler
  */
-const requestSendingEvent = async (userId, roomObject) => {
+const completeSendingQuest = async (userId, roomObject) => {
   if (roomObject.part.length < 2) return null;
 
-  return await eventHandler(userId, events.sending);
+  return await completeQuest(userId, quests.sending);
 };
 
 /**
- * @param {string|mongoose.Types.ObjectId} userId - 이벤트를 달성한 사용자의 ObjectId입니다.
+ * @param {string|mongoose.Types.ObjectId} userId - 퀘스트를 달성한 사용자의 ObjectId입니다.
  * @returns {Promise}
  * @description 닉네임을 변경할 때마다 호출해 주세요.
  * @usage users/editNicknameHandler
  */
-const requestNicknameChangingEvent = async (userId) => {
-  return await eventHandler(userId, events.nicknameChaning);
+const completeNicknameChangingQuest = async (userId) => {
+  return await completeQuest(userId, quests.nicknameChaning);
 };
 
 /**
- * @param {string|mongoose.Types.ObjectId} userId - 이벤트를 달성한 사용자의 ObjectId입니다.
+ * @param {string|mongoose.Types.ObjectId} userId - 퀘스트를 달성한 사용자의 ObjectId입니다.
  * @returns {Promise}
  * @description 계좌를 변경할 때마다 호출해 주세요.
  * @usage users/editAccountHandler
  */
-const requestAccountChangingEvent = async (userId) => {
-  return await eventHandler(userId, events.accountChanging);
+const completeAccountChangingQuest = async (userId) => {
+  return await completeQuest(userId, quests.accountChanging);
 };
 
-const requestAdPushAgreementEvent = async () => {
+const completeAdPushAgreementQuest = async () => {
   // TODO
 };
 
-const requestEventSharingOnInstagram = async () => {
+const completeEventSharingOnInstagramQuest = async () => {
   // TODO
 };
 
-const requestPurchaseSharingOnInstagram = async () => {
+const completePurchaseSharingOnInstagramQuest = async () => {
   // TODO
 };
 
 module.exports = {
-  events,
-  requestFirstLoginEvent,
-  requestPayingAndSendingEvent,
-  requestFirstRoomCreation,
-  requestRoomSharingEvent,
-  requestPayingEvent,
-  requestSendingEvent,
-  requestNicknameChangingEvent,
-  requestAccountChangingEvent,
-  requestAdPushAgreementEvent,
-  requestEventSharingOnInstagram,
-  requestPurchaseSharingOnInstagram,
+  quests,
+  completeFirstLoginQuest,
+  completePayingAndSendingQuest,
+  completeFirstRoomCreationQuest,
+  completeRoomSharingQuest,
+  completePayingQuest,
+  completeSendingQuest,
+  completeNicknameChangingQuest,
+  completeAccountChangingQuest,
+  completeAdPushAgreementQuest,
+  completeEventSharingOnInstagramQuest,
+  completePurchaseSharingOnInstagramQuest,
 };

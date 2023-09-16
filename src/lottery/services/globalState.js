@@ -5,8 +5,8 @@ const {
 const logger = require("../../modules/logger");
 
 const { eventMode } = require("../../../loadenv");
-const events = eventMode
-  ? Object.values(require(`../modules/contracts/${eventMode}`).events)
+const quests = eventMode
+  ? Object.values(require(`../modules/contracts/${eventMode}`).quests)
   : undefined;
 
 const getUserGlobalStateHandler = async (req, res) => {
@@ -44,10 +44,10 @@ const getUserGlobalStateHandler = async (req, res) => {
 
     res.json({
       creditAmount: eventStatus.creditAmount,
-      eventStatus: eventStatus.eventList.map((id) => id.toString()),
+      completedQuests: eventStatus.completedQuests,
       ticket1Amount,
       ticket2Amount,
-      events,
+      quests,
     });
   } catch (err) {
     logger.error(err);

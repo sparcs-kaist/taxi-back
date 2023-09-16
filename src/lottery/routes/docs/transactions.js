@@ -39,11 +39,11 @@ transactionsDocs[`${apiPrefix}/`] = {
                         description: "재화의 변화량의 절댓값",
                         example: 50,
                       },
-                      eventId: {
+                      questId: {
                         type: "string",
                         description:
-                          "Transaction과 관련된 이벤트의 Id. 이벤트와 관련된 Transaction인 경우에만 포함됩니다.",
-                        example: "EVENT ID",
+                          "Transaction과 관련된 퀘스트의 Id. 퀘스트와 관련된 Transaction인 경우에만 포함됩니다.",
+                        example: "QUEST ID",
                       },
                       item: {
                         $ref: "#/components/schemas/relatedItem",
