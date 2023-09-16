@@ -54,7 +54,7 @@
     "dev": "cross-env TZ='Asia/Seoul' npx nodemon app.js",
     "serve": "cross-env TZ='Asia/Seoul' NODE_ENV=production node app.js",
     "worker:dev": "cross-env TZ='Asia/Seoul' npx nodemon worker.js",
-    "worker:prod": "cross-env TZ='Asia/Seoul' node worker.js",
+    "worker:prod": "cross-env TZ='Asia/Seoul' NODE_ENV=production node worker.js",
     "start": "concurrently \"npm run dev\" \"npm run worker:dev\"",
     "redis:dev": "docker compose -f docker-compose.dev.yml up -d",
     "redis:dev:down": "docker compose -f docker-compose.dev.yml down",
