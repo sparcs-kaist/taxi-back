@@ -2,6 +2,7 @@ const { eventMode } = require("../../../../loadenv");
 const globalStateDocs = require("./globalState");
 const itemsDocs = require("./items");
 const transactionsDocs = require("./transactions");
+const itemsSchema = require("./itemsSchema");
 
 const apiPrefix = `/events/${eventMode}`;
 
@@ -26,7 +27,9 @@ const eventSwaggerDocs = {
     ...transactionsDocs,
   },
   components: {
-    schemas: {},
+    schemas: {
+      ...itemsSchema,
+    },
   },
 };
 

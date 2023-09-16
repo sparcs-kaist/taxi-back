@@ -15,6 +15,13 @@ globalStateDocs[`${apiPrefix}/`] = {
           "application/json": {
             schema: {
               type: "object",
+              required: [
+                "creditAmount",
+                "eventStatus",
+                "ticket1Amount",
+                "ticket2Amount",
+                "events",
+              ],
               properties: {
                 creditAmount: {
                   type: "number",
@@ -28,16 +35,17 @@ globalStateDocs[`${apiPrefix}/`] = {
                   items: {
                     type: "string",
                     description: "Event의 ObjectId",
+                    example: "OBJECT ID",
                   },
                 },
                 ticket1Amount: {
                   type: "number",
-                  description: "추첨권 (1)의 개수. 0 이상입니다.",
+                  description: "일반 티켓의 개수. 0 이상입니다.",
                   example: 10,
                 },
                 ticket2Amount: {
                   type: "number",
-                  description: "추첨권 (2)의 개수. 0 이상입니다.",
+                  description: "고급 티켓의 개수. 0 이상입니다.",
                   example: 10,
                 },
                 events: {
@@ -55,6 +63,17 @@ globalStateDocs[`${apiPrefix}/`] = {
                         type: "string",
                         description: "이벤트의 이름",
                         example: "최초 로그인 이벤트",
+                      },
+                      description: {
+                        type: "string",
+                        description: "이벤트의 설명",
+                        example:
+                          "처음으로 이벤트 기간 중 Taxi에 로그인하면 송편을 드립니다.",
+                      },
+                      imageUrl: {
+                        type: "string",
+                        description: "이미지 썸네일 URL",
+                        example: "THUMBNAIL URL",
                       },
                       rewardAmount: {
                         type: "number",

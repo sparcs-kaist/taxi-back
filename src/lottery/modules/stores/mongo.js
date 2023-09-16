@@ -34,6 +34,14 @@ const eventSchema = Schema({
     type: Boolean,
     required: true,
   },
+  imageUrl: {
+    type: String,
+    required: true,
+  },
+  description: {
+    type: String,
+    required: true,
+  },
 });
 
 const itemSchema = Schema({
