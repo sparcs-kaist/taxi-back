@@ -43,10 +43,12 @@ const consoleTransport = new transports.Console();
 /**
  * console.log()와 console.error() 대신 사용되는 winston Logger 객체입니다.
  *
- * - "production" 환경: 모든 로그는 파일 시스템에 저장되고, 콘솔로도 출력됩니다.
- * - "development" & "test" 환경: 모든 로그는 콘솔에 출력됩니다.
+ * - "production" 환경: 모든 로그는 파일 시스템에 저장되고, 콘솔로도 출력됩니다. "info" 레벨 이상의 로그가 출력됩니다.
+ * - "development" & "test" 환경: 모든 로그는 콘솔에 출력됩니다. "debug" 레벨 이상의 로그가 출력됩니다.
  *
+ * @method debug(message: string, callback: winston.LogCallback) - 디버깅을 위한 기록에 사용됩니다. **주의: "production" 환경에서는 debug 로그가 기록되지 않습니다.**
  * @method info(message: string, callback: winston.LogCallback) - 일반적인 정보(API 접근 등) 기록을 위해 사용합니다.
+ * @method warn(message: string, callback: winston.LogCallback) - 예상하지 않은 일이 발생했지만, 애플리케이션에 오류가 발생하지는 않았을 때 경고를 위해 사용합니다.
  * @method error(message: string, callback: winston.LogCallback)  - 오류 메시지를 기록하기 위해 사용합니다.
  */
 const logger =
@@ -85,7 +87,7 @@ const logger =
       })
     : // "development", "test" 환경에서 사용되는 Logger 객체
       createLogger({
-        level: "info",
+        level: "debug",
         format: colorizedFormat,
         defaultMeta: { service: "sparcs-kaist" },
         transports: [consoleTransport],
