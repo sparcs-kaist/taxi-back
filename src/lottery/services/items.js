@@ -5,14 +5,17 @@ const {
 } = require("../modules/stores/mongo");
 const logger = require("../../modules/logger");
 
-const updateEventStatus = async (userId, creditDelta, itemType) =>
+const updateEventStatus = async (
+  userId,
+  { creditDelta = 0, ticket1Delta = 0, ticket2Delta = 0 } = {}
+) =>
   await eventStatusModel.updateOne(
     { userId },
     {
       $inc: {
         creditAmount: creditDelta,
-        ticket1Amount: itemType === 1 ? 1 : 0,
-        ticket2Amount: itemType === 2 ? 1 : 0,
+        ticket1Amount: ticket1Delta,
+        ticket2Amount: ticket2Delta,
       },
     }
   );
@@ -70,7 +73,10 @@ const getRandomItem = async (req, depth) => {
       .lean();
 
     // 2단계: 유저 정보를 업데이트합니다.
-    await updateEventStatus(req.userOid, 0, randomItem.itemType);
+    await updateEventStatus(req.userOid, {
+      ticket1Delta: randomItem.itemType === 1 ? 1 : 0,
+      ticket2Delta: randomItem.itemType === 2 ? 1 : 0,
+    });
 
     // 3단계: Transaction을 추가합니다.
     const transaction = new transactionModel({
@@ -144,7 +150,11 @@ const purchaseHandler = async (req, res) => {
     );
 
     // 2단계: 유저 정보를 업데이트합니다.
-    await updateEventStatus(req.userOid, -item.price, item.itemType);
+    await updateEventStatus(req.userOid, {
+      creditDelta: -item.price,
+      ticket1Delta: item.itemType === 1 ? 1 : 0,
+      ticket2Delta: item.itemType === 2 ? 1 : 0,
+    });
 
     // 3단계: Transaction을 추가합니다.
     const transaction = new transactionModel({
