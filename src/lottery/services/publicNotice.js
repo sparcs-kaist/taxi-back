@@ -7,18 +7,7 @@ const getTicketLeaderboardHandler = async (req, res) => {
   try {
     const users = await eventStatusModel
       .find({
-        $or: [
-          {
-            ticket1Amount: {
-              $gt: 0,
-            },
-          },
-          {
-            ticket2Amount: {
-              $gt: 0,
-            },
-          },
-        ],
+        $or: [{ ticket1Amount: { $gt: 0 } }, { ticket2Amount: { $gt: 0 } }],
       })
       .lean();
     const sortedUsers = users
