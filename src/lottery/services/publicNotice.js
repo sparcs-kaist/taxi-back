@@ -36,7 +36,7 @@ const getTicketLeaderboardHandler = async (req, res) => {
         userId: user.userId.toString(),
         weight: user.ticket1Amount + 5 * user.ticket2Amount,
       }))
-      .sort((a, b) => a.weight > b.weight);
+      .sort((a, b) => -(a.weight - b.weight));
 
     let rank = -1;
     const userId = login(req);
