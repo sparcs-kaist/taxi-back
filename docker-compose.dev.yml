@@ -1,0 +1,18 @@
+version: "3"
+services:
+  taxi-mongo:
+    container_name: taxi-mongo-dev
+    image: mongo:4.4
+    restart: unless-stopped
+    ports:
+      - ${MONGO_PORT:-27017}:27017
+    volumes:
+      - taxi-mongo-data:/data/db
+  taxi-redis:
+    container_name: taxi-redis-dev
+    image: redis:7.0.4-alpine
+    restart: unless-stopped
+    ports:
+      - ${REDIS_PORT:-6379}:6379
+volumes:
+  taxi-mongo-data:
