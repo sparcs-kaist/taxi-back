@@ -1,10 +1,11 @@
 const {
   eventStatusModel,
-  eventModel,
   transactionModel,
-  itemModel,
 } = require("../modules/stores/mongo");
 const logger = require("../../modules/logger");
+
+const { eventMode } = require("../../../loadenv");
+const { events } = require(`../modules/contracts/${eventMode}`);
 
 const getUserGlobalStateHandler = async (req, res) => {
   try {
@@ -38,7 +39,6 @@ const getUserGlobalStateHandler = async (req, res) => {
       },
       itemType: 2,
     });
-    const events = await eventModel.find({}, "-__v").lean();
 
     res.json({
       creditAmount: eventStatus.creditAmount,

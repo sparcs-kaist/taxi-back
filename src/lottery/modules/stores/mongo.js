@@ -13,9 +13,8 @@ const eventStatusSchema = Schema({
     required: true,
   },
   eventList: {
-    type: [Schema.Types.ObjectId],
+    type: [String],
     default: [],
-    ref: "Event",
   },
   creditAmount: {
     type: Number,
@@ -26,34 +25,14 @@ const eventStatusSchema = Schema({
 });
 
 const eventSchema = Schema({
-  name: {
+  id: {
     type: String,
     required: true,
     unique: true,
   },
-  rewardAmount: {
-    type: Number,
-    required: true,
-    min: 0,
-    validate: integerValidator,
-  },
-  maxCount: {
-    type: Number,
-    default: 1,
-    min: 0,
-    validate: integerValidator,
-  },
-  startat: {
-    type: Date,
-    required: true,
-  },
-  expireat: {
-    type: Date,
-    required: true,
-  },
   isDisabled: {
     type: Boolean,
-    default: false,
+    required: true,
   },
 });
 
@@ -120,9 +99,8 @@ const transactionSchema = Schema({
     ref: "User",
     required: true,
   },
-  event: {
-    type: Schema.Types.ObjectId,
-    ref: "Event",
+  eventId: {
+    type: String,
   },
   item: {
     type: Schema.Types.ObjectId,

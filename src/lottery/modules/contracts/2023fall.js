@@ -1,6 +1,60 @@
 const { eventHandler } = require("../events");
 const mongoose = require("mongoose");
 
+const events = {
+  firstLogin: {
+    name: "이벤트 기간 첫 로그인",
+    rewardAmount: 150,
+  },
+  payingAndSending: {
+    name: "2명 이상 탑승한 방에서 정산/송금 완료",
+    rewardAmount: 300,
+    maxCount: 3,
+  },
+  firstRoomCreation: {
+    name: "첫 방 개설",
+    rewardAmount: 50,
+  },
+  roomSharing: {
+    name: "방 공유하기",
+    rewardAmount: 50,
+  },
+  paying: {
+    name: "2명 이상 탑승한 방에서 정산하기",
+    rewardAmount: 100,
+    maxCount: 3,
+  },
+  sending: {
+    name: "2명 이상 탑승한 방에서 송금하기",
+    rewardAmount: 50,
+    maxCount: 3,
+  },
+  nicknameChaning: {
+    name: "닉네임 변경",
+    rewardAmount: 50,
+  },
+  accountChanging: {
+    name: "계좌 등록 또는 변경",
+    rewardAmount: 50,
+  },
+  adPushAgreement: {
+    name: "광고성 푸시 알림 수신 동의",
+    rewardAmount: 50,
+  },
+  eventSharingOnInstagram: {
+    name: "이벤트 인스타그램 스토리에 공유",
+    rewardAmount: 100,
+  },
+  purchaseSharingOnInstagram: {
+    name: "아이템 구매 후 인스타그램 스토리에 공유",
+    rewardAmount: 100,
+  },
+};
+
+for (const [id, event] of Object.entries(events)) {
+  event["id"] = id; // TODO: 외 event.id로는 않돼지????
+}
+
 /**
  * @param {string|mongoose.Types.ObjectId} userId - 이벤트를 달성한 사용자의 ObjectId입니다.
  * @returns {Promise}
@@ -8,7 +62,7 @@ const mongoose = require("mongoose");
  * @usage auth/tryLogin, auth.mobile/tokenLoginHandler
  */
 const requestFirstLoginEvent = async (userId) => {
-  return await eventHandler(userId, "이벤트 기간 첫 로그인");
+  return await eventHandler(userId, events.firstLogin);
 };
 
 /**
@@ -26,10 +80,7 @@ const requestPayingAndSendingEvent = async (roomObject) => {
   return await Promise.all(
     roomObject.part.map(
       async (participant) =>
-        await eventHandler(
-          participant.user._id,
-          "2명 이상 탑승한 방에서 정산/송금 완료"
-        )
+        await eventHandler(participant.user._id, events.payingAndSending)
     )
   );
 };
@@ -41,7 +92,7 @@ const requestPayingAndSendingEvent = async (roomObject) => {
  * @usage rooms/createHandler
  */
 const requestFirstRoomCreation = async (userId) => {
-  return await eventHandler(userId, "첫 방 개설");
+  return await eventHandler(userId, events.firstRoomCreation);
 };
 
 const requestRoomSharingEvent = async () => {
@@ -59,7 +110,7 @@ const requestRoomSharingEvent = async () => {
 const requestPayingEvent = async (userId, roomObject) => {
   if (roomObject.part.length < 2) return null;
 
-  return await eventHandler(userId, "2명 이상 탑승한 방에서 정산하기");
+  return await eventHandler(userId, events.paying);
 };
 
 /**
@@ -73,7 +124,7 @@ const requestPayingEvent = async (userId, roomObject) => {
 const requestSendingEvent = async (userId, roomObject) => {
   if (roomObject.part.length < 2) return null;
 
-  return await eventHandler(userId, "2명 이상 탑승한 방에서 송금하기");
+  return await eventHandler(userId, events.sending);
 };
 
 /**
@@ -83,7 +134,7 @@ const requestSendingEvent = async (userId, roomObject) => {
  * @usage users/editNicknameHandler
  */
 const requestNicknameChangingEvent = async (userId) => {
-  return await eventHandler(userId, "닉네임 변경");
+  return await eventHandler(userId, events.nicknameChaning);
 };
 
 /**
@@ -93,7 +144,7 @@ const requestNicknameChangingEvent = async (userId) => {
  * @usage users/editAccountHandler
  */
 const requestAccountChangingEvent = async (userId) => {
-  return await eventHandler(userId, "계좌 등록 또는 수정");
+  return await eventHandler(userId, events.accountChanging);
 };
 
 const requestAdPushAgreementEvent = async () => {
@@ -109,6 +160,7 @@ const requestPurchaseSharingOnInstagram = async () => {
 };
 
 module.exports = {
+  events,
   requestFirstLoginEvent,
   requestPayingAndSendingEvent,
   requestFirstRoomCreation,

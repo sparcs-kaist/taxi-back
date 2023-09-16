@@ -46,10 +46,10 @@ globalStateDocs[`${apiPrefix}/`] = {
                   items: {
                     type: "object",
                     properties: {
-                      _id: {
+                      id: {
                         type: "string",
-                        description: "Event의 ObjectId",
-                        example: "OBJECT ID",
+                        description: "Event의 Id",
+                        example: "EVENT ID",
                       },
                       name: {
                         type: "string",
@@ -65,21 +65,6 @@ globalStateDocs[`${apiPrefix}/`] = {
                         type: "number",
                         description: "최대 달성 가능 횟수",
                         example: 1,
-                      },
-                      startat: {
-                        type: "string",
-                        description: "달성할 수 있는 처음 시각",
-                        example: "2023-01-01 00:00:00",
-                      },
-                      expireat: {
-                        type: "string",
-                        description: "달성할 수 있는 마지막 시각",
-                        example: "2023-01-01 00:00:00",
-                      },
-                      isDisabled: {
-                        type: "boolean",
-                        description: "달성 불가능 여부",
-                        example: false,
                       },
                     },
                   },

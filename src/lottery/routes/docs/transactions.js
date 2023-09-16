@@ -37,47 +37,11 @@ transactionsDocs[`${apiPrefix}/`] = {
                         description: "재화의 변화량의 절댓값",
                         example: 50,
                       },
-                      event: {
-                        type: "object",
+                      eventId: {
+                        type: "string",
                         description:
-                          "Transaction과 관련된 이벤트의 Object. 이벤트와 관련된 Transaction인 경우에만 포함됩니다.",
-                        properties: {
-                          _id: {
-                            type: "string",
-                            description: "Event의 ObjectId",
-                            example: "OBJECT ID",
-                          },
-                          name: {
-                            type: "string",
-                            description: "이벤트의 이름",
-                            example: "최초 로그인 이벤트",
-                          },
-                          rewardAmount: {
-                            type: "number",
-                            description: "달성 보상",
-                            example: 100,
-                          },
-                          maxCount: {
-                            type: "number",
-                            description: "최대 달성 가능 횟수",
-                            example: 1,
-                          },
-                          startat: {
-                            type: "string",
-                            description: "달성할 수 있는 처음 시각",
-                            example: "2023-01-01 00:00:00",
-                          },
-                          expireat: {
-                            type: "string",
-                            description: "달성할 수 있는 마지막 시각",
-                            example: "2023-01-01 00:00:00",
-                          },
-                          isDisabled: {
-                            type: "boolean",
-                            description: "달성 불가능 여부",
-                            example: false,
-                          },
-                        },
+                          "Transaction과 관련된 이벤트의 Id. 이벤트와 관련된 Transaction인 경우에만 포함됩니다.",
+                        example: "EVENT ID",
                       },
                       item: {
                         type: "object",
