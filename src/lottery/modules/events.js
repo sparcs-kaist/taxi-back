@@ -11,8 +11,7 @@ const eventHandler = async (userId, event) => {
     const eventCount = eventStatus.eventList.filter(
       (achievedEventId) => achievedEventId === event.id
     ).length;
-    const eventMaxCount = event.maxCount ? event.maxCount : 1;
-    if (eventCount >= eventMaxCount) {
+    if (eventCount >= event.maxCount) {
       logger.info(
         `User ${userId} already achieved ${event.id}Event ${eventCount} times`
       );

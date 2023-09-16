@@ -53,6 +53,14 @@ globalStateDocs[`${apiPrefix}/`] = {
                   description: "Event의 배열",
                   items: {
                     type: "object",
+                    required: [
+                      "id",
+                      "name",
+                      "description",
+                      "imageUrl",
+                      "rewardAmount",
+                      "maxCount",
+                    ],
                     properties: {
                       id: {
                         type: "string",

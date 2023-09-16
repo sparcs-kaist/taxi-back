@@ -5,7 +5,9 @@ const {
 const logger = require("../../modules/logger");
 
 const { eventMode } = require("../../../loadenv");
-const { events } = require(`../modules/contracts/${eventMode}`);
+const events = eventMode
+  ? Object.values(require(`../modules/contracts/${eventMode}`).events)
+  : undefined;
 
 const getUserGlobalStateHandler = async (req, res) => {
   try {

@@ -7,6 +7,7 @@ const events = {
     description: "",
     imageUrl: "",
     rewardAmount: 150,
+    maxCount: 1,
   },
   payingAndSending: {
     name: "2명 이상 탑승한 방에서 정산/송금 완료",
@@ -20,12 +21,14 @@ const events = {
     description: "",
     imageUrl: "",
     rewardAmount: 50,
+    maxCount: 1,
   },
   roomSharing: {
     name: "방 공유하기",
     description: "",
     imageUrl: "",
     rewardAmount: 50,
+    maxCount: 1,
   },
   paying: {
     name: "2명 이상 탑승한 방에서 정산하기",
@@ -46,35 +49,40 @@ const events = {
     description: "",
     imageUrl: "",
     rewardAmount: 50,
+    maxCount: 1,
   },
   accountChanging: {
     name: "계좌 등록 또는 변경",
     description: "",
     imageUrl: "",
     rewardAmount: 50,
+    maxCount: 1,
   },
   adPushAgreement: {
     name: "광고성 푸시 알림 수신 동의",
     description: "",
     imageUrl: "",
     rewardAmount: 50,
+    maxCount: 1,
   },
   eventSharingOnInstagram: {
     name: "이벤트 인스타그램 스토리에 공유",
     description: "",
     imageUrl: "",
     rewardAmount: 100,
+    maxCount: 1,
   },
   purchaseSharingOnInstagram: {
     name: "아이템 구매 후 인스타그램 스토리에 공유",
     description: "",
     imageUrl: "",
     rewardAmount: 100,
+    maxCount: 1,
   },
 };
 
 for (const [id, event] of Object.entries(events)) {
-  event["id"] = id; // TODO: 외 event.id로는 않돼지????
+  event.id = id;
 }
 
 /**
