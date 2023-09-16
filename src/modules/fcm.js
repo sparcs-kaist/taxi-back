@@ -178,7 +178,6 @@ const getTokensOfUsers = async (userIds, notificationOptions = {}) => {
 
 /**
  * 주어진 token들에 메시지 알림을 전송합니다.
- * TODO: 알림 전송 실패한 토큰 삭제하기
  * @param {Array<string>} tokens - 메시지 알림을 받을 기기의 deviceToken들로 구성된 Array입니다.
  * @param {string} type - 메시지 유형으로, "text" | "in" | "out" | "s3img" | "payment" | "settlement" 입니다.
  * @param {string} title - 보낼 메시지의 제목입니다.
