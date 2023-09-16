@@ -6,6 +6,11 @@ const {
 const logger = require("../../modules/logger");
 const mongoose = require("mongoose");
 
+const { eventMode } = require("../../../loadenv");
+const eventPeriod = eventMode
+  ? require(`../modules/contracts/${eventMode}`).eventPeriod
+  : undefined;
+
 /**
  * 퀘스트 완료를 요청합니다.
  * @param {string|mongoose.Types.ObjectId} userId - 퀘스트를 완료한 사용자의 ObjectId입니다.
@@ -18,6 +23,14 @@ const mongoose = require("mongoose");
  */
 const completeQuest = async (userId, quest) => {
   try {
+    const now = Date.now();
+    if (now >= eventPeriod.end || now < eventPeriod.start) {
+      logger.info(
+        `User ${userId} failed to complete auto-disabled ${quest.id}Quest`
+      );
+      return null;
+    }
+
     const eventStatus = await eventStatusModel.findOne({ userId }).lean();
     const questCount = eventStatus.completedQuests.filter(
       (completedQuestId) => completedQuestId === quest.id

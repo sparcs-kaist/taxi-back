@@ -2,8 +2,16 @@ const { itemModel, transactionModel } = require("../modules/stores/mongo");
 const logger = require("../../modules/logger");
 const { useUserCreditAmount } = require("../modules/credit");
 
+const { eventMode } = require("../../../loadenv");
+const eventPeriod = eventMode
+  ? require(`../modules/contracts/${eventMode}`).eventPeriod
+  : undefined;
+
 const getRandomItem = async (req, depth) => {
-  if (depth >= 10) return null;
+  if (depth >= 10) {
+    logger.error(`User ${req.userOid} failed to open random box`);
+    return null;
+  }
 
   const items = await itemModel
     .find({
@@ -22,10 +30,9 @@ const getRandomItem = async (req, depth) => {
     .join(",");
 
   logger.info(
-    `[RandomBox] getRandomItem(depth=${depth}) is called by the user(id=${req.userOid}).`
-  );
-  logger.info(
-    `[RandomBox] randomItems of the user(id=${req.userOid}) is [${dumpRandomItems}].`
+    `User ${req.userOid}'s ${
+      depth + 1
+    }th random box probability is: [${dumpRandomItems}]`
   );
 
   if (randomItems.length === 0) return null;
@@ -65,8 +72,9 @@ const getRandomItem = async (req, depth) => {
 
     return newRandomItem;
   } catch (err) {
+    logger.error(err);
     logger.warn(
-      `[RandomBox] getRandomItem(depth=${depth}) by the user(id=${req.userOid}) failed due to ${err}.`
+      `User ${req.userOid}'s ${depth + 1}th random box failed due to exception`
     );
 
     return await getRandomItem(req, depth + 1);
@@ -87,6 +95,10 @@ const listHandler = async (_, res) => {
 
 const purchaseHandler = async (req, res) => {
   try {
+    const now = Date.now();
+    if (now >= eventPeriod.end || now < eventPeriod.start)
+      return res.status(400).json({ error: "Items/Purchase : out of date" });
+
     const { itemId } = req.params;
     const item = await itemModel.findOne({ _id: itemId }).lean();
     if (!item)

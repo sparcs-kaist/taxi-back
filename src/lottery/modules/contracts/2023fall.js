@@ -1,6 +1,7 @@
 const { completeQuest } = require("../quests");
 const mongoose = require("mongoose");
 
+/** 전체 퀘스트 목록입니다. */
 const quests = {
   firstLogin: {
     name: "이벤트 기간 첫 로그인",
@@ -84,6 +85,11 @@ const quests = {
 for (const [id, quest] of Object.entries(quests)) {
   quest.id = id;
 }
+
+const eventPeriod = {
+  start: new Date("2023-09-25T00:00:00+09:00"), // Inclusive
+  end: new Date("2023-10-10T00:00:00+09:00"), // Exclusive
+};
 
 /**
  * firstLogin 퀘스트의 완료를 요청합니다.
@@ -198,6 +204,7 @@ const completePurchaseSharingOnInstagramQuest = async () => {
 
 module.exports = {
   quests,
+  eventPeriod,
   completeFirstLoginQuest,
   completePayingAndSendingQuest,
   completeFirstRoomCreationQuest,
