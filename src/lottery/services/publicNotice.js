@@ -34,6 +34,8 @@ const getTicketLeaderboardHandler = async (req, res) => {
     const sortedUsers = users
       .map((user) => ({
         userId: user.userId.toString(),
+        ticket1Amount: user.ticket1Amount,
+        ticket2Amount: user.ticket2Amount,
         weight: user.ticket1Amount + 5 * user.ticket2Amount,
       }))
       .sort((a, b) => -(a.weight - b.weight));
@@ -52,6 +54,9 @@ const getTicketLeaderboardHandler = async (req, res) => {
         const userInfo = await userModel.findOne({ _id: user.userId }).lean();
         return {
           nickname: userInfo?.nickname,
+          profileImageUrl: userInfo?.profileImageUrl,
+          ticket1Amount: user.ticket1Amount,
+          ticket2Amount: user.ticket2Amount,
           probability: user.weight / weightSum,
         };
       })
