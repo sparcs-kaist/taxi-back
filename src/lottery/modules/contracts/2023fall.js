@@ -1,14 +1,13 @@
-const { completeQuest } = require("../quests");
+const { buildQuests, completeQuest } = require("../quests");
 const mongoose = require("mongoose");
 
 /** 전체 퀘스트 목록입니다. */
-const quests = {
+const quests = buildQuests({
   firstLogin: {
     name: "이벤트 기간 첫 로그인",
     description: "",
     imageUrl: "",
     rewardAmount: 150,
-    maxCount: 1,
   },
   payingAndSending: {
     name: "2명 이상 탑승한 방에서 정산/송금 완료",
@@ -22,14 +21,12 @@ const quests = {
     description: "",
     imageUrl: "",
     rewardAmount: 50,
-    maxCount: 1,
   },
   roomSharing: {
     name: "방 공유하기",
     description: "",
     imageUrl: "",
     rewardAmount: 50,
-    maxCount: 1,
   },
   paying: {
     name: "2명 이상 탑승한 방에서 정산하기",
@@ -50,44 +47,35 @@ const quests = {
     description: "",
     imageUrl: "",
     rewardAmount: 50,
-    maxCount: 1,
   },
   accountChanging: {
     name: "계좌 등록 또는 변경",
     description: "",
     imageUrl: "",
     rewardAmount: 50,
-    maxCount: 1,
   },
   adPushAgreement: {
     name: "광고성 푸시 알림 수신 동의",
     description: "",
     imageUrl: "",
     rewardAmount: 50,
-    maxCount: 1,
   },
   eventSharingOnInstagram: {
     name: "이벤트 인스타그램 스토리에 공유",
     description: "",
     imageUrl: "",
     rewardAmount: 100,
-    maxCount: 1,
   },
   purchaseSharingOnInstagram: {
     name: "아이템 구매 후 인스타그램 스토리에 공유",
     description: "",
     imageUrl: "",
     rewardAmount: 100,
-    maxCount: 1,
   },
-};
-
-for (const [id, quest] of Object.entries(quests)) {
-  quest.id = id;
-}
+});
 
 const eventPeriod = {
-  start: new Date("2023-09-25T00:00:00+09:00"), // Inclusive
+  start: new Date("2023-09-10T00:00:00+09:00"), // Inclusive
   end: new Date("2023-10-10T00:00:00+09:00"), // Exclusive
 };
 

@@ -6,6 +6,27 @@ const {
 const logger = require("../../modules/logger");
 const mongoose = require("mongoose");
 
+const requiredQuestFields = ["name", "description", "imageUrl", "rewardAmount"];
+const buildQuests = (quests) => {
+  for (const [id, quest] of Object.entries(quests)) {
+    const hasError = requiredQuestFields.reduce((before, field) => {
+      if (quest[field] !== undefined) return before;
+
+      logger.error(`There is no ${field} field in ${id}Quest`);
+      return true;
+    }, false);
+    if (hasError) return null;
+
+    quest.id = id;
+
+    if (!quest.maxCount) {
+      quest.maxCount = 1;
+    }
+  }
+
+  return quests;
+};
+
 /**
  * 퀘스트 완료를 요청합니다.
  * @param {string|mongoose.Types.ObjectId} userId - 퀘스트를 완료한 사용자의 ObjectId입니다.
@@ -89,5 +110,6 @@ const completeQuest = async (userId, eventPeriod, quest) => {
 };
 
 module.exports = {
+  buildQuests,
   completeQuest,
 };
