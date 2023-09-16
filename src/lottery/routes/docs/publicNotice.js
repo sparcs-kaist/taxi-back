@@ -22,7 +22,13 @@ publicNoticeDocs[`${apiPrefix}/leaderboard`] = {
                   description: "상위 20명만 포함된 리더보드",
                   items: {
                     type: "object",
-                    required: ["ticket1Amount", "ticket2Amount", "probability"],
+                    required: [
+                      "nickname",
+                      "profileImageUrl",
+                      "ticket1Amount",
+                      "ticket2Amount",
+                      "probability",
+                    ],
                     properties: {
                       nickname: {
                         type: "string",

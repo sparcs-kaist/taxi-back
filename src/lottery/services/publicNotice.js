@@ -39,18 +39,28 @@ const getTicketLeaderboardHandler = async (req, res) => {
       }
       return before + user.weight;
     }, 0);
+
     const leaderboard = await Promise.all(
       sortedUsers.slice(0, 20).map(async (user) => {
         const userInfo = await userModel.findOne({ _id: user.userId }).lean();
+        if (!userInfo) {
+          logger.error(`Fail to find user ${user.userId}`);
+          return null;
+        }
+
         return {
-          nickname: userInfo?.nickname,
-          profileImageUrl: userInfo?.profileImageUrl,
+          nickname: userInfo.nickname,
+          profileImageUrl: userInfo.profileImageUrl,
           ticket1Amount: user.ticket1Amount,
           ticket2Amount: user.ticket2Amount,
           probability: user.weight / weightSum,
         };
       })
     );
+    if (leaderboard.includes(null))
+      return res
+        .status(500)
+        .json({ error: "PublicNotice/Leaderboard : internal server error" });
 
     if (rank >= 0)
       res.json({
