@@ -5,7 +5,8 @@ const logger = require("./logger");
 const { getLoginInfo } = require("./auths/login");
 const { roomModel, userModel, chatModel } = require("./stores/mongo");
 const { getS3Url } = require("./stores/aws");
-const { getTokensOfUsers, sendMessageByTokens } = require("./fcm");
+const { getTokensOfUsers } = require("./fcm");
+const { addToNotificationQueue } = require("./queues/sendNotification");
 
 const { corsWhiteList } = require("../../loadenv");
 const { chatPopulateOption } = require("./populates/chats");
@@ -190,14 +191,15 @@ const emitChatEvent = async (io, chat) => {
       userIdsExceptAuthor,
       { chatting: true }
     );
-    await sendMessageByTokens(
-      deviceTokensExceptAuthor,
-      type,
-      name,
-      getMessageBody(type, nickname, content),
-      getS3Url(`/profile-img/${profileImageUrl}`),
-      `/myroom/${roomId}`
-    );
+    if (deviceTokensExceptAuthor.length > 0)
+      await addToNotificationQueue({
+        tokens: deviceTokensExceptAuthor,
+        type,
+        title: name,
+        body: getMessageBody(type, nickname, content),
+        icon: getS3Url(`/profile-img/${profileImageUrl}`),
+        link: `/myroom/${roomId}`,
+      });
 
     return true;
   } catch (err) {
