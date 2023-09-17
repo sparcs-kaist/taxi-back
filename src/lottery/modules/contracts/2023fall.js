@@ -7,75 +7,77 @@ const quests = buildQuests({
     name: "이벤트 기간 첫 로그인",
     description: "",
     imageUrl: "",
-    rewardAmount: 150,
+    reward: {
+      ticket1: 1,
+    },
   },
   payingAndSending: {
     name: "2명 이상 탑승한 방에서 정산/송금 완료",
     description: "",
     imageUrl: "",
-    rewardAmount: 300,
+    reward: 300,
     maxCount: 3,
   },
   firstRoomCreation: {
     name: "첫 방 개설",
     description: "",
     imageUrl: "",
-    rewardAmount: 50,
+    reward: 50,
   },
   roomSharing: {
     name: "방 공유하기",
     description: "",
     imageUrl: "",
-    rewardAmount: 50,
+    reward: 50,
   },
   paying: {
     name: "2명 이상 탑승한 방에서 정산하기",
     description: "",
     imageUrl: "",
-    rewardAmount: 100,
+    reward: 100,
     maxCount: 3,
   },
   sending: {
     name: "2명 이상 탑승한 방에서 송금하기",
     description: "",
     imageUrl: "",
-    rewardAmount: 50,
+    reward: 50,
     maxCount: 3,
   },
   nicknameChaning: {
     name: "닉네임 변경",
     description: "",
     imageUrl: "",
-    rewardAmount: 50,
+    reward: 50,
   },
   accountChanging: {
     name: "계좌 등록 또는 변경",
     description: "",
     imageUrl: "",
-    rewardAmount: 50,
+    reward: 50,
   },
   adPushAgreement: {
     name: "광고성 푸시 알림 수신 동의",
     description: "",
     imageUrl: "",
-    rewardAmount: 50,
+    reward: 50,
   },
   eventSharingOnInstagram: {
     name: "이벤트 인스타그램 스토리에 공유",
     description: "",
     imageUrl: "",
-    rewardAmount: 100,
+    reward: 100,
   },
   purchaseSharingOnInstagram: {
     name: "아이템 구매 후 인스타그램 스토리에 공유",
     description: "",
     imageUrl: "",
-    rewardAmount: 100,
+    reward: 100,
   },
 });
 
 const eventPeriod = {
-  start: new Date("2023-09-10T00:00:00+09:00"), // Inclusive
+  start: new Date("2023-09-25T00:00:00+09:00"), // Inclusive
   end: new Date("2023-10-10T00:00:00+09:00"), // Exclusive
 };
 
