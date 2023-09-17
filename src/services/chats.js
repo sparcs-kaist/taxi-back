@@ -179,7 +179,7 @@ const readChatHandler = async (req, res) => {
   try {
     const io = req.app.get("io");
     const { userId } = req;
-    const { roomId, lastMsgDate } = req.body;
+    const { roomId } = req.body;
     const user = await userModel.findOne({ id: userId });
 
     if (!userId || !user) {
@@ -206,7 +206,7 @@ const readChatHandler = async (req, res) => {
           },
         },
         {
-          $set: { "part.$[updater].readAt": lastMsgDate },
+          $set: { "part.$[updater].readAt": Date.now() },
         },
         {
           new: true,

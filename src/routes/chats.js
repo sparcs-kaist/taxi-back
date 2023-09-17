@@ -61,7 +61,6 @@ router.post(
 router.post(
   "/read",
   body("roomId").isMongoId(),
-  body("lastMsgDate").isISO8601(),
   validator,
   chatsHandlers.readChatHandler
 );
