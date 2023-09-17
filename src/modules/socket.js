@@ -246,7 +246,7 @@ const startSocketServer = (server) => {
         setHeader(key, values) {
           req.cookieHolder = values[0];
         },
-        writeHead() { },
+        writeHead() {},
       };
       sessionMiddleware(req, fakeRes, () => {
         if (req.session) {
@@ -283,7 +283,7 @@ const startSocketServer = (server) => {
         socket.join(`user-${userOid}`);
       });
 
-      socket.on("disconnect", () => { });
+      socket.on("disconnect", () => {});
     } catch (err) {
       logger.error(err);
     }
