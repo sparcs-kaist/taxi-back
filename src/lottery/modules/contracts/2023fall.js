@@ -83,8 +83,6 @@ const eventPeriod = {
  * firstLogin 퀘스트의 완료를 요청합니다.
  * @param {string|mongoose.Types.ObjectId} userId - 퀘스트를 완료한 사용자의 ObjectId입니다.
  * @returns {Promise}
- * @description 로그인할 때마다 호출해 주세요.
- * @usage auth/tryLogin, auth.mobile/tokenLoginHandler
  */
 const completeFirstLoginQuest = async (userId) => {
   return await completeQuest(userId, eventPeriod, quests.firstLogin);
@@ -174,11 +172,14 @@ const completeNicknameChangingQuest = async (userId) => {
 /**
  * accountChanging 퀘스트의 완료를 요청합니다.
  * @param {string|mongoose.Types.ObjectId} userId - 퀘스트를 완료한 사용자의 ObjectId입니다.
+ * @param {string} newAccount - 변경된 계좌입니다.
  * @returns {Promise}
  * @description 계좌를 변경할 때마다 호출해 주세요.
  * @usage users/editAccountHandler
  */
-const completeAccountChangingQuest = async (userId) => {
+const completeAccountChangingQuest = async (userId, newAccount) => {
+  if (newAccount === "") return null;
+
   return await completeQuest(userId, eventPeriod, quests.accountChanging);
 };
 

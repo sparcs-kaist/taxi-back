@@ -68,7 +68,7 @@ const editAccountHandler = async (req, res) => {
 
     if (result) {
       // 이벤트 코드입니다.
-      await contracts?.completeAccountChangingQuest(req.userOid);
+      await contracts?.completeAccountChangingQuest(req.userOid, newAccount);
 
       res.status(200).send("User/editAccount : edit user account successful");
     } else {
