@@ -23,6 +23,18 @@ const eventStatusSchema = Schema({
     min: 0,
     validate: integerValidator,
   },
+  ticket1Amount: {
+    type: Number,
+    default: 0,
+    min: 0,
+    validate: integerValidator,
+  },
+  ticket2Amount: {
+    type: Number,
+    default: 0,
+    min: 0,
+    validate: integerValidator,
+  },
 });
 
 const eventSchema = Schema({
@@ -49,6 +61,14 @@ const eventSchema = Schema({
   isDisabled: {
     type: Boolean,
     default: false,
+  },
+  imageUrl: {
+    type: String,
+    required: true,
+  },
+  description: {
+    type: String,
+    required: true,
   },
 });
 
@@ -115,13 +135,17 @@ const transactionSchema = Schema({
     ref: "User",
     required: true,
   },
-  eventId: {
+  event: {
     type: Schema.Types.ObjectId,
     ref: "Event",
   },
-  itemId: {
+  item: {
     type: Schema.Types.ObjectId,
     ref: "Item",
+  },
+  itemType: {
+    type: Number,
+    enum: [0, 1, 2, 3],
   },
   comment: {
     type: String,
