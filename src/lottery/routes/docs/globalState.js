@@ -7,7 +7,7 @@ globalStateDocs[`${apiPrefix}/`] = {
     tags: [`${apiPrefix}`],
     summary: "Frontend에서 Global state로 관리하는 정보 반환",
     description:
-      "유저의 재화 개수, 퀘스트 달성 상태 등 Frontend에서 Global state로 관리할 정보를 가져옵니다. 유저에 대한 EventStatus Document가 없을 경우 새롭게 생성합니다.",
+      "유저의 재화 개수, 퀘스트 완료 상태 등 Frontend에서 Global state로 관리할 정보를 가져옵니다. 유저에 대한 EventStatus Document가 없을 경우 새롭게 생성합니다.",
     responses: {
       200: {
         description: "",
@@ -31,7 +31,7 @@ globalStateDocs[`${apiPrefix}/`] = {
                 completedQuests: {
                   type: "array",
                   description:
-                    "유저가 달성한 퀘스트의 배열. 여러 번 달성할 수 있는 퀘스트의 경우 배열 내에 같은 퀘스트가 여러 번 포함됩니다.",
+                    "유저가 완료한 퀘스트의 배열. 여러 번 완료할 수 있는 퀘스트의 경우 배열 내에 같은 퀘스트가 여러 번 포함됩니다.",
                   items: {
                     type: "string",
                     description: "Quest의 Id",
@@ -58,7 +58,7 @@ globalStateDocs[`${apiPrefix}/`] = {
                       "name",
                       "description",
                       "imageUrl",
-                      "rewardAmount",
+                      "reward",
                       "maxCount",
                     ],
                     properties: {
@@ -83,14 +83,26 @@ globalStateDocs[`${apiPrefix}/`] = {
                         description: "이미지 썸네일 URL",
                         example: "THUMBNAIL URL",
                       },
-                      rewardAmount: {
-                        type: "number",
-                        description: "달성 보상",
-                        example: 100,
+                      reward: {
+                        type: "object",
+                        description: "완료 보상",
+                        required: ["credit", "ticket1"],
+                        properties: {
+                          credit: {
+                            type: "number",
+                            description: "완료 보상 중 재화의 개수입니다.",
+                            example: 100,
+                          },
+                          ticket1: {
+                            type: "number",
+                            description: "완료 보상 중 일반 티켓의 개수입니다.",
+                            example: 1,
+                          },
+                        },
                       },
                       maxCount: {
                         type: "number",
-                        description: "최대 달성 가능 횟수",
+                        description: "최대 완료 가능 횟수",
                         example: 1,
                       },
                     },

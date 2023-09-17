@@ -74,7 +74,7 @@ const completeQuest = async (userId, eventPeriod, quest) => {
       await eventStatus.save();
     }
 
-    // 3단계: 유저의 퀘스트 달성 횟수를 확인합니다.
+    // 3단계: 유저의 퀘스트 완료 횟수를 확인합니다.
     const questCount = eventStatus.completedQuests.filter(
       (completedQuestId) => completedQuestId === quest.id
     ).length;
