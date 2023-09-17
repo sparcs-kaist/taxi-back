@@ -22,6 +22,18 @@ const eventStatusSchema = Schema({
     min: 0,
     validate: integerValidator,
   },
+  ticket1Amount: {
+    type: Number,
+    default: 0,
+    min: 0,
+    validate: integerValidator,
+  },
+  ticket2Amount: {
+    type: Number,
+    default: 0,
+    min: 0,
+    validate: integerValidator,
+  },
 });
 
 const questSchema = Schema({

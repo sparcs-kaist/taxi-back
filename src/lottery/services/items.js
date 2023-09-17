@@ -1,6 +1,24 @@
-const { itemModel, transactionModel } = require("../modules/stores/mongo");
+const {
+  eventStatusModel,
+  itemModel,
+  transactionModel,
+} = require("../modules/stores/mongo");
 const logger = require("../../modules/logger");
-const { useUserCreditAmount } = require("../modules/credit");
+
+const updateEventStatus = async (
+  userId,
+  { creditDelta = 0, ticket1Delta = 0, ticket2Delta = 0 } = {}
+) =>
+  await eventStatusModel.updateOne(
+    { userId },
+    {
+      $inc: {
+        creditAmount: creditDelta,
+        ticket1Amount: ticket1Delta,
+        ticket2Amount: ticket2Delta,
+      },
+    }
+  );
 
 const { eventMode } = require("../../../loadenv");
 const eventPeriod = eventMode
@@ -40,6 +58,7 @@ const getRandomItem = async (req, depth) => {
   const randomItem =
     randomItems[Math.floor(Math.random() * randomItems.length)];
   try {
+    // 1단계: 재고를 차감합니다.
     const newRandomItem = await itemModel
       .findOneAndUpdate(
         { _id: randomItem._id },
@@ -60,6 +79,13 @@ const getRandomItem = async (req, depth) => {
       )
       .lean();
 
+    // 2단계: 유저 정보를 업데이트합니다.
+    await updateEventStatus(req.userOid, {
+      ticket1Delta: randomItem.itemType === 1 ? 1 : 0,
+      ticket2Delta: randomItem.itemType === 2 ? 1 : 0,
+    });
+
+    // 3단계: Transaction을 추가합니다.
     const transaction = new transactionModel({
       type: "use",
       amount: 0,
@@ -104,8 +130,8 @@ const purchaseHandler = async (req, res) => {
     if (!item)
       return res.status(400).json({ error: "Items/Purchase : invalid Item" });
 
-    const user = await useUserCreditAmount(req.userOid);
-    if (!user)
+    const eventStatus = await eventStatusModel.find({ userId: req.userOid });
+    if (!eventStatus)
       return res
         .status(400)
         .json({ error: "Items/Purchase : invalid EventStatus" });
@@ -113,7 +139,7 @@ const purchaseHandler = async (req, res) => {
     // 구매 가능 조건: 크레딧이 충분하며, 재고가 남아있으며, 판매 중인 아이템이어야 합니다.
     if (item.isDisabled)
       return res.status(400).json({ error: "Items/Purchase : disabled item" });
-    if (user.amount < item.price)
+    if (eventStatus.creditAmount < item.price)
       return res
         .status(400)
         .json({ error: "Items/Purchase : not enough credit" });
@@ -123,8 +149,6 @@ const purchaseHandler = async (req, res) => {
         .json({ error: "Items/Purchase : item out of stock" });
 
     // 1단계: 재고를 차감합니다.
-    // 재고가 차감됐으나 유저 크레딧이 차감되지 않은 경우, 나중에 Transaction 기록 분석을 통해 오류 복구가 가능합니다.
-    // 하지만 유저 크레딧이 차감됐으나 재고가 차감되지 않은 경우, 다른 유저가 품절된 상품을 구입할 수 있게 되고, 이는 다수의 유저에게 불편을 야기할 수 있습니다.
     await itemModel.updateOne(
       { _id: item._id },
       {
@@ -137,11 +161,14 @@ const purchaseHandler = async (req, res) => {
       }
     );
 
-    // 2단계: 유저의 크레딧을 차감합니다.
-    await user.update(-item.price);
+    // 2단계: 유저 정보를 업데이트합니다.
+    await updateEventStatus(req.userOid, {
+      creditDelta: -item.price,
+      ticket1Delta: item.itemType === 1 ? 1 : 0,
+      ticket2Delta: item.itemType === 2 ? 1 : 0,
+    });
 
     // 3단계: Transaction을 추가합니다.
-    // Transaction은 가장 마지막에 추가해야 다른 문서와의 불일치를 감지할 수 있습니다.
     const transaction = new transactionModel({
       type: "use",
       amount: item.price,

@@ -21,6 +21,7 @@ lotteryRouter.use(require("../middlewares/originValidator"));
 lotteryRouter.use("/global-state", require("./routes/globalState"));
 lotteryRouter.use("/transactions", require("./routes/transactions"));
 lotteryRouter.use("/items", require("./routes/items"));
+lotteryRouter.use("/public-notice", require("./routes/publicNotice"));
 
 const resources = [
   eventStatusModel,

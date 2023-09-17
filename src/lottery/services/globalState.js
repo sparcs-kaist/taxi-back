@@ -1,7 +1,4 @@
-const {
-  eventStatusModel,
-  transactionModel,
-} = require("../modules/stores/mongo");
+const { eventStatusModel } = require("../modules/stores/mongo");
 const logger = require("../../modules/logger");
 
 const { eventMode } = require("../../../loadenv");
@@ -21,30 +18,11 @@ const getUserGlobalStateHandler = async (req, res) => {
       await eventStatus.save();
     }
 
-    const ticket1Amount = await transactionModel.count({
-      userId: req.userOid,
-      type: "use",
-      item: {
-        $exists: true,
-        $ne: null,
-      },
-      itemType: 1,
-    });
-    const ticket2Amount = await transactionModel.count({
-      userId: req.userOid,
-      type: "use",
-      item: {
-        $exists: true,
-        $ne: null,
-      },
-      itemType: 2,
-    });
-
     res.json({
       creditAmount: eventStatus.creditAmount,
       completedQuests: eventStatus.completedQuests,
-      ticket1Amount,
-      ticket2Amount,
+      ticket1Amount: eventStatus.ticket1Amount,
+      ticket2Amount: eventStatus.ticket2Amount,
       quests,
     });
   } catch (err) {
