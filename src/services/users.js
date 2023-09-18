@@ -2,6 +2,9 @@ const { userModel } = require("../modules/stores/mongo");
 const logger = require("../modules/logger");
 const aws = require("../modules/stores/aws");
 
+// 이벤트 코드입니다.
+const { contracts } = require("../lottery");
+
 const agreeOnTermsOfServiceHandler = async (req, res) => {
   try {
     let user = await userModel.findOne({ id: req.userId });
@@ -34,43 +37,47 @@ const getAgreeOnTermsOfServiceHandler = async (req, res) => {
 };
 
 const editNicknameHandler = async (req, res) => {
-  const newNickname = req.body.nickname;
+  try {
+    const newNickname = req.body.nickname;
+    const result = await userModel.findOneAndUpdate(
+      { id: req.userId },
+      { nickname: newNickname }
+    );
 
-  // 닉네임을 갱신하고 결과를 반환
-  await userModel
-    .findOneAndUpdate({ id: req.userId }, { nickname: newNickname })
-    .then((result) => {
-      if (result) {
-        res
-          .status(200)
-          .send("User/editNickname : edit user nickname successful");
-      } else {
-        res.status(400).send("User/editNickname : such user id does not exist");
-      }
-    })
-    .catch((err) => {
-      logger.error(err);
-      res.status(500).send("User/editNickname : internal server error");
-    });
+    if (result) {
+      // 이벤트 코드입니다.
+      await contracts?.completeNicknameChangingQuest(req.userOid);
+
+      res.status(200).send("User/editNickname : edit user nickname successful");
+    } else {
+      res.status(400).send("User/editNickname : such user id does not exist");
+    }
+  } catch (err) {
+    logger.error(err);
+    res.status(500).send("User/editNickname : internal server error");
+  }
 };
 
 const editAccountHandler = async (req, res) => {
-  const newAccount = req.body.account;
+  try {
+    const newAccount = req.body.account;
+    const result = await userModel.findOneAndUpdate(
+      { id: req.userId },
+      { account: newAccount }
+    );
 
-  // 계좌번호를 갱신하고 결과를 반환
-  await userModel
-    .findOneAndUpdate({ id: req.userId }, { account: newAccount })
-    .then((result) => {
-      if (result) {
-        res.status(200).send("User/editAccount : edit user account successful");
-      } else {
-        res.status(400).send("User/editAccount : such user id does not exist");
-      }
-    })
-    .catch((err) => {
-      logger.error(err);
-      res.status(500).send("User/editAccount : internal server error");
-    });
+    if (result) {
+      // 이벤트 코드입니다.
+      await contracts?.completeAccountChangingQuest(req.userOid, newAccount);
+
+      res.status(200).send("User/editAccount : edit user account successful");
+    } else {
+      res.status(400).send("User/editAccount : such user id does not exist");
+    }
+  } catch (err) {
+    logger.error(err);
+    res.status(500).send("User/editAccount : internal server error");
+  }
 };
 
 const editProfileImgGetPUrlHandler = async (req, res) => {

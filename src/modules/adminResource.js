@@ -57,6 +57,8 @@ const defaultActionLogFeature = buildFeature({
 });
 
 const recordActionAfterHandler = (actions) => async (res, req, context) => {
+  if (!res.response) return res;
+
   const actionsWrapper = Array.isArray(actions) ? actions : [actions];
   for (const action of actionsWrapper) {
     if (typeof action === "string") {

@@ -1,21 +1,16 @@
 const express = require("express");
 const {
   eventStatusModel,
-  eventModel,
+  questModel,
   itemModel,
   transactionModel,
 } = require("./modules/stores/mongo");
 
+const { eventMode } = require("../../loadenv");
 const { buildResource } = require("../modules/adminResource");
-const { instagramRewardAction } = require("./modules/admin");
 
 // [Routes] 기존 docs 라우터의 docs extend
 require("./routes/docs")();
-
-// [Middleware] 목표 달성 여부 검증
-const checkReward = (req, res, next) => {
-  next();
-};
 
 const lotteryRouter = express.Router();
 
@@ -28,15 +23,17 @@ lotteryRouter.use("/transactions", require("./routes/transactions"));
 lotteryRouter.use("/items", require("./routes/items"));
 lotteryRouter.use("/public-notice", require("./routes/publicNotice"));
 
-const eventStatusResource = buildResource([instagramRewardAction])(
-  eventStatusModel
-);
-const otherResources = [eventModel, itemModel, transactionModel].map(
-  buildResource()
-);
+const resources = [
+  eventStatusModel,
+  questModel,
+  itemModel,
+  transactionModel,
+].map(buildResource());
+
+const contracts = eventMode && require(`./modules/contracts/${eventMode}`);
 
 module.exports = {
-  checkReward,
   lotteryRouter,
-  resources: [eventStatusResource, ...otherResources],
+  resources,
+  contracts,
 };

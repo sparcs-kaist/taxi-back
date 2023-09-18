@@ -91,6 +91,7 @@ const tryLogin = async (req, res, userData, redirectOrigin, redirectPath) => {
     }
 
     login(req, userData.sid, user.id, user._id, user.name);
+
     res.redirect(new URL(redirectPath, redirectOrigin).href);
   } catch (err) {
     logger.error(err);

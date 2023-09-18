@@ -20,8 +20,16 @@ const updateEventStatus = async (
     }
   );
 
+const { eventMode } = require("../../../loadenv");
+const eventPeriod = eventMode
+  ? require(`../modules/contracts/${eventMode}`).eventPeriod
+  : undefined;
+
 const getRandomItem = async (req, depth) => {
-  if (depth >= 10) return null;
+  if (depth >= 10) {
+    logger.error(`User ${req.userOid} failed to open random box`);
+    return null;
+  }
 
   const items = await itemModel
     .find({
@@ -40,10 +48,9 @@ const getRandomItem = async (req, depth) => {
     .join(",");
 
   logger.info(
-    `[RandomBox] getRandomItem(depth=${depth}) is called by the user(id=${req.userOid}).`
-  );
-  logger.info(
-    `[RandomBox] randomItems of the user(id=${req.userOid}) is [${dumpRandomItems}].`
+    `User ${req.userOid}'s ${
+      depth + 1
+    }th random box probability is: [${dumpRandomItems}]`
   );
 
   if (randomItems.length === 0) return null;
@@ -84,15 +91,15 @@ const getRandomItem = async (req, depth) => {
       amount: 0,
       userId: req.userOid,
       item: randomItem._id,
-      itemType: randomItem.itemType,
-      comment: `랜덤박스에서 ${randomItem.name} 획득 - 0개 차감`,
+      comment: `랜덤 박스에서 "${randomItem.name}" 1개를 획득했습니다.`,
     });
     await transaction.save();
 
     return newRandomItem;
   } catch (err) {
+    logger.error(err);
     logger.warn(
-      `[RandomBox] getRandomItem(depth=${depth}) by the user(id=${req.userOid}) failed due to ${err}.`
+      `User ${req.userOid}'s ${depth + 1}th random box failed due to exception`
     );
 
     return await getRandomItem(req, depth + 1);
@@ -113,6 +120,10 @@ const listHandler = async (_, res) => {
 
 const purchaseHandler = async (req, res) => {
   try {
+    const now = Date.now();
+    if (now >= eventPeriod.end || now < eventPeriod.start)
+      return res.status(400).json({ error: "Items/Purchase : out of date" });
+
     const { itemId } = req.params;
     const item = await itemModel.findOne({ _id: itemId }).lean();
     if (!item)
@@ -162,8 +173,7 @@ const purchaseHandler = async (req, res) => {
       amount: item.price,
       userId: req.userOid,
       item: item._id,
-      itemType: item.itemType,
-      comment: `${item.name} 구입 - ${item.price}개 차감`,
+      comment: `송편 ${item.price}개를 사용해 "${item.name}" 1개를 획득했습니다.`,
     });
     await transaction.save();
 

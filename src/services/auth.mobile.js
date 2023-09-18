@@ -36,6 +36,7 @@ const tokenLoginHandler = async (req, res) => {
     login(req, user.sid, user.id, user._id, user.name);
     req.session.isApp = true;
     req.session.deviceToken = deviceToken;
+
     return res.status(200).json({ message: "success" });
   } catch (e) {
     logger.error(e);
