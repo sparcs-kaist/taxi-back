@@ -2,8 +2,7 @@ const express = require("express");
 const router = express.Router();
 const publicNotice = require("../services/publicNotice");
 
-// 상점이용은 로그인을 요구합니다.
-router.use(require("../../middlewares/auth"));
+// 로그인 없이 공지를 볼 수 있습니다.
 router.get("/get-recent-transaction", publicNotice.getRecentTransaction);
 
 module.exports = router;

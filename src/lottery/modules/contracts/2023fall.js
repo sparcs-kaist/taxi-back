@@ -106,12 +106,12 @@ const requestAdPushAgreementEvent = async () => {
   // TODO
 };
 
-const requestEventSharingOnInstagram = async () => {
-  // TODO
+const requestEventSharingOnInstagram = async (userId) => {
+  return eventHandler(userId, "이벤트 인스타그램 스토리에 공유");
 };
 
-const requestPurchaseSharingOnInstagram = async () => {
-  // TODO
+const requestPurchaseSharingOnInstagram = async (userId) => {
+  return eventHandler(userId, "아이템 구매 후 인스타그램 스토리에 공유");
 };
 
 module.exports = {

@@ -54,7 +54,6 @@ const getRecentTransaction = async (req, res) => {
           item.item.name
         }을(를) ${purchaceMessage}`;
       });
-      console.log(transactionListString);
       res.json({
         transactionListString,
       });

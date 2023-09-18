@@ -1,28 +1,39 @@
 const logger = require("../../modules/logger");
-const eventHandler = require("../modules/events");
+const contracts = require("../modules/contracts/2023fall");
+
 // 인스타그램 스토리에 이벤트를 공유했을 때.
 const instagramEventShareHandler = async (req, res) => {
   try {
-    const userId = req.userOid;
-    const eventId = "650302f799c6f338d5ea5427";
-    const transactionResult = await eventHandler(userId, eventId);
-    res.json({ result: !!transactionResult ? true : false });
+    const contractsResult = contracts.requestEventSharingOnInstagram();
+    if (contractsResult) {
+      res.json({ contractsResult });
+    } else if (contractsResult === null) {
+      res.json({});
+    } else {
+      logger.error(err);
+      res.json({ error: "Events/Insagram/Share-Event" });
+    }
   } catch (err) {
-    logger.err(err);
-    res.status(500).json({ error: "Events/Insagram/Share-Event" });
+    logger.error(err);
+    res.json({ error: "Events/Insagram/Share-Event" });
   }
 };
 
 // 인스타그램 스토리에 아이템 구매 내역을 공유했을 때.
 const instagramPurchaseShareHandler = async (req, res) => {
   try {
-    const userId = req.userOid;
-    const eventId = "6503030e99c6f338d5ea5433";
-    const transactionResult = await eventHandler(userId, eventId);
-    res.json({ result: !!transactionResult ? true : false });
+    const contractsResult = contracts.requestEventSharingOnInstagram();
+    if (contractsResult) {
+      res.json({ contractsResult });
+    } else if (contractsResult === null) {
+      res.json({});
+    } else {
+      logger.error(err);
+      return { error: "Events/Insagram/Share-Purchase" };
+    }
   } catch (err) {
-    logger.err(err);
-    res.status(500).json({ error: "Events/Insagram/Share-Purchase" });
+    logger.error(err);
+    return { error: "Events/Insagram/Share-Purchase" };
   }
 };
 
