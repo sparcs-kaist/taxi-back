@@ -209,8 +209,28 @@ const completeAccountChangingQuest = async (userId, timestamp, newAccount) => {
   );
 };
 
-const completeAdPushAgreementQuest = async () => {
-  // TODO
+/**
+ * adPushAgreementQuest 퀘스트의 완료를 요청합니다.
+ * @param {string|mongoose.Types.ObjectId} userId - 퀘스트를 완료한 사용자의 ObjectId입니다.
+ * @param {Date} timestamp - 퀘스트 완료를 요청한 시각입니다.
+ * @param {boolean} advertisement - 변경된 광고성 알림 수신 동의 여부입니다.
+ * @returns {Promise}
+ * @description 알림 옵션을 변경할 때마다 호출해 주세요.
+ * @usage notifications/editOptionsHandler
+ */
+const completeAdPushAgreementQuest = async (
+  userId,
+  timestamp,
+  advertisement
+) => {
+  if (!advertisement) return null;
+
+  return await completeQuest(
+    userId,
+    timestamp,
+    eventPeriod,
+    quests.adPushAgreement
+  );
 };
 
 const completeEventSharingOnInstagramQuest = async () => {
