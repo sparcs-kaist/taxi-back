@@ -1,5 +1,6 @@
 const { eventStatusModel } = require("../modules/stores/mongo");
 const logger = require("../../modules/logger");
+const { isLogin, getLoginInfo } = require("../../modules/auths/login");
 
 const { eventMode } = require("../../../loadenv");
 const contract = eventMode
@@ -9,27 +10,27 @@ const quests = contract ? Object.values(contract.quests) : undefined;
 
 const getUserGlobalStateHandler = async (req, res) => {
   try {
-    const eventStatus = await eventStatusModel
-      .findOne({ userId: req.userOid })
-      .lean();
-    if (eventStatus)
-      res.json({
-        agreement: true,
-        creditAmount: eventStatus.creditAmount,
-        completedQuests: eventStatus.completedQuests,
-        ticket1Amount: eventStatus.ticket1Amount,
-        ticket2Amount: eventStatus.ticket2Amount,
-        quests,
-      });
-    else
-      res.json({
-        agreement: false,
-        creditAmount: 0,
-        completedQuests: [],
-        ticket1Amount: 0,
-        ticket2Amount: 0,
-        quests,
-      });
+    const result = {
+      isAgree: false,
+      creditAmount: 0,
+      completedQuests: [],
+      ticket1Amount: 0,
+      ticket2Amount: 0,
+      quests,
+    };
+
+    const userId = isLogin(req) ? getLoginInfo(req).oid : null;
+    if (!userId) return res.json(result);
+
+    const eventStatus = await eventStatusModel.findOne({ userId }).lean();
+    if (eventStatus) {
+      result.isAgree = true;
+      result.creditAmount = eventStatus.creditAmount;
+      result.ticket1Amount = eventStatus.ticket1Amount;
+      result.ticket2Amount = eventStatus.ticket2Amount;
+    }
+
+    res.json(result);
   } catch (err) {
     logger.error(err);
     res.status(500).json({ error: "GlobalState/ : internal server error" });

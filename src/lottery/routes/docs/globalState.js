@@ -16,7 +16,7 @@ globalStateDocs[`${apiPrefix}/`] = {
             schema: {
               type: "object",
               required: [
-                "agreement",
+                "isAgree",
                 "creditAmount",
                 "completedQuests",
                 "ticket1Amount",
@@ -24,7 +24,7 @@ globalStateDocs[`${apiPrefix}/`] = {
                 "quests",
               ],
               properties: {
-                agreement: {
+                isAgree: {
                   type: "boolean",
                   description: "유저의 이벤트 참여 동의 여부",
                   example: true,
