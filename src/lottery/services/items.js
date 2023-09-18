@@ -120,6 +120,12 @@ const listHandler = async (_, res) => {
 
 const purchaseHandler = async (req, res) => {
   try {
+    const eventStatus = await eventStatusModel.findOne({ userId: req.userOid });
+    if (!eventStatus)
+      return res
+        .status(400)
+        .json({ error: "Items/Purchase : nonexistent eventStatus" });
+
     const now = Date.now();
     if (now >= eventPeriod.end || now < eventPeriod.start)
       return res.status(400).json({ error: "Items/Purchase : out of date" });
@@ -128,12 +134,6 @@ const purchaseHandler = async (req, res) => {
     const item = await itemModel.findOne({ _id: itemId }).lean();
     if (!item)
       return res.status(400).json({ error: "Items/Purchase : invalid Item" });
-
-    const eventStatus = await eventStatusModel.find({ userId: req.userOid });
-    if (!eventStatus)
-      return res
-        .status(400)
-        .json({ error: "Items/Purchase : invalid EventStatus" });
 
     // 구매 가능 조건: 크레딧이 충분하며, 재고가 남아있으며, 판매 중인 아이템이어야 합니다.
     if (item.isDisabled)

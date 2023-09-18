@@ -58,20 +58,17 @@ const buildQuests = (quests) => {
  */
 const completeQuest = async (userId, eventPeriod, quest) => {
   try {
-    // 1단계: 이벤트 기간인지 확인합니다.
+    // 1단계: 유저의 EventStatus를 가져옵니다.
+    const eventStatus = await eventStatusModel.findOne({ userId }).lean();
+    if (!eventStatus) return null;
+
+    // 2단계: 이벤트 기간인지 확인합니다.
     const now = Date.now();
     if (now >= eventPeriod.end || now < eventPeriod.start) {
       logger.info(
         `User ${userId} failed to complete auto-disabled ${quest.id}Quest`
       );
       return null;
-    }
-
-    // 2단계: 유저의 EventStatus를 가져옵니다. 없으면 새롭게 생성합니다.
-    let eventStatus = await eventStatusModel.findOne({ userId }).lean();
-    if (!eventStatus) {
-      eventStatus = new eventStatusModel({ userId });
-      await eventStatus.save();
     }
 
     // 3단계: 유저의 퀘스트 완료 횟수를 확인합니다.

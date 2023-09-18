@@ -7,5 +7,6 @@ const globalStateHandlers = require("../services/globalState");
 router.use(require("../../middlewares/auth"));
 
 router.get("/", globalStateHandlers.getUserGlobalStateHandler);
+router.post("/create", globalStateHandlers.createUserGlobalStateHandler);
 
 module.exports = router;
