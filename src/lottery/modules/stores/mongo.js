@@ -12,10 +12,9 @@ const eventStatusSchema = Schema({
     ref: "User",
     required: true,
   },
-  eventList: {
-    type: [Schema.Types.ObjectId],
+  completedQuests: {
+    type: [String],
     default: [],
-    ref: "Event",
   },
   creditAmount: {
     type: Number,
@@ -23,37 +22,29 @@ const eventStatusSchema = Schema({
     min: 0,
     validate: integerValidator,
   },
+  ticket1Amount: {
+    type: Number,
+    default: 0,
+    min: 0,
+    validate: integerValidator,
+  },
+  ticket2Amount: {
+    type: Number,
+    default: 0,
+    min: 0,
+    validate: integerValidator,
+  },
 });
 
-const eventSchema = Schema({
-  name: {
+const questSchema = Schema({
+  id: {
     type: String,
     required: true,
     unique: true,
   },
-  rewardAmount: {
-    type: Number,
-    required: true,
-    min: 0,
-    validate: integerValidator,
-  },
-  maxCount: {
-    type: Number,
-    default: 1,
-    min: 0,
-    validate: integerValidator,
-  },
-  startat: {
-    type: Date,
-    required: true,
-  },
-  expireat: {
-    type: Date,
-    required: true,
-  },
   isDisabled: {
     type: Boolean,
-    default: false,
+    required: true,
   },
 });
 
@@ -120,17 +111,12 @@ const transactionSchema = Schema({
     ref: "User",
     required: true,
   },
-  event: {
-    type: Schema.Types.ObjectId,
-    ref: "Event",
+  questId: {
+    type: String,
   },
   item: {
     type: Schema.Types.ObjectId,
     ref: "Item",
-  },
-  itemType: {
-    type: Number,
-    enum: [0, 1, 2, 3],
   },
   comment: {
     type: String,
@@ -138,13 +124,13 @@ const transactionSchema = Schema({
   },
 });
 transactionSchema.set("timestamps", {
-  createdAt: "doneat",
+  createdAt: "createAt",
   updatedAt: false,
 });
 
 module.exports = {
   eventStatusModel: mongoose.model("EventStatus", eventStatusSchema),
-  eventModel: mongoose.model("Event", eventSchema),
+  questModel: mongoose.model("Quest", questSchema),
   itemModel: mongoose.model("Item", itemSchema),
   transactionModel: mongoose.model("Transaction", transactionSchema),
 };
