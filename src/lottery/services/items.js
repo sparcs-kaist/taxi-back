@@ -126,8 +126,7 @@ const purchaseHandler = async (req, res) => {
         .status(400)
         .json({ error: "Items/Purchase : nonexistent eventStatus" });
 
-    const now = Date.now();
-    if (now >= eventPeriod.end || now < eventPeriod.start)
+    if (req.timestamp >= eventPeriod.end || req.timestamp < eventPeriod.start)
       return res.status(400).json({ error: "Items/Purchase : out of date" });
 
     const { itemId } = req.params;

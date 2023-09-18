@@ -63,8 +63,7 @@ const completeQuest = async (userId, eventPeriod, quest) => {
     if (!eventStatus) return null;
 
     // 2단계: 이벤트 기간인지 확인합니다.
-    const now = Date.now();
-    if (now >= eventPeriod.end || now < eventPeriod.start) {
+    if (req.timestamp >= eventPeriod.end || req.timestamp < eventPeriod.start) {
       logger.info(
         `User ${userId} failed to complete auto-disabled ${quest.id}Quest`
       );
