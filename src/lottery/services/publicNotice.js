@@ -7,39 +7,15 @@ const {
   publicNoticePopulateOption,
 } = require("../modules/populates/publicNotice");
 
-const getTransactions = async () => {
-  try {
-    const transactions = await transactionModel
-      .find({ type: "use" })
-      .sort({ doneat: -1 })
-      .limit(5)
-      .populate(publicNoticePopulateOption)
-      .lean();
-    if (transactions) {
-      return await getTransactionsCallbackGetUser(transactions);
-    } else {
-      return undefined;
-    }
-  } catch (err) {
-    return undefined;
-  }
-};
-const getTransactionsCallbackGetUser = async (transactions) => {
-  const users = await userModel.find();
-  for (let user of users) {
-    for (let transaction of transactions) {
-      if (user._id.equals(transaction.userId)) {
-        transaction.id = user.id;
-      }
-    }
-  }
-  return transactions;
-};
 const getRecentTransaction = async (req, res) => {
   try {
     let transactionListString = [];
-    await getTransactions();
-    const transactions = await getTransactions();
+    const transactions = await transactionModel
+      .find({ type: "use" })
+      .sort({ createAt: -1 })
+      .limit(5)
+      .populate(publicNoticePopulateOption)
+      .lean();
     if (!!transactions) {
       transactions.forEach((item, index) => {
         let purchaceMessage = "";
@@ -50,12 +26,13 @@ const getRecentTransaction = async (req, res) => {
         } else {
           purchaceMessage = "획득하셨습니다.";
         }
-        transactionListString[index] = `${item.id
+        transactionListString[index] = `${item.userId.id
           .toString()
-          .slice(0, 2)}${"*".repeat(item.id.length - 2)}님께서 ${
+          .slice(0, 2)}${"*".repeat(item.userId.id.length - 2)}님께서 ${
           item.item.name
         }을(를) ${purchaceMessage}`;
       });
+      console.log(transactionListString);
       res.json({
         transactionListString,
       });

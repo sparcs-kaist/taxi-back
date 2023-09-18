@@ -2,7 +2,7 @@ const { eventMode } = require("../../../../loadenv");
 const globalStateDocs = require("./globalState");
 const itemsDocs = require("./items");
 const transactionsDocs = require("./transactions");
-const eventsDocs = require("./events");
+const questsDocs = require("./quests");
 const itemsSchema = require("./itemsSchema");
 const publicNoticeDocs = require("./publicNotice");
 
@@ -30,16 +30,12 @@ const eventSwaggerDocs = {
       name: `${apiPrefix}/public-notice`,
       description: "이벤트 - 아이템 구매, 뽑기, 획득 공지 관련 API",
     },
-    {
-      name: `${apiPrefix}/public-notice`,
-      description: "이벤트 - 공지사항 관련 API",
-    },
   ],
   paths: {
     ...globalStateDocs,
     ...itemsDocs,
     ...transactionsDocs,
-    ...eventsDocs,
+    ...questsDocs,
     ...publicNoticeDocs,
   },
   components: {
