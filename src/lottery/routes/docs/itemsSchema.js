@@ -75,6 +75,17 @@ const itemsSchema = {
     ...itemBase,
     description: "랜덤박스를 구입한 경우에만 포함됩니다.",
   },
+  purchaseHandler: {
+    type: "object",
+    required: ["itemId"],
+    properties: {
+      itemId: {
+        type: "string",
+        pattern: "^[a-fA-F\\d]{24}$",
+      },
+    },
+    errorMessage: "validation: bad request",
+  },
 };
 
 module.exports = itemsSchema;

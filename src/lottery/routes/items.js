@@ -4,15 +4,14 @@ const router = express.Router();
 const itemsHandlers = require("../services/items");
 const auth = require("../../middlewares/auth");
 
-const { param } = require("express-validator");
-const validator = require("../../middlewares/validator");
+const { validateParams } = require("../../middlewares/ajv");
+const itemsSchema = require("./docs/itemsSchema");
 
 router.get("/list", itemsHandlers.listHandler);
 router.post(
   "/purchase/:itemId",
   auth,
-  param("itemId").isMongoId(),
-  validator,
+  validateParams(itemsSchema.purchaseHandler),
   itemsHandlers.purchaseHandler
 );
 
