@@ -18,7 +18,6 @@ const lotteryRouter = express.Router();
 lotteryRouter.use(require("../middlewares/originValidator"));
 
 // [Router] APIs
-lotteryRouter.use("/events", require("./routes/events"));
 lotteryRouter.use("/global-state", require("./routes/globalState"));
 lotteryRouter.use("/items", require("./routes/items"));
 lotteryRouter.use("/public-notice", require("./routes/publicNotice"));

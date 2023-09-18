@@ -1,12 +1,12 @@
 const express = require("express");
 const router = express.Router();
-const events = require("../services/quests");
+const quests = require("../services/quests");
 
 router.use(require("../../middlewares/auth"));
-router.post("/instagram/share-event", events.instagramEventShareHandler());
+router.post("/instagram/share-event", quests.instagramEventShareHandler());
 router.post(
   "/instagram/share-purchase",
-  events.instagramPurchaseShareHandler()
+  quests.instagramPurchaseShareHandler()
 );
 
 module.exports = router;
