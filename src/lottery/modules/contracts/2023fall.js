@@ -44,7 +44,7 @@ const quests = buildQuests({
     reward: 50,
     maxCount: 3,
   },
-  nicknameChaning: {
+  nicknameChanging: {
     name: "닉네임 변경",
     description: "",
     imageUrl: "",
@@ -173,7 +173,7 @@ const completeSendingQuest = async (userId, timestamp, roomObject) => {
 };
 
 /**
- * nicknameChaning 퀘스트의 완료를 요청합니다.
+ * nicknameChanging 퀘스트의 완료를 요청합니다.
  * @param {string|mongoose.Types.ObjectId} userId - 퀘스트를 완료한 사용자의 ObjectId입니다.
  * @param {Date} timestamp - 퀘스트 완료를 요청한 시각입니다.
  * @returns {Promise}
@@ -185,7 +185,7 @@ const completeNicknameChangingQuest = async (userId, timestamp) => {
     userId,
     timestamp,
     eventPeriod,
-    quests.nicknameChaning
+    quests.nicknameChanging
   );
 };
 
