@@ -19,6 +19,7 @@ lotteryRouter.use(require("../middlewares/originValidator"));
 
 // [Router] APIs
 lotteryRouter.use("/global-state", require("./routes/globalState"));
+lotteryRouter.use("/transactions", require("./routes/transactions"));
 lotteryRouter.use("/items", require("./routes/items"));
 lotteryRouter.use("/public-notice", require("./routes/publicNotice"));
 lotteryRouter.use("/quests", require("./routes/quests"));

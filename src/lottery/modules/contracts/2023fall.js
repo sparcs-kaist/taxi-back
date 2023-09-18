@@ -196,7 +196,8 @@ const completeEventSharingOnInstagramQuest = async (userId) => {
     quests.eventSharingOnInstagram
   );
 };
-const completePurchaseSharingOnInstagramQuest = async (userId) => {
+
+const completePurchaseSharingOnInstagramQuest = async () => {
   return await completeQuest(
     userId,
     eventPeriod,

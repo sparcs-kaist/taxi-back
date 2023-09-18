@@ -5,7 +5,9 @@ const contracts = require("../modules/contracts/2023fall");
 const instagramEventShareHandler = async (req, res) => {
   try {
     const userId = req.userOid;
-    const contractResult = await contracts.completeEventSharingOnInstagramQuest(userId);
+    const contractResult = await contracts.completeEventSharingOnInstagramQuest(
+      userId
+    );
     res.json({ result: !!contractResult ? true : false });
   } catch (err) {
     logger.error(err);
@@ -17,7 +19,8 @@ const instagramEventShareHandler = async (req, res) => {
 const instagramPurchaseShareHandler = async (req, res) => {
   try {
     const userId = req.userOid;
-    const contractResult = await contracts.completePurchaseSharingOnInstagramQuest(userId);
+    const contractResult =
+      await contracts.completePurchaseSharingOnInstagramQuest(userId);
     res.json({ result: !!contractResult ? true : false });
   } catch (err) {
     logger.error(err);
