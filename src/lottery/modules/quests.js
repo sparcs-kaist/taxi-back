@@ -44,7 +44,7 @@ const buildQuests = (quests) => {
 /**
  * 퀘스트 완료를 요청합니다.
  * @param {string|mongoose.Types.ObjectId} userId - 퀘스트를 완료한 사용자의 ObjectId입니다.
- * @param {Date} timestamp - 퀘스트 완료를 요청한 시각입니다.
+ * @param {number|Date} timestamp - 퀘스트 완료를 요청한 시각입니다.
  * @param {Object} eventPeriod - 이벤트의 기간입니다.
  * @param {Date} eventPeriod.start - 이벤트의 시작 시각(Inclusive)입니다.
  * @param {Date} eventPeriod.end - 이벤트의 종료 시각(Exclusive)입니다.
