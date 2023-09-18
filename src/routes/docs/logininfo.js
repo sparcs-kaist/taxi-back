@@ -1,9 +1,9 @@
 const logininfoDocs = {
-  "/logininfo/detail": {
+  "/logininfo": {
     get: {
-      tags: ["logininfo"],
-      summary: "상세한 사용자 정보 반환",
-      description: "로그인되어 있는 사용자의 <b>상세한</b> 정보를 반환",
+      tags: ["/logininfo"],
+      summary: "사용자 정보 반환",
+      description: "로그인되어 있는 사용자의 정보를 반환",
       responses: {
         200: {
           description:
@@ -40,7 +40,7 @@ const logininfoDocs = {
                   agreeOnTermsOfService: {
                     type: "boolean",
                   },
-                  subinfio: {
+                  subinfo: {
                     type: "object",
                     properties: {
                       kaist: {
@@ -71,39 +71,14 @@ const logininfoDocs = {
                   account: {
                     type: "string",
                   },
-                },
-              },
-            },
-          },
-        },
-      },
-    },
-  },
-  "/logininfo": {
-    get: {
-      tags: ["logininfo"],
-      summary: "사용자 정보 반환",
-      description: "로그인되어 있는 사용자의 정보를 반환",
-      responses: {
-        200: {
-          description:
-            "사용자의 로그인 세션이 유효한 경우, 현재 로그인된 사용자의 정보를 반환, <br/> 세션이 유효하지 않은 경우, 빈 오브젝트를 반환",
-          content: {
-            "application/json": {
-              schema: {
-                type: "object",
-                properties: {
-                  id: {
+                  deviceToken: {
                     type: "string",
-                    description: "사용자 id",
+                    description:
+                      "클라이언트의 디바이스 토큰, 세션에 저장되어 있지 않은 경우 undefined",
                   },
-                  sid: {
+                  deviceType: {
                     type: "string",
-                    description: "사용자 sid",
-                  },
-                  name: {
-                    type: "string",
-                    description: "사용자 이름",
+                    enum: ["web", "app"],
                   },
                 },
               },

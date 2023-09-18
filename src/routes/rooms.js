@@ -6,7 +6,31 @@ const roomHandlers = require("../services/rooms");
 const validator = require("../middlewares/validator");
 const patterns = require("../modules/patterns");
 
-// 라우터 접근 시 로그인 필요
+// 조건(이름, 출발지, 도착지, 날짜)에 맞는 방들을 모두 반환한다.
+router.get(
+  "/search",
+  [
+    query("name").optional().matches(patterns.room.name),
+    query("from").optional().isMongoId(),
+    query("to").optional().isMongoId(),
+    query("time").optional().isISO8601(),
+    query("withTime").toBoolean().optional().isBoolean(),
+    query("maxPartLength").optional().isInt({ min: 2, max: 4 }),
+    query("isHome").toBoolean().isBoolean(),
+  ],
+  validator,
+  roomHandlers.searchHandler
+);
+
+// 특정 id 방의 정산 정보를 제외한 세부사항을 반환한다.
+router.get(
+  "/publicInfo",
+  query("id").isMongoId(),
+  validator,
+  roomHandlers.publicInfoHandler
+);
+
+// 이후 API 접근 시 로그인 필요
 router.use(require("../middlewares/auth"));
 
 // 특정 id 방 세부사항 보기
@@ -49,22 +73,6 @@ router.post(
   body("roomId").isMongoId(),
   validator,
   roomHandlers.abortHandler
-);
-
-// 조건(이름, 출발지, 도착지, 날짜)에 맞는 방들을 모두 반환한다.
-router.get(
-  "/search",
-  [
-    query("name").optional().matches(patterns.room.name),
-    query("from").optional().isMongoId(),
-    query("to").optional().isMongoId(),
-    query("time").optional().isISO8601(),
-    query("withTime").toBoolean().optional().isBoolean(),
-    query("maxPartLength").optional().isInt({ min: 2, max: 4 }),
-    query("isHome").toBoolean().isBoolean(),
-  ],
-  validator,
-  roomHandlers.searchHandler
 );
 
 // 로그인된 사용자의 모든 방들을 반환한다.

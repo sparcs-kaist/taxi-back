@@ -114,16 +114,26 @@ const locationSchema = Schema({
   koName: { type: String, required: true },
   priority: { type: Number, default: 0 },
   isValid: { type: Boolean, default: true },
-  // latitude: { type: Number, required: true },
-  // longitude: { type: Number, required: true }
+  latitude: { type: Number }, // 이후 required: true 로 수정 필요
+  longitude: { type: Number }, // 이후 required: true 로 수정 필요
 });
 const chatSchema = Schema({
   roomId: { type: Schema.Types.ObjectId, ref: "Room", required: true },
   type: {
     type: String,
-    enum: ["text", "in", "out", "s3img", "payment", "settlement", "account"],
+    enum: [
+      "text",
+      "in",
+      "out",
+      "s3img",
+      "payment",
+      "settlement",
+      "account",
+      "departure", // 출발 15분 전 알림
+      "arrival", // 출발 (1|24)시간 이후 알림 - 정산/송금 권유
+    ],
   }, // 메시지 종류
-  authorId: { type: Schema.Types.ObjectId, ref: "User", required: true }, // 작성자 id
+  authorId: { type: Schema.Types.ObjectId, ref: "User" }, // 작성자 id
   content: { type: String, default: "" },
   time: { type: Date, required: true },
   isValid: { type: Boolean, default: true },
@@ -140,6 +150,7 @@ const reportSchema = Schema({
   },
   etcDetail: { type: String, default: "" }, // 기타 세부 사유
   time: { type: Date, required: true },
+  roomId: { type: Schema.Types.ObjectId, ref: "Room" }, // 신고한 방 id
 });
 
 const adminIPWhitelistSchema = Schema({
@@ -179,12 +190,14 @@ database.on("disconnected", function () {
   }, 5000);
 });
 
-mongoose.connect(mongoUrl, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-});
+const connectDatabase = () =>
+  mongoose.connect(mongoUrl, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+  });
 
 module.exports = {
+  connectDatabase,
   userModel: mongoose.model("User", userSchema),
   deviceTokenModel: mongoose.model("DeviceToken", deviceTokenSchema),
   notificationOptionModel: mongoose.model(

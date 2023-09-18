@@ -11,7 +11,8 @@ module.exports = {
     key: process.env.SPARCSSSO_CLIENT_KEY || "", // optional
   },
   port: process.env.PORT || 80, // optional (default = 80)
-  frontUrl: process.env.FRONT_URL || "http://localhost:3000", // optional (default = "http://localhost:3000")
+  corsWhiteList: (process.env.CORS_WHITELIST &&
+    JSON.parse(process.env.CORS_WHITELIST)) || [true], // optional (default = [true])
   aws: {
     accessKeyId: process.env.AWS_ACCESS_KEY_ID, // required
     secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY, // required
@@ -21,7 +22,7 @@ module.exports = {
       `https://${process.env.AWS_S3_BUCKET_NAME}.s3.ap-northeast-2.amazonaws.com`, // optional
   },
   jwt: {
-    secretKey: process.env.JWT_SECRET_KEY,
+    secretKey: process.env.JWT_SECRET_KEY || "TAXI_JWT_KEY",
     option: {
       algorithm: "HS256",
       issuer: process.env.FRONT_URL || "http://localhost:3000", // optional (default = "http://localhost:3000")
@@ -29,10 +30,13 @@ module.exports = {
     TOKEN_EXPIRED: -3,
     TOKEN_INVALID: -2,
   },
-  appUriScheme: process.env.APP_URI_SCHEME,
   googleApplicationCredentials:
     process.env.GOOGLE_APPLICATION_CREDENTIALS &&
-    JSON.parse(process.env.GOOGLE_APPLICATION_CREDENTIALS),
+    JSON.parse(process.env.GOOGLE_APPLICATION_CREDENTIALS), // optional
   testAccounts:
-    process.env.TEST_ACCOUNTS && JSON.parse(process.env.TEST_ACCOUNTS),
+    (process.env.TEST_ACCOUNTS && JSON.parse(process.env.TEST_ACCOUNTS)) || [], // optional
+  slackWebhookUrl: {
+    report: process.env.SLACK_REPORT_WEBHOOK_URL || "", // optional
+  },
+  eventMode: undefined,
 };
