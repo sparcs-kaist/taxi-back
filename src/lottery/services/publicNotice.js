@@ -1,6 +1,7 @@
 const { transactionModel } = require("../modules/stores/mongo");
 const { eventStatusModel } = require("../modules/stores/mongo");
 const { userModel } = require("../../modules/stores/mongo");
+const { isLogin, getLoginInfo } = require("../../modules/auths/login");
 const logger = require("../../modules/logger");
 const {
   publicNoticePopulateOption,
@@ -36,7 +37,6 @@ const getTransactionsCallbackGetUser = async (transactions) => {
 };
 const getRecentTransaction = async (req, res) => {
   try {
-    console.log("[CALLED]");
     let transactionListString = [];
     await getTransactions();
     const transactions = await getTransactions();
@@ -56,7 +56,6 @@ const getRecentTransaction = async (req, res) => {
           item.item.name
         }을(를) ${purchaceMessage}`;
       });
-      console.log(transactionListString);
       res.json({
         transactionListString,
       });
