@@ -190,11 +190,19 @@ const completeAdPushAgreementQuest = async () => {
 };
 
 const completeEventSharingOnInstagramQuest = async (userId) => {
-  return await completeQuest(userId, eventPeriod, quests.eventSharingOnInstagram);
+  return await completeQuest(
+    userId,
+    eventPeriod,
+    quests.eventSharingOnInstagram
+  );
 };
 
 const completePurchaseSharingOnInstagramQuest = async () => {
-  return await completeQuest(userId, eventPeriod, quests.purchaseSharingOnInstagram)
+  return await completeQuest(
+    userId,
+    eventPeriod,
+    quests.purchaseSharingOnInstagram
+  );
 };
 
 module.exports = {
