@@ -85,6 +85,7 @@ const eventPeriod = {
  * firstLogin 퀘스트의 완료를 요청합니다.
  * @param {string|mongoose.Types.ObjectId} userId - 퀘스트를 완료한 사용자의 ObjectId입니다.
  * @returns {Promise}
+ * @usage lottery/globalState/createUserGlobalStateHandler
  */
 const completeFirstLoginQuest = async (userId) => {
   return await completeQuest(userId, eventPeriod, quests.firstLogin);

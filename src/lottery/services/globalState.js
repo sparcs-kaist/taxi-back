@@ -12,18 +12,24 @@ const getUserGlobalStateHandler = async (req, res) => {
     const eventStatus = await eventStatusModel
       .findOne({ userId: req.userOid })
       .lean();
-    if (!eventStatus)
-      return res
-        .status(400)
-        .json({ error: "GlobalState/ : nonexistent eventStatus" });
-
-    res.json({
-      creditAmount: eventStatus.creditAmount,
-      completedQuests: eventStatus.completedQuests,
-      ticket1Amount: eventStatus.ticket1Amount,
-      ticket2Amount: eventStatus.ticket2Amount,
-      quests,
-    });
+    if (eventStatus)
+      res.json({
+        agreement: true,
+        creditAmount: eventStatus.creditAmount,
+        completedQuests: eventStatus.completedQuests,
+        ticket1Amount: eventStatus.ticket1Amount,
+        ticket2Amount: eventStatus.ticket2Amount,
+        quests,
+      });
+    else
+      res.json({
+        agreement: false,
+        creditAmount: 0,
+        completedQuests: [],
+        ticket1Amount: 0,
+        ticket2Amount: 0,
+        quests,
+      });
   } catch (err) {
     logger.error(err);
     res.status(500).json({ error: "GlobalState/ : internal server error" });
