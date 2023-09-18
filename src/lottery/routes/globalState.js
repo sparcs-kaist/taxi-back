@@ -2,9 +2,12 @@ const express = require("express");
 
 const router = express.Router();
 const globalStateHandlers = require("../services/globalState");
-const auth = require("../../middlewares/auth");
 
 router.get("/", globalStateHandlers.getUserGlobalStateHandler);
-router.post("/create", auth, globalStateHandlers.createUserGlobalStateHandler);
+
+// 아래의 Endpoint 접근 시 로그인 필요
+router.use(require("../../middlewares/auth"));
+
+router.post("/create", globalStateHandlers.createUserGlobalStateHandler);
 
 module.exports = router;

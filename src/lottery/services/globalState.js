@@ -10,27 +10,25 @@ const quests = contract ? Object.values(contract.quests) : undefined;
 
 const getUserGlobalStateHandler = async (req, res) => {
   try {
-    const result = {
-      isAgree: false,
-      creditAmount: 0,
-      completedQuests: [],
-      ticket1Amount: 0,
-      ticket2Amount: 0,
-      quests,
-    };
-
     const userId = isLogin(req) ? getLoginInfo(req).oid : null;
-    if (!userId) return res.json(result);
-
-    const eventStatus = await eventStatusModel.findOne({ userId }).lean();
-    if (eventStatus) {
-      result.isAgree = true;
-      result.creditAmount = eventStatus.creditAmount;
-      result.ticket1Amount = eventStatus.ticket1Amount;
-      result.ticket2Amount = eventStatus.ticket2Amount;
-    }
-
-    res.json(result);
+    const eventStatus =
+      userId &&
+      (await eventStatusModel.findOne({ userId }, "-_id -userId -__v").lean());
+    if (eventStatus)
+      return res.json({
+        isAgree: true,
+        ...eventStatus,
+        quests,
+      });
+    else
+      return res.json({
+        isAgree: false,
+        completedQuests: [],
+        creditAmount: 0,
+        ticket1Amount: 0,
+        ticket2Amount: 0,
+        quests,
+      });
   } catch (err) {
     logger.error(err);
     res.status(500).json({ error: "GlobalState/ : internal server error" });
