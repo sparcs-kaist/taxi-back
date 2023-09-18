@@ -1,7 +1,7 @@
 const logininfoDocs = {
   "/logininfo": {
     get: {
-      tags: ["logininfo"],
+      tags: ["/logininfo"],
       summary: "사용자 정보 반환",
       description: "로그인되어 있는 사용자의 정보를 반환",
       responses: {

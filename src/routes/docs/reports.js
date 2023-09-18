@@ -1,7 +1,7 @@
 const reportsDocs = {
   "/reports/create": {
     post: {
-      tags: ["reports"],
+      tags: ["/reports"],
       summary: "신고 작성",
       description: "주어진 유저를 전달된 사유로 신고함",
       requestBody: {
@@ -42,7 +42,7 @@ const reportsDocs = {
   },
   "/reports/searchByUser": {
     get: {
-      tags: ["reports"],
+      tags: ["/reports"],
       summary: "신고 내역 반환",
       description:
         "로그인된 사용자의 신고한 내역과, 신고받은 내역을 반환한다 <br/>1000개의 limit이 있다.",
