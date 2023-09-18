@@ -36,6 +36,7 @@ const getTransactionsCallbackGetUser = async (transactions) => {
 };
 const getRecentTransaction = async (req, res) => {
   try {
+    console.log("[CALLED]");
     let transactionListString = [];
     await getTransactions();
     const transactions = await getTransactions();
