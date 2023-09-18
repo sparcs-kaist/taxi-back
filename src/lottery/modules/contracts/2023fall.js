@@ -189,12 +189,12 @@ const completeAdPushAgreementQuest = async () => {
   // TODO
 };
 
-const completeEventSharingOnInstagramQuest = async () => {
-  // TODO
+const completeEventSharingOnInstagramQuest = async (userId) => {
+  return await completeQuest(userId, eventPeriod, quests.eventSharingOnInstagram);
 };
 
 const completePurchaseSharingOnInstagramQuest = async () => {
-  // TODO
+  return await completeQuest(userId, eventPeriod, quests.purchaseSharingOnInstagram)
 };
 
 module.exports = {

@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const events = require("../services/events");
+const events = require("../services/quests");
 
 router.use(require("../../middlewares/auth"));
 router.post("/instagram/share-event", events.instagramEventShareHandler);
