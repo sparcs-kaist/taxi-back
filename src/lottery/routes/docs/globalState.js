@@ -24,7 +24,7 @@ globalStateDocs[`${apiPrefix}/`] = {
                 "quests",
               ],
               properties: {
-                isAgree: {
+                isAgreeOnTermsOfEvent: {
                   type: "boolean",
                   description: "유저의 이벤트 참여 동의 여부",
                   example: true,

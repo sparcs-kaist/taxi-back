@@ -16,13 +16,13 @@ const getUserGlobalStateHandler = async (req, res) => {
       (await eventStatusModel.findOne({ userId }, "-_id -userId -__v").lean());
     if (eventStatus)
       return res.json({
-        isAgree: true,
+        isAgreeOnTermsOfEvent: true,
         ...eventStatus,
         quests,
       });
     else
       return res.json({
-        isAgree: false,
+        isAgreeOnTermsOfEvent: false,
         completedQuests: [],
         creditAmount: 0,
         ticket1Amount: 0,
