@@ -51,7 +51,7 @@ const createUserGlobalStateHandler = async (req, res) => {
     });
     await eventStatus.save();
 
-    await contract.completeFirstLoginQuest(req.userOid);
+    await contract.completeFirstLoginQuest(req.userOid, req.timestamp);
 
     res.json({ result: true });
   } catch (err) {
