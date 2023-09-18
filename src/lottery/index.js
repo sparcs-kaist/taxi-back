@@ -22,6 +22,7 @@ lotteryRouter.use("/events", require("./routes/events"));
 lotteryRouter.use("/global-state", require("./routes/globalState"));
 lotteryRouter.use("/items", require("./routes/items"));
 lotteryRouter.use("/public-notice", require("./routes/publicNotice"));
+lotteryRouter.use("/quests", require("./routes/quests"));
 
 const resources = [
   eventStatusModel,

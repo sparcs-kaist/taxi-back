@@ -193,8 +193,13 @@ const completeEventSharingOnInstagramQuest = async (userId) => {
   return await completeQuest(userId, eventPeriod, quests.eventSharingOnInstagram);
 };
 
+<<<<<<< HEAD
 const completePurchaseSharingOnInstagramQuest = async (userId) => {
   return await completeQuest(userId, eventPeriod, quests.purchaseSharingOnInstagram);
+=======
+const completePurchaseSharingOnInstagramQuest = async () => {
+  return await completeQuest(userId, eventPeriod, quests.purchaseSharingOnInstagram)
+>>>>>>> 6148984 (ADD: Merging process...)
 };
 
 module.exports = {
