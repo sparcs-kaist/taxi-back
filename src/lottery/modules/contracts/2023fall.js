@@ -190,16 +190,18 @@ const completeAdPushAgreementQuest = async () => {
 };
 
 const completeEventSharingOnInstagramQuest = async (userId) => {
-  return await completeQuest(userId, eventPeriod, quests.eventSharingOnInstagram);
+  return await completeQuest(
+    userId,
+    eventPeriod,
+    quests.eventSharingOnInstagram
+  );
 };
-
-<<<<<<< HEAD
 const completePurchaseSharingOnInstagramQuest = async (userId) => {
-  return await completeQuest(userId, eventPeriod, quests.purchaseSharingOnInstagram);
-=======
-const completePurchaseSharingOnInstagramQuest = async () => {
-  return await completeQuest(userId, eventPeriod, quests.purchaseSharingOnInstagram)
->>>>>>> 6148984 (ADD: Merging process...)
+  return await completeQuest(
+    userId,
+    eventPeriod,
+    quests.purchaseSharingOnInstagram
+  );
 };
 
 module.exports = {
