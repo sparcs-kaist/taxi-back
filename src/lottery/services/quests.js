@@ -20,7 +20,7 @@ const instagramEventShareHandler = async (req, res) => {
 // 인스타그램 스토리에 아이템 구매 내역을 공유했을 때.
 const instagramPurchaseShareHandler = async (req, res) => {
   try {
-    const userId = req.userOid;
+    const { userOid: userId } = req;
     const contractResult =
       await contracts.completePurchaseSharingOnInstagramQuest(userId);
     res.json({ result: !!contractResult });

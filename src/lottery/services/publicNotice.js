@@ -39,13 +39,13 @@ const getRecentPurchaceItemListHandler = async (req, res) => {
       });
     } else {
       res.status(500).json({
-        error: "PublicNotice/RecentTransaction : internal server error",
+        error: "PublicNotice/RecentTransactions : internal server error",
       });
     }
   } catch (err) {
     logger.error(err);
     res.status(500).json({
-      error: "PublicNotice/RecentTransaction : internal server error",
+      error: "PublicNotice/RecentTransactions : internal server error",
     });
   }
 };

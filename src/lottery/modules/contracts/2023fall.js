@@ -97,7 +97,7 @@ const completeFirstLoginQuest = async (userId) => {
  * @param {number} roomObject.settlementTotal - 정산 또는 송금이 완료된 참여자 수입니다.
  * @returns {Promise}
  * @description 정산 요청 또는 송금이 이루어질 때마다 호출해 주세요.
- * @usage rooms/commitPaymentHandler, rooms/settlementHandler
+ * @usage rooms - commitPaymentHandler, rooms - settlementHandler
  */
 const completePayingAndSendingQuest = async (roomObject) => {
   if (roomObject.part.length < 2) return null;
@@ -120,7 +120,7 @@ const completePayingAndSendingQuest = async (roomObject) => {
  * @param {string|mongoose.Types.ObjectId} userId - 퀘스트를 완료한 사용자의 ObjectId입니다.
  * @returns {Promise}
  * @description 방을 만들 때마다 호출해 주세요.
- * @usage rooms/createHandler
+ * @usage rooms - createHandler
  */
 const completeFirstRoomCreationQuest = async (userId) => {
   return await completeQuest(userId, eventPeriod, quests.firstRoomCreation);
@@ -137,7 +137,7 @@ const completeRoomSharingQuest = async () => {
  * @param {Array<{ user: mongoose.Types.ObjectId }>} roomObject.part - 참여자 목록입니다.
  * @returns {Promise}
  * @description 정산 요청이 이루어질 때마다 호출해 주세요.
- * @usage rooms/commitPaymentHandler
+ * @usage rooms - commitPaymentHandler
  */
 const completePayingQuest = async (userId, roomObject) => {
   if (roomObject.part.length < 2) return null;
@@ -152,7 +152,7 @@ const completePayingQuest = async (userId, roomObject) => {
  * @param {Array<{ user: mongoose.Types.ObjectId }>} roomObject.part - 참여자 목록입니다.
  * @returns {Promise}
  * @description 송금이 이루어질 때마다 호출해 주세요.
- * @usage rooms/settlementHandler
+ * @usage rooms - settlementHandler
  */
 const completeSendingQuest = async (userId, roomObject) => {
   if (roomObject.part.length < 2) return null;
@@ -165,7 +165,7 @@ const completeSendingQuest = async (userId, roomObject) => {
  * @param {string|mongoose.Types.ObjectId} userId - 퀘스트를 완료한 사용자의 ObjectId입니다.
  * @returns {Promise}
  * @description 닉네임을 변경할 때마다 호출해 주세요.
- * @usage users/editNicknameHandler
+ * @usage users - editNicknameHandler
  */
 const completeNicknameChangingQuest = async (userId) => {
   return await completeQuest(userId, eventPeriod, quests.nicknameChaning);
@@ -177,7 +177,7 @@ const completeNicknameChangingQuest = async (userId) => {
  * @param {string} newAccount - 변경된 계좌입니다.
  * @returns {Promise}
  * @description 계좌를 변경할 때마다 호출해 주세요.
- * @usage users/editAccountHandler
+ * @usage users - editAccountHandler
  */
 const completeAccountChangingQuest = async (userId, newAccount) => {
   if (newAccount === "") return null;
@@ -194,7 +194,7 @@ const completeAdPushAgreementQuest = async () => {
  * @param {string|mongoose.Types.ObjectId} userId - 퀘스트를 완료한 사용자의 ObjectId입니다.
  * @returns {Promise}
  * @description 인스타그램 스토리에 추석 이벤트를 공유할 때마다 호출해 주세요.
- * @usage users/editAccountHandler
+ * @usage quests - instagramEventShareHandler
  */
 const completeEventSharingOnInstagramQuest = async (userId) => {
   return await completeQuest(
@@ -209,7 +209,7 @@ const completeEventSharingOnInstagramQuest = async (userId) => {
  * @param {string|mongoose.Types.ObjectId} userId - 퀘스트를 완료한 사용자의 ObjectId입니다.
  * @returns {Promise}
  * @description 인스타그램 스토리에 구매한 아이템을 공유할 때마다 호출해 주세요.
- * @usage users/editAccountHandler
+ * @usage quests - instagramPurchaseShareHandler
  */
 const completePurchaseSharingOnInstagramQuest = async () => {
   return await completeQuest(
