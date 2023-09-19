@@ -16,7 +16,7 @@ globalStateDocs[`${apiPrefix}/`] = {
             schema: {
               type: "object",
               required: [
-                "isAgree",
+                "isAgreeOnTermsOfEvent",
                 "creditAmount",
                 "completedQuests",
                 "ticket1Amount",
