@@ -15,7 +15,7 @@ const getRecentPurchaceItemListHandler = async (req, res) => {
   try {
     let transactionListString = [];
     const transactions = await transactionModel
-      .find({ type: "use" })
+      .find({ type: "use", itemType: 0 })
       .sort({ createAt: -1 })
       .limit(5)
       .populate(publicNoticePopulateOption)
