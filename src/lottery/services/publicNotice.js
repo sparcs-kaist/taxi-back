@@ -5,7 +5,7 @@ const { isLogin, getLoginInfo } = require("../../modules/auths/login");
 const logger = require("../../modules/logger");
 const {
   publicNoticePopulateOption,
-} = require("../modules/populates/publicNotice");
+} = require("../modules/populates/transactions");
 
 const getRecentPurchaceItemListHandler = async (req, res) => {
   try {
@@ -16,7 +16,7 @@ const getRecentPurchaceItemListHandler = async (req, res) => {
       .limit(5)
       .populate(publicNoticePopulateOption)
       .lean();
-    if (!!transactions) {
+    if (transactions) {
       transactions.forEach((item, index) => {
         let purchaceMessage = "";
         if (item.comment.startsWith("송편")) {
@@ -26,25 +26,24 @@ const getRecentPurchaceItemListHandler = async (req, res) => {
         } else {
           purchaceMessage = "획득하셨습니다.";
         }
-        transactionListString[index] = `${item.userId.id
+        transactionListString[index] = `${item.userId.nickname
           .toString()
-          .slice(0, 2)}${"*".repeat(item.userId.id.length - 2)}님께서 ${
+          .slice(0, 2)}${"*".repeat(item.userId.nickname.length - 2)}님께서 ${
           item.item.name
         }을(를) ${purchaceMessage}`;
       });
-      console.log(transactionListString);
       res.json({
         transactionListString,
       });
     } else {
       res.status(500).json({
-        error: "PublicNotice/get-recent-transaction : internal server error",
+        error: "PublicNotice/RecentTransaction : internal server error",
       });
     }
   } catch (err) {
     logger.error(err);
     res.status(500).json({
-      error: "PublicNotice/get-recent-transaction : internal server error",
+      error: "PublicNotice/RecentTransaction : internal server error",
     });
   }
 };

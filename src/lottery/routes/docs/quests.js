@@ -13,8 +13,14 @@ eventsDocs[`${apiPrefix}/instagram/share-event`] = {
         content: {
           "application/json": {
             schema: {
-              type: "boolean",
-              example: { result: true },
+              type: "object",
+              required: ["result"],
+              properties: {
+                result: {
+                  type: "boolean",
+                  example: true,
+                },
+              },
             },
           },
         },
@@ -34,8 +40,14 @@ eventsDocs[`${apiPrefix}/instagram/share-purchase`] = {
         content: {
           "application/json": {
             schema: {
-              type: "boolean",
-              example: { result: true },
+              type: "object",
+              required: ["result"],
+              properties: {
+                result: {
+                  type: "boolean",
+                  example: true,
+                },
+              },
             },
           },
         },

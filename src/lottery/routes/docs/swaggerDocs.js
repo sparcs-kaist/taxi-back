@@ -23,8 +23,8 @@ const eventSwaggerDocs = {
       description: "이벤트 - 입출금 내역 관련 API",
     },
     {
-      name: `${apiPrefix}/instagram`,
-      description: "이벤트 - 인스타그램 이벤트 관련 API",
+      name: `${apiPrefix}/quests`,
+      description: "이벤트 - 퀘스트 관련 API",
     },
     {
       name: `${apiPrefix}/public-notice`,
