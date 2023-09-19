@@ -219,14 +219,9 @@ const emitUpdateEvent = async (io, roomId) => {
       throw new IllegalArgumentsException();
     }
 
-    const userIds = part.map((participant) => participant.user);
-    await Promise.all(
-      userIds.map(async (userId) =>
-        io.in(`user-${userId}`).emit("chat_update", {
-          roomId,
-        })
-      )
-    );
+    part.forEach(({ user }) => io.in(`user-${user}`).emit("chat_update"), {
+      roomId,
+    });
 
     return true;
   } catch (err) {
