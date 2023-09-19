@@ -1,5 +1,5 @@
-const { eventMode } = require("../../../../loadenv");
-const apiPrefix = `/events/${eventMode}/public-notice`;
+const { eventConfig } = require("../../../../loadenv");
+const apiPrefix = `/events/${eventConfig.mode}/public-notice`;
 
 const publicNoticeDocs = {};
 publicNoticeDocs[`${apiPrefix}/leaderboard`] = {
