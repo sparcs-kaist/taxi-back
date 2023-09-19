@@ -6,11 +6,11 @@ const {
   transactionModel,
 } = require("./modules/stores/mongo");
 
-const { eventMode } = require("../../loadenv");
+const { eventConfig } = require("../../loadenv");
 const { buildResource } = require("../modules/adminResource");
 
 // [Routes] 기존 docs 라우터의 docs extend
-require("./routes/docs")();
+eventConfig && require("./routes/docs")();
 
 const lotteryRouter = express.Router();
 
@@ -31,7 +31,8 @@ const resources = [
   transactionModel,
 ].map(buildResource());
 
-const contracts = eventMode && require(`./modules/contracts/${eventMode}`);
+const contracts =
+  eventConfig && require(`./modules/contracts/${eventConfig.mode}`);
 
 module.exports = {
   lotteryRouter,

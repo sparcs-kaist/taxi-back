@@ -20,10 +20,11 @@ const updateEventStatus = async (
     }
   );
 
-const { eventMode } = require("../../../loadenv");
-const eventPeriod = eventMode
-  ? require(`../modules/contracts/${eventMode}`).eventPeriod
-  : undefined;
+const { eventConfig } = require("../../../loadenv");
+const eventPeriod = eventConfig && {
+  startAt: new Date(eventConfig.startAt),
+  endAt: new Date(eventConfig.endAt),
+};
 
 const getRandomItem = async (req, depth) => {
   if (depth >= 10) {
@@ -61,14 +62,13 @@ const getRandomItem = async (req, depth) => {
     // 1단계: 재고를 차감합니다.
     const newRandomItem = await itemModel
       .findOneAndUpdate(
-        { _id: randomItem._id },
+        { _id: randomItem._id, stock: { $gt: 0 } },
         {
           $inc: {
             stock: -1,
           },
         },
         {
-          runValidators: true,
           new: true,
           fields: {
             itemType: 0,
@@ -78,6 +78,9 @@ const getRandomItem = async (req, depth) => {
         }
       )
       .lean();
+    if (!newRandomItem) {
+      throw new Error("The item was already sold out");
+    }
 
     // 2단계: 유저 정보를 업데이트합니다.
     await updateEventStatus(req.userOid, {
@@ -127,7 +130,10 @@ const purchaseHandler = async (req, res) => {
         .status(400)
         .json({ error: "Items/Purchase : nonexistent eventStatus" });
 
-    if (req.timestamp >= eventPeriod.end || req.timestamp < eventPeriod.start)
+    if (
+      req.timestamp >= eventPeriod.endAt ||
+      req.timestamp < eventPeriod.startAt
+    )
       return res.status(400).json({ error: "Items/Purchase : out of date" });
 
     const { itemId } = req.params;
@@ -148,17 +154,15 @@ const purchaseHandler = async (req, res) => {
         .json({ error: "Items/Purchase : item out of stock" });
 
     // 1단계: 재고를 차감합니다.
-    await itemModel.updateOne(
-      { _id: item._id },
+    const { modifiedCount } = await itemModel.updateOne(
+      { _id: item._id, stock: { $gt: 0 } },
       {
         $inc: {
           stock: -1,
         },
-      },
-      {
-        runValidators: true,
       }
     );
+    if (modifiedCount === 0) throw new Error("The item was already sold out");
 
     // 2단계: 유저 정보를 업데이트합니다.
     await updateEventStatus(req.userOid, {

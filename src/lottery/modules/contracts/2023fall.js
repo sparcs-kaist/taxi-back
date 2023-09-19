@@ -76,11 +76,6 @@ const quests = buildQuests({
   },
 });
 
-const eventPeriod = {
-  start: new Date("2023-09-25T00:00:00+09:00"), // Inclusive
-  end: new Date("2023-10-10T00:00:00+09:00"), // Exclusive
-};
-
 /**
  * firstLogin 퀘스트의 완료를 요청합니다.
  * @param {string|mongoose.Types.ObjectId} userId - 퀘스트를 완료한 사용자의 ObjectId입니다.
@@ -89,7 +84,7 @@ const eventPeriod = {
  * @usage lottery/globalState/createUserGlobalStateHandler
  */
 const completeFirstLoginQuest = async (userId, timestamp) => {
-  return await completeQuest(userId, timestamp, eventPeriod, quests.firstLogin);
+  return await completeQuest(userId, timestamp, quests.firstLogin);
 };
 
 /**
@@ -112,7 +107,6 @@ const completePayingAndSendingQuest = async (timestamp, roomObject) => {
         await completeQuest(
           participant.user._id,
           timestamp,
-          eventPeriod,
           quests.payingAndSending
         )
     )
@@ -128,12 +122,7 @@ const completePayingAndSendingQuest = async (timestamp, roomObject) => {
  * @usage rooms - createHandler
  */
 const completeFirstRoomCreationQuest = async (userId, timestamp) => {
-  return await completeQuest(
-    userId,
-    timestamp,
-    eventPeriod,
-    quests.firstRoomCreation
-  );
+  return await completeQuest(userId, timestamp, quests.firstRoomCreation);
 };
 
 const completeRoomSharingQuest = async () => {
@@ -153,7 +142,7 @@ const completeRoomSharingQuest = async () => {
 const completePayingQuest = async (userId, timestamp, roomObject) => {
   if (roomObject.part.length < 2) return null;
 
-  return await completeQuest(userId, timestamp, eventPeriod, quests.paying);
+  return await completeQuest(userId, timestamp, quests.paying);
 };
 
 /**
@@ -169,7 +158,7 @@ const completePayingQuest = async (userId, timestamp, roomObject) => {
 const completeSendingQuest = async (userId, timestamp, roomObject) => {
   if (roomObject.part.length < 2) return null;
 
-  return await completeQuest(userId, timestamp, eventPeriod, quests.sending);
+  return await completeQuest(userId, timestamp, quests.sending);
 };
 
 /**
@@ -181,12 +170,7 @@ const completeSendingQuest = async (userId, timestamp, roomObject) => {
  * @usage users - editNicknameHandler
  */
 const completeNicknameChangingQuest = async (userId, timestamp) => {
-  return await completeQuest(
-    userId,
-    timestamp,
-    eventPeriod,
-    quests.nicknameChanging
-  );
+  return await completeQuest(userId, timestamp, quests.nicknameChanging);
 };
 
 /**
@@ -201,12 +185,7 @@ const completeNicknameChangingQuest = async (userId, timestamp) => {
 const completeAccountChangingQuest = async (userId, timestamp, newAccount) => {
   if (newAccount === "") return null;
 
-  return await completeQuest(
-    userId,
-    timestamp,
-    eventPeriod,
-    quests.accountChanging
-  );
+  return await completeQuest(userId, timestamp, quests.accountChanging);
 };
 
 /**
@@ -225,12 +204,7 @@ const completeAdPushAgreementQuest = async (
 ) => {
   if (!advertisement) return null;
 
-  return await completeQuest(
-    userId,
-    timestamp,
-    eventPeriod,
-    quests.adPushAgreement
-  );
+  return await completeQuest(userId, timestamp, quests.adPushAgreement);
 };
 
 /**
@@ -265,7 +239,6 @@ const completePurchaseSharingOnInstagramQuest = async () => {
 
 module.exports = {
   quests,
-  eventPeriod,
   completeFirstLoginQuest,
   completePayingAndSendingQuest,
   completeFirstRoomCreationQuest,
