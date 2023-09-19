@@ -1,5 +1,5 @@
-const { eventMode } = require("../../../../loadenv");
-const apiPrefix = `/events/${eventMode}/global-state`;
+const { eventConfig } = require("../../../../loadenv");
+const apiPrefix = `/events/${eventConfig.mode}/global-state`;
 
 const globalStateDocs = {};
 globalStateDocs[`${apiPrefix}/`] = {

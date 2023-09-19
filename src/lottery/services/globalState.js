@@ -2,11 +2,10 @@ const { eventStatusModel } = require("../modules/stores/mongo");
 const logger = require("../../modules/logger");
 const { isLogin, getLoginInfo } = require("../../modules/auths/login");
 
-const { eventMode } = require("../../../loadenv");
-const contract = eventMode
-  ? require(`../modules/contracts/${eventMode}`)
-  : undefined;
-const quests = contract ? Object.values(contract.quests) : undefined;
+const { eventConfig } = require("../../../loadenv");
+const contracts =
+  eventConfig && require(`../modules/contracts/${eventConfig.mode}`);
+const quests = contracts ? Object.values(contracts.quests) : undefined;
 
 const getUserGlobalStateHandler = async (req, res) => {
   try {
@@ -50,7 +49,7 @@ const createUserGlobalStateHandler = async (req, res) => {
     });
     await eventStatus.save();
 
-    await contract.completeFirstLoginQuest(req.userOid, req.timestamp);
+    await contracts.completeFirstLoginQuest(req.userOid, req.timestamp);
 
     res.json({ result: true });
   } catch (err) {
