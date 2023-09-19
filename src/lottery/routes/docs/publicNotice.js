@@ -2,6 +2,38 @@ const { eventConfig } = require("../../../../loadenv");
 const apiPrefix = `/events/${eventConfig.mode}/public-notice`;
 
 const publicNoticeDocs = {};
+publicNoticeDocs[`${apiPrefix}/recentTransactions`] = {
+  get: {
+    tags: [`${apiPrefix}`],
+    summary: "최근 트랜젝션의 명단 리스트 반환",
+    description: "",
+    responses: {
+      200: {
+        description: "",
+        content: {
+          "application/json": {
+            schema: {
+              type: "object",
+              description: "5개의 상점 공지",
+              required: ["transactions"],
+              properties: {
+                transactions: {
+                  type: "array",
+                  items: {
+                    type: "string",
+                    example:
+                      "tu**************님께서 일반응모권을(를) 획득하셨습니다.",
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+  },
+};
+
 publicNoticeDocs[`${apiPrefix}/leaderboard`] = {
   get: {
     tags: [`${apiPrefix}`],

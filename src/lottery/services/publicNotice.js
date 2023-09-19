@@ -1,7 +1,43 @@
+const { transactionModel } = require("../modules/stores/mongo");
 const { eventStatusModel } = require("../modules/stores/mongo");
 const { userModel } = require("../../modules/stores/mongo");
-const logger = require("../../modules/logger");
 const { isLogin, getLoginInfo } = require("../../modules/auths/login");
+const logger = require("../../modules/logger");
+const {
+  publicNoticePopulateOption,
+} = require("../modules/populates/transactions");
+
+const hideNickname = (nickname) => {
+  return `${nickname.toString().slice(0, 2)}${"*".repeat(nickname.length - 2)}`;
+};
+
+const getRecentPurchaceItemListHandler = async (req, res) => {
+  try {
+    const transactions = (
+      await transactionModel
+        .find({ type: "use", itemType: 0 })
+        .sort({ createAt: -1 })
+        .limit(5)
+        .populate(publicNoticePopulateOption)
+        .lean()
+    ).map(
+      ({ userId, item, comment }) =>
+        `${hideNickname(userId.nickname)}님께서 ${item.name}을(를) ${
+          comment.startsWith("송편")
+            ? "을(를) 구입하셨습니다."
+            : comment.startsWith("랜덤 박스")
+            ? "을(를) 뽑았습니다."
+            : "을(를) 획득하셨습니다."
+        }`
+    );
+    res.json({ transactions });
+  } catch (err) {
+    logger.error(err);
+    res.status(500).json({
+      error: "PublicNotice/RecentTransactions : internal server error",
+    });
+  }
+};
 
 const getTicketLeaderboardHandler = async (req, res) => {
   try {
@@ -36,9 +72,8 @@ const getTicketLeaderboardHandler = async (req, res) => {
           logger.error(`Fail to find user ${user.userId}`);
           return null;
         }
-
         return {
-          nickname: userInfo.nickname,
+          nickname: hideNickname(userInfo.nickname),
           profileImageUrl: userInfo.profileImageUrl,
           ticket1Amount: user.ticket1Amount,
           ticket2Amount: user.ticket2Amount,
@@ -67,5 +102,6 @@ const getTicketLeaderboardHandler = async (req, res) => {
 };
 
 module.exports = {
+  getRecentPurchaceItemListHandler,
   getTicketLeaderboardHandler,
 };
