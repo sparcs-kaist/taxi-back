@@ -7,6 +7,10 @@ const {
   publicNoticePopulateOption,
 } = require("../modules/populates/transactions");
 
+const returnAnonymousedNickname = (nickname) => {
+  return `${nickname.toString().slice(0, 2)}${"*".repeat(nickname.length - 2)}`;
+};
+
 const getRecentPurchaceItemListHandler = async (req, res) => {
   try {
     let transactionListString = [];
@@ -26,11 +30,9 @@ const getRecentPurchaceItemListHandler = async (req, res) => {
         } else {
           purchaceMessage = "획득하셨습니다.";
         }
-        transactionListString[index] = `${item.userId.nickname
-          .toString()
-          .slice(0, 2)}${"*".repeat(item.userId.nickname.length - 2)}님께서 ${
-          item.item.name
-        }을(를) ${purchaceMessage}`;
+        transactionListString[index] = `${returnAnonymousedNickname(
+          item.userId.nickname
+        )}님께서 ${item.item.name}을(를) ${purchaceMessage}`;
       });
       res.json({
         transactionListString,
@@ -81,9 +83,8 @@ const getTicketLeaderboardHandler = async (req, res) => {
           logger.error(`Fail to find user ${user.userId}`);
           return null;
         }
-
         return {
-          nickname: userInfo.nickname,
+          nickname: returnAnonymousedNickname(userInfo.nickname),
           profileImageUrl: userInfo.profileImageUrl,
           ticket1Amount: user.ticket1Amount,
           ticket2Amount: user.ticket2Amount,
@@ -95,7 +96,6 @@ const getTicketLeaderboardHandler = async (req, res) => {
       return res
         .status(500)
         .json({ error: "PublicNotice/Leaderboard : internal server error" });
-
     if (rank >= 0)
       res.json({
         leaderboard,
