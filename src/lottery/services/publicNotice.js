@@ -7,7 +7,7 @@ const {
   publicNoticePopulateOption,
 } = require("../modules/populates/transactions");
 
-const returnAnonymousedNickname = (nickname) => {
+const hideNickname = (nickname) => {
   return `${nickname.toString().slice(0, 2)}${"*".repeat(nickname.length - 2)}`;
 };
 
@@ -30,7 +30,7 @@ const getRecentPurchaceItemListHandler = async (req, res) => {
         } else {
           purchaceMessage = "획득하셨습니다.";
         }
-        transactionListString[index] = `${returnAnonymousedNickname(
+        transactionListString[index] = `${hideNickname(
           item.userId.nickname
         )}님께서 ${item.item.name}을(를) ${purchaceMessage}`;
       });
@@ -84,7 +84,7 @@ const getTicketLeaderboardHandler = async (req, res) => {
           return null;
         }
         return {
-          nickname: returnAnonymousedNickname(userInfo.nickname),
+          nickname: hideNickname(userInfo.nickname),
           profileImageUrl: userInfo.profileImageUrl,
           ticket1Amount: user.ticket1Amount,
           ticket2Amount: user.ticket2Amount,
@@ -96,6 +96,7 @@ const getTicketLeaderboardHandler = async (req, res) => {
       return res
         .status(500)
         .json({ error: "PublicNotice/Leaderboard : internal server error" });
+
     if (rank >= 0)
       res.json({
         leaderboard,
