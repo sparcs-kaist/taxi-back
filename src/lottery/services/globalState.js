@@ -3,6 +3,7 @@ const logger = require("../../modules/logger");
 const { isLogin, getLoginInfo } = require("../../modules/auths/login");
 
 const { eventConfig } = require("../../../loadenv");
+const { userModel } = require("../../modules/stores/mongo");
 const contracts =
   eventConfig && require(`../modules/contracts/${eventConfig.mode}`);
 const quests = contracts ? Object.values(contracts.quests) : undefined;
@@ -48,6 +49,11 @@ const createUserGlobalStateHandler = async (req, res) => {
       userId: req.userOid,
     });
     await eventStatus.save();
+
+    //logic2. 수집한 유저 전화번호 user Scheme 에 저장
+    const user = await userModel.findOne({ _id: req.userOid });
+    user.phoneNumber = req.body.phoneNumber;
+    await user.save();
 
     await contracts.completeFirstLoginQuest(req.userOid, req.timestamp);
 
