@@ -5,7 +5,7 @@ const transactionsDocs = require("./transactions");
 const questsDocs = require("./quests");
 const itemsSchema = require("./itemsSchema");
 const publicNoticeDocs = require("./publicNotice");
-const globalStateSchema=require("./globalStateSchema");
+const globalStateSchema = require("./globalStateSchema");
 const apiPrefix = `/events/${eventConfig.mode}`;
 
 const eventSwaggerDocs = {
