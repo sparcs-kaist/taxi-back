@@ -35,7 +35,7 @@ const getRecentPurchaceItemListHandler = async (req, res) => {
         )}님께서 ${item.item.name}을(를) ${purchaceMessage}`;
       });
       res.json({
-        transactionListString,
+        transactions: transactionListString,
       });
     } else {
       res.status(500).json({

@@ -13,9 +13,18 @@ publicNoticeDocs[`${apiPrefix}/recentTransactions`] = {
         content: {
           "application/json": {
             schema: {
-              type: "array",
-              items: {
-                type: "string",
+              type: "object",
+              description: "5개의 상점 공지",
+              required: ["transactions"],
+              properties: {
+                transactions: {
+                  type: "array",
+                  items: {
+                    type: "string",
+                    example:
+                      "tu**************님께서 일반응모권을(를) 획득하셨습니다.",
+                  },
+                },
               },
             },
           },
