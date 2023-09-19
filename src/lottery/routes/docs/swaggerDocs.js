@@ -1,11 +1,11 @@
-const { eventMode } = require("../../../../loadenv");
+const { eventConfig } = require("../../../../loadenv");
 const globalStateDocs = require("./globalState");
 const itemsDocs = require("./items");
 const transactionsDocs = require("./transactions");
 const itemsSchema = require("./itemsSchema");
 const publicNoticeDocs = require("./publicNotice");
 
-const apiPrefix = `/events/${eventMode}`;
+const apiPrefix = `/events/${eventConfig.mode}`;
 
 const eventSwaggerDocs = {
   tags: [

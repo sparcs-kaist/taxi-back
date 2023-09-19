@@ -20,10 +20,11 @@ const updateEventStatus = async (
     }
   );
 
-const { eventMode } = require("../../../loadenv");
-const eventPeriod = eventMode
-  ? require(`../modules/contracts/${eventMode}`).eventPeriod
-  : undefined;
+const { eventConfig } = require("../../../loadenv");
+const eventPeriod = eventConfig && {
+  startAt: new Date(eventConfig.startAt),
+  endAt: new Date(eventConfig.endAt),
+};
 
 const getRandomItem = async (req, depth) => {
   if (depth >= 10) {
@@ -126,7 +127,10 @@ const purchaseHandler = async (req, res) => {
         .status(400)
         .json({ error: "Items/Purchase : nonexistent eventStatus" });
 
-    if (req.timestamp >= eventPeriod.end || req.timestamp < eventPeriod.start)
+    if (
+      req.timestamp >= eventPeriod.endAt ||
+      req.timestamp < eventPeriod.startAt
+    )
       return res.status(400).json({ error: "Items/Purchase : out of date" });
 
     const { itemId } = req.params;
