@@ -7,7 +7,7 @@ globalStateDocs[`${apiPrefix}/`] = {
     tags: [`${apiPrefix}`],
     summary: "Frontend에서 Global state로 관리하는 정보 반환",
     description:
-      "유저의 재화 개수, 퀘스트 완료 상태 등 Frontend에서 Global state로 관리할 정보를 가져옵니다. 유저에 대한 EventStatus Document가 없을 경우 새롭게 생성합니다.",
+      "유저의 재화 개수, 퀘스트 완료 상태 등 Frontend에서 Global state로 관리할 정보를 가져옵니다.",
     responses: {
       200: {
         description: "",
@@ -16,6 +16,7 @@ globalStateDocs[`${apiPrefix}/`] = {
             schema: {
               type: "object",
               required: [
+                "isAgree",
                 "creditAmount",
                 "completedQuests",
                 "ticket1Amount",
@@ -23,6 +24,11 @@ globalStateDocs[`${apiPrefix}/`] = {
                 "quests",
               ],
               properties: {
+                isAgreeOnTermsOfEvent: {
+                  type: "boolean",
+                  description: "유저의 이벤트 참여 동의 여부",
+                  example: true,
+                },
                 creditAmount: {
                   type: "number",
                   description: "재화 개수. 0 이상입니다.",
@@ -107,6 +113,34 @@ globalStateDocs[`${apiPrefix}/`] = {
                       },
                     },
                   },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+  },
+};
+globalStateDocs[`${apiPrefix}/create`] = {
+  get: {
+    tags: [`${apiPrefix}`],
+    summary: "Frontend에서 Global state로 관리하는 정보 생성",
+    description:
+      "유저의 재화 개수, 퀘스트 완료 상태 등 Frontend에서 Global state로 관리할 정보를 생성합니다.",
+    responses: {
+      200: {
+        description: "",
+        content: {
+          "application/json": {
+            schema: {
+              type: "object",
+              required: ["result"],
+              properties: {
+                result: {
+                  type: "boolean",
+                  description: "성공 여부. 항상 true입니다.",
+                  example: true,
                 },
               },
             },
