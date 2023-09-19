@@ -8,7 +8,8 @@ const instagramEventShareHandler = async (req, res) => {
   try {
     const { userOid: userId } = req;
     const contractResult = await contracts.completeEventSharingOnInstagramQuest(
-      userId
+      userId,
+      req.timestamp
     );
     res.json({ result: !!contractResult });
   } catch (err) {
@@ -26,7 +27,10 @@ const instagramPurchaseShareHandler = async (req, res) => {
   try {
     const { userOid: userId } = req;
     const contractResult =
-      await contracts.completePurchaseSharingOnInstagramQuest(userId);
+      await contracts.completePurchaseSharingOnInstagramQuest(
+        userId,
+        req.timestamp
+      );
     res.json({ result: !!contractResult });
   } catch (err) {
     logger.error(err);

@@ -13,35 +13,26 @@ const hideNickname = (nickname) => {
 
 const getRecentPurchaceItemListHandler = async (req, res) => {
   try {
-    let transactionListString = [];
-    const transactions = await transactionModel
-      .find({ type: "use", itemType: 0 })
-      .sort({ createAt: -1 })
-      .limit(5)
-      .populate(publicNoticePopulateOption)
-      .lean();
-    if (transactions) {
-      transactions.forEach((item, index) => {
-        let purchaceMessage = "";
-        if (item.comment.startsWith("송편")) {
-          purchaceMessage = "구입하셨습니다.";
-        } else if (item.comment.startsWith("랜덤 박스")) {
-          purchaceMessage = "뽑았습니다.";
-        } else {
-          purchaceMessage = "획득하셨습니다.";
-        }
-        transactionListString[index] = `${hideNickname(
-          item.userId.nickname
-        )}님께서 ${item.item.name}을(를) ${purchaceMessage}`;
-      });
-      res.json({
-        transactions: transactionListString,
-      });
-    } else {
-      res.status(500).json({
-        error: "PublicNotice/RecentTransactions : internal server error",
-      });
-    }
+    const transactions = (
+      await transactionModel
+        .find({ type: "use", itemType: 0 })
+        .sort({ createAt: -1 })
+        .limit(5)
+        .populate(publicNoticePopulateOption)
+        .lean()
+    ).map(
+      ({ userId, item, comment }) =>
+        `${hideNickname(userId.nickname)}님께서 ${item.name}을(를) ${
+          comment.startsWith("송편")
+            ? "을(를) 구입하셨습니다."
+            : comment.startsWith("랜덤 박스")
+            ? "을(를) 뽑았습니다."
+            : "을(를) 획득하셨습니다."
+        }`
+    );
+    res.json({
+      transactions: transactions,
+    });
   } catch (err) {
     logger.error(err);
     res.status(500).json({
