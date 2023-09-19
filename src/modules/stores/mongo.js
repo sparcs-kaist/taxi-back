@@ -34,7 +34,7 @@ const participantSchema = Schema({
     enum: ["not-departed", "paid", "send-required", "sent"],
     default: "not-departed",
   },
-  readAt: { type: Date, default: () => Date.now() },
+  readAt: { type: Date },
 });
 
 const deviceTokenSchema = Schema({
