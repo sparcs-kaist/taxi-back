@@ -14,7 +14,9 @@ publicNoticeDocs[`${apiPrefix}/recentTransactions`] = {
           "application/json": {
             schema: {
               type: "array",
-              items: ["string"],
+              items: {
+                type: "string",
+              },
             },
           },
         },
