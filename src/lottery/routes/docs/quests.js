@@ -1,8 +1,8 @@
 const { eventMode } = require("../../../../loadenv");
-const apiPrefix = `/events/${eventMode}/instagram`;
+const apiPrefix = `/events/${eventMode}/quests`;
 
 const eventsDocs = {};
-eventsDocs[`${apiPrefix}/share-event`] = {
+eventsDocs[`${apiPrefix}/instagram/share-event`] = {
   post: {
     tags: [`${apiPrefix}`],
     summary: "이벤트 공유시 보상 반환",
@@ -19,12 +19,11 @@ eventsDocs[`${apiPrefix}/share-event`] = {
           },
         },
       },
-      500: { error: "Events/Insagram/Share-Event" },
     },
   },
 };
 
-eventsDocs[`${apiPrefix}/share-purchase`] = {
+eventsDocs[`${apiPrefix}/instagram/share-purchase`] = {
   post: {
     tags: [`${apiPrefix}`],
     summary: "이벤트 공유시 보상 반환",
@@ -41,7 +40,6 @@ eventsDocs[`${apiPrefix}/share-purchase`] = {
           },
         },
       },
-      500: { error: "Events/Insagram/Share-Purchase" },
     },
   },
 };

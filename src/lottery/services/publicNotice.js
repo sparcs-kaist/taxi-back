@@ -7,7 +7,7 @@ const {
   publicNoticePopulateOption,
 } = require("../modules/populates/publicNotice");
 
-const getRecentTransaction = async (req, res) => {
+const getRecentPurchaceItemListHandler = async (req, res) => {
   try {
     let transactionListString = [];
     const transactions = await transactionModel
@@ -19,9 +19,9 @@ const getRecentTransaction = async (req, res) => {
     if (!!transactions) {
       transactions.forEach((item, index) => {
         let purchaceMessage = "";
-        if (item.comment.includes("구매")) {
+        if (item.comment.startsWith("송편")) {
           purchaceMessage = "구입하셨습니다.";
-        } else if (item.comment.includes("획득")) {
+        } else if (item.comment.startsWith("랜덤 박스")) {
           purchaceMessage = "뽑았습니다.";
         } else {
           purchaceMessage = "획득하셨습니다.";
@@ -113,6 +113,6 @@ const getTicketLeaderboardHandler = async (req, res) => {
 };
 
 module.exports = {
-  getRecentTransaction,
+  getRecentPurchaceItemListHandler,
   getTicketLeaderboardHandler,
 };
