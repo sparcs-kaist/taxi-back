@@ -30,9 +30,7 @@ const getRecentPurchaceItemListHandler = async (req, res) => {
             : "을(를) 획득하셨습니다."
         }`
     );
-    res.json({
-      transactions: transactions,
-    });
+    res.json({ transactions });
   } catch (err) {
     logger.error(err);
     res.status(500).json({
