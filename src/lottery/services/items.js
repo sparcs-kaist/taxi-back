@@ -62,14 +62,13 @@ const getRandomItem = async (req, depth) => {
     // 1단계: 재고를 차감합니다.
     const newRandomItem = await itemModel
       .findOneAndUpdate(
-        { _id: randomItem._id },
+        { _id: randomItem._id, stock: { $gt: 0 } },
         {
           $inc: {
             stock: -1,
           },
         },
         {
-          runValidators: true,
           new: true,
           fields: {
             itemType: 0,
@@ -79,6 +78,9 @@ const getRandomItem = async (req, depth) => {
         }
       )
       .lean();
+    if (!newRandomItem) {
+      throw new Error("The item was already sold out");
+    }
 
     // 2단계: 유저 정보를 업데이트합니다.
     await updateEventStatus(req.userOid, {
