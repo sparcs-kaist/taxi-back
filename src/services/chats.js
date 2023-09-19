@@ -188,12 +188,6 @@ const readChatHandler = async (req, res) => {
     if (!io) {
       return res.status(403).send("Chat/read : socket did not connected");
     }
-    const isPart = await isUserInRoom(userId, roomId);
-    if (!isPart) {
-      return res
-        .status(403)
-        .send("Chat/read : user did not participated in the room");
-    }
 
     const roomObject = await roomModel
       .findOneAndUpdate(
@@ -206,7 +200,7 @@ const readChatHandler = async (req, res) => {
           },
         },
         {
-          $set: { "part.$[updater].readAt": Date.now() },
+          $set: { "part.$[updater].readAt": req.timestamp },
         },
         {
           new: true,
