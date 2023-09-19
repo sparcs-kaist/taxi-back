@@ -10,7 +10,7 @@ router.get("/", globalStateHandlers.getUserGlobalStateHandler);
 router.use(require("../../middlewares/auth"));
 
 router.post("/create",
-  validateBody({phoneNumber: {required: true, type: "string", pattern: "/^010-?([0-9]{3,4})-?([0-9]{4})$/"}}),
+  validateBody(globalStateHandlers.createUserGlobalStateSchema),
   globalStateHandlers.createUserGlobalStateHandler);
 
 module.exports = router;
