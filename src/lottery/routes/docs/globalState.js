@@ -128,6 +128,16 @@ globalStateDocs[`${apiPrefix}/create`] = {
     summary: "Frontend에서 Global state로 관리하는 정보 생성",
     description:
       "유저의 재화 개수, 퀘스트 완료 상태 등 Frontend에서 Global state로 관리할 정보를 생성합니다.",
+    requestBody: {
+      description: "Update an existent user in the store",
+      content: {
+        "application/json": {
+          schema: {
+            $ref: "#/components/schemas/createUserGlobalStateHandler",
+          },
+        },
+      },
+    },
     responses: {
       200: {
         description: "",

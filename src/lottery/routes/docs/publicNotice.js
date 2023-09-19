@@ -5,8 +5,8 @@ const publicNoticeDocs = {};
 publicNoticeDocs[`${apiPrefix}/recentTransactions`] = {
   get: {
     tags: [`${apiPrefix}`],
-    summary: "최근 트랜젝션의 명단 리스트 반환",
-    description: "",
+    summary: "최근의 유의미한 상품 획득 기록 반환",
+    description: "모든 유저의 상품 획득 내역 중 유의미한 기록을 가져옵니다.",
     responses: {
       200: {
         description: "",
@@ -14,11 +14,11 @@ publicNoticeDocs[`${apiPrefix}/recentTransactions`] = {
           "application/json": {
             schema: {
               type: "object",
-              description: "5개의 상점 공지",
               required: ["transactions"],
               properties: {
                 transactions: {
                   type: "array",
+                  description: "상품 획득 기록의 배열",
                   items: {
                     type: "string",
                     example:
@@ -33,7 +33,6 @@ publicNoticeDocs[`${apiPrefix}/recentTransactions`] = {
     },
   },
 };
-
 publicNoticeDocs[`${apiPrefix}/leaderboard`] = {
   get: {
     tags: [`${apiPrefix}`],
