@@ -20,11 +20,6 @@ const updateEventStatus = async (
     }
   );
 
-const { eventMode } = require("../../../loadenv");
-const eventPeriod = eventMode
-  ? require(`../modules/contracts/${eventMode}`).eventPeriod
-  : undefined;
-
 const getRandomItem = async (req, depth) => {
   if (depth >= 10) {
     logger.error(`User ${req.userOid} failed to open random box`);
@@ -61,14 +56,13 @@ const getRandomItem = async (req, depth) => {
     // 1단계: 재고를 차감합니다.
     const newRandomItem = await itemModel
       .findOneAndUpdate(
-        { _id: randomItem._id },
+        { _id: randomItem._id, stock: { $gt: 0 } },
         {
           $inc: {
             stock: -1,
           },
         },
         {
-          runValidators: true,
           new: true,
           fields: {
             itemType: 0,
@@ -78,6 +72,9 @@ const getRandomItem = async (req, depth) => {
         }
       )
       .lean();
+    if (!newRandomItem) {
+      throw new Error("The item was already sold out");
+    }
 
     // 2단계: 유저 정보를 업데이트합니다.
     await updateEventStatus(req.userOid, {
@@ -91,6 +88,7 @@ const getRandomItem = async (req, depth) => {
       amount: 0,
       userId: req.userOid,
       item: randomItem._id,
+      itemType: randomItem.itemType,
       comment: `랜덤 박스에서 "${randomItem.name}" 1개를 획득했습니다.`,
     });
     await transaction.save();
@@ -120,20 +118,16 @@ const listHandler = async (_, res) => {
 
 const purchaseHandler = async (req, res) => {
   try {
-    const now = Date.now();
-    if (now >= eventPeriod.end || now < eventPeriod.start)
-      return res.status(400).json({ error: "Items/Purchase : out of date" });
+    const eventStatus = await eventStatusModel.findOne({ userId: req.userOid });
+    if (!eventStatus)
+      return res
+        .status(400)
+        .json({ error: "Items/Purchase : nonexistent eventStatus" });
 
     const { itemId } = req.params;
     const item = await itemModel.findOne({ _id: itemId }).lean();
     if (!item)
       return res.status(400).json({ error: "Items/Purchase : invalid Item" });
-
-    const eventStatus = await eventStatusModel.find({ userId: req.userOid });
-    if (!eventStatus)
-      return res
-        .status(400)
-        .json({ error: "Items/Purchase : invalid EventStatus" });
 
     // 구매 가능 조건: 크레딧이 충분하며, 재고가 남아있으며, 판매 중인 아이템이어야 합니다.
     if (item.isDisabled)
@@ -148,17 +142,15 @@ const purchaseHandler = async (req, res) => {
         .json({ error: "Items/Purchase : item out of stock" });
 
     // 1단계: 재고를 차감합니다.
-    await itemModel.updateOne(
-      { _id: item._id },
+    const { modifiedCount } = await itemModel.updateOne(
+      { _id: item._id, stock: { $gt: 0 } },
       {
         $inc: {
           stock: -1,
         },
-      },
-      {
-        runValidators: true,
       }
     );
+    if (modifiedCount === 0) throw new Error("The item was already sold out");
 
     // 2단계: 유저 정보를 업데이트합니다.
     await updateEventStatus(req.userOid, {
@@ -173,6 +165,7 @@ const purchaseHandler = async (req, res) => {
       amount: item.price,
       userId: req.userOid,
       item: item._id,
+      itemType: item.itemType,
       comment: `송편 ${item.price}개를 사용해 "${item.name}" 1개를 획득했습니다.`,
     });
     await transaction.save();

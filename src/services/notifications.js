@@ -4,6 +4,9 @@ const logger = require("../modules/logger");
 
 const { registerDeviceToken, validateDeviceToken } = require("../modules/fcm");
 
+// 이벤트 코드입니다.
+const { contracts } = require("../lottery");
+
 const registerDeviceTokenHandler = async (req, res) => {
   try {
     // 해당 FCM device token이 유효한지 검사합니다.
@@ -103,6 +106,13 @@ const editOptionsHandler = async (req, res) => {
         .status(400)
         .send("Notification/editOptions: deviceToken not found");
     }
+
+    // 이벤트 코드입니다.
+    await contracts?.completeAdPushAgreementQuest(
+      req.userOid,
+      req.timestamp,
+      options.advertisement
+    );
 
     res.status(200).json(updatedNotificationOptions);
   } catch (err) {
