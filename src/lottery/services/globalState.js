@@ -1,58 +1,72 @@
-const {
-  eventStatusModel,
-  eventModel,
-  transactionModel,
-  itemModel,
-} = require("../modules/stores/mongo");
+const { eventStatusModel } = require("../modules/stores/mongo");
+const { userModel } = require("../../modules/stores/mongo");
 const logger = require("../../modules/logger");
+const { isLogin, getLoginInfo } = require("../../modules/auths/login");
+
+const { eventConfig } = require("../../../loadenv");
+const contracts =
+  eventConfig && require(`../modules/contracts/${eventConfig.mode}`);
+const quests = contracts ? Object.values(contracts.quests) : undefined;
 
 const getUserGlobalStateHandler = async (req, res) => {
   try {
-    let eventStatus = await eventStatusModel
-      .findOne({ userId: req.userOid })
-      .lean();
-    if (!eventStatus) {
-      // User마다 EventStatus를 가져야 하고, 현재 Taxi에는 회원 탈퇴 시스템이 없으므로, EventStatus가 없으면 새롭게 생성하도록 구현합니다.
-      // EventStatus의 생성은 이곳에서만 이루어집니다!!
-      eventStatus = new eventStatusModel({
-        userId: req.userOid,
+    const userId = isLogin(req) ? getLoginInfo(req).oid : null;
+    const eventStatus =
+      userId &&
+      (await eventStatusModel.findOne({ userId }, "-_id -userId -__v").lean());
+    if (eventStatus)
+      return res.json({
+        isAgreeOnTermsOfEvent: true,
+        ...eventStatus,
+        quests,
       });
-      await eventStatus.save();
-    }
-
-    const ticket1Amount = await transactionModel.count({
-      userId: req.userOid,
-      type: "use",
-      item: {
-        $exists: true,
-        $ne: null,
-      },
-      itemType: 1,
-    });
-    const ticket2Amount = await transactionModel.count({
-      userId: req.userOid,
-      type: "use",
-      item: {
-        $exists: true,
-        $ne: null,
-      },
-      itemType: 2,
-    });
-    const events = await eventModel.find({}, "-__v").lean();
-
-    res.json({
-      creditAmount: eventStatus.creditAmount,
-      eventStatus: eventStatus.eventList.map((id) => id.toString()),
-      ticket1Amount,
-      ticket2Amount,
-      events,
-    });
+    else
+      return res.json({
+        isAgreeOnTermsOfEvent: false,
+        completedQuests: [],
+        creditAmount: 0,
+        ticket1Amount: 0,
+        ticket2Amount: 0,
+        quests,
+      });
   } catch (err) {
     logger.error(err);
     res.status(500).json({ error: "GlobalState/ : internal server error" });
   }
 };
 
+const createUserGlobalStateHandler = async (req, res) => {
+  try {
+    let eventStatus = await eventStatusModel
+      .findOne({ userId: req.userOid })
+      .lean();
+    if (eventStatus)
+      return res
+        .status(400)
+        .json({ error: "GlobalState/Create : already created" });
+
+    eventStatus = new eventStatusModel({
+      userId: req.userOid,
+    });
+    await eventStatus.save();
+
+    //logic2. 수집한 유저 전화번호 user Scheme 에 저장
+    const user = await userModel.findOne({ _id: req.userOid });
+    user.phoneNumber = req.body.phoneNumber;
+    await user.save();
+
+    await contracts.completeFirstLoginQuest(req.userOid, req.timestamp);
+
+    res.json({ result: true });
+  } catch (err) {
+    logger.error(err);
+    res
+      .status(500)
+      .json({ error: "GlobalState/Create : internal server error" });
+  }
+};
+
 module.exports = {
   getUserGlobalStateHandler,
+  createUserGlobalStateHandler,
 };

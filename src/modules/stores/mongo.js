@@ -12,6 +12,7 @@ const userSchema = Schema({
   ongoingRoom: [{ type: Schema.Types.ObjectId, ref: "Room" }], // 참여중인 진행중인 방 배열
   doneRoom: [{ type: Schema.Types.ObjectId, ref: "Room" }], // 참여중인 완료된 방 배열
   withdraw: { type: Boolean, default: false },
+  phoneNumber: { type: String }, // 전화번호 (2023FALL 이벤트부터 추가)
   ban: { type: Boolean, default: false }, //계정 정지 여부
   joinat: { type: Date, required: true }, //가입 시각
   agreeOnTermsOfService: { type: Boolean, default: false }, //이용약관 동의 여부
