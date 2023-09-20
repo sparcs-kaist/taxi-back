@@ -7,25 +7,46 @@ const {
   publicNoticePopulateOption,
 } = require("../modules/populates/transactions");
 
+const hideNickname = (nickname) => {
+  return `${nickname.toString().slice(0, 2)}${"*".repeat(nickname.length - 2)}`;
+};
+
+const getValueRank = (item, createAt, timestamp) => {
+  return (
+    (parseInt(
+      (new Date(createAt).getTime() / timestamp).toString().slice(7, 10)
+    ) *
+      item.price) /
+    1000
+  );
+};
+
 const getRecentPurchaceItemListHandler = async (req, res) => {
   try {
     const transactions = (
       await transactionModel
         .find({ type: "use", itemType: 0 })
         .sort({ createAt: -1 })
-        .limit(5)
+        .limit(1000)
         .populate(publicNoticePopulateOption)
         .lean()
-    ).map(
-      ({ userId, item, comment }) =>
-        `${userId.nickname}님께서 ${item.name}을(를) ${
-          comment.startsWith("송편")
-            ? "을(를) 구입하셨습니다."
-            : comment.startsWith("랜덤 박스")
-            ? "을(를) 뽑았습니다."
-            : "을(를) 획득하셨습니다."
-        }`
-    );
+    )
+      .sort(
+        (x, y) =>
+          getValueRank(y.item, y.createAt, req.timestamp) -
+          getValueRank(x.item, x.createAt, req.timestamp)
+      )
+      .slice(0, 5)
+      .map(
+        ({ userId, item, comment }) =>
+          `${hideNickname(userId.nickname)}님께서 ${item.name}을(를) ${
+            comment.startsWith("송편")
+              ? " 을(를) 구입하셨습니다."
+              : comment.startsWith("랜덤 박스")
+              ? "을(를) 뽑았습니다."
+              : "을(를) 획득하셨습니다."
+          }`
+      );
     res.json({ transactions });
   } catch (err) {
     logger.error(err);
@@ -69,7 +90,7 @@ const getTicketLeaderboardHandler = async (req, res) => {
           return null;
         }
         return {
-          nickname: userInfo.nickname,
+          nickname: hideNickname(userInfo.nickname),
           profileImageUrl: userInfo.profileImageUrl,
           ticket1Amount: user.ticket1Amount,
           ticket2Amount: user.ticket2Amount,
