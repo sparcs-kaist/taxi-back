@@ -7,10 +7,6 @@ const {
   publicNoticePopulateOption,
 } = require("../modules/populates/transactions");
 
-const hideNickname = (nickname) => {
-  return `${nickname.toString().slice(0, 2)}${"*".repeat(nickname.length - 2)}`;
-};
-
 const getRecentPurchaceItemListHandler = async (req, res) => {
   try {
     const transactions = (
@@ -22,7 +18,7 @@ const getRecentPurchaceItemListHandler = async (req, res) => {
         .lean()
     ).map(
       ({ userId, item, comment }) =>
-        `${hideNickname(userId.nickname)}님께서 ${item.name}을(를) ${
+        `${userId.nickname}님께서 ${item.name}을(를) ${
           comment.startsWith("송편")
             ? "을(를) 구입하셨습니다."
             : comment.startsWith("랜덤 박스")
@@ -73,7 +69,7 @@ const getTicketLeaderboardHandler = async (req, res) => {
           return null;
         }
         return {
-          nickname: hideNickname(userInfo.nickname),
+          nickname: userInfo.nickname,
           profileImageUrl: userInfo.profileImageUrl,
           ticket1Amount: user.ticket1Amount,
           ticket2Amount: user.ticket2Amount,
