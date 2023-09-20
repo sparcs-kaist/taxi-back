@@ -20,12 +20,6 @@ const updateEventStatus = async (
     }
   );
 
-const { eventConfig } = require("../../../loadenv");
-const eventPeriod = eventConfig && {
-  startAt: new Date(eventConfig.startAt),
-  endAt: new Date(eventConfig.endAt),
-};
-
 const getRandomItem = async (req, depth) => {
   if (depth >= 10) {
     logger.error(`User ${req.userOid} failed to open random box`);
@@ -129,12 +123,6 @@ const purchaseHandler = async (req, res) => {
       return res
         .status(400)
         .json({ error: "Items/Purchase : nonexistent eventStatus" });
-
-    if (
-      req.timestamp >= eventPeriod.endAt ||
-      req.timestamp < eventPeriod.startAt
-    )
-      return res.status(400).json({ error: "Items/Purchase : out of date" });
 
     const { itemId } = req.params;
     const item = await itemModel.findOne({ _id: itemId }).lean();

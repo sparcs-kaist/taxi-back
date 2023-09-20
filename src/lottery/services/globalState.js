@@ -4,10 +4,6 @@ const logger = require("../../modules/logger");
 const { isLogin, getLoginInfo } = require("../../modules/auths/login");
 
 const { eventConfig } = require("../../../loadenv");
-const eventPeriod = eventConfig && {
-  startAt: new Date(eventConfig.startAt),
-  endAt: new Date(eventConfig.endAt),
-};
 const contracts =
   eventConfig && require(`../modules/contracts/${eventConfig.mode}`);
 const quests = contracts ? Object.values(contracts.quests) : undefined;
@@ -41,14 +37,6 @@ const getUserGlobalStateHandler = async (req, res) => {
 
 const createUserGlobalStateHandler = async (req, res) => {
   try {
-    if (
-      req.timestamp >= eventPeriod.endAt ||
-      req.timestamp < eventPeriod.startAt
-    )
-      return res
-        .status(400)
-        .json({ error: "GlobalState/Create : out of date" });
-
     let eventStatus = await eventStatusModel
       .findOne({ userId: req.userOid })
       .lean();
