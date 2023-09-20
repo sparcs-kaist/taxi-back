@@ -83,7 +83,7 @@ const quests = buildQuests({
   eventSharingOnInstagram: {
     name: "나만 알기에는 아까운 이벤트",
     description:
-      "추석에 맞춰 쏟아지는 혜택들. 나만 알 순 없죠. 인스타그램 친구들에게 스토리로 공유해보아요. <b>이벤트 안내 페이지</b>에서 <b>인스타그램 스토리로 이벤트 공유하기 버튼</b>을 눌러보세요.",
+      "추석에 맞춰 쏟아지는 혜택들. 나만 알 순 없죠. 인스타그램 친구들에게 스토리로 공유해보아요. <b>이벤트 안내 페이지</b>에서 <b>인스타그램 스토리에 공유하기</b>을 눌러보세요.",
     imageUrl:
       "https://sparcs-taxi-prod.s3.ap-northeast-2.amazonaws.com/assets/event-2023fall/quest_eventSharingOnInstagram.png",
     reward: 100,
@@ -91,7 +91,7 @@ const quests = buildQuests({
   purchaseSharingOnInstagram: {
     name: "상품 획득을 축하합니다",
     description:
-      "이벤트를 열심히 즐긴 당신. 그 상품 획득을 축하 받을 자격이 충분합니다. <b>달토끼 상점</b>에서 상품 구매 후 뜨는 <b></b> 버튼을 눌러 상품 획득을 공유하세요.",
+      "이벤트를 열심히 즐긴 당신. 그 상품 획득을 축하 받을 자격이 충분합니다. <b>달토끼 상점</b>에서 상품 구매 후 뜨는 <b>인스타그램 스토리에 공유하기</b> 버튼을 눌러 상품 획득을 공유하세요.",
     imageUrl:
       "https://sparcs-taxi-prod.s3.ap-northeast-2.amazonaws.com/assets/event-2023fall/quest_purchaseSharingOnInstagram.png",
     reward: 100,
