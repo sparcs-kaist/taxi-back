@@ -1,9 +1,9 @@
 const { eventStatusModel } = require("../modules/stores/mongo");
+const { userModel } = require("../../modules/stores/mongo");
 const logger = require("../../modules/logger");
 const { isLogin, getLoginInfo } = require("../../modules/auths/login");
 
 const { eventConfig } = require("../../../loadenv");
-const { userModel } = require("../../modules/stores/mongo");
 const contracts =
   eventConfig && require(`../modules/contracts/${eventConfig.mode}`);
 const quests = contracts ? Object.values(contracts.quests) : undefined;

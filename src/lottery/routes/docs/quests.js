@@ -18,7 +18,7 @@ eventsDocs[`${apiPrefix}/instagram/share-event`] = {
               properties: {
                 result: {
                   type: "boolean",
-                  description: "성공 여부. 항상 true입니다.",
+                  description: "성공 여부",
                   example: true,
                 },
               },
@@ -45,7 +45,7 @@ eventsDocs[`${apiPrefix}/instagram/share-purchase`] = {
               required: ["result"],
               properties: {
                 result: {
-                  description: "성공 여부. 항상 true입니다.",
+                  description: "성공 여부",
                   type: "boolean",
                   example: true,
                 },
