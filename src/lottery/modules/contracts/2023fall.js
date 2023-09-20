@@ -33,7 +33,7 @@ const quests = buildQuests({
   roomSharing: {
     name: "Taxi로 모여라",
     description:
-      "방을 공유해 친구들을 택시에 초대해보세요. 채팅창 상단의 햄버거 버튼을 누르면 <b>공유하기</b> 버튼을 찾을 수 있어요.",
+      "방을 공유해 친구들을 택시에 초대해보세요. 채팅창 상단의 햄버거(☰) 버튼을 누르면 <b>공유하기</b> 버튼을 찾을 수 있어요.",
     imageUrl:
       "https://sparcs-taxi-prod.s3.ap-northeast-2.amazonaws.com/assets/event-2023fall/quest_roomSharing.png",
     reward: 50,
@@ -59,7 +59,7 @@ const quests = buildQuests({
   nicknameChanging: {
     name: "닉네임 변신",
     description:
-      "닉네임을 변경하여 자신을 표현하세요. <b>마이페이지</b>의 수정하기 버튼을 눌러 닉네임을 수정할 수 있어요.",
+      "닉네임을 변경하여 자신을 표현하세요. <b>마이페이지</b>의 <b>수정하기</b> 버튼을 눌러 닉네임을 수정할 수 있어요.",
     imageUrl:
       "https://sparcs-taxi-prod.s3.ap-northeast-2.amazonaws.com/assets/event-2023fall/quest_nicknameChanging.png",
     reward: 50,
@@ -110,29 +110,19 @@ const completeFirstLoginQuest = async (userId, timestamp) => {
 };
 
 /**
- * payingAndSending 퀘스트의 완료를 요청합니다. 방의 참가자 수가 2명 미만이거나, 모든 참가자가 정산 또는 송금을 완료하지 않았다면 요청하지 않습니다.
+ * payingAndSending 퀘스트의 완료를 요청합니다. 방의 참가자 수가 2명 미만이면 요청하지 않습니다.
+ * @param {string|mongoose.Types.ObjectId} userId - 퀘스트를 완료한 사용자의 ObjectId입니다.
  * @param {number|Date} timestamp - 퀘스트 완료를 요청한 시각입니다.
  * @param {Object} roomObject - 방의 정보입니다.
  * @param {Array<{ user: mongoose.Types.ObjectId }>} roomObject.part - 참여자 목록입니다.
- * @param {number} roomObject.settlementTotal - 정산 또는 송금이 완료된 참여자 수입니다.
  * @returns {Promise}
  * @description 정산 요청 또는 송금이 이루어질 때마다 호출해 주세요.
  * @usage rooms - commitPaymentHandler, rooms - settlementHandler
  */
-const completePayingAndSendingQuest = async (timestamp, roomObject) => {
+const completePayingAndSendingQuest = async (userId, timestamp, roomObject) => {
   if (roomObject.part.length < 2) return null;
-  if (roomObject.part.length > roomObject.settlementTotal) return null;
 
-  return await Promise.all(
-    roomObject.part.map(
-      async (participant) =>
-        await completeQuest(
-          participant.user._id,
-          timestamp,
-          quests.payingAndSending
-        )
-    )
-  );
+  return await completeQuest(userId, timestamp, quests.payingAndSending);
 };
 
 /**
