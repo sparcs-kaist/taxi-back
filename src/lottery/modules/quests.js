@@ -98,7 +98,8 @@ const completeQuest = async (userId, timestamp, quest) => {
     // 5단계: 완료 보상 중 티켓이 있는 경우, 티켓 정보를 가져옵니다.
     const ticket1 =
       quest.reward.ticket1 && (await itemModel.findOne({ itemType: 1 }).lean());
-    if (quest.reward.ticket1 && !ticket1) throw "Fail to find ticket1";
+    if (quest.reward.ticket1 && !ticket1)
+      throw new Error("Fail to find ticket1");
 
     // 6단계: 유저의 EventStatus를 업데이트합니다.
     await eventStatusModel.updateOne(

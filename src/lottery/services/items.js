@@ -78,7 +78,7 @@ const getRandomItem = async (req, depth) => {
       )
       .lean();
     if (!newRandomItem) {
-      throw new Error("The item was already sold out");
+      throw new Error(`Item ${randomItem._id.toString()} was already sold out`);
     }
 
     // 2단계: 유저 정보를 업데이트합니다.
@@ -155,7 +155,10 @@ const purchaseHandler = async (req, res) => {
         },
       }
     );
-    if (modifiedCount === 0) throw new Error("The item was already sold out");
+    if (modifiedCount === 0)
+      return res
+        .status(400)
+        .json({ error: "Items/Purchase : item out of stock" });
 
     // 2단계: 유저 정보를 업데이트합니다.
     await updateEventStatus(req.userOid, {
