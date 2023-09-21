@@ -112,7 +112,7 @@ const listHandler = async (_, res) => {
     const items = await itemModel
       .find({}, "name imageUrl price description isDisabled stock itemType")
       .lean();
-    res.json({ items: items.map((item) => hideItemStock(item)) });
+    res.json({ items: items.map(hideItemStock) });
   } catch (err) {
     logger.error(err);
     res.status(500).json({ error: "Items/List : internal server error" });

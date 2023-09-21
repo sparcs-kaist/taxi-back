@@ -20,9 +20,7 @@ const getUserTransactionsHandler = async (req, res) => {
       .lean();
     if (transactions)
       res.json({
-        transactions: transactions.map((transaction) =>
-          hideItemStock(transaction)
-        ),
+        transactions: transactions.map(hideItemStock),
       });
     else
       res.status(500).json({ error: "Transactions/ : internal server error" });
