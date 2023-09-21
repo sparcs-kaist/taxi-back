@@ -39,9 +39,7 @@ const getRandomItem = async (req, depth) => {
     })
     .lean();
   const randomItems = items
-    .map((item) => {
-      return Array(item.randomWeight).fill(item);
-    })
+    .map((item) => Array(item.randomWeight).fill(item))
     .reduce((a, b) => a.concat(b), []);
   const dumpRandomItems = randomItems
     .map((item) => item._id.toString())
@@ -182,10 +180,30 @@ const purchaseHandler = async (req, res) => {
     if (item.itemType !== 3) return res.json({ result: true });
 
     const randomItem = await getRandomItem(req, 0);
-    if (!randomItem)
+    if (!randomItem) {
+      // 랜덤박스가 실패한 경우, 상태를 구매 이전으로 되돌립니다.
+      // TODO: Transactions 도입 후 이 코드는 삭제합니다.
+      logger.info(`User ${req.userOid}'s status will be restored`);
+
+      await transactionModel.deleteOne({ _id: transaction._id });
+      await updateEventStatus(req.userOid, {
+        creditDelta: item.price,
+      });
+      await itemModel.updateOne(
+        { _id: item._id },
+        {
+          $inc: {
+            stock: 1,
+          },
+        }
+      );
+
+      logger.info(`User ${req.userOid}'s status was successfully restored`);
+
       return res
         .status(500)
         .json({ error: "Items/Purchase : random box error" });
+    }
 
     res.json({
       result: true,
