@@ -72,7 +72,7 @@ const recordActionAfterHandler = (actions) => async (res, req, context) => {
   return res;
 };
 
-const recordAction = (actionName, handler, logActions) => ({
+const buildRecordAction = (actionName, handler, logActions) => ({
   actionName,
   actionType: "record",
   component: false,
@@ -100,6 +100,6 @@ const buildResource =
 
 module.exports = {
   generateTarget,
-  recordAction,
+  buildRecordAction,
   buildResource,
 };
