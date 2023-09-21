@@ -20,6 +20,11 @@ const updateEventStatus = async (
     }
   );
 
+const hideItemStock = (item) => {
+  item.stock = item.stock > 0 ? 1 : 0;
+  return item;
+};
+
 const getRandomItem = async (req, depth) => {
   if (depth >= 10) {
     logger.error(`User ${req.userOid} failed to open random box`);
@@ -89,7 +94,7 @@ const getRandomItem = async (req, depth) => {
       userId: req.userOid,
       item: randomItem._id,
       itemType: randomItem.itemType,
-      comment: `랜덤 박스에서 "${randomItem.name}" 1개를 획득했습니다.`,
+      comment: `랜덤박스에서 "${randomItem.name}" 1개를 획득했습니다.`,
     });
     await transaction.save();
 
@@ -109,7 +114,7 @@ const listHandler = async (_, res) => {
     const items = await itemModel
       .find({}, "name imageUrl price description isDisabled stock itemType")
       .lean();
-    res.json({ items });
+    res.json({ items: items.map((item) => hideItemStock(item)) });
   } catch (err) {
     logger.error(err);
     res.status(500).json({ error: "Items/List : internal server error" });
@@ -181,7 +186,7 @@ const purchaseHandler = async (req, res) => {
 
     res.json({
       result: true,
-      reward: randomItem,
+      reward: hideItemStock(randomItem),
     });
   } catch (err) {
     logger.error(err);
