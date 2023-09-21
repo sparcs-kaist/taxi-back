@@ -43,8 +43,8 @@ const itemBase = {
     },
     stock: {
       type: "number",
-      description: "남은 상품 재고. 0 이상입니다.",
-      example: 10,
+      description: "남은 상품 재고. 재고가 있는 경우 1, 없는 경우 0입니다.",
+      example: 1,
     },
   },
 };
