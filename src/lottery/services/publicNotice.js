@@ -50,7 +50,7 @@ const getRecentPurchaceItemListHandler = async (req, res) => {
         text: `${userId.nickname}님께서 ${item.name}${
           comment.startsWith("송편")
             ? "을(를) 구입하셨습니다."
-            : comment.startsWith("랜덤 박스")
+            : comment.startsWith("랜덤박스")
             ? "을(를) 뽑았습니다."
             : "을(를) 획득하셨습니다."
         }`,
