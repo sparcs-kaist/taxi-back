@@ -42,6 +42,9 @@ const buildQuests = (quests) => {
 
     // quest.maxCount가 없는 경우, 기본값(1)으로 설정합니다.
     quest.maxCount = quest.maxCount || 1;
+
+    // quest.isApiRequired가 없는 경우, 기본값(false)으로 설정합니다.
+    quest.isApiRequired = quest.isApiRequired || false;
   }
 
   return quests;

@@ -66,6 +66,7 @@ globalStateDocs[`${apiPrefix}/`] = {
                       "imageUrl",
                       "reward",
                       "maxCount",
+                      "isApiRequired",
                     ],
                     properties: {
                       id: {
@@ -111,6 +112,11 @@ globalStateDocs[`${apiPrefix}/`] = {
                         description: "최대 완료 가능 횟수",
                         example: 1,
                       },
+                      isApiRequired: {
+                        type: "boolean",
+                        description: `/events/${eventConfig.mode}/quests/complete/:questId API를 통해 퀘스트 완료를 요청할 수 있는지 여부`,
+                        example: false,
+                      },
                     },
                   },
                 },
@@ -123,13 +129,13 @@ globalStateDocs[`${apiPrefix}/`] = {
   },
 };
 globalStateDocs[`${apiPrefix}/create`] = {
-  get: {
+  post: {
     tags: [`${apiPrefix}`],
     summary: "Frontend에서 Global state로 관리하는 정보 생성",
     description:
       "유저의 재화 개수, 퀘스트 완료 상태 등 Frontend에서 Global state로 관리할 정보를 생성합니다.",
     requestBody: {
-      description: "Update an existent user in the store",
+      description: "",
       content: {
         "application/json": {
           schema: {
