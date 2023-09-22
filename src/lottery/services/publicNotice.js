@@ -56,7 +56,6 @@ const getRecentPurchaceItemListHandler = async (req, res) => {
         }`,
         createAt,
       }));
-    console.log(transactions);
     res.json({ transactions });
   } catch (err) {
     logger.error(err);
