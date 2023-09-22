@@ -137,8 +137,16 @@ const completeFirstRoomCreationQuest = async (userId, timestamp) => {
   return await completeQuest(userId, timestamp, quests.firstRoomCreation);
 };
 
-const completeRoomSharingQuest = async () => {
-  // TODO
+/**
+ * roomSharing 퀘스트의 완료를 요청합니다.
+ * @param {string|mongoose.Types.ObjectId} userId - 퀘스트를 완료한 사용자의 ObjectId입니다.
+ * @param {number|Date} timestamp - 퀘스트 완료를 요청한 시각입니다.
+ * @returns {Promise}
+ * @description 인스타그램 스토리에 추석 이벤트를 공유할 때마다 호출해 주세요.
+ * @usage quests - instagramEventShareHandler
+ */
+const completeRoomSharingQuest = async (userId, timestamp) => {
+  return await completeQuest(userId, timestamp, quests.roomSharing);
 };
 
 /**

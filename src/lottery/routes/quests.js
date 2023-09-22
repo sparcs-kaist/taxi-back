@@ -5,6 +5,7 @@ const quests = require("../services/quests");
 router.use(require("../../middlewares/auth"));
 router.use(require("../middlewares/timestampValidator"));
 
+router.post("/share-room", quests.roomShareHandler);
 router.post("/instagram/share-event", quests.instagramEventShareHandler);
 router.post("/instagram/share-purchase", quests.instagramPurchaseShareHandler);
 

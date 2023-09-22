@@ -2,6 +2,23 @@ const logger = require("../../modules/logger");
 const contracts = require("../modules/contracts/2023fall");
 
 /**
+ * 방을 공유했을 때.
+ */
+const roomShareHandler = async (req, res) => {
+  try {
+    const { userOid } = req;
+    const contractResult = await contracts.completeRoomSharingQuest(
+      userOid,
+      req.timestamp
+    );
+    res.json({ result: !!contractResult });
+  } catch (err) {
+    logger.error(err);
+    res.status(500).json({ error: "Quests/ShareRoom: internal server error" });
+  }
+};
+
+/**
  * 인스타그램 스토리에 이벤트를 공유했을 때.
  */
 const instagramEventShareHandler = async (req, res) => {
@@ -41,6 +58,7 @@ const instagramPurchaseShareHandler = async (req, res) => {
 };
 
 module.exports = {
+  roomShareHandler,
   instagramEventShareHandler,
   instagramPurchaseShareHandler,
 };
