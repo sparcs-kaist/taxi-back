@@ -1,7 +1,7 @@
 const transactionPopulateOption = [
   {
     path: "item",
-    select: "name imageUrl price description isDisabled stock itemType",
+    select: "-isRandomItem -randomWeight",
   },
 ];
 
