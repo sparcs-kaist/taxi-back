@@ -37,14 +37,14 @@ const buildQuests = (quests) => {
     }
 
     // quest.reward에 누락된 필드가 있는 경우, 기본값(0)으로 설정합니다.
-    quest.reward.credit = quest.reward.credit || 0;
-    quest.reward.ticket1 = quest.reward.ticket1 || 0;
+    quest.reward.credit = quest.reward.credit ?? 0;
+    quest.reward.ticket1 = quest.reward.ticket1 ?? 0;
 
     // quest.maxCount가 없는 경우, 기본값(1)으로 설정합니다.
-    quest.maxCount = quest.maxCount || 1;
+    quest.maxCount = quest.maxCount ?? 1;
 
     // quest.isApiRequired가 없는 경우, 기본값(false)으로 설정합니다.
-    quest.isApiRequired = quest.isApiRequired || false;
+    quest.isApiRequired = quest.isApiRequired ?? false;
   }
 
   return quests;
