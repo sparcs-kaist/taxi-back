@@ -110,7 +110,10 @@ const getRandomItem = async (req, depth) => {
 const listHandler = async (_, res) => {
   try {
     const items = await itemModel
-      .find({}, "-isRandomItem -randomWeight")
+      .find(
+        {},
+        "name imageUrl instagramStoryStickerImageUrl price description isDisabled stock itemType"
+      )
       .lean();
     res.json({ items: items.map(hideItemStock) });
   } catch (err) {

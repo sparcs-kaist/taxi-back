@@ -9,7 +9,7 @@ const quests = eventConfig
 const completeHandler = async (req, res) => {
   try {
     const quest = quests[req.params.questId];
-    if (!quest?.isApiRequired)
+    if (!quest || !quest.isApiRequired)
       return res.status(400).json({ error: "Quests/Complete: invalid Quest" });
 
     const result = await completeQuest(req.userOid, req.timestamp, quest);
