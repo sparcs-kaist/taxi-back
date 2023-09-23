@@ -57,6 +57,9 @@ const itemSchema = Schema({
     type: String,
     required: true,
   },
+  instagramStoryStickerImageUrl: {
+    type: String,
+  },
   price: {
     type: Number,
     required: true,

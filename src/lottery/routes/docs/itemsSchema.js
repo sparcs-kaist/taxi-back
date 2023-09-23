@@ -26,6 +26,11 @@ const itemBase = {
       description: "이미지 썸네일 URL",
       example: "THUMBNAIL URL",
     },
+    instagramStoryStickerImageUrl: {
+      type: "string",
+      description: "인스타그램 스토리 스티커 이미지 URL",
+      example: "STICKER URL",
+    },
     price: {
       type: "number",
       description: "상품의 가격. 0 이상입니다.",
