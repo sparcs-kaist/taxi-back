@@ -37,6 +37,7 @@ const quests = buildQuests({
     imageUrl:
       "https://sparcs-taxi-prod.s3.ap-northeast-2.amazonaws.com/assets/event-2023fall/quest_roomSharing.png",
     reward: 50,
+    isApiRequired: true,
   },
   paying: {
     name: "정산해요 택시의 숲",
@@ -87,6 +88,7 @@ const quests = buildQuests({
     imageUrl:
       "https://sparcs-taxi-prod.s3.ap-northeast-2.amazonaws.com/assets/event-2023fall/quest_eventSharingOnInstagram.png",
     reward: 100,
+    isApiRequired: true,
   },
   purchaseSharingOnInstagram: {
     name: "상품 획득을 축하합니다",
@@ -95,6 +97,7 @@ const quests = buildQuests({
     imageUrl:
       "https://sparcs-taxi-prod.s3.ap-northeast-2.amazonaws.com/assets/event-2023fall/quest_purchaseSharingOnInstagram.png",
     reward: 100,
+    isApiRequired: true,
   },
 });
 
@@ -135,10 +138,6 @@ const completePayingAndSendingQuest = async (userId, timestamp, roomObject) => {
  */
 const completeFirstRoomCreationQuest = async (userId, timestamp) => {
   return await completeQuest(userId, timestamp, quests.firstRoomCreation);
-};
-
-const completeRoomSharingQuest = async () => {
-  // TODO
 };
 
 /**
@@ -219,45 +218,14 @@ const completeAdPushAgreementQuest = async (
   return await completeQuest(userId, timestamp, quests.adPushAgreement);
 };
 
-/**
- * eventSharingOnInstagram 퀘스트의 완료를 요청합니다.
- * @param {string|mongoose.Types.ObjectId} userId - 퀘스트를 완료한 사용자의 ObjectId입니다.
- * @param {number|Date} timestamp - 퀘스트 완료를 요청한 시각입니다.
- * @returns {Promise}
- * @description 인스타그램 스토리에 추석 이벤트를 공유할 때마다 호출해 주세요.
- * @usage quests - instagramEventShareHandler
- */
-const completeEventSharingOnInstagramQuest = async (userId, timestamp) => {
-  return await completeQuest(userId, timestamp, quests.eventSharingOnInstagram);
-};
-
-/**
- * purchaseSharingOnInstagram 퀘스트의 완료를 요청합니다.
- * @param {string|mongoose.Types.ObjectId} userId - 퀘스트를 완료한 사용자의 ObjectId입니다.
- * @param {number|Date} timestamp - 퀘스트 완료를 요청한 시각입니다.
- * @returns {Promise}
- * @description 인스타그램 스토리에 구매한 아이템을 공유할 때마다 호출해 주세요.
- * @usage quests - instagramPurchaseShareHandler
- */
-const completePurchaseSharingOnInstagramQuest = async (userId, timestamp) => {
-  return await completeQuest(
-    userId,
-    timestamp,
-    quests.purchaseSharingOnInstagram
-  );
-};
-
 module.exports = {
   quests,
   completeFirstLoginQuest,
   completePayingAndSendingQuest,
   completeFirstRoomCreationQuest,
-  completeRoomSharingQuest,
   completePayingQuest,
   completeSendingQuest,
   completeNicknameChangingQuest,
   completeAccountChangingQuest,
   completeAdPushAgreementQuest,
-  completeEventSharingOnInstagramQuest,
-  completePurchaseSharingOnInstagramQuest,
 };
