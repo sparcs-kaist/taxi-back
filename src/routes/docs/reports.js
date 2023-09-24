@@ -1,5 +1,3 @@
-const errorsDocs = require("./errors");
-
 const reportsDocs = {
   "/reports/create": {
     post: {
@@ -28,7 +26,6 @@ const reportsDocs = {
             },
           },
         },
-        500: errorsDocs["500"],
       },
     },
   },
@@ -57,7 +54,6 @@ const reportsDocs = {
             },
           },
         },
-        500: errorsDocs["500"],
       },
     },
   },
