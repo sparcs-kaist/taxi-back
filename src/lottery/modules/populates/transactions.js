@@ -1,7 +1,8 @@
 const transactionPopulateOption = [
   {
     path: "item",
-    select: "name imageUrl price description isDisabled stock itemType",
+    select:
+      "name imageUrl instagramStoryStickerImageUrl price description isDisabled stock itemType",
   },
 ];
 

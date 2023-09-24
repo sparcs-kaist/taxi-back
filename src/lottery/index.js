@@ -6,8 +6,13 @@ const {
   transactionModel,
 } = require("./modules/stores/mongo");
 
-const { eventConfig } = require("../../loadenv");
 const { buildResource } = require("../modules/adminResource");
+const {
+  addOneItemStockAction,
+  addFiveItemStockAction,
+} = require("./modules/items");
+
+const { eventConfig } = require("../../loadenv");
 
 // [Routes] 기존 docs 라우터의 docs extend
 eventConfig && require("./routes/docs")();
@@ -24,18 +29,19 @@ lotteryRouter.use("/items", require("./routes/items"));
 lotteryRouter.use("/public-notice", require("./routes/publicNotice"));
 lotteryRouter.use("/quests", require("./routes/quests"));
 
-const resources = [
-  eventStatusModel,
-  questModel,
-  itemModel,
-  transactionModel,
-].map(buildResource());
+const itemResource = buildResource([
+  addOneItemStockAction,
+  addFiveItemStockAction,
+])(itemModel);
+const otherResources = [eventStatusModel, questModel, transactionModel].map(
+  buildResource()
+);
 
 const contracts =
   eventConfig && require(`./modules/contracts/${eventConfig.mode}`);
 
 module.exports = {
   lotteryRouter,
-  resources,
+  resources: [itemResource, ...otherResources],
   contracts,
 };

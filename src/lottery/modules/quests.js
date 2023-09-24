@@ -37,11 +37,14 @@ const buildQuests = (quests) => {
     }
 
     // quest.reward에 누락된 필드가 있는 경우, 기본값(0)으로 설정합니다.
-    quest.reward.credit = quest.reward.credit || 0;
-    quest.reward.ticket1 = quest.reward.ticket1 || 0;
+    quest.reward.credit = quest.reward.credit ?? 0;
+    quest.reward.ticket1 = quest.reward.ticket1 ?? 0;
 
     // quest.maxCount가 없는 경우, 기본값(1)으로 설정합니다.
-    quest.maxCount = quest.maxCount || 1;
+    quest.maxCount = quest.maxCount ?? 1;
+
+    // quest.isApiRequired가 없는 경우, 기본값(false)으로 설정합니다.
+    quest.isApiRequired = quest.isApiRequired ?? false;
   }
 
   return quests;
@@ -98,7 +101,8 @@ const completeQuest = async (userId, timestamp, quest) => {
     // 5단계: 완료 보상 중 티켓이 있는 경우, 티켓 정보를 가져옵니다.
     const ticket1 =
       quest.reward.ticket1 && (await itemModel.findOne({ itemType: 1 }).lean());
-    if (quest.reward.ticket1 && !ticket1) throw "Fail to find ticket1";
+    if (quest.reward.ticket1 && !ticket1)
+      throw new Error("Fail to find ticket1");
 
     // 6단계: 유저의 EventStatus를 업데이트합니다.
     await eventStatusModel.updateOne(

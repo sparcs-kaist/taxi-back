@@ -46,7 +46,12 @@ publicNoticeDocs[`${apiPrefix}/leaderboard`] = {
           "application/json": {
             schema: {
               type: "object",
-              required: ["leaderboard"],
+              required: [
+                "leaderboard",
+                "totalTicket1Amount",
+                "totalTicket2Amount",
+                "totalUserAmount",
+              ],
               properties: {
                 leaderboard: {
                   type: "array",
@@ -59,6 +64,7 @@ publicNoticeDocs[`${apiPrefix}/leaderboard`] = {
                       "ticket1Amount",
                       "ticket2Amount",
                       "probability",
+                      "probabilityV2",
                     ],
                     properties: {
                       nickname: {
@@ -86,8 +92,28 @@ publicNoticeDocs[`${apiPrefix}/leaderboard`] = {
                         description: "1등 당첨 확률",
                         example: 0.001,
                       },
+                      probabilityV2: {
+                        type: "number",
+                        description: "근사적인 상품 당첨 확률",
+                        example: 0.015,
+                      },
                     },
                   },
+                },
+                totalTicket1Amount: {
+                  type: "number",
+                  description: "전체 일반 티켓의 수",
+                  example: 300,
+                },
+                totalTicket2Amount: {
+                  type: "number",
+                  description: "전체 고급 티켓의 수",
+                  example: 100,
+                },
+                totalUserAmount: {
+                  type: "number",
+                  description: "리더보드에 포함된 유저의 수",
+                  example: 100,
                 },
                 rank: {
                   type: "number",
@@ -98,6 +124,11 @@ publicNoticeDocs[`${apiPrefix}/leaderboard`] = {
                   type: "number",
                   description: "1등 당첨 확률",
                   example: 0.00003,
+                },
+                probabilityV2: {
+                  type: "number",
+                  description: "근사적인 상품 당첨 확률",
+                  example: 0.00045,
                 },
               },
             },

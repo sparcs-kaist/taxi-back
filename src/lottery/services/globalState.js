@@ -47,6 +47,7 @@ const createUserGlobalStateHandler = async (req, res) => {
 
     eventStatus = new eventStatusModel({
       userId: req.userOid,
+      creditAmount: 100, // 초기 송편 개수는 0개가 아닌 100개입니다.
     });
     await eventStatus.save();
 
