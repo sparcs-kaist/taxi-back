@@ -19,6 +19,9 @@ connectDatabase();
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
 
+// reverse proxy가 설정한 헤더를 신뢰합니다.
+app.set("trust proxy", true);
+
 // [Middleware] CORS 설정
 app.use(require("./src/middlewares/cors"));
 
