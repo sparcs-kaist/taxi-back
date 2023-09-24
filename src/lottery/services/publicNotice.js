@@ -130,7 +130,7 @@ const getTicketLeaderboardHandler = async (req, res) => {
       );
 
     const isExponential =
-      sortedUsers.find((user) => user.weight >= weightSum / 15) != undefined;
+      sortedUsers.find((user) => user.weight >= weightSum / 15) !== undefined;
     const base = isExponential
       ? Math.pow(1 - 15 / users.length, users.length / weightSum)
       : null;
@@ -162,28 +162,24 @@ const getTicketLeaderboardHandler = async (req, res) => {
         .status(500)
         .json({ error: "PublicNotice/Leaderboard : internal server error" });
 
-    if (rank >= 0)
-      res.json({
-        leaderboard,
-        totalTicket1Amount,
-        totalTicket2Amount,
-        totalUserAmount: users.length,
-        rank: rank + 1,
-        probability: sortedUsers[rank].weight / weightSum,
-        probabilityV2: calculateProbabilityV2(
-          users,
-          weightSum,
-          base,
-          sortedUsers[rank].weight
-        ),
-      });
-    else
-      res.json({
-        leaderboard,
-        totalTicket1Amount,
-        totalTicket2Amount,
-        totalUserAmount: users.length,
-      });
+    res.json({
+      leaderboard,
+      totalTicket1Amount,
+      totalTicket2Amount,
+      totalUserAmount: users.length,
+      ...(rank >= 0
+        ? {
+            rank: rank + 1,
+            probability: sortedUsers[rank].weight / weightSum,
+            probabilityV2: calculateProbabilityV2(
+              users,
+              weightSum,
+              base,
+              sortedUsers[rank].weight
+            ),
+          }
+        : {}),
+    });
   } catch (err) {
     logger.error(err);
     res
