@@ -1,7 +1,38 @@
-const { eventMode } = require("../../../../loadenv");
-const apiPrefix = `/events/${eventMode}/public-notice`;
+const { eventConfig } = require("../../../../loadenv");
+const apiPrefix = `/events/${eventConfig.mode}/public-notice`;
 
 const publicNoticeDocs = {};
+publicNoticeDocs[`${apiPrefix}/recentTransactions`] = {
+  get: {
+    tags: [`${apiPrefix}`],
+    summary: "최근의 유의미한 상품 획득 기록 반환",
+    description: "모든 유저의 상품 획득 내역 중 유의미한 기록을 가져옵니다.",
+    responses: {
+      200: {
+        description: "",
+        content: {
+          "application/json": {
+            schema: {
+              type: "object",
+              required: ["transactions"],
+              properties: {
+                transactions: {
+                  type: "array",
+                  description: "상품 획득 기록의 배열",
+                  items: {
+                    type: "string",
+                    example:
+                      "tu**************님께서 일반응모권을(를) 획득하셨습니다.",
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+  },
+};
 publicNoticeDocs[`${apiPrefix}/leaderboard`] = {
   get: {
     tags: [`${apiPrefix}`],
@@ -15,7 +46,12 @@ publicNoticeDocs[`${apiPrefix}/leaderboard`] = {
           "application/json": {
             schema: {
               type: "object",
-              required: ["leaderboard"],
+              required: [
+                "leaderboard",
+                "totalTicket1Amount",
+                "totalTicket2Amount",
+                "totalUserAmount",
+              ],
               properties: {
                 leaderboard: {
                   type: "array",
@@ -28,6 +64,7 @@ publicNoticeDocs[`${apiPrefix}/leaderboard`] = {
                       "ticket1Amount",
                       "ticket2Amount",
                       "probability",
+                      "probabilityV2",
                     ],
                     properties: {
                       nickname: {
@@ -55,8 +92,28 @@ publicNoticeDocs[`${apiPrefix}/leaderboard`] = {
                         description: "1등 당첨 확률",
                         example: 0.001,
                       },
+                      probabilityV2: {
+                        type: "number",
+                        description: "근사적인 상품 당첨 확률",
+                        example: 0.015,
+                      },
                     },
                   },
+                },
+                totalTicket1Amount: {
+                  type: "number",
+                  description: "전체 일반 티켓의 수",
+                  example: 300,
+                },
+                totalTicket2Amount: {
+                  type: "number",
+                  description: "전체 고급 티켓의 수",
+                  example: 100,
+                },
+                totalUserAmount: {
+                  type: "number",
+                  description: "리더보드에 포함된 유저의 수",
+                  example: 100,
                 },
                 rank: {
                   type: "number",
@@ -67,6 +124,11 @@ publicNoticeDocs[`${apiPrefix}/leaderboard`] = {
                   type: "number",
                   description: "1등 당첨 확률",
                   example: 0.00003,
+                },
+                probabilityV2: {
+                  type: "number",
+                  description: "근사적인 상품 당첨 확률",
+                  example: 0.00045,
                 },
               },
             },

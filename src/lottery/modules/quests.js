@@ -7,6 +7,12 @@ const {
 const logger = require("../../modules/logger");
 const mongoose = require("mongoose");
 
+const { eventConfig } = require("../../../loadenv");
+const eventPeriod = eventConfig && {
+  startAt: new Date(eventConfig.startAt),
+  endAt: new Date(eventConfig.endAt),
+};
+
 const requiredQuestFields = ["name", "description", "imageUrl", "reward"];
 const buildQuests = (quests) => {
   for (const [id, quest] of Object.entries(quests)) {
@@ -31,11 +37,14 @@ const buildQuests = (quests) => {
     }
 
     // quest.reward에 누락된 필드가 있는 경우, 기본값(0)으로 설정합니다.
-    quest.reward.credit = quest.reward.credit || 0;
-    quest.reward.ticket1 = quest.reward.ticket1 || 0;
+    quest.reward.credit = quest.reward.credit ?? 0;
+    quest.reward.ticket1 = quest.reward.ticket1 ?? 0;
 
     // quest.maxCount가 없는 경우, 기본값(1)으로 설정합니다.
-    quest.maxCount = quest.maxCount || 1;
+    quest.maxCount = quest.maxCount ?? 1;
+
+    // quest.isApiRequired가 없는 경우, 기본값(false)으로 설정합니다.
+    quest.isApiRequired = quest.isApiRequired ?? false;
   }
 
   return quests;
@@ -44,9 +53,7 @@ const buildQuests = (quests) => {
 /**
  * 퀘스트 완료를 요청합니다.
  * @param {string|mongoose.Types.ObjectId} userId - 퀘스트를 완료한 사용자의 ObjectId입니다.
- * @param {Object} eventPeriod - 이벤트의 기간입니다.
- * @param {Date} eventPeriod.start - 이벤트의 시작 시각(Inclusive)입니다.
- * @param {Date} eventPeriod.end - 이벤트의 종료 시각(Exclusive)입니다.
+ * @param {number|Date} timestamp - 퀘스트 완료를 요청한 시각입니다.
  * @param {Object} quest - 퀘스트의 정보입니다.
  * @param {string} quest.id - 퀘스트의 Id입니다.
  * @param {string} quest.name - 퀘스트의 이름입니다.
@@ -56,22 +63,18 @@ const buildQuests = (quests) => {
  * @param {number} quest.maxCount - 퀘스트의 최대 완료 가능 횟수입니다.
  * @returns {Object|null} 성공한 경우 Object를, 실패한 경우 null을 반환합니다. 이미 최대 완료 횟수에 도달했거나, 퀘스트가 원격으로 비활성화 된 경우에도 실패로 처리됩니다.
  */
-const completeQuest = async (userId, eventPeriod, quest) => {
+const completeQuest = async (userId, timestamp, quest) => {
   try {
-    // 1단계: 이벤트 기간인지 확인합니다.
-    const now = Date.now();
-    if (now >= eventPeriod.end || now < eventPeriod.start) {
+    // 1단계: 유저의 EventStatus를 가져옵니다.
+    const eventStatus = await eventStatusModel.findOne({ userId }).lean();
+    if (!eventStatus) return null;
+
+    // 2단계: 이벤트 기간인지 확인합니다.
+    if (timestamp >= eventPeriod.endAt || timestamp < eventPeriod.startAt) {
       logger.info(
         `User ${userId} failed to complete auto-disabled ${quest.id}Quest`
       );
       return null;
-    }
-
-    // 2단계: 유저의 EventStatus를 가져옵니다. 없으면 새롭게 생성합니다.
-    let eventStatus = await eventStatusModel.findOne({ userId }).lean();
-    if (!eventStatus) {
-      eventStatus = new eventStatusModel({ userId });
-      await eventStatus.save();
     }
 
     // 3단계: 유저의 퀘스트 완료 횟수를 확인합니다.
@@ -98,7 +101,8 @@ const completeQuest = async (userId, eventPeriod, quest) => {
     // 5단계: 완료 보상 중 티켓이 있는 경우, 티켓 정보를 가져옵니다.
     const ticket1 =
       quest.reward.ticket1 && (await itemModel.findOne({ itemType: 1 }).lean());
-    if (quest.reward.ticket1 && !ticket1) throw "Fail to find ticket1";
+    if (quest.reward.ticket1 && !ticket1)
+      throw new Error("Fail to find ticket1");
 
     // 6단계: 유저의 EventStatus를 업데이트합니다.
     await eventStatusModel.updateOne(

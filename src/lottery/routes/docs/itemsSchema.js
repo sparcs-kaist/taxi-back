@@ -26,6 +26,11 @@ const itemBase = {
       description: "이미지 썸네일 URL",
       example: "THUMBNAIL URL",
     },
+    instagramStoryStickerImageUrl: {
+      type: "string",
+      description: "인스타그램 스토리 스티커 이미지 URL",
+      example: "STICKER URL",
+    },
     price: {
       type: "number",
       description: "상품의 가격. 0 이상입니다.",
@@ -43,8 +48,8 @@ const itemBase = {
     },
     stock: {
       type: "number",
-      description: "남은 상품 재고. 0 이상입니다.",
-      example: 10,
+      description: "남은 상품 재고. 재고가 있는 경우 1, 없는 경우 0입니다.",
+      example: 1,
     },
   },
 };
@@ -74,6 +79,17 @@ const itemsSchema = {
   rewardItem: {
     ...itemBase,
     description: "랜덤박스를 구입한 경우에만 포함됩니다.",
+  },
+  purchaseHandler: {
+    type: "object",
+    required: ["itemId"],
+    properties: {
+      itemId: {
+        type: "string",
+        pattern: "^[a-fA-F\\d]{24}$",
+      },
+    },
+    errorMessage: "validation: bad request",
   },
 };
 

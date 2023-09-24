@@ -1,7 +1,7 @@
 // 모듈 require
 const express = require("express");
 const http = require("http");
-const { port: httpPort, eventMode } = require("./loadenv");
+const { port: httpPort, eventConfig } = require("./loadenv");
 const logger = require("./src/modules/logger");
 const { connectDatabase } = require("./src/modules/stores/mongo");
 const { startSocketServer } = require("./src/modules/socket");
@@ -18,6 +18,9 @@ connectDatabase();
 // [Middleware] request body 파싱
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
+
+// reverse proxy가 설정한 헤더를 신뢰합니다.
+app.set("trust proxy", true);
 
 // [Middleware] CORS 설정
 app.use(require("./src/middlewares/cors"));
@@ -43,8 +46,11 @@ app.use(require("./src/middlewares/limitRate"));
 app.use("/docs", require("./src/routes/docs"));
 
 // 2023 추석 이벤트 전용 라우터입니다.
-eventMode &&
-  app.use(`/events/${eventMode}`, require("./src/lottery").lotteryRouter);
+eventConfig &&
+  app.use(
+    `/events/${eventConfig.mode}`,
+    require("./src/lottery").lotteryRouter
+  );
 
 // [Middleware] 모든 API 요청에 대하여 origin 검증
 app.use(require("./src/middlewares/originValidator"));

@@ -13,7 +13,7 @@ const {
   deviceTokenModel,
   notificationOptionModel,
 } = require("../modules/stores/mongo");
-const { eventMode } = require("../../loadenv");
+const { eventConfig } = require("../../loadenv");
 const { buildResource } = require("../modules/adminResource");
 
 const router = express.Router();
@@ -37,7 +37,7 @@ const baseResources = [
   notificationOptionModel,
 ].map(buildResource());
 const resources = baseResources.concat(
-  eventMode === "2023fall" ? require("../lottery").resources : []
+  eventConfig?.mode === "2023fall" ? require("../lottery").resources : []
 );
 
 // Create router for admin page
