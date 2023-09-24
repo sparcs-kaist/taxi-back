@@ -110,18 +110,24 @@ const getTicketLeaderboardHandler = async (req, res) => {
     const userId = isLogin(req) ? getLoginInfo(req).oid : null;
     let rank = -1;
 
-    let weightSum = 0;
-    let totalTicket1Amount = 0;
-    let totalTicket2Amount = 0;
-    for (const user of sortedUsers) {
-      weightSum += user.weight;
-      totalTicket1Amount += user.ticket1Amount;
-      totalTicket2Amount += user.ticket2Amount;
-
-      if (rank < 0 && user.userId === userId) {
-        rank = index;
-      }
-    }
+    const [weightSum, totalTicket1Amount, totalTicket2Amount] =
+      sortedUsers.reduce(
+        (
+          [_weightSum, _totalTicket1Amount, _totalTicket2Amount],
+          user,
+          index
+        ) => {
+          if (rank < 0 && user.userId === userId) {
+            rank = index;
+          }
+          return [
+            _weightSum + user.weight,
+            _totalTicket1Amount + user.ticket1Amount,
+            _totalTicket2Amount + user.ticket2Amount,
+          ];
+        },
+        [0, 0, 0]
+      );
 
     const isExponential =
       sortedUsers.find((user) => user.weight >= weightSum / 15) != undefined;
