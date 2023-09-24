@@ -35,6 +35,7 @@ const participantSchema = Schema({
     enum: ["not-departed", "paid", "send-required", "sent"],
     default: "not-departed",
   },
+  readAt: { type: Date },
 });
 
 const deviceTokenSchema = Schema({
@@ -118,6 +119,7 @@ const locationSchema = Schema({
   latitude: { type: Number }, // 이후 required: true 로 수정 필요
   longitude: { type: Number }, // 이후 required: true 로 수정 필요
 });
+
 const chatSchema = Schema({
   roomId: { type: Schema.Types.ObjectId, ref: "Room", required: true },
   type: {
