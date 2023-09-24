@@ -110,12 +110,19 @@ const getTicketLeaderboardHandler = async (req, res) => {
     const userId = isLogin(req) ? getLoginInfo(req).oid : null;
     let rank = -1;
 
-    const weightSum = sortedUsers.reduce((before, user, index) => {
+    let weightSum = 0;
+    let totalTicket1Amount = 0;
+    let totalTicket2Amount = 0;
+    for (const user of sortedUsers) {
+      weightSum += user.weight;
+      totalTicket1Amount += user.ticket1Amount;
+      totalTicket2Amount += user.ticket2Amount;
+
       if (rank < 0 && user.userId === userId) {
         rank = index;
       }
-      return before + user.weight;
-    }, 0);
+    }
+
     const isExponential =
       sortedUsers.find((user) => user.weight >= weightSum / 15) != undefined;
     const base = isExponential
@@ -152,7 +159,8 @@ const getTicketLeaderboardHandler = async (req, res) => {
     if (rank >= 0)
       res.json({
         leaderboard,
-        totalTicketAmount: weightSum,
+        totalTicket1Amount,
+        totalTicket2Amount,
         totalUserAmount: users.length,
         rank: rank + 1,
         probability: sortedUsers[rank].weight / weightSum,
@@ -166,7 +174,8 @@ const getTicketLeaderboardHandler = async (req, res) => {
     else
       res.json({
         leaderboard,
-        totalTicketAmount: weightSum,
+        totalTicket1Amount,
+        totalTicket2Amount,
         totalUserAmount: users.length,
       });
   } catch (err) {

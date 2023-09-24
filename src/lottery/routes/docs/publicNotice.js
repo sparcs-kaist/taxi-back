@@ -46,7 +46,12 @@ publicNoticeDocs[`${apiPrefix}/leaderboard`] = {
           "application/json": {
             schema: {
               type: "object",
-              required: ["leaderboard", "totalTicketAmount", "totalUserAmount"],
+              required: [
+                "leaderboard",
+                "totalTicket1Amount",
+                "totalTicket2Amount",
+                "totalUserAmount",
+              ],
               properties: {
                 leaderboard: {
                   type: "array",
@@ -95,10 +100,15 @@ publicNoticeDocs[`${apiPrefix}/leaderboard`] = {
                     },
                   },
                 },
-                totalTicketAmount: {
+                totalTicket1Amount: {
                   type: "number",
-                  description: "전체 티켓의 수",
+                  description: "전체 일반 티켓의 수",
                   example: 300,
+                },
+                totalTicket2Amount: {
+                  type: "number",
+                  description: "전체 고급 티켓의 수",
+                  example: 100,
                 },
                 totalUserAmount: {
                   type: "number",
