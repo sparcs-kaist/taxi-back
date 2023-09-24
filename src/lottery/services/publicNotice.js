@@ -35,6 +35,25 @@ const getRecentPurchaceItemListHandler = async (req, res) => {
   }
 };
 
+const calculateProbabilityV2 = (users, weightSum, base, weight) => {
+  // 유저 수가 상품 수보다 적거나 같으면 무조건 상품을 받게된다.
+  if (users.length <= 15) return 1;
+
+  /**
+   * 경험적으로 발견한 사실
+   *
+   * p를 에어팟 당첨 확률이라고 하자.
+   * 모든 유저의 p값이 1/15 미만일 경우, 실제 당첨 확률은 15p이다.
+   * 그렇지 않은 경우, 실제 당첨 확률은 1-a^p꼴의 지수함수를 따른다.
+   *
+   * 계산 과정
+   * a는 유저 수, 전체 티켓 수, 티켓 분포에 의해 결정되는 값으로, 현실적으로 계산하기 어렵다.
+   * 따라서, 모든 유저가 같은 수의 티켓을 가지고 있다고 가정하고 a를 계산한 뒤, 이를 확률 계산에 사용한다.
+   */
+  if (base !== null) return 1 - Math.pow(base, weight);
+  else return (weight / weightSum) * 15;
+};
+
 const getTicketLeaderboardHandler = async (req, res) => {
   try {
     const users = await eventStatusModel
@@ -60,6 +79,11 @@ const getTicketLeaderboardHandler = async (req, res) => {
       }
       return before + user.weight;
     }, 0);
+    const isExponential =
+      sortedUsers.find((user) => user.weight >= weightSum / 15) != undefined;
+    const base = isExponential
+      ? Math.pow(1 - 15 / users.length, users.length / weightSum)
+      : null;
 
     const leaderboard = await Promise.all(
       sortedUsers.slice(0, 20).map(async (user) => {
@@ -74,6 +98,12 @@ const getTicketLeaderboardHandler = async (req, res) => {
           ticket1Amount: user.ticket1Amount,
           ticket2Amount: user.ticket2Amount,
           probability: user.weight / weightSum,
+          probabilityV2: calculateProbabilityV2(
+            users,
+            weightSum,
+            base,
+            user.weight
+          ),
         };
       })
     );
@@ -87,6 +117,12 @@ const getTicketLeaderboardHandler = async (req, res) => {
         leaderboard,
         rank: rank + 1,
         probability: sortedUsers[rank].weight / weightSum,
+        probabilityV2: calculateProbabilityV2(
+          users,
+          weightSum,
+          base,
+          sortedUsers[rank].weight
+        ),
       });
     else res.json({ leaderboard });
   } catch (err) {
