@@ -1,5 +1,3 @@
-const errorsDocs = require("./errors");
-
 const authDocs = {
   "/auth/sparcssso": {
     get: {
@@ -75,7 +73,6 @@ const authDocs = {
             },
           },
         },
-        400: errorsDocs["400"],
       },
     },
   },
@@ -110,7 +107,6 @@ const authDocs = {
             },
           },
         },
-        500: errorsDocs["500"],
       },
     },
   },
@@ -149,8 +145,6 @@ const authDocs = {
             },
           },
         },
-        401: errorsDocs["401"],
-        500: errorsDocs["500"],
       },
     },
   },
@@ -197,9 +191,6 @@ const authDocs = {
             },
           },
         },
-        400: errorsDocs["400"],
-        401: errorsDocs["401"],
-        501: errorsDocs["501"],
       },
     },
   },
@@ -240,9 +231,6 @@ const authDocs = {
             },
           },
         },
-        400: errorsDocs["400"],
-        401: errorsDocs["401"],
-        500: errorsDocs["500"],
       },
     },
     delete: {
@@ -280,9 +268,6 @@ const authDocs = {
             },
           },
         },
-        400: errorsDocs["400"],
-        401: errorsDocs["401"],
-        500: errorsDocs["500"],
       },
     },
   },
