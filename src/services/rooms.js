@@ -497,7 +497,11 @@ const commitPaymentHandler = async (req, res) => {
       req.timestamp,
       roomObject
     );
-    await contracts?.completePayingAndSendingQuest(req.timestamp, roomObject);
+    await contracts?.completePayingAndSendingQuest(
+      req.userOid,
+      req.timestamp,
+      roomObject
+    );
 
     // 수정한 방 정보를 반환합니다.
     res.send(formatSettlement(roomObject, { isOver: true }));
@@ -571,7 +575,11 @@ const settlementHandler = async (req, res) => {
       req.timestamp,
       roomObject
     );
-    await contracts?.completePayingAndSendingQuest(req.timestamp, roomObject);
+    await contracts?.completePayingAndSendingQuest(
+      req.userOid,
+      req.timestamp,
+      roomObject
+    );
 
     // 수정한 방 정보를 반환합니다.
     res.send(formatSettlement(roomObject, { isOver: true }));

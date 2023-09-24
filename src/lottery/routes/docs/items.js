@@ -1,5 +1,5 @@
-const { eventMode } = require("../../../../loadenv");
-const apiPrefix = `/events/${eventMode}/items`;
+const { eventConfig } = require("../../../../loadenv");
+const apiPrefix = `/events/${eventConfig.mode}/items`;
 
 const itemsDocs = {};
 itemsDocs[`${apiPrefix}/list`] = {
@@ -37,6 +37,16 @@ itemsDocs[`${apiPrefix}/purchase/:itemId`] = {
     tags: [`${apiPrefix}`],
     summary: "상품 구매",
     description: "상품을 구매합니다.",
+    requestBody: {
+      description: "",
+      content: {
+        "application/json": {
+          schema: {
+            $ref: "#/components/schemas/purchaseHandler",
+          },
+        },
+      },
+    },
     responses: {
       200: {
         description: "",
