@@ -59,6 +59,7 @@ publicNoticeDocs[`${apiPrefix}/leaderboard`] = {
                       "ticket1Amount",
                       "ticket2Amount",
                       "probability",
+                      "probabilityV2",
                     ],
                     properties: {
                       nickname: {
@@ -86,6 +87,11 @@ publicNoticeDocs[`${apiPrefix}/leaderboard`] = {
                         description: "1등 당첨 확률",
                         example: 0.001,
                       },
+                      probabilityV2: {
+                        type: "number",
+                        description: "근사적인 상품 당첨 확률",
+                        example: 0.015,
+                      },
                     },
                   },
                 },
@@ -98,6 +104,11 @@ publicNoticeDocs[`${apiPrefix}/leaderboard`] = {
                   type: "number",
                   description: "1등 당첨 확률",
                   example: 0.00003,
+                },
+                probabilityV2: {
+                  type: "number",
+                  description: "근사적인 상품 당첨 확률",
+                  example: 0.00045,
                 },
               },
             },
