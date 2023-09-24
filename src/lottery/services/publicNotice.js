@@ -122,6 +122,8 @@ const getTicketLeaderboardHandler = async (req, res) => {
     if (rank >= 0)
       res.json({
         leaderboard,
+        totalTicketAmount: weightSum,
+        totalUserAmount: users.length,
         rank: rank + 1,
         probability: sortedUsers[rank].weight / weightSum,
         probabilityV2: calculateProbabilityV2(
@@ -131,7 +133,12 @@ const getTicketLeaderboardHandler = async (req, res) => {
           sortedUsers[rank].weight
         ),
       });
-    else res.json({ leaderboard });
+    else
+      res.json({
+        leaderboard,
+        totalTicketAmount: weightSum,
+        totalUserAmount: users.length,
+      });
   } catch (err) {
     logger.error(err);
     res

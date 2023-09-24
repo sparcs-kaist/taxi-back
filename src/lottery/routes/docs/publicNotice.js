@@ -46,7 +46,7 @@ publicNoticeDocs[`${apiPrefix}/leaderboard`] = {
           "application/json": {
             schema: {
               type: "object",
-              required: ["leaderboard"],
+              required: ["leaderboard", "totalTicketAmount", "totalUserAmount"],
               properties: {
                 leaderboard: {
                   type: "array",
@@ -94,6 +94,16 @@ publicNoticeDocs[`${apiPrefix}/leaderboard`] = {
                       },
                     },
                   },
+                },
+                totalTicketAmount: {
+                  type: "number",
+                  description: "전체 티켓의 수",
+                  example: 300,
+                },
+                totalUserAmount: {
+                  type: "number",
+                  description: "리더보드에 포함된 유저의 수",
+                  example: 100,
                 },
                 rank: {
                   type: "number",
