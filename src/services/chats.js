@@ -207,8 +207,7 @@ const readChatHandler = async (req, res) => {
           arrayFilters: [{ "updater.user": { $eq: user._id } }],
         }
       )
-      .lean()
-      .populate(roomPopulateOption);
+      .lean();
 
     if (!roomObject) {
       return res.status(404).send("Chat/read : cannot find room info");
