@@ -9,6 +9,7 @@ const checkBanned = async (req, res, next) => {
     if (eventStatus.isBanned) {
       return res.status(400).json({ error: "BlockedList: banned user" });
     } else {
+      req.eventStatus = eventStatus;
       next();
     }
   } catch (err) {
