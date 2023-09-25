@@ -1,5 +1,12 @@
 const { buildQuests, completeQuest } = require("../quests");
 const mongoose = require("mongoose");
+const logger = require("../../../modules/logger");
+
+const { eventConfig } = require("../../../../loadenv");
+const eventPeriod = eventConfig && {
+  startAt: new Date(eventConfig.startAt),
+  endAt: new Date(eventConfig.endAt),
+};
 
 /** 전체 퀘스트 목록입니다. */
 const quests = buildQuests({
@@ -117,13 +124,24 @@ const completeFirstLoginQuest = async (userId, timestamp) => {
  * @param {string|mongoose.Types.ObjectId} userId - 퀘스트를 완료한 사용자의 ObjectId입니다.
  * @param {number|Date} timestamp - 퀘스트 완료를 요청한 시각입니다.
  * @param {Object} roomObject - 방의 정보입니다.
+ * @param {mongoose.Types.ObjectId} roomObject._id - 방의 ObjectId입니다.
  * @param {Array<{ user: mongoose.Types.ObjectId }>} roomObject.part - 참여자 목록입니다.
+ * @param {Date} roomObject.time - 출발 시각입니다.
  * @returns {Promise}
  * @description 정산 요청 또는 송금이 이루어질 때마다 호출해 주세요.
  * @usage rooms - commitPaymentHandler, rooms - settlementHandler
  */
 const completePayingAndSendingQuest = async (userId, timestamp, roomObject) => {
   if (roomObject.part.length < 2) return null;
+  if (
+    roomObject.time >= eventPeriod.endAt ||
+    roomObject.time < eventPeriod.startAt
+  )
+    return null;
+
+  logger.info(
+    `User ${userId} requested to complete payingAndSendingQuest in Room ${roomObject._id}`
+  );
 
   return await completeQuest(userId, timestamp, quests.payingAndSending);
 };
@@ -145,13 +163,24 @@ const completeFirstRoomCreationQuest = async (userId, timestamp) => {
  * @param {string|mongoose.Types.ObjectId} userId - 퀘스트를 완료한 사용자의 ObjectId입니다.
  * @param {number|Date} timestamp - 퀘스트 완료를 요청한 시각입니다.
  * @param {Object} roomObject - 방의 정보입니다.
+ * @param {mongoose.Types.ObjectId} roomObject._id - 방의 ObjectId입니다.
  * @param {Array<{ user: mongoose.Types.ObjectId }>} roomObject.part - 참여자 목록입니다.
+ * @param {Date} roomObject.time - 출발 시각입니다.
  * @returns {Promise}
  * @description 정산 요청이 이루어질 때마다 호출해 주세요.
  * @usage rooms - commitPaymentHandler
  */
 const completePayingQuest = async (userId, timestamp, roomObject) => {
   if (roomObject.part.length < 2) return null;
+  if (
+    roomObject.time >= eventPeriod.endAt ||
+    roomObject.time < eventPeriod.startAt
+  )
+    return null;
+
+  logger.info(
+    `User ${userId} requested to complete payingQuest in Room ${roomObject._id}`
+  );
 
   return await completeQuest(userId, timestamp, quests.paying);
 };
@@ -161,13 +190,24 @@ const completePayingQuest = async (userId, timestamp, roomObject) => {
  * @param {string|mongoose.Types.ObjectId} userId - 퀘스트를 완료한 사용자의 ObjectId입니다.
  * @param {number|Date} timestamp - 퀘스트 완료를 요청한 시각입니다.
  * @param {Object} roomObject - 방의 정보입니다.
+ * @param {mongoose.Types.ObjectId} roomObject._id - 방의 ObjectId입니다.
  * @param {Array<{ user: mongoose.Types.ObjectId }>} roomObject.part - 참여자 목록입니다.
+ * @param {Date} roomObject.time - 출발 시각입니다.
  * @returns {Promise}
  * @description 송금이 이루어질 때마다 호출해 주세요.
  * @usage rooms - settlementHandler
  */
 const completeSendingQuest = async (userId, timestamp, roomObject) => {
   if (roomObject.part.length < 2) return null;
+  if (
+    roomObject.time >= eventPeriod.endAt ||
+    roomObject.time < eventPeriod.startAt
+  )
+    return null;
+
+  logger.info(
+    `User ${userId} requested to complete sendingQuest in Room ${roomObject._id}`
+  );
 
   return await completeQuest(userId, timestamp, quests.sending);
 };
