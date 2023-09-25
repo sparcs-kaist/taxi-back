@@ -8,7 +8,6 @@ const logger = require("../../modules/logger");
 const mongoose = require("mongoose");
 
 const { eventConfig } = require("../../../loadenv");
-const { isBanned } = require("../middlewares/blockedlist");
 const eventPeriod = eventConfig && {
   startAt: new Date(eventConfig.startAt),
   endAt: new Date(eventConfig.endAt),

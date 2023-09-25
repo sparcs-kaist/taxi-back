@@ -7,7 +7,7 @@ const { validateParams } = require("../../middlewares/ajv");
 const questsSchema = require("./docs/questsSchema");
 
 router.use(require("../../middlewares/auth"));
-router.use(require("../middlewares/blockedlist"));
+router.use(require("../middlewares/blockedList"));
 router.use(require("../middlewares/timestampValidator"));
 
 router.post(
