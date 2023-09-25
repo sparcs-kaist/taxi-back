@@ -8,7 +8,7 @@ const itemsSchema = require("./docs/itemsSchema");
 
 router.get("/list", itemsHandlers.listHandler);
 
-// 아래의 Endpoint 접근 시 로그인, 블록드리스트 및 시각 체크 필요
+// 아래의 Endpoint 접근 시 로그인, 블록드리스트 및 시각 체크 요구
 router.use(require("../../middlewares/auth"));
 router.use(require("../middlewares/blockedList"));
 router.use(require("../middlewares/timestampValidator"));
