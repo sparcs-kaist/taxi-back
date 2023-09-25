@@ -8,10 +8,9 @@ const checkBanned = async (req, res, next) => {
       .lean();
     if (eventStatus.isBanned) {
       return res.status(400).json({ error: "checkBanned: banned user" });
-    } else {
-      req.eventStatus = eventStatus;
-      next();
     }
+    req.eventStatus = eventStatus;
+    next();
   } catch (err) {
     logger.error(err);
     res.error(500).json({
