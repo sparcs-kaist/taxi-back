@@ -34,6 +34,9 @@ const eventStatusSchema = Schema({
     min: 0,
     validate: integerValidator,
   },
+  isBanned: {
+    type: Boolean,
+  },
 });
 
 const questSchema = Schema({
