@@ -132,16 +132,16 @@ const completeFirstLoginQuest = async (userId, timestamp) => {
  * @usage rooms - commitPaymentHandler, rooms - settlementHandler
  */
 const completePayingAndSendingQuest = async (userId, timestamp, roomObject) => {
+  logger.info(
+    `User ${userId} requested to complete payingAndSendingQuest in Room ${roomObject._id}`
+  );
+
   if (roomObject.part.length < 2) return null;
   if (
     roomObject.time >= eventPeriod.endAt ||
     roomObject.time < eventPeriod.startAt
   )
-    return null;
-
-  logger.info(
-    `User ${userId} requested to complete payingAndSendingQuest in Room ${roomObject._id}`
-  );
+    return null; // 택시 출발 시각이 이벤트 기간 내에 포함되지 않는 경우 퀘스트 완료 요청을 하지 않습니다.
 
   return await completeQuest(userId, timestamp, quests.payingAndSending);
 };
@@ -171,16 +171,16 @@ const completeFirstRoomCreationQuest = async (userId, timestamp) => {
  * @usage rooms - commitPaymentHandler
  */
 const completePayingQuest = async (userId, timestamp, roomObject) => {
+  logger.info(
+    `User ${userId} requested to complete payingQuest in Room ${roomObject._id}`
+  );
+
   if (roomObject.part.length < 2) return null;
   if (
     roomObject.time >= eventPeriod.endAt ||
     roomObject.time < eventPeriod.startAt
   )
-    return null;
-
-  logger.info(
-    `User ${userId} requested to complete payingQuest in Room ${roomObject._id}`
-  );
+    return null; // 택시 출발 시각이 이벤트 기간 내에 포함되지 않는 경우 퀘스트 완료 요청을 하지 않습니다.
 
   return await completeQuest(userId, timestamp, quests.paying);
 };
@@ -198,16 +198,16 @@ const completePayingQuest = async (userId, timestamp, roomObject) => {
  * @usage rooms - settlementHandler
  */
 const completeSendingQuest = async (userId, timestamp, roomObject) => {
+  logger.info(
+    `User ${userId} requested to complete sendingQuest in Room ${roomObject._id}`
+  );
+
   if (roomObject.part.length < 2) return null;
   if (
     roomObject.time >= eventPeriod.endAt ||
     roomObject.time < eventPeriod.startAt
   )
-    return null;
-
-  logger.info(
-    `User ${userId} requested to complete sendingQuest in Room ${roomObject._id}`
-  );
+    return null; // 택시 출발 시각이 이벤트 기간 내에 포함되지 않는 경우 퀘스트 완료 요청을 하지 않습니다.
 
   return await completeQuest(userId, timestamp, quests.sending);
 };
