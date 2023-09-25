@@ -7,7 +7,7 @@ const checkBanned = async (req, res, next) => {
       .findOne({ userId: req.userOid })
       .lean();
     if (eventStatus.isBanned) {
-      return res.status(400).json({ error: "BlockedList: banned user" });
+      return res.status(400).json({ error: "checkBanned: banned user" });
     } else {
       req.eventStatus = eventStatus;
       next();
@@ -15,7 +15,7 @@ const checkBanned = async (req, res, next) => {
   } catch (err) {
     logger.error(err);
     res.error(500).json({
-      error: "BlockedList: internal server error",
+      error: "checkBanned: internal server error",
     });
   }
 };
