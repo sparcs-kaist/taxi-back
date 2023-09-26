@@ -124,8 +124,7 @@ const listHandler = async (_, res) => {
 
 const purchaseHandler = async (req, res) => {
   try {
-    const eventStatus = await eventStatusModel.findOne({ userId: req.userOid });
-    if (!eventStatus)
+    if (!req.eventStatus)
       return res
         .status(400)
         .json({ error: "Items/Purchase : nonexistent eventStatus" });
@@ -138,7 +137,7 @@ const purchaseHandler = async (req, res) => {
     // 구매 가능 조건: 크레딧이 충분하며, 재고가 남아있으며, 판매 중인 아이템이어야 합니다.
     if (item.isDisabled)
       return res.status(400).json({ error: "Items/Purchase : disabled item" });
-    if (eventStatus.creditAmount < item.price)
+    if (req.eventStatus.creditAmount < item.price)
       return res
         .status(400)
         .json({ error: "Items/Purchase : not enough credit" });
