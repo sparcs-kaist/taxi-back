@@ -124,11 +124,6 @@ const listHandler = async (_, res) => {
 
 const purchaseHandler = async (req, res) => {
   try {
-    if (!req.eventStatus)
-      return res
-        .status(400)
-        .json({ error: "Items/Purchase : nonexistent eventStatus" });
-
     const { itemId } = req.params;
     const item = await itemModel.findOne({ _id: itemId }).lean();
     if (!item)

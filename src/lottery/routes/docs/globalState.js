@@ -120,6 +120,11 @@ globalStateDocs[`${apiPrefix}/`] = {
                     },
                   },
                 },
+                isBanned: {
+                  type: "boolean",
+                  description: "해당 유저 제재 대상 여부",
+                  example: false,
+                },
               },
             },
           },

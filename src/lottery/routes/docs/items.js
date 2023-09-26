@@ -29,6 +29,24 @@ itemsDocs[`${apiPrefix}/list`] = {
           },
         },
       },
+      400: {
+        description:
+          "해당 유저 제재 대상 여부checkBanned에서 이벤트에 동의하지 않은 사람과 제재 대상을 선별합니다.",
+        content: {
+          "application/json": {
+            schema: {
+              type: "object",
+              properties: {
+                error: {
+                  type: "string",
+                  description: "",
+                  example: "checkBanned: banned user",
+                },
+              },
+            },
+          },
+        },
+      },
     },
   },
 };
@@ -63,6 +81,24 @@ itemsDocs[`${apiPrefix}/purchase/:itemId`] = {
                 },
                 reward: {
                   $ref: "#/components/schemas/rewardItem",
+                },
+              },
+            },
+          },
+        },
+      },
+      400: {
+        description:
+          "checkBanned에서 이벤트에 동의하지 않은 사람과 제재 대상을 선별합니다.",
+        content: {
+          "application/json": {
+            schema: {
+              type: "object",
+              properties: {
+                error: {
+                  type: "string",
+                  description: "",
+                  example: "checkBanned: banned user",
                 },
               },
             },
