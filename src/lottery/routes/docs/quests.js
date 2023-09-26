@@ -43,6 +43,7 @@ eventsDocs[`${apiPrefix}/complete/:questId`] = {
           "application/json": {
             schema: {
               type: "object",
+              required: ["error"],
               properties: {
                 error: {
                   type: "string",
