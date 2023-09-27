@@ -30,6 +30,10 @@ const logininfoDocs = {
                   withdraw: {
                     type: "boolean",
                   },
+                  phoneNumber: {
+                    type: "string",
+                    description: "사용자 전화번호",
+                  },
                   ban: {
                     type: "boolean",
                   },
