@@ -1,4 +1,4 @@
-FROM node:16-alpine
+FROM node:18-alpine
 
 # Copy repository
 WORKDIR /usr/src/app
@@ -6,7 +6,7 @@ COPY . .
 
 # Install curl (for taxi-docker)
 RUN apk update && apk add curl
-RUN npm install --global pnpm@8.6.6 serve@14.1.2
+RUN npm install --global pnpm@8.8.0
 
 # Install requirements
 RUN pnpm i --force --frozen-lockfile
