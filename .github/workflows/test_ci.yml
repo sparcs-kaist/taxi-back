@@ -53,6 +53,5 @@ jobs:
         AWS_S3_BUCKET_NAME: ${{ secrets.AWS_S3_BUCKET_NAME }} 
         AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         DB_PATH: ${{ secrets.DB_PATH }}
-        FRONT_URL: ${{ secrets.FRONT_URL }}
         PORT: ${{ secrets.PORT }}
         SESSION_KEY: ${{ secrets.SESSION_KEY }}
