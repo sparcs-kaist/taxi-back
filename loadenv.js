@@ -26,6 +26,7 @@ module.exports = {
     option: {
       algorithm: "HS256",
       // FIXME: remove FRONT_URL from issuer. 단, issuer를 변경하면 이전에 발급했던 모든 JWT가 무효화됩니다.
+      // See https://github.com/sparcs-kaist/taxi-back/issues/415
       issuer: process.env.FRONT_URL || "http://localhost:3000", // optional (default = "http://localhost:3000")
     },
     TOKEN_EXPIRED: -3,
