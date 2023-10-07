@@ -110,7 +110,7 @@ dependencies:
 
 devDependencies:
   chai:
-    specifier: '*'
+    specifier: ^4.3.7
     version: 4.3.7
   eslint:
     specifier: ^8.22.0
@@ -119,7 +119,7 @@ devDependencies:
     specifier: ^10.1.0
     version: 10.1.0(eslint@8.22.0)
   mocha:
-    specifier: '*'
+    specifier: ^10.2.0
     version: 10.2.0
   nodemon:
     specifier: ^2.0.14
