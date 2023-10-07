@@ -13,7 +13,6 @@ jobs:
       matrix:
         # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
         node-version: ['18.x']
-        pnpm-version: ['8']
         mongodb-version: ['5.0']
     steps:
     - name: Start MongoDB  
@@ -22,15 +21,15 @@ jobs:
       uses: actions/checkout@v3
       with:
         submodules: true
+    - name: Install pnpm
+      uses: pnpm/action-setup@v2
+      with:
+        version: 8
     - name: Install Node.js
       uses: actions/setup-node@v3
       with:
         node-version: ${{ matrix.node-version }}
-
-    - uses: pnpm/action-setup@v2
-      name: Install pnpm
-      with:
-        version: ${{ matrix.pnpm-version }}
+        cache: 'pnpm'
     - id: submodule-local
       name: Save local version of submodule
       run: echo "ver=`cd sampleGenerator && git log --pretty="%h" -1 && cd ..`" >> $GITHUB_OUTPUT
