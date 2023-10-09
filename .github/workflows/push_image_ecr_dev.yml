@@ -20,7 +20,18 @@ jobs:
       uses: actions/checkout@v3
       with:
         fetch-depth: 0
-    
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+
+    - name: Cache Docker layers
+      uses: actions/cache@v3
+      with:
+        path: /tmp/.buildx-cache
+        key: ${{ runner.os }}-buildx-${{ github.sha }}
+        restore-keys: |
+          ${{ runner.os }}-buildx-
+
     - name: Configure AWS credentials
       uses: aws-actions/configure-aws-credentials@v1
       with:
@@ -31,13 +42,28 @@ jobs:
     - name: Login to AWS ECR
       id: login-ecr
       uses: aws-actions/amazon-ecr-login@v1
-    
-    - name: Build and Push to AWS ECR
+
+    - name: Build Image
       id: build_image
+      uses: docker/build-push-action@v5
+      env:
+        ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+        ECR_REPOSITORY: taxi-back
+      with:
+        tags: "${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:dev"
+        cache-from: type=local,src=/tmp/.buildx-cache
+        cache-to: type=local,dest=/tmp/.buildx-cache-new
+    
+    - name: Push to AWS ECR
+      id: push_image
       env:
         ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
         ECR_REPOSITORY: taxi-back
       run: |
-        docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:dev .
         docker push $ECR_REGISTRY/$ECR_REPOSITORY:dev
-        echo "Push iamge : $ECR_REGISTRY/$ECR_REPOSITORY:dev"
+        echo "Push image : $ECR_REGISTRY/$ECR_REPOSITORY:dev"
+
+    - name: Remove old cache
+      run: |
+        rm -rf /tmp/.buildx-cache
+        mv /tmp/.buildx-cache-new /tmp/.buildx-cache

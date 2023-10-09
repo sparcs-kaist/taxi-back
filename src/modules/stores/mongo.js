@@ -173,6 +173,8 @@ const adminLogSchema = Schema({
   }, // 수행 업무
 });
 
+mongoose.set("strictQuery", true);
+
 const database = mongoose.connection;
 database.on("error", console.error.bind(console, "mongoose connection error."));
 database.on("open", () => {

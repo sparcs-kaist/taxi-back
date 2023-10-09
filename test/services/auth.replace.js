@@ -1,7 +1,7 @@
 const request = require("supertest");
 
-const authHandlers = require("../src/services/auth.replace");
-const { userModel } = require("../src/modules/stores/mongo");
+const authHandlers = require("../../src/services/auth.replace");
+const { userModel } = require("../../src/modules/stores/mongo");
 
 // auth.replace.js 관련 1개의 handler을 테스트
 // 1. dev 환경에서 로그인이 성공적으로 이루어지는지 확인

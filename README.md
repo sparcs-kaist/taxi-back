@@ -9,10 +9,11 @@ Taxi는 KAIST 구성원들의 택시 동승 인원 모집을 위한 서비스입
 - Notion : [Sparcs Notion Taxi page](https://www.notion.so/sparcs/Taxi-9d371e8ac5ac4f0c9b9c35869682a0eb) (Only SPARCS members can access it)
 - Slack : #taxi-main, #taxi-notice, #taxi-bug-report, #taxi-github-bot, #taxi-notion-bot (Only SPARCS members can access it)
 
-## Prerequisites
-- Recommended npm version : 8.5.5 (with node v.16.15.0)
-- Recommended mognoDB version : 5.0.8
-- [Issue with node version](https://github.com/sparcs-kaist/taxi-front/issues/76)
+## Prerequisite
+
+- Recommended node version : >=18.0.0 (Node v18.18.0, for example)
+- Recommended pnpm version : >=8.0.0 (pmpm v8.8.0, for example)
+- Recommended mongoDB version : 5.0.8
 
 ## Project Setup
 
@@ -24,7 +25,7 @@ $ git clone https://github.com/sparcs-kaist/taxi-back
 
 ### Install Requirements
 ```bash
-$ npm install --save
+$ pnpm install
 ```
 
 ### Set Environment Configuration
@@ -32,7 +33,9 @@ See [notion page](https://www.notion.so/sparcs/Environment-Variables-1b404bd385f
 Refer to [.env.example](.env.example) and write your own `.env`.
 
 ## Backend Route Information
-See [Backend Route Documentation](src/routes/docs/README.md)
+API specification is defined on Swagger.
+Start development server and visit `/docs` to see the specification of each endpoint.
+Some endpoints are not documented in Swagger yet. For those endpoints, refer to [routes/docs/README.md](./src/routes/docs/README.md).
 
 ## License
 This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details
