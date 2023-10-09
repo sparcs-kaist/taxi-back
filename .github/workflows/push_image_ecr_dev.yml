@@ -43,25 +43,17 @@ jobs:
       id: login-ecr
       uses: aws-actions/amazon-ecr-login@v1
 
-    - name: Build Image
-      id: build_image
+    - name: Build Image and Push to AWS ECR
+      id: build_image_and_push
       uses: docker/build-push-action@v5
       env:
         ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
         ECR_REPOSITORY: taxi-back
       with:
+        push: true
         tags: "${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:dev"
         cache-from: type=local,src=/tmp/.buildx-cache
         cache-to: type=local,dest=/tmp/.buildx-cache-new
-    
-    - name: Push to AWS ECR
-      id: push_image
-      env:
-        ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-        ECR_REPOSITORY: taxi-back
-      run: |
-        docker push $ECR_REGISTRY/$ECR_REPOSITORY:dev
-        echo "Push image : $ECR_REGISTRY/$ECR_REPOSITORY:dev"
 
     - name: Remove old cache
       run: |
