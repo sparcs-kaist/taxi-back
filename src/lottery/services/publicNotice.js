@@ -65,30 +65,27 @@ const getRecentPurchaceItemListHandler = async (req, res) => {
   }
 };
 
-const calculateProbabilityV2 = (users, weightSum, base, weight) => {
+const calculateProbabilityV2 = (users, weightSum, weight) => {
   // 유저 수가 상품 수보다 적거나 같으면 무조건 상품을 받게된다.
   if (users.length <= 15) return 1;
 
   /**
-   * 경험적으로 발견한 사실
+   * 실험적으로 발견한 사실
    *
-   * p를 에어팟 당첨 확률, M을 전체 티켓 수라고 하자.
-   * 모든 유저의 p값이 1/15 미만일 경우, 실제 당첨 확률은 15p이다.
-   * 그렇지 않은 경우, 실제 당첨 확률은 1-a^Mp꼴의 지수함수를 따른다. (Note: Mp는 티켓 수이다.)
-   *
-   * 계산 과정
-   *
-   * a는 유저 수, 전체 티켓 수, 티켓 분포에 의해 결정되는 값으로, 현실적으로 계산하기 어렵다.
-   * 따라서, 모든 유저가 같은 수의 티켓을 가지고 있다고 가정하고 a를 계산한 뒤, 이를 확률 계산에 사용한다.
+   * x를 티켓 수라고 하면, 실제 당첨 확률은 1-a^x꼴의 지수함수를 따르는 것을 시뮬레이션을 통해 발견하였다.
+   * 이때 a는 전체 유저 수, 전체 티켓 수, 각 유저의 티켓 수에 의해 결정되는 값이다.
    *
    * a값의 계산 과정
    *
-   * N을 유저 수라고 하자. 모든 유저가 같은 수의 티켓 M/N개를 가지고 있다고 하자.
-   * 이때 기대되는 당첨 확률은 직관적으로 15/N임을 알 수 있다. 즉, 1-a^(M/N) = 15/N이다.
-   * a에 대해 정리하면, a = (1-15/N)^(N/M)임을 알 수 있다.
+   * 매번 a값을 정확하게 계산하는 것은 현실적으로 어렵다.
+   * 따라서, 모든 유저가 같은 수의 티켓을 가지고 있다고 가정하고 a를 계산한 뒤, 이를 확률 계산에 사용한다.
+   * M을 전체 티켓 수, N을 전체 유저 수라고 하자.
+   * 모든 유저가 같은 수의 티켓 M/N개를 가지고 있다면, 한 유저가 상품에 당첨될 확률은 15/N임을 직관적으로 알 수 있다.
+   * 실제 당첨 확률은 1-a^x꼴의 지수함수를 따르므로, 1-a^(M/N) = 15/N이라는 식을 세울 수 있다.
+   * a에 대해 정리하면, a = (1-15/N)^(N/M)을 얻는다.
    */
-  if (base !== null) return 1 - Math.pow(base, weight);
-  else return (weight / weightSum) * 15;
+  const base = Math.pow(1 - 15 / users.length, users.length / weightSum);
+  return 1 - Math.pow(base, weight);
 };
 
 const getTicketLeaderboardHandler = async (req, res) => {
@@ -128,13 +125,6 @@ const getTicketLeaderboardHandler = async (req, res) => {
         },
         [0, 0, 0]
       );
-
-    const isExponential =
-      sortedUsers.find((user) => user.weight >= weightSum / 15) !== undefined;
-    const base = isExponential
-      ? Math.pow(1 - 15 / users.length, users.length / weightSum)
-      : null;
-
     const leaderboard = await Promise.all(
       sortedUsers.slice(0, 20).map(async (user) => {
         const userInfo = await userModel.findOne({ _id: user.userId }).lean();
@@ -148,12 +138,7 @@ const getTicketLeaderboardHandler = async (req, res) => {
           ticket1Amount: user.ticket1Amount,
           ticket2Amount: user.ticket2Amount,
           probability: user.weight / weightSum,
-          probabilityV2: calculateProbabilityV2(
-            users,
-            weightSum,
-            base,
-            user.weight
-          ),
+          probabilityV2: calculateProbabilityV2(users, weightSum, user.weight),
         };
       })
     );
@@ -174,7 +159,6 @@ const getTicketLeaderboardHandler = async (req, res) => {
             probabilityV2: calculateProbabilityV2(
               users,
               weightSum,
-              base,
               sortedUsers[rank].weight
             ),
           }
