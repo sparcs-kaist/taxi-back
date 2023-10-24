@@ -93,7 +93,7 @@ User {
 - 프로필 이미지를 업로드할 수 있는 Presigned-url을 발급합니다.
 - 프로필 사진은 아래 규칙을 만족해야 함.
   1. 파일 형식은 image/png, image/jpg, image/jpeg 중 하나
-  2. 파일 크기는 최대 50 MB
+  2. 파일 크기는 최대 2 MB
 
 #### URL Parameters
 
@@ -125,7 +125,7 @@ User {
 ```javascript
 {
     result: Boolean, // 정상적으로 업로드 되었으면 true
-    profileImageUrl?: user._id, // 정상적으로 업로드 되었으면 새 프로필 이미지 파일명, 그렇지 않은 경우 undefined
+    profileImageUrl?: user._id, // 정상적으로 업로드 되었으면 새 프로필 이미지 URL, 그렇지 않은 경우 undefined
 }
 ```
 
