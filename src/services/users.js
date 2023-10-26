@@ -4,6 +4,10 @@ const aws = require("../modules/stores/aws");
 
 // 이벤트 코드입니다.
 const { contracts } = require("../lottery");
+const {
+  generateNickname,
+  generateProfileImageUrl,
+} = require("../modules/modifyProfile");
 
 const agreeOnTermsOfServiceHandler = async (req, res) => {
   try {
@@ -151,6 +155,43 @@ const editProfileImgDoneHandler = async (req, res) => {
   }
 };
 
+const resetNicknameHandler = async (req, res) => {
+  try {
+    const result = await userModel.findOneAndUpdate(
+      { id: req.userId },
+      { nickname: generateNickname(req.body.id) },
+      { new: true }
+    );
+    if (!result)
+      return res
+        .status(400)
+        .send("User/resetNickname : such user does not exist");
+    res.status(200).send("User/resetNickname : reset user nickname successful");
+  } catch (err) {
+    logger.error(err);
+    res.status(500).send("User/resetNickname : internal server error");
+  }
+};
+
+const resetProfileImgHandler = async (req, res) => {
+  try {
+    const result = await userModel.findOneAndUpdate(
+      { id: req.userId },
+      { profileImageUrl: generateProfileImageUrl() },
+      { new: true }
+    );
+    if (!result)
+      return res
+        .status(400)
+        .send("User/resetProfileImg : such user does not exist");
+    res
+      .status(200)
+      .send("User/resetProfileImg : reset user profile image successful");
+  } catch (err) {
+    res.status(500).send("User/resetProfileImg : internal server error");
+  }
+};
+
 module.exports = {
   agreeOnTermsOfServiceHandler,
   getAgreeOnTermsOfServiceHandler,
@@ -158,4 +199,6 @@ module.exports = {
   editAccountHandler,
   editProfileImgGetPUrlHandler,
   editProfileImgDoneHandler,
+  resetNicknameHandler,
+  resetProfileImgHandler,
 };

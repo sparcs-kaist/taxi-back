@@ -2,6 +2,7 @@ const reportsSchema = require("./reportsSchema");
 const reportsDocs = require("./reports");
 const logininfoDocs = require("./logininfo");
 const locationsDocs = require("./locations");
+const usersDocs = require("./users");
 
 const swaggerDocs = {
   openapi: "3.0.3",
@@ -23,6 +24,10 @@ const swaggerDocs = {
       name: "reports",
       description: "사용자 신고 및 신고 기록 조회",
     },
+    {
+      name: "users",
+      description: "유저 계정 정보 수정 및 조회",
+    },
   ],
   consumes: ["application/json"],
   produces: ["application/json"],
@@ -30,6 +35,7 @@ const swaggerDocs = {
     ...reportsDocs,
     ...logininfoDocs,
     ...locationsDocs,
+    ...usersDocs,
   },
   components: {
     schemas: {
