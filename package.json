@@ -11,6 +11,7 @@
     "test": "npm run sample && cross-env TZ='Asia/Seoul' npm run mocha",
     "mocha": "cross-env TZ='Asia/Seoul' NODE_ENV=test mocha --recursive --reporter spec --exit",
     "serve": "cross-env TZ='Asia/Seoul' NODE_ENV=production node app.js",
+    "runscript": "cross-env TZ='Asia/Seoul' NODE_ENV=production node",
     "lint": "npx eslint --fix .",
     "sample": "cd sampleGenerator && npm start && cd .."
   },
@@ -59,6 +60,7 @@
     "eslint": "^8.22.0",
     "eslint-plugin-mocha": "^10.1.0",
     "mocha": "^10.2.0",
+    "mongodb": "^6.2.0",
     "nodemon": "^3.0.1",
     "supertest": "^6.2.4"
   }
