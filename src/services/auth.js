@@ -43,7 +43,7 @@ const joinus = async (req, userData) => {
   const newUser = new userModel({
     id: userData.id,
     name: userData.name,
-    nickname: generateNickname(userData.id),
+    nickname: userData.id,
     profileImageUrl: generateProfileImageUrl(),
     joinat: req.timestamp,
     subinfo: {

@@ -31,6 +31,9 @@ router.post(
   userHandlers.editNicknameHandler
 );
 
+// 넥네임을 기본값으로 재설정합니다.
+router.get("/resetNickname", userHandlers.resetNicknameHandler);
+
 // 새 계좌번호를 받아 로그인된 유저의 계좌번호를 변경합니다.
 router.post(
   "/editAccount",
@@ -49,5 +52,8 @@ router.post(
 
 // 프로필 이미지가 S3에 정상적으로 업로드가 되었는지 확인합니다.
 router.get("/editProfileImg/done", userHandlers.editProfileImgDoneHandler);
+
+// 프로필 이미지를 기본값으로 재설정합니다.
+router.get("/resetProfileImg", userHandlers.resetProfileImg);
 
 module.exports = router;
