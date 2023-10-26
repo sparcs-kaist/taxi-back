@@ -4,7 +4,7 @@ const apiPrefix = "/users";
 const usersDocs = {};
 usersDocs[`${apiPrefix}/resetNickname`] = {
   get: {
-    tags: [`${tag}`],
+    tags: [tag],
     summary: "유저 닉네임 기본값으로 재설정",
     description: "유저의 별명을 기본값(랜덤한 닉네임)으로 초기화합니다",
     responses: {
@@ -35,7 +35,7 @@ usersDocs[`${apiPrefix}/resetNickname`] = {
 
 usersDocs[`${apiPrefix}/resetProfileImg`] = {
   get: {
-    tags: [`${tag}`],
+    tags: [tag],
     summary: "유저 프로필 사진 기본값으로 재설정",
     description: "유저의 프로필 사진을 기본값(랜덤한 사진)으로 초기화합니다",
     responses: {
