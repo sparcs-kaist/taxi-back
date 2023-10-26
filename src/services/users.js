@@ -175,7 +175,7 @@ const resetNicknameHandler = async (req, res) => {
   }
 };
 
-const resetProfileImg = async (req, res) => {
+const resetProfileImgHandler = async (req, res) => {
   try {
     const result = await userModel.findOneAndUpdate(
       { id: req.userId },
@@ -202,5 +202,5 @@ module.exports = {
   editProfileImgGetPUrlHandler,
   editProfileImgDoneHandler,
   resetNicknameHandler,
-  resetProfileImg,
+  resetProfileImgHandler,
 };

@@ -54,6 +54,6 @@ router.post(
 router.get("/editProfileImg/done", userHandlers.editProfileImgDoneHandler);
 
 // 프로필 이미지를 기본값으로 재설정합니다.
-router.get("/resetProfileImg", userHandlers.resetProfileImg);
+router.get("/resetProfileImg", userHandlers.resetProfileImgHandler);
 
 module.exports = router;
