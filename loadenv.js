@@ -25,6 +25,8 @@ module.exports = {
     secretKey: process.env.JWT_SECRET_KEY || "TAXI_JWT_KEY",
     option: {
       algorithm: "HS256",
+      // FIXME: remove FRONT_URL from issuer. 단, issuer를 변경하면 이전에 발급했던 모든 JWT가 무효화됩니다.
+      // See https://github.com/sparcs-kaist/taxi-back/issues/415
       issuer: process.env.FRONT_URL || "http://localhost:3000", // optional (default = "http://localhost:3000")
     },
     TOKEN_EXPIRED: -3,
@@ -38,10 +40,5 @@ module.exports = {
   slackWebhookUrl: {
     report: process.env.SLACK_REPORT_WEBHOOK_URL || "", // optional
   },
-  eventConfig: (process.env.EVENT_CONFIG &&
-    JSON.parse(process.env.EVENT_CONFIG)) || {
-    mode: "2023fall",
-    startAt: "2023-09-25T00:00:00+09:00",
-    endAt: "2023-10-12T00:00:00+09:00",
-  },
+  eventConfig: (process.env.EVENT_CONFIG && JSON.parse(process.env.EVENT_CONFIG))
 };
