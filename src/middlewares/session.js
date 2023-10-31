@@ -27,4 +27,8 @@ module.exports = expressSession({
   resave: false,
   saveUninitialized: false,
   store: sessionStore,
+  cookie: {
+    maxAge: 14 * 24 * 3600 * 1000 /* 14일 */,
+  },
+  rolling: true,
 });
