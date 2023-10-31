@@ -1,4 +1,5 @@
-// For Issue #173
+// Issue #173을 해결하기 위한 DB 마이그레이션 스크립트입니다.
+// https://github.com/sparcs-kaist/taxi-back/issues/173
 
 const { MongoClient } = require("mongodb");
 const { mongo: mongoUrl, aws: awsEnv } = require("../loadenv");
