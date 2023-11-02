@@ -9,17 +9,20 @@ const serverList = [
   {
     url: `http://localhost:${port}`,
     description: "local api server",
-    type: "development",
+    development: true,
+    production: false,
   },
   {
     url: "https://taxi.sparcs.org/api",
     description: "taxi main api server",
-    type: "production",
+    development: true,
+    production: true,
   },
   {
     url: "https://taxi.dev.sparcs.org/api",
     description: "taxi dev api server",
-    type: "production",
+    development: true,
+    production: false,
   },
 ];
 
@@ -30,7 +33,7 @@ const swaggerDocs = {
     version: "1.0.0",
   },
   basePath: "/",
-  servers: serverList.filter((server) => server.type === nodeEnv),
+  servers: serverList.filter((server) => server[nodeEnv]),
   tags: [
     {
       name: "locations",
