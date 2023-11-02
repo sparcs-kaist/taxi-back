@@ -29,6 +29,14 @@ reportsDocs[`${apiPrefix}/create`] = {
           },
         },
       },
+      500: {
+        description: "internal server error",
+        content: {
+          "text/html": {
+            example: "User/report : internal server error",
+          },
+        },
+      },
     },
   },
 };
@@ -55,6 +63,14 @@ reportsDocs[`${apiPrefix}/searchByUser`] = {
                 },
               },
             },
+          },
+        },
+      },
+      500: {
+        description: "internal server error",
+        content: {
+          "text/html": {
+            example: "report/searchByUser : internal server error",
           },
         },
       },
