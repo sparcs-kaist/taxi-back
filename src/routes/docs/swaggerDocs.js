@@ -14,19 +14,19 @@ const swaggerDocs = {
   basePath: "/",
   tags: [
     {
-      name: "/locations",
+      name: "locations",
       description: "출발지/도착지 정보 제공",
     },
     {
-      name: "/logininfo",
+      name: "logininfo",
       description: "로그인 정보 제공",
     },
     {
-      name: "/reports",
+      name: "reports",
       description: "사용자 신고 및 신고 기록 조회",
     },
     {
-      name: "/auth",
+      name: "auth",
       description: "사용자 생성, 로그인, 로그아웃 등 사용자 상태 관리 지원",
     },
     {
