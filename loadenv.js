@@ -2,9 +2,12 @@
 require("dotenv").config({ path: `./.env.${process.env.NODE_ENV}` });
 
 module.exports = {
-  nodeEnv: process.env.NODE_ENV,
+  nodeEnv: process.env.NODE_ENV, // required
   mongo: process.env.DB_PATH, // required
-  session: process.env.SESSION_KEY || "TAXI_SESSION_KEY", // optional
+  session: {
+    secret: process.env.SESSION_KEY || "TAXI_SESSION_KEY", // optional
+    expiry: 14 * 24 * 3600 * 1000, // 14일, ms 단위입니다.
+  },
   redis: process.env.REDIS_PATH, // optional
   sparcssso: {
     id: process.env.SPARCSSSO_CLIENT_ID || "", // optional
@@ -40,5 +43,5 @@ module.exports = {
   slackWebhookUrl: {
     report: process.env.SLACK_REPORT_WEBHOOK_URL || "", // optional
   },
-  eventConfig: (process.env.EVENT_CONFIG && JSON.parse(process.env.EVENT_CONFIG))
+  eventConfig: process.env.EVENT_CONFIG && JSON.parse(process.env.EVENT_CONFIG),
 };

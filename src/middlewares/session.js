@@ -3,9 +3,10 @@ const redis = require("redis");
 const MongoStore = require("connect-mongo");
 const RedisStore = require("connect-redis")(expressSession);
 const {
+  nodeEnv,
   redis: redisUrl,
   mongo: mongoUrl,
-  session: sessionSecret,
+  session: sessionConfig,
 } = require("../../loadenv");
 const logger = require("../modules/logger");
 
@@ -17,18 +18,18 @@ if (redisUrl) {
     legacyMode: true,
   });
   client.connect().catch(logger.error);
-  sessionStore = new RedisStore({ client });
+  sessionStore = new RedisStore({ client, ttl: sessionConfig.expiry });
 } else {
   sessionStore = MongoStore.create({ mongoUrl });
 }
 
 module.exports = expressSession({
-  secret: sessionSecret,
+  secret: sessionConfig.secret,
   resave: false,
   saveUninitialized: false,
   store: sessionStore,
   cookie: {
-    maxAge: 14 * 24 * 3600 * 1000 /* 14일 */,
+    maxAge: sessionConfig.expiry,
+    secure: nodeEnv === "production",
   },
-  rolling: true,
 });
