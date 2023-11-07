@@ -1,7 +1,7 @@
 const expect = require("chai").expect;
-const reportHandlers = require("../src/services/reports");
-const { userModel } = require("../src/modules/stores/mongo");
-const { userGenerator, roomGenerator, testRemover } = require("./utils");
+const reportHandlers = require("../../src/services/reports");
+const { userModel } = require("../../src/modules/stores/mongo");
+const { userGenerator, roomGenerator, testRemover } = require("../utils");
 const httpMocks = require("node-mocks-http");
 
 let testData = { rooms: [], users: [], chat: [], location: [], report: [] };
@@ -24,7 +24,7 @@ describe("[reports] 1.createHandler", () => {
         type: "etc-reason",
         etcDetail: "etc-detail",
         time: Date.now(),
-        roomId: testRoom._id
+        roomId: testRoom._id,
       },
     });
     let res = httpMocks.createResponse();

@@ -2,7 +2,22 @@
   "name": "taxi-back",
   "version": "1.0.0",
   "description": "KAIST Taxi Party Matching Web Service",
+  "author": "sparcs/taxi",
+  "license": "MIT",
   "main": "app.js",
+  "scripts": {
+    "preinstall": "npx only-allow pnpm",
+    "start": "cross-env TZ='Asia/Seoul' npx nodemon app.js",
+    "test": "npm run sample && cross-env TZ='Asia/Seoul' npm run mocha",
+    "mocha": "cross-env TZ='Asia/Seoul' NODE_ENV=test mocha --recursive --reporter spec --exit",
+    "serve": "cross-env TZ='Asia/Seoul' NODE_ENV=production node app.js",
+    "lint": "npx eslint --fix .",
+    "sample": "cd sampleGenerator && npm start && cd .."
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "pnpm": ">=8.0.0"
+  },
   "dependencies": {
     "@adminjs/express": "^5.1.0",
     "@adminjs/mongoose": "^3.0.3",
@@ -26,8 +41,8 @@
     "express-session": "^1.17.3",
     "express-validator": "^6.14.0",
     "firebase-admin": "^11.4.1",
-    "jsonwebtoken": "^8.5.1",
-    "mongoose": "^6.11.3",
+    "jsonwebtoken": "^9.0.2",
+    "mongoose": "^6.12.0",
     "node-cron": "3.0.2",
     "node-mocks-http": "^1.12.1",
     "querystring": "^0.2.1",
@@ -40,22 +55,11 @@
     "winston-daily-rotate-file": "^4.7.1"
   },
   "devDependencies": {
-    "chai": "*",
+    "chai": "^4.3.10",
     "eslint": "^8.22.0",
     "eslint-plugin-mocha": "^10.1.0",
-    "mocha": "*",
-    "nodemon": "^2.0.14",
+    "mocha": "^10.2.0",
+    "nodemon": "^3.0.1",
     "supertest": "^6.2.4"
-  },
-  "scripts": {
-    "preinstall": "npx only-allow pnpm",
-    "start": "cross-env TZ='Asia/Seoul' npx nodemon app.js",
-    "test": "npm run sample && cross-env TZ='Asia/Seoul' npm run mocha",
-    "mocha": "cross-env TZ='Asia/Seoul' NODE_ENV=test mocha --recursive --reporter spec --exit",
-    "serve": "cross-env TZ='Asia/Seoul' NODE_ENV=production node app.js",
-    "lint": "npx eslint --fix .",
-    "sample": "cd sampleGenerator && npm start && cd .."
-  },
-  "author": "sparcs/taxi",
-  "license": "MIT"
+  }
 }
