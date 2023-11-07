@@ -2,6 +2,7 @@ const reportsSchema = require("./reportsSchema");
 const reportsDocs = require("./reports");
 const logininfoDocs = require("./logininfo");
 const locationsDocs = require("./locations");
+const authDocs = require("./auth");
 const usersDocs = require("./users");
 
 const swaggerDocs = {
@@ -25,6 +26,10 @@ const swaggerDocs = {
       description: "사용자 신고 및 신고 기록 조회",
     },
     {
+      name: "auth",
+      description: "사용자 생성, 로그인, 로그아웃 등 사용자 상태 관리 지원",
+    },
+    {
       name: "users",
       description: "유저 계정 정보 수정 및 조회",
     },
@@ -36,6 +41,7 @@ const swaggerDocs = {
     ...logininfoDocs,
     ...locationsDocs,
     ...usersDocs,
+    ...authDocs,
   },
   components: {
     schemas: {
