@@ -1,14 +1,15 @@
+const { session: sessionConfig } = require("../../../loadenv");
 const logger = require("../logger");
 
 const getLoginInfo = (req) => {
   if (req.session.loginInfo) {
     const { id, sid, oid, name, time } = req.session.loginInfo;
     const timeFlow = Date.now() - time;
-    if (timeFlow > 14 * 24 * 3600 * 1000 /* 14일 */) {
-      // if (timeFlow > 1 * 3600 * 1000 /* 1시간 */) {
+    // 14일이 지난 세션에 대해서는 로그인 정보를 반환하지 않습니다.
+    // 세션은 새로운 요청 시 갱신되지 않습니다.
+    if (timeFlow > sessionConfig.expiry) {
       return { id: undefined, sid: undefined, oid: undefined, name: undefined };
     }
-    req.session.loginInfo.time = Date.now();
     return { id, sid, oid, name };
   }
   return { id: undefined, sid: undefined, oid: undefined, name: undefined };
