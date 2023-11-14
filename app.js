@@ -20,7 +20,7 @@ app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
 
 // reverse proxy가 설정한 헤더를 신뢰합니다.
-if (nodeEnv === "production") app.set("trust proxy", 1);
+if (nodeEnv === "production") app.set("trust proxy", 2);
 
 // [Middleware] CORS 설정
 app.use(require("./src/middlewares/cors"));
