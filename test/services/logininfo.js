@@ -1,6 +1,6 @@
 const expect = require("chai").expect;
-const logininfoHandlers = require("../src/services/logininfo");
-const { userModel } = require("../src/modules/stores/mongo");
+const logininfoHandlers = require("../../src/services/logininfo");
+const { userModel } = require("../../src/modules/stores/mongo");
 
 // 1-1. 로그인 한 유저가 없을 시 undefined를 return 하는지 확인
 // 1-2. login 정보를 잘 return 하는지 확인
