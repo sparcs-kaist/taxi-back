@@ -1,10 +1,34 @@
 // 모듈 import
 import express from "express";
+import cookieParser from "cookie-parser";
 import http from "http";
-import { nodeEnv, port as httpPort, eventConfig } from "@/loadenv";
+
+import { nodeEnv, port as httpPort } from "@/loadenv";
+import {
+  corsMiddleware,
+  sessionMiddleware,
+  informationMiddleware,
+  responseTimeMiddleware,
+  limitRateMiddleware,
+  originValidatorMiddleware,
+  errorHandler,
+} from "@/middlewares";
+import {
+  authRouter,
+  logininfoRouter,
+  userRouter,
+  roomRouter,
+  chatRouter,
+  locationRouter,
+  reportRouter,
+  notificationRouter,
+  adminRouter,
+  docsRouter,
+} from "@/routes";
 import logger from "@/modules/logger";
 import { connectDatabase } from "@/modules/stores/mongo";
 import { startSocketServer } from "@/modules/socket";
+import registerSchedules from "@/schedules";
 
 // Firebase Admin 초기설정
 require("./src/modules/fcm").initializeApp();
@@ -23,50 +47,46 @@ app.use(express.json());
 if (nodeEnv === "production") app.set("trust proxy", 2);
 
 // [Middleware] CORS 설정
-app.use(require("./src/middlewares/cors"));
+app.use(corsMiddleware);
 
 // [Middleware] 세션 및 쿠키
-const session = require("./src/middlewares/session");
-app.use(session);
-app.use(require("cookie-parser")());
+app.use(sessionMiddleware);
+app.use(cookieParser());
 
 // [Middleware] Timestamp 및 clientIP 확인
-app.use(require("./src/middlewares/information"));
+app.use(informationMiddleware);
 
 // [Middleware] API 접근 기록 및 응답 시간을 http response의 헤더에 기록합니다.
-app.use(require("./src/middlewares/responseTime"));
+app.use(responseTimeMiddleware);
 
 // [Router] admin 페이지는 rate limiting을 적용하지 않습니다.
-app.use("/admin", require("./src/routes/admin"));
+app.use("/admin", adminRouter);
 
 // [Middleware] 모든 요청에 대하여 rate limiting 적용
-app.use(require("./src/middlewares/limitRate"));
+app.use(limitRateMiddleware);
 
 // [Router] Swagger (API 문서)
-app.use("/docs", require("./src/routes/docs"));
+app.use("/docs", docsRouter);
 
 // 2023 추석 이벤트 전용 라우터입니다.
-eventConfig &&
-  app.use(
-    `/events/${eventConfig.mode}`,
-    require("./src/lottery").lotteryRouter
-  );
+// eventConfig &&
+//   app.use(`/events/${eventConfig.mode}`, require("@/lottery").lotteryRouter);
 
 // [Middleware] 모든 API 요청에 대하여 origin 검증
-app.use(require("./src/middlewares/originValidator"));
+app.use(originValidatorMiddleware);
 
 // [Router] APIs
-app.use("/auth", require("./src/routes/auth"));
-app.use("/logininfo", require("./src/routes/logininfo"));
-app.use("/users", require("./src/routes/users"));
-app.use("/rooms", require("./src/routes/rooms"));
-app.use("/chats", require("./src/routes/chats"));
-app.use("/locations", require("./src/routes/locations"));
-app.use("/reports", require("./src/routes/reports"));
-app.use("/notifications", require("./src/routes/notifications"));
+app.use("/auth", authRouter);
+app.use("/logininfo", logininfoRouter);
+app.use("/users", userRouter);
+app.use("/rooms", roomRouter);
+app.use("/chats", chatRouter);
+app.use("/locations", locationRouter);
+app.use("/reports", reportRouter);
+app.use("/notifications", notificationRouter);
 
 // [Middleware] 전역 에러 핸들러. 에러 핸들러는 router들보다 아래에 등록되어야 합니다.
-app.use(require("./src/middlewares/errorHandler"));
+app.use(errorHandler);
 
 // express 서버 시작
 const serverHttp = http
@@ -79,4 +99,4 @@ const serverHttp = http
 app.set("io", startSocketServer(serverHttp));
 
 // [Schedule] 스케줄러 시작
-require("./src/schedules")(app);
+registerSchedules(app);
