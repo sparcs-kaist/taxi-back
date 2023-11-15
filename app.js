@@ -1,7 +1,7 @@
 // 모듈 require
 const express = require("express");
 const http = require("http");
-const { port: httpPort, eventConfig } = require("./loadenv");
+const { nodeEnv, port: httpPort, eventConfig } = require("./loadenv");
 const logger = require("./src/modules/logger");
 const { connectDatabase } = require("./src/modules/stores/mongo");
 const { startSocketServer } = require("./src/modules/socket");
@@ -20,7 +20,7 @@ app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
 
 // reverse proxy가 설정한 헤더를 신뢰합니다.
-app.set("trust proxy", true);
+if (nodeEnv === "production") app.set("trust proxy", 2);
 
 // [Middleware] CORS 설정
 app.use(require("./src/middlewares/cors"));

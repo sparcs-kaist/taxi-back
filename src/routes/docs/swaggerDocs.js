@@ -4,6 +4,28 @@ const logininfoDocs = require("./logininfo");
 const locationsDocs = require("./locations");
 const authDocs = require("./auth");
 const usersDocs = require("./users");
+const { port, nodeEnv } = require("../../../loadenv");
+
+const serverList = [
+  {
+    url: `http://localhost:${port}`,
+    description: "local api server",
+    development: true,
+    production: false,
+  },
+  {
+    url: "https://taxi.sparcs.org/api",
+    description: "taxi main api server",
+    development: true,
+    production: true,
+  },
+  {
+    url: "https://taxi.dev.sparcs.org/api",
+    description: "taxi dev api server",
+    development: true,
+    production: false,
+  },
+];
 
 const swaggerDocs = {
   openapi: "3.0.3",
@@ -12,6 +34,7 @@ const swaggerDocs = {
     version: "1.0.0",
   },
   basePath: "/",
+  servers: serverList.filter((server) => server[nodeEnv]),
   tags: [
     {
       name: "locations",
