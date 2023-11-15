@@ -7,10 +7,12 @@
   "main": "app.js",
   "scripts": {
     "preinstall": "npx only-allow pnpm",
-    "start": "cross-env TZ='Asia/Seoul' npx nodemon app.js",
-    "test": "npm run sample && cross-env TZ='Asia/Seoul' npm run mocha",
+    "start": "npx tsc && tsc-alias && npx nodemon",
     "mocha": "cross-env TZ='Asia/Seoul' NODE_ENV=test mocha --recursive --reporter spec --exit",
-    "serve": "cross-env TZ='Asia/Seoul' NODE_ENV=production node app.js",
+    "test": "npm run sample && cross-env TZ='Asia/Seoul' npm run mocha",
+    "build": "tsc && tsc-alias",
+    "clean": "rimraf dist/",
+    "serve": "cross-env TZ='Asia/Seoul' NODE_ENV=production node dist/index.js",
     "lint": "npx eslint --fix .",
     "sample": "cd sampleGenerator && npm start && cd .."
   },
@@ -55,11 +57,17 @@
     "winston-daily-rotate-file": "^4.7.1"
   },
   "devDependencies": {
+    "@types/cors": "^2.8.16",
+    "@types/express": "^4.17.21",
+    "@types/node": "^20.9.0",
     "chai": "^4.3.10",
     "eslint": "^8.22.0",
     "eslint-plugin-mocha": "^10.1.0",
     "mocha": "^10.2.0",
     "nodemon": "^3.0.1",
-    "supertest": "^6.2.4"
+    "rimraf": "^5.0.5",
+    "supertest": "^6.2.4",
+    "tsc-alias": "^1.8.8",
+    "typescript": "^5.2.2"
   }
 }

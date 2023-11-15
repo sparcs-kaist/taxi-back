@@ -1,10 +1,10 @@
-// 모듈 require
-const express = require("express");
-const http = require("http");
-const { nodeEnv, port: httpPort, eventConfig } = require("./loadenv");
-const logger = require("./src/modules/logger");
-const { connectDatabase } = require("./src/modules/stores/mongo");
-const { startSocketServer } = require("./src/modules/socket");
+// 모듈 import
+import express from "express";
+import http from "http";
+import { nodeEnv, port as httpPort, eventConfig } from "@/loadenv";
+import logger from "@/modules/logger";
+import { connectDatabase } from "@/modules/stores/mongo";
+import { startSocketServer } from "@/modules/socket";
 
 // Firebase Admin 초기설정
 require("./src/modules/fcm").initializeApp();
