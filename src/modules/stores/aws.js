@@ -26,33 +26,42 @@ module.exports.getList = (directoryPath, cb) => {
 };
 
 // function to generate signed-url for upload(PUT)
-module.exports.getUploadPUrlPut = (filePath, contentType = "image/png") => {
-  const presignedUrl = getSignedUrl(s3, new PutObjectCommand({
-    Bucket: awsEnv.s3BucketName,
-    Key: filePath,
-    ContentType: contentType
-  }), {
-    expiresIn: 60
-  });
+module.exports.getUploadPUrlPut = async (
+  filePath,
+  contentType = "image/png"
+) => {
+  const presignedUrl = await getSignedUrl(
+    s3,
+    new PutObjectCommand({
+      Bucket: awsEnv.s3BucketName,
+      Key: filePath,
+      ContentType: contentType,
+    }),
+    {
+      expiresIn: 60,
+    }
+  );
   return presignedUrl;
 };
 
 // function to generate signed-url for upload(POST)
-module.exports.getUploadPUrlPost = (filePath, contentType, cb) => {
-  s3.createPresignedPost(
-    {
-      Bucket: awsEnv.s3BucketName,
-      Expires: 60, // 1 min
-      Conditions: [
-        { key: filePath },
-        ["eq", "$Content-Type", contentType],
-        ["content-length-range", 1, 2 * 1024 * 1024], // Maximum file size is 2MB
-      ],
-    },
-    (err, data) => {
-      cb(err, data);
-    }
-  );
+module.exports.getUploadPUrlPost = async (filePath, contentType) => {
+  try {
+    const presignedUrl = await getSignedUrl(
+      s3,
+      new PutObjectCommand({
+        Bucket: awsEnv.s3BucketName,
+        Key: filePath,
+        contentType: contentType,
+      }),
+      {
+        expiresIn: 60,
+      }
+    );
+    return presignedUrl;
+  } catch (e) {
+    return e;
+  }
 };
 
 // function to delete object

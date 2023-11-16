@@ -116,11 +116,6 @@ describe("[users] 5.editProfileImgGetPUrlHandler", () => {
     const resJson = res._getJSONData();
     expect(res).to.has.property("statusCode", 200);
     expect(resJson).to.has.property("url");
-    expect(resJson.fields).to.has.property(
-      "key",
-      `profile-img/${testUser1._id}`
-    );
-    expect(resJson.fields).to.has.property("Content-Type", testImgType);
   });
 });
 
