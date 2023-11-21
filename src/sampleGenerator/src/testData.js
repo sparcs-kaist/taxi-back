@@ -3,34 +3,10 @@ const {
   roomModel,
   locationModel,
   chatModel,
-} = require("./db/model");
-const crypto = require("crypto");
+} = require("../../modules/stores/mongo");
+const { generateProfileImageUrl } = require("../../modules/modifyProfile");
+
 const security = require("../security");
-
-//사용 가능한 프로필 이미지 url들
-const defaultProfile = [
-  "CatGeoul.png",
-  "CatGreen.png",
-  "CatJabo.png",
-  "CatOTL.png",
-  "CatTaxi.png",
-  "GooseGeoul.png",
-  "GooseGreen.png",
-  "GooseJabo.png",
-  "GooseOTL.png",
-  "GooseTaxi.png",
-  "NupjukGeoul.png",
-  "NupjukGreen.png",
-  "NupjukJabo.png",
-  "NupjukOTL.png",
-  "NupjukTaxi.png",
-];
-
-// 기존 프로필 사진의 URI 중 하나를 무작위로 선택해 반환합니다.
-const generateProfileImageUrl = () => {
-  const ridx = crypto.randomInt(defaultProfile.length);
-  return `default/${defaultProfile[ridx]}`;
-};
 
 const generateUser = async (id, num, isAdmin) => {
   const newUser = new userModel({
@@ -40,7 +16,7 @@ const generateUser = async (id, num, isAdmin) => {
     profileImageUrl: generateProfileImageUrl(),
     joinat: Date.now(),
     subinfo: {
-      kaist: new String(20220000 + num),
+      kaist: new String(20230000 + num), // ^-^
       sparcs: "",
       facebook: "",
       twitter: "",

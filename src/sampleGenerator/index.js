@@ -4,10 +4,15 @@ const {
   generateSampleLocations,
   generateChats,
 } = require("./src/testData");
+const { connectDatabase } = require("../modules/stores/mongo");
+const {
+  loadSampleData,
+  numberOfRooms,
+  numberOfChats,
+  mongo: mongoUrl,
+} = require("./security");
 
-const database = require("./src/db/mongo").connection;
-
-const { loadSampleData, numberOfRooms, numberOfChats } = require("./security");
+const database = connectDatabase(mongoUrl);
 
 const main = async () => {
   await database.db.dropDatabase();
