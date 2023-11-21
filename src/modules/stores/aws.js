@@ -2,15 +2,15 @@ const { aws: awsEnv } = require("../../../loadenv");
 
 const logger = require("../logger");
 // Load the AWS-SDK and s3
-const {getSignedUrl} = require("@aws-sdk/s3-request-presigner")
-const {PutObjectCommand,S3} = require("@aws-sdk/client-s3")
+const { getSignedUrl } = require("@aws-sdk/s3-request-presigner");
+const { PutObjectCommand, S3 } = require("@aws-sdk/client-s3");
 const { SES } = require("@aws-sdk/client-ses");
 
 const s3 = new S3({
   apiVersion: "2006-03-01",
-  region: 'ap-northeast-2'
-  });
-const ses = new SES({ apiVersion: "2010-12-01",region: 'ap-northeast-2' });
+  region: "ap-northeast-2",
+});
+const ses = new SES({ apiVersion: "2010-12-01", region: "ap-northeast-2" });
 
 // function to list Object
 module.exports.getList = (directoryPath, cb) => {
