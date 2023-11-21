@@ -1,0 +1,82 @@
+{
+  "users": [
+    {
+      "id": "sunday",
+      "isAdmin": true
+    },
+    {
+      "id": "monday",
+      "isAdmin": true
+    },
+    {
+      "id": "tuesday",
+      "isAdmin": true
+    },
+    {
+      "id": "wednesday",
+      "isAdmin": true
+    }
+  ],
+  "locations": [
+    {
+      "koName": "택시승강장",
+      "enName": "Taxi Stand"
+    },
+    {
+      "koName": "대전역",
+      "enName": "Daejeon Station"
+    },
+    {
+      "koName": "갤러리아 타임월드",
+      "enName": "Galleria Timeworld"
+    },
+    {
+      "koName": "궁동 로데오거리",
+      "enName": "Gung-dong Rodeo Street"
+    },
+    {
+      "koName": "대전복합터미널",
+      "enName": "Daejeon Terminal Complex"
+    },
+    {
+      "koName": "만년중학교",
+      "enName": "Mannyon Middle School"
+    },
+    {
+      "koName": "서대전역",
+      "enName": "Seodaejeon Station"
+    },
+    {
+      "koName": "신세계백화점",
+      "enName": "Shinsegae Department Store"
+    },
+    {
+      "koName": "오리연못",
+      "enName": "Duck Pond"
+    },
+    {
+      "koName": "월평역",
+      "enName": "Wolpyeong Station"
+    },
+    {
+      "koName": "유성구청",
+      "enName": "Yuseong-gu Office"
+    },
+    {
+      "koName": "유성 고속버스터미널",
+      "enName": "Yuseong Express Bus Terminal"
+    },
+    {
+      "koName": "유성 시외버스터미널",
+      "enName": "Yuseong Intercity Bus Terminal"
+    },
+    {
+      "koName": "대전청사 고속버스터미널",
+      "enName": "Government Complex Express Bus Terminal"
+    },
+    {
+      "koName": "대전청사 시외버스터미널",
+      "enName": "Government Complex Intercity Bus Terminal"
+    }
+  ]
+}
