@@ -29,20 +29,12 @@ jobs:
       with:
         node-version: ${{ matrix.node-version }}
         cache: 'pnpm'
-    - id: submodule-local
-      name: Save local version of submodule
-      run: echo "ver=`cd sampleGenerator && git log --pretty="%h" -1 && cd ..`" >> $GITHUB_OUTPUT
-    - id: submodule-origin
-      name: Save origin version of submodule
-      run: echo "ver=`cd sampleGenerator && git log origin --pretty="%h" -1 && cd ..`" >> $GITHUB_OUTPUT
     - name: Check submodule version
       if: ${{ steps.submodule-local.outputs.ver != steps.submodule-origin.outputs.ver }}
       uses: actions/github-script@v3
       with:
         script: |
             core.setFailed('Please update submodule to the latest version by using \"git submodule update --remote\"')
-    - name: Install sampleGenerator dependencies from package-lock.json
-      run: cd sampleGenerator && pnpm i --force --frozen-lockfile && cd ..
     - name: Install taxi-back dependencies from package-lock.json
       run: pnpm i --force --frozen-lockfile
     - name: Run unit tests

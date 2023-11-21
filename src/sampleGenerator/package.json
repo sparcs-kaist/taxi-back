@@ -10,22 +10,8 @@
     "dumpDB": "node tools/dump.js",
     "restoreDB": "node tools/restore.js"
   },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/withSang/taxiSampleGenerator.git"
-  },
   "keywords": [
     "test"
   ],
-  "author": "withSang",
-  "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/withSang/taxiSampleGenerator/issues"
-  },
-  "homepage": "https://github.com/withSang/taxiSampleGenerator#readme",
-  "dependencies": {
-    "dotenv": "^16.0.0",
-    "eslint": "^8.9.0",
-    "mongoose": "^6.5.2"
-  }
+  "license": "ISC"
 }

@@ -8,9 +8,7 @@
 
 **SETUP**
 
-1. 로컬 저장소에 레포지토리를 클론합니다.
-1. `pnpm install`로 필요한 패키지를 설치합니다.
-1. 클론한 디렉토리(index.js가 있는 디렉토리)에 .env 파일을 아래와 같이 추가합니다.
+1. 현재 디렉터리(README.md 파일이 있는 곳)에 .env 파일을 아래와 같이 추가합니다.
    ```
    #mongoDB 경로 (직접 입력해야 함 - 기본값은 mongodb://localhost:27017/local)
    DB_PATH=mongodb://localhost:27017/local
