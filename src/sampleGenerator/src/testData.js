@@ -37,6 +37,8 @@ const generateSampleLocations = async (locations) => {
     const locationDocument = new locationModel({
       koName: location.koName,
       enName: location.enName,
+      longitude: location.longitude,
+      latitude: location.latitude,
     });
     await locationDocument.save();
   }

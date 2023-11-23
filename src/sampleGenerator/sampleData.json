@@ -20,63 +20,93 @@
   "locations": [
     {
       "koName": "택시승강장",
-      "enName": "Taxi Stand"
+      "enName": "Taxi Stand",
+      "longitude": 127.359507,
+      "latitude": 36.373199
     },
     {
       "koName": "대전역",
-      "enName": "Daejeon Station"
+      "enName": "Daejeon Station",
+      "longitude": 127.434522,
+      "latitude": 36.331894
     },
     {
       "koName": "갤러리아 타임월드",
-      "enName": "Galleria Timeworld"
+      "enName": "Galleria Timeworld",
+      "longitude": 127.378188,
+      "latitude": 36.351938
     },
     {
       "koName": "궁동 로데오거리",
-      "enName": "Gung-dong Rodeo Street"
+      "enName": "Gung-dong Rodeo Street",
+      "longitude": 127.350161,
+      "latitude": 36.362785
     },
     {
       "koName": "대전복합터미널",
-      "enName": "Daejeon Terminal Complex"
+      "enName": "Daejeon Terminal Complex",
+      "longitude": 127.350161,
+      "latitude": 36.362785
     },
     {
       "koName": "만년중학교",
-      "enName": "Mannyon Middle School"
+      "enName": "Mannyon Middle School",
+      "longitude": 127.375993,
+      "latitude": 36.366990
     },
     {
       "koName": "서대전역",
-      "enName": "Seodaejeon Station"
+      "enName": "Seodaejeon Station",
+      "longitude": 127.403933,
+      "latitude": 36.322517
     },
     {
       "koName": "신세계백화점",
-      "enName": "Shinsegae Department Store"
+      "enName": "Shinsegae Department Store",
+      "longitude": 127.381905,
+      "latitude": 36.375168
     },
     {
       "koName": "오리연못",
-      "enName": "Duck Pond"
+      "enName": "Duck Pond",
+      "longitude": 127.362371,
+      "latitude": 36.367715 
     },
     {
       "koName": "월평역",
-      "enName": "Wolpyeong Station"
+      "enName": "Wolpyeong Station",
+      "longitude": 127.364352,
+      "latitude": 36.358271
     },
     {
       "koName": "유성구청",
-      "enName": "Yuseong-gu Office"
+      "enName": "Yuseong-gu Office",
+      "longitude": 127.356384,
+      "latitude": 36.362084
     },
     {
       "koName": "유성 고속버스터미널",
-      "enName": "Yuseong Express Bus Terminal"
+      "enName": "Yuseong Express Bus Terminal",
+      "longitude": 127.336467,
+      "latitude": 36.358279
     },
     {
       "koName": "유성 시외버스터미널",
-      "enName": "Yuseong Intercity Bus Terminal"
+      "enName": "Yuseong Intercity Bus Terminal",
+      "longitude": 127.335971,
+      "latitude": 36.355604
     },
     {
       "koName": "대전청사 고속버스터미널",
-      "enName": "Government Complex Express Bus Terminal"
+      "enName": "Government Complex Express Bus Terminal",
+      "longitude": 127.390504,
+      "latitude": 36.361462
     },
     {
       "koName": "대전청사 시외버스터미널",
-      "enName": "Government Complex Intercity Bus Terminal"
+      "enName": "Government Complex Intercity Bus Terminal",
+      "longitude": 127.379759,
+      "latitude": 36.361512
     }
   ]
 }
