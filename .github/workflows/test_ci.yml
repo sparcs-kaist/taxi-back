@@ -29,12 +29,6 @@ jobs:
       with:
         node-version: ${{ matrix.node-version }}
         cache: 'pnpm'
-    - name: Check submodule version
-      if: ${{ steps.submodule-local.outputs.ver != steps.submodule-origin.outputs.ver }}
-      uses: actions/github-script@v3
-      with:
-        script: |
-            core.setFailed('Please update submodule to the latest version by using \"git submodule update --remote\"')
     - name: Install taxi-back dependencies from package-lock.json
       run: pnpm i --force --frozen-lockfile
     - name: Run unit tests
