@@ -1,8 +1,8 @@
-const { getS3Url } = require("@/modules/stores/aws");
+import { getS3Url } from "@/modules/stores/aws";
 
-module.exports = (
-  title,
-  content
+const emailPage = (
+  title: string,
+  content: string
 ) => `<div style="font-family: system-ui; position: relative; background: #ffffff; margin: 0; padding: 72px;">
   <div style="width: max(min(100%, 800px), 320px); margin: 0 auto; padding 0;">
     <div style="height: 102px; background: #6E3678; margin: 0 0 48px; padding: 0;">
@@ -29,3 +29,5 @@ module.exports = (
     </div>
   </div>
 </div>`;
+
+export default emailPage;

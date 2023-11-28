@@ -1,4 +1,4 @@
-module.exports = `
+const loginPage = `
 <!DOCTYPE html>
 <html lang="ko">
     <head>
@@ -44,3 +44,5 @@ module.exports = `
     </body>
 </html>
 `;
+
+export default loginPage;

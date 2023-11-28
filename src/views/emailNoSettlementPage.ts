@@ -1,6 +1,13 @@
-const emailPage = require("./emailPage");
+import emailPage from "./emailPage";
 
-module.exports = (origin, name, nickname, roomName, payer, roomId) =>
+const emailNoSettlementPage = (
+  origin: string,
+  name: string,
+  nickname: string,
+  roomName: string,
+  payer: string,
+  roomId: string
+) =>
   emailPage(
     "미정산 내역 관련 안내",
     `<b><font color="#6E3678">${name} (${nickname})</font></b> 님께<br /><br />
@@ -32,3 +39,5 @@ module.exports = (origin, name, nickname, roomName, payer, roomId) =>
     SPARCS Taxi팀 드림.
     `
   );
+
+export default emailNoSettlementPage;
