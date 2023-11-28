@@ -1,4 +1,10 @@
-module.exports = (req, res, next) => {
+import { type Request, type Response, type NextFunction } from "express";
+
+const originValidatorMiddleware = (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
   req.origin =
     req.headers.origin ||
     req.headers.referer ||
@@ -9,5 +15,7 @@ module.exports = (req, res, next) => {
       error: "Bad Request : request must have origin in header",
     });
   }
-  next();
+  return next();
 };
+
+export default originValidatorMiddleware;

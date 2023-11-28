@@ -1,9 +1,13 @@
 // 관리자 유무를 확인하기 위한 미들웨어입니다.
+import { type Request, type Response, type NextFunction } from "express";
+import { isLogin, getLoginInfo } from "@/modules/auths/login";
+import { userModel, adminIPWhitelistModel } from "@/modules/stores/mongo";
 
-const { isLogin, getLoginInfo } = require("@/modules/auths/login");
-const { userModel, adminIPWhitelistModel } = require("@/modules/stores/mongo");
-
-const authAdminMiddleware = async (req, res, next) => {
+const authAdminMiddleware = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
   try {
     // 로그인 여부를 확인
     if (!isLogin(req)) return res.redirect(req.origin);
@@ -22,10 +26,10 @@ const authAdminMiddleware = async (req, res, next) => {
     )
       return res.redirect(req.origin);
 
-    next();
+    return next();
   } catch (e) {
-    res.redirect(req.origin);
+    return res.redirect(req.origin);
   }
 };
 
-module.exports = authAdminMiddleware;
+export default authAdminMiddleware;

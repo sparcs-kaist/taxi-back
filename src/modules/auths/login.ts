@@ -1,7 +1,16 @@
-const { session: sessionConfig } = require("@/loadenv");
-const logger = require("@/modules/logger");
+import { type Request } from "express";
+import { session as sessionConfig } from "@/loadenv";
+import logger from "@/modules/logger";
 
-const getLoginInfo = (req) => {
+export interface LoginInfo {
+  id: string;
+  sid: string;
+  oid: string;
+  name: string;
+  time: number;
+}
+
+export const getLoginInfo = (req: Request) => {
   if (req.session.loginInfo) {
     const { id, sid, oid, name, time } = req.session.loginInfo;
     const timeFlow = Date.now() - time;
@@ -15,17 +24,23 @@ const getLoginInfo = (req) => {
   return { id: undefined, sid: undefined, oid: undefined, name: undefined };
 };
 
-const isLogin = (req) => {
+export const isLogin = (req: Request) => {
   const loginInfo = getLoginInfo(req);
   if (loginInfo.id) return true;
-  else return false;
+  return false;
 };
 
-const login = (req, sid, id, oid, name) => {
+export const login = (
+  req: Request,
+  sid: string,
+  id: string,
+  oid: string,
+  name: string
+) => {
   req.session.loginInfo = { sid, id, oid, name, time: Date.now() };
 };
 
-const logout = (req) => {
+export const logout = (req: Request) => {
   // 로그아웃 전 socket.io 소켓들 연결부터 끊기
   const io = req.app.get("io");
   if (io) io.in(`session-${req.session.id}`).disconnectSockets(true);
@@ -33,11 +48,4 @@ const logout = (req) => {
   req.session.destroy((err) => {
     if (err) logger.error(err);
   });
-};
-
-module.exports = {
-  getLoginInfo,
-  isLogin,
-  login,
-  logout,
 };

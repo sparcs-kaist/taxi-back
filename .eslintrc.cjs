@@ -34,6 +34,7 @@ module.exports = {
       "error",
       "ignorePackages",
       {
+        js: "never", // temporary fix for #159
         ts: "never",
       },
     ],
@@ -45,6 +46,7 @@ module.exports = {
       },
     ],
     "mocha/no-mocha-arrows": "off",
+    "no-console": "error",
     "no-restricted-imports": [
       "error",
       {

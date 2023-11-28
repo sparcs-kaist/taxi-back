@@ -1,8 +1,8 @@
-const path = require("path");
-const { createLogger, format, transports } = require("winston");
-const DailyRotateFileTransport = require("winston-daily-rotate-file");
+import path from "path";
+import { createLogger, format, transports } from "winston";
+import DailyRotateFileTransport from "winston-daily-rotate-file";
 
-const { nodeEnv } = require("@/loadenv");
+import { nodeEnv } from "@/loadenv";
 
 // logger에서 사용할 포맷들을 정의합니다.
 const baseFormat = format.combine(
@@ -92,4 +92,4 @@ const logger =
         exceptionHandlers: [consoleTransport],
       });
 
-module.exports = logger;
+export default logger;
