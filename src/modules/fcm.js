@@ -4,9 +4,9 @@ const {
   deviceTokenModel,
   notificationOptionModel,
   topicSubscriptionModel,
-} = require("./stores/mongo");
-const logger = require("../modules/logger");
-const { googleApplicationCredentials } = require("../../loadenv");
+} = require("@/modules/stores/mongo");
+const logger = require("./logger");
+const { googleApplicationCredentials } = require("@/loadenv");
 
 /**
  * credential을 등록합니다.

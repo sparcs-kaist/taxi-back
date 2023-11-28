@@ -1,6 +1,6 @@
 const jwt = require("jsonwebtoken");
 const { secretKey, option, TOKEN_EXPIRED, TOKEN_INVALID } =
-  require("../../../loadenv").jwt;
+  require("@/loadenv").jwt;
 
 const signJwt = async ({ id, type }) => {
   const payload = {

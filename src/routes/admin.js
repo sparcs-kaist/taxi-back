@@ -12,15 +12,15 @@ const {
   adminLogModel,
   deviceTokenModel,
   notificationOptionModel,
-} = require("../modules/stores/mongo");
-const { eventConfig } = require("../../loadenv");
-const { buildResource } = require("../modules/adminResource");
+} = require("@/modules/stores/mongo");
+const { eventConfig } = require("@/loadenv");
+const { buildResource } = require("@/modules/adminResource");
 
 const router = express.Router();
 
 // Requires admin property of the user to enter admin page.
-router.use(require("../middlewares/authAdmin"));
-router.use(require("../middlewares/auth"));
+router.use(require("@/middlewares/authAdmin"));
+router.use(require("@/middlewares/auth"));
 
 // Registration of the mongoose adapter
 AdminJS.registerAdapter(AdminJSMongoose);

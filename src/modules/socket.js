@@ -1,13 +1,13 @@
 const { Server } = require("socket.io");
 
-const sessionMiddleware = require("../middlewares/session");
+const sessionMiddleware = require("@/middlewares/session");
 const logger = require("./logger");
 const { getLoginInfo } = require("./auths/login");
 const { roomModel, userModel, chatModel } = require("./stores/mongo");
 const { getS3Url } = require("./stores/aws");
 const { getTokensOfUsers, sendMessageByTokens } = require("./fcm");
 
-const { corsWhiteList } = require("../../loadenv");
+const { corsWhiteList } = require("@/loadenv");
 const { chatPopulateOption } = require("./populates/chats");
 
 /**

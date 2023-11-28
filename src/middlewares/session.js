@@ -1,6 +1,6 @@
 const expressSession = require("express-session");
 const { nodeEnv, session: sessionConfig } = require("../../loadenv");
-const sessionStore = require("../modules/stores/sessionStore");
+const sessionStore = require("@/modules/stores/sessionStore");
 
 module.exports = expressSession({
   secret: sessionConfig.secret,

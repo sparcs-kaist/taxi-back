@@ -1,5 +1,5 @@
-const { session: sessionConfig } = require("../../../loadenv");
-const logger = require("../logger");
+const { session: sessionConfig } = require("@/loadenv");
+const logger = require("@/modules/logger");
 
 const getLoginInfo = (req) => {
   if (req.session.loginInfo) {

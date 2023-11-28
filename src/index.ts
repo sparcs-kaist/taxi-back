@@ -25,13 +25,14 @@ import {
   adminRouter,
   docsRouter,
 } from "@/routes";
+import { initializeApp } from "@/modules/fcm";
 import logger from "@/modules/logger";
 import { connectDatabase } from "@/modules/stores/mongo";
 import { startSocketServer } from "@/modules/socket";
 import registerSchedules from "@/schedules";
 
 // Firebase Admin 초기설정
-require("./src/modules/fcm").initializeApp();
+initializeApp();
 
 // 익스프레스 서버 생성
 const app = express();

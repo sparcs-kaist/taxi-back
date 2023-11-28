@@ -1,16 +1,16 @@
-const { userModel } = require("../modules/stores/mongo");
-const { logout, login } = require("../modules/auths/login");
+const { userModel } = require("@/modules/stores/mongo");
+const { logout, login } = require("@/modules/auths/login");
 
-const { unregisterDeviceToken } = require("../modules/fcm");
+const { unregisterDeviceToken } = require("@/modules/fcm");
 const {
   generateNickname,
   generateProfileImageUrl,
-} = require("../modules/modifyProfile");
-const logger = require("../modules/logger");
-const jwt = require("../modules/auths/jwt");
+} = require("@/modules/modifyProfile");
+const logger = require("@/modules/logger");
+const jwt = require("@/modules/auths/jwt");
 
-const { registerDeviceTokenHandler, tryLogin } = require("../services/auth");
-const loginReplacePage = require("../views/loginReplacePage");
+const { registerDeviceTokenHandler, tryLogin } = require("@/services/auth");
+const loginReplacePage = require("@/views/loginReplacePage");
 
 const createUserData = (id) => {
   const info = {

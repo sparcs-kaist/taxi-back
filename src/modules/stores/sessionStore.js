@@ -6,8 +6,8 @@ const {
   redis: redisUrl,
   mongo: mongoUrl,
   session: sessionConfig,
-} = require("../../../loadenv");
-const logger = require("../logger");
+} = require("@/loadenv");
+const logger = require("@/modules/logger");
 
 const getSessionStore = (redisUrl) => {
   // 환경변수 REDIS_PATH 유무에 따라 session 저장 방식이 변경됩니다.

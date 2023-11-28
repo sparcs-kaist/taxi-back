@@ -1,4 +1,4 @@
-const logger = require("../modules/logger");
+const logger = require("@/modules/logger");
 
 /**
  * Express app에서 사용할 custom global error handler를 정의합니다.

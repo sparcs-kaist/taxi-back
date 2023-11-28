@@ -1,13 +1,13 @@
 const express = require("express");
 const { body } = require("express-validator");
-const validator = require("../middlewares/validator");
-const patterns = require("../modules/patterns");
+const validator = require("@/middlewares/validator");
+const patterns = require("@/modules/patterns");
 
 const router = express.Router();
-const chatsHandlers = require("../services/chats");
+const chatsHandlers = require("@/services/chats");
 
 // 라우터 접근 시 로그인 필요
-router.use(require("../middlewares/auth"));
+router.use(require("@/middlewares/auth"));
 
 /**
  * 가장 최근에 도착한 60개의 채팅을 가져옵니다.

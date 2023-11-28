@@ -1,6 +1,6 @@
-const { aws: awsEnv } = require("../../../loadenv");
+const { aws: awsEnv } = require("@/loadenv");
 
-const logger = require("../logger");
+const logger = require("@/modules/logger");
 // Load the AWS-SDK and s3
 const AWS = require("aws-sdk");
 AWS.config.update({
@@ -103,7 +103,9 @@ module.exports.sendReportEmail = (reportedEmail, report, html) => {
       },
       Subject: {
         Charset: "UTF-8",
-        Data: `[SPARCS TAXI] 신고가 접수되었습니다 (사유: ${reportTypeMap[report.type]})`,
+        Data: `[SPARCS TAXI] 신고가 접수되었습니다 (사유: ${
+          reportTypeMap[report.type]
+        })`,
       },
     },
     Source: "taxi.sparcs@gmail.com",

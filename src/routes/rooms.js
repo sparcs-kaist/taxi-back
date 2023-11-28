@@ -2,9 +2,9 @@ const express = require("express");
 const { query, body } = require("express-validator");
 const router = express.Router();
 
-const roomHandlers = require("../services/rooms");
-const validator = require("../middlewares/validator");
-const patterns = require("../modules/patterns");
+const roomHandlers = require("@/services/rooms");
+const validator = require("@/middlewares/validator");
+const patterns = require("@/modules/patterns");
 
 // 조건(이름, 출발지, 도착지, 날짜)에 맞는 방들을 모두 반환한다.
 router.get(

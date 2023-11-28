@@ -1,8 +1,8 @@
-const { userModel } = require("../modules/stores/mongo");
-const { notificationOptionModel } = require("../modules/stores/mongo");
-const logger = require("../modules/logger");
+const { userModel } = require("@/modules/stores/mongo");
+const { notificationOptionModel } = require("@/modules/stores/mongo");
+const logger = require("@/modules/logger");
 
-const { registerDeviceToken, validateDeviceToken } = require("../modules/fcm");
+const { registerDeviceToken, validateDeviceToken } = require("@/modules/fcm");
 
 // 이벤트 코드입니다.
 const { contracts } = require("../lottery");

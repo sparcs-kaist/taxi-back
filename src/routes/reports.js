@@ -1,11 +1,11 @@
 const express = require("express");
 const reportsSchema = require("./docs/reportsSchema");
-const { validateBody } = require("../middlewares/ajv");
+const { validateBody } = require("@/middlewares/ajv");
 const router = express.Router();
-const reportHandlers = require("../services/reports");
+const reportHandlers = require("@/services/reports");
 
 // 라우터 접근 시 로그인 필요
-router.use(require("../middlewares/auth"));
+router.use(require("@/middlewares/auth"));
 
 router.post(
   "/create",

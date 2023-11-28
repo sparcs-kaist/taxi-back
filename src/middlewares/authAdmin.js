@@ -1,7 +1,7 @@
 // 관리자 유무를 확인하기 위한 미들웨어입니다.
 
-const { isLogin, getLoginInfo } = require("../modules/auths/login");
-const { userModel, adminIPWhitelistModel } = require("../modules/stores/mongo");
+const { isLogin, getLoginInfo } = require("@/modules/auths/login");
+const { userModel, adminIPWhitelistModel } = require("@/modules/stores/mongo");
 
 const authAdminMiddleware = async (req, res, next) => {
   try {

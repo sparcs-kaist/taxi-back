@@ -1,6 +1,6 @@
-const { slackWebhookUrl: slackUrl } = require("../../loadenv");
+const { slackWebhookUrl: slackUrl } = require("@/loadenv");
 const axios = require("axios");
-const logger = require("../modules/logger");
+const logger = require("./logger");
 
 module.exports.notifyToReportChannel = (reportUser, report) => {
   if (!slackUrl.report) return;

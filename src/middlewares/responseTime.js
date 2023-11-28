@@ -1,4 +1,4 @@
-const logger = require("../modules/logger");
+const logger = require("@/modules/logger");
 const responseTime = require("response-time");
 
 module.exports = responseTime((req, res, time) => {

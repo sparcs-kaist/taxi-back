@@ -1,13 +1,13 @@
-const { userModel } = require("../modules/stores/mongo");
-const logger = require("../modules/logger");
-const aws = require("../modules/stores/aws");
+const { userModel } = require("@/modules/stores/mongo");
+const logger = require("@/modules/logger");
+const aws = require("@/modules/stores/aws");
 
 // 이벤트 코드입니다.
 const { contracts } = require("../lottery");
 const {
   generateNickname,
   generateProfileImageUrl,
-} = require("../modules/modifyProfile");
+} = require("@/modules/modifyProfile");
 
 const agreeOnTermsOfServiceHandler = async (req, res) => {
   try {

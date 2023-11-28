@@ -2,14 +2,14 @@ const {
   roomModel,
   locationModel,
   userModel,
-} = require("../modules/stores/mongo");
-const { emitChatEvent } = require("../modules/socket");
-const logger = require("../modules/logger");
+} = require("@/modules/stores/mongo");
+const { emitChatEvent } = require("@/modules/socket");
+const logger = require("@/modules/logger");
 const {
   roomPopulateOption,
   formatSettlement,
   getIsOver,
-} = require("../modules/populates/rooms");
+} = require("@/modules/populates/rooms");
 
 // 이벤트 코드입니다.
 const { contracts } = require("../lottery");

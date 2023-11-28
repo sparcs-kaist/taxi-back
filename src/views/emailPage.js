@@ -1,4 +1,4 @@
-const { getS3Url } = require("../modules/stores/aws");
+const { getS3Url } = require("@/modules/stores/aws");
 
 module.exports = (
   title,

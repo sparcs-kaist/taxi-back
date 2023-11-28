@@ -1,23 +1,19 @@
-const {
-  sparcssso: sparcsssoEnv,
-  nodeEnv,
-  testAccounts,
-} = require("../../loadenv");
-const { userModel } = require("../modules/stores/mongo");
-const { user: userPattern } = require("../modules/patterns");
-const { getLoginInfo, logout, login } = require("../modules/auths/login");
+const { sparcssso: sparcsssoEnv, nodeEnv, testAccounts } = require("@/loadenv");
+const { userModel } = require("@/modules/stores/mongo");
+const { user: userPattern } = require("@/modules/patterns");
+const { getLoginInfo, logout, login } = require("@/modules/auths/login");
 
-const { unregisterDeviceToken } = require("../modules/fcm");
+const { unregisterDeviceToken } = require("@/modules/fcm");
 const {
   generateNickname,
   generateProfileImageUrl,
   getFullUsername,
-} = require("../modules/modifyProfile");
-const jwt = require("../modules/auths/jwt");
-const logger = require("../modules/logger");
+} = require("@/modules/modifyProfile");
+const jwt = require("@/modules/auths/jwt");
+const logger = require("@/modules/logger");
 
 // SPARCS SSO
-const Client = require("../modules/auths/sparcssso");
+const Client = require("@/modules/auths/sparcssso");
 const client = new Client(sparcsssoEnv?.id, sparcsssoEnv?.key);
 
 const transUserData = (userData) => {
