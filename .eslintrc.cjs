@@ -1,15 +1,78 @@
 module.exports = {
   env: {
-    commonjs: true,
     es2021: true,
     node: true,
   },
-  extends: ["eslint:recommended", "prettier", "plugin:mocha/recommended"],
+  extends: [
+    "plugin:@typescript-eslint/recommended",
+    "airbnb-base",
+    "airbnb-typescript/base",
+    "plugin:mocha/recommended",
+    "prettier",
+  ],
+  overrides: [
+    {
+      env: {
+        node: true,
+        mocha: true,
+      },
+      files: [".eslintrc.{js,cjs}"],
+      parserOptions: {
+        sourceType: "script",
+      },
+    },
+  ],
+  parser: "@typescript-eslint/parser",
   parserOptions: {
-    ecmaVersion: 13,
+    ecmaVersion: "latest",
+    sourceType: "module",
+    project: "./tsconfig.json",
   },
+  plugins: ["import", "@typescript-eslint", "mocha"],
   rules: {
-    "no-unused-vars": 1,
-    "mocha/no-mocha-arrows": 0,
+    "import/extensions": [
+      "error",
+      "ignorePackages",
+      {
+        ts: "never",
+      },
+    ],
+    "import/named": "error",
+    "import/no-extraneous-dependencies": [
+      "error",
+      {
+        packageDir: "./",
+      },
+    ],
+    "mocha/no-mocha-arrows": "off",
+    "no-restricted-imports": [
+      "error",
+      {
+        patterns: [
+          {
+            group: ["../*"],
+            message:
+              "Usage of relative parent imports is not allowed. Use path alias instead.",
+          },
+        ],
+      },
+    ],
+    radix: ["error", "as-needed"],
+    "@typescript-eslint/consistent-type-imports": [
+      "error",
+      {
+        prefer: "type-imports",
+      },
+    ],
+  },
+  settings: {
+    "import/parsers": {
+      "@typescript-eslint/parser": [".ts"],
+    },
+    "import/resolver": {
+      typescript: {
+        project: ["./tsconfig.json"],
+      },
+    },
   },
 };
