@@ -2,6 +2,24 @@ const tag = "users";
 const apiPrefix = "/users";
 
 const usersDocs = {};
+usersDocs[`${apiPrefix}/agreeOnTermsOfService`] = {
+  post: {
+    tags: [tag],
+  },
+};
+
+usersDocs[`${apiPrefix}/getAgreeOnTermsOfService`] = {
+  get: {
+    tags: [tag],
+  },
+};
+
+usersDocs[`${apiPrefix}/editNickname`] = {
+  post: {
+    tags: [tag],
+  },
+};
+
 usersDocs[`${apiPrefix}/resetNickname`] = {
   get: {
     tags: [tag],
@@ -30,6 +48,24 @@ usersDocs[`${apiPrefix}/resetNickname`] = {
         },
       },
     },
+  },
+};
+
+usersDocs[`${apiPrefix}/editAccount`] = {
+  post: {
+    tags: [tag],
+  },
+};
+
+usersDocs[`${apiPrefix}/editProfileImg/getPUrl`] = {
+  post: {
+    tags: [tag],
+  },
+};
+
+usersDocs[`${apiPrefix}/editProfileImg/done`] = {
+  get: {
+    tags: [tag],
   },
 };
 
