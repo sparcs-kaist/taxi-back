@@ -27,7 +27,7 @@ spec:
           service:
             name: taxi-svc
             port: 
-              number: 6001
+              number: 80
         pathType: Prefix
   tls:
   - hosts:
