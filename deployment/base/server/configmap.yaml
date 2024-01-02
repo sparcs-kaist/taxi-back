@@ -3,8 +3,8 @@ kind: ConfigMap
 metadata:
   name: taxi-env
 data:
-  SPARCSSSO_CLIENT_ID: "01"
-  AWS_ACCESS_KEY_ID: "00"
+  SPARCSSSO_CLIENT_ID: "abc"
+  AWS_ACCESS_KEY_ID: "abc"
   AWS_S3_BUCKET_NAME: "sparcs-taxi-prod"
   TEST_ACCOUNTS: "[\"suwon@sparcs.org\",\"otl-android-test@sparcs.org\"]"
   REDIS_PATH: "taxi-redis-service"
