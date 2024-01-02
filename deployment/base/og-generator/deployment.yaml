@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: taxi-og-generator
+  labels:
+    app: taxi-og-generator
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: taxi-og-generator
+  template:
+    metadata:
+      labels:
+        app: taxi-og-generator
+    spec:
+      containers:
+      - name: taxi-og-generator
+        image: 666583083672.dkr.ecr.ap-northeast-2.amazonaws.com/taxi-og-generator:latest
+        ports:
+        - containerPort: 80
+          name: og-gen-port
+        env:
+        - name: API_ROOM_INFO
+          valueFrom:
+            configMapKeyRef:
+              name: taxi-env
+              key: API_ROOM_INFO
+        - name: FRONT_URL
+          valueFrom:
+            configMapKeyRef:
+              name: taxi-env
+              key: FRONT_URL

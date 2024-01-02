@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: og-gen-service
+spec:
+  selector:
+      app: taxi-og-generator
+  ports:
+  - name: og-gen-port
+    protocol: TCP
+    port: 80
+    targetPort: og-gen-port
