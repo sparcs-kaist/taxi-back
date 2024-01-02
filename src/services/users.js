@@ -143,7 +143,7 @@ const editProfileImgDoneHandler = async (req, res) => {
       }
       const userAfter = await userModel.findOneAndUpdate(
         { id: req.userId },
-        { profileImageUrl: user._id },
+        { profileImageUrl: aws.getS3Url(`/${key}?token=${req.timestamp}`) },
         { new: true }
       );
       if (!userAfter) {
@@ -153,7 +153,7 @@ const editProfileImgDoneHandler = async (req, res) => {
       }
       res.json({
         result: true,
-        profileImageUrl: userAfter._id,
+        profileImageUrl: userAfter.profileImageUrl,
       });
     });
   } catch (e) {
