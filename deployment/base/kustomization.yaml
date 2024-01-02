@@ -8,3 +8,5 @@ resources:
 - ./server/sealed-secret.yaml
 - ./redis/deployment.yaml
 - ./redis/service.yaml
+- ./og-generator/deployment.yaml
+- ./og-generator/service.yaml
