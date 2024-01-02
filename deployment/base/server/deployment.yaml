@@ -1,0 +1,55 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: taxi-server
+  labels:
+    app: taxi-server
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: taxi-server
+  template:
+    metadata:
+      labels:
+        app: taxi-server
+    spec:
+      containers:
+        - name: taxi-server
+          image: 666583083672.dkr.ecr.ap-northeast-2.amazonaws.com/taxi-back:latest
+          ports:
+          - containerPort: 80
+          envFrom:
+          - secretRef:
+              name: taxi-secret
+          env:
+          - name: SPARCSSSO_CLIENT_ID
+            valueFrom:
+              configMapKeyRef:
+                name: taxi-env
+                key: SPARCSSSO_CLIENT_ID
+          - name: TEST_ACCOUNTS
+            valueFrom:
+              configMapKeyRef:
+                name: taxi-env
+                key: TEST_ACCOUNTS
+          - name: AWS_ACCESS_KEY_ID
+            valueFrom:
+              configMapKeyRef:
+                name: taxi-env
+                key: AWS_ACCESS_KEY_ID
+          - name: AWS_S3_BUCKET_NAME
+            valueFrom:
+              configMapKeyRef:
+                name: taxi-env
+                key: AWS_S3_BUCKET_NAME
+          - name: REDIS_PATH
+            valueFrom:
+              configMapKeyRef:
+                name: taxi-env
+                key: REDIS_PATH
+          - name: DB_PATH
+            valueFrom:
+              secretKeyRef:
+                name: taxi-mongodb-admin-taxi
+                key: connectionString.standardSrv
