@@ -1,7 +1,7 @@
 # Deployment Resource Definitions for Taxi Backend Service
 
 ### directories
-
+```
 ├── README.md
 ├── base
 │   ├── kustomization.yaml
@@ -19,9 +19,11 @@
 └── overlays
     └── dev
         └── kustomization.yaml
+```
 
 *under base folder*
 - shared resource definitions for all environments
+
 *under overlay folder*
 - environment specific settings
 - you can add more environments
