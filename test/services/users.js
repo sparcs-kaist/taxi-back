@@ -15,7 +15,7 @@ describe("[users] 1.agreeOnTermsOfServiceHandler", () => {
   it("should return correct response from handler", async () => {
     const testUser1 = await userGenerator("test1", testData);
     const msg =
-      "User/agreeOnTermsOfService : agree on Terms of Service successful";
+      "Users/agreeOnTermsOfService : agree on Terms of Service successful";
     let req = httpMocks.createRequest({
       userId: testUser1.id,
     });
@@ -50,7 +50,7 @@ describe("[users] 3.editNicknameHandler", () => {
 
   it("should return correct response from handler", async () => {
     const testUser1 = await userModel.findOne({ id: "test1" });
-    const msg = "User/editNickname : edit user nickname successful";
+    const msg = "Users/editNickname : edit user nickname successful";
     let req = httpMocks.createRequest({
       userId: testUser1.id,
       body: {
@@ -77,7 +77,7 @@ describe("[users] 4.editAccountHandler", () => {
 
   it("should return correct response from handler", async () => {
     const testUser1 = await userModel.findOne({ id: "test1" });
-    const msg = "User/editAccount : edit user account successful";
+    const msg = "Users/editAccount : edit user account successful";
     let req = httpMocks.createRequest({
       userId: testUser1.id,
       body: {
