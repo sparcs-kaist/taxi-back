@@ -6,7 +6,7 @@ const { mongo: mongoUrl } = require("../loadenv");
 const main = async () => {
   const dbName = mongoUrl.split("/").pop();
   const { stdout, stderr } = await exec(
-    `mongorestore ${mongoUrl} ${path.resolve("dump")}`
+    `mongorestore ${mongoUrl} ${path.resolve("dump", dbName)}`
   );
   console.log(
     "dump 디렉토리로부터 데이터베이스 정보를 성공적으로 복원했습니다."
