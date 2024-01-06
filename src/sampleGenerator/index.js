@@ -7,26 +7,15 @@ const {
 const { connectDatabase } = require("../modules/stores/mongo");
 const { mongo: mongoUrl, numberOfChats, numberOfRooms } = require("./loadenv");
 
-const fs = require("fs");
-const path = require("path");
-const sampleDataPath = path.resolve(".", "sampleData.json");
-
 const database = connectDatabase(mongoUrl);
 
-const loadSampleData = new Promise((resolve, reject) => {
-  fs.readFile(sampleDataPath, (err, data) => {
-    if (err) {
-      reject(err);
-    } else {
-      resolve(JSON.parse(data));
-    }
-  });
-});
+const fs = require("fs");
+const sampleData = JSON.parse(fs.readFileSync("./sampleData.json"));
 
 const main = async () => {
   await database.db.dropDatabase();
 
-  const { users, locations } = await Promise.resolve(loadSampleData);
+  const { users, locations } = sampleData;
 
   const userOids = [];
   const roomOids = [];
