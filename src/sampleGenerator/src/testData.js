@@ -6,7 +6,11 @@ const {
 } = require("../../modules/stores/mongo");
 const { generateProfileImageUrl } = require("../../modules/modifyProfile");
 
-const security = require("../security");
+const {
+  maximumIntervalBtwChats,
+  occurenceOfJoin,
+  occurenceOfAbort,
+} = require("../loadenv");
 
 const generateUser = async (id, num, isAdmin) => {
   const newUser = new userModel({
@@ -135,12 +139,10 @@ const generateChats = async (roomId, userOids, numOfChats) => {
   let userIdsInRoom = [];
   let userIdsOutRoom = userOids.map((userOid) => userOid);
   let lastTime = Date.now();
-  const maximumIntervalBtwChats = 1000 * security.maximumIntervalBtwChats; //Default: 20,000 milliseconds
-  const occurenceOfJoin = security.occurenceOfJoin; //Default: 10%
-  const occurenceOfAbort = security.occurenceOfAbort; //Default: 10%, 즉 새로운 하나의 채팅 메시지가 입/퇴장 메시지 중 하나일 확률은 20%
+  const maximumIntervalBtwChatsMilliseconds = 1000 * maximumIntervalBtwChats;
 
   for (const i of Array(numOfChats).keys()) {
-    lastTime += Math.floor(Math.random() * maximumIntervalBtwChats);
+    lastTime += Math.floor(Math.random() * maximumIntervalBtwChatsMilliseconds);
     const event = Math.random();
 
     if (

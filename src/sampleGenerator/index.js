@@ -5,14 +5,23 @@ const {
   generateChats,
 } = require("./src/testData");
 const { connectDatabase } = require("../modules/stores/mongo");
-const {
-  loadSampleData,
-  numberOfRooms,
-  numberOfChats,
-  mongo: mongoUrl,
-} = require("./security");
+const { mongo: mongoUrl, numberOfChats, numberOfRooms } = require("./loadenv");
+
+const fs = require("fs");
+const path = require("path");
+const sampleDataPath = path.resolve(".", "sampleData.json");
 
 const database = connectDatabase(mongoUrl);
+
+const loadSampleData = new Promise((resolve, reject) => {
+  fs.readFile(sampleDataPath, (err, data) => {
+    if (err) {
+      reject(err);
+    } else {
+      resolve(JSON.parse(data));
+    }
+  });
+});
 
 const main = async () => {
   await database.db.dropDatabase();
