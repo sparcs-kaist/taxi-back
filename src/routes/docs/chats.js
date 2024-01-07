@@ -205,7 +205,19 @@ chatsDocs[`${apiPrefix}/send`] = {
     tags: [tag],
     summary: "채팅 요청 처리",
     description: `채팅 요청을 처리합니다.<br/>
-    socker 통신을 통하여 같은 방에 있는 user들에게 이 채팅을 전송합니다.`,
+    socker 통신을 통하여 같은 방에 있는 user들에게 이 채팅을 전송합니다.<br/>
+    <br/>
+    채팅 기록은 아래와 같이 구성됩니다.<br/>
+
+    Chat {
+      roomId: ObjectId, //방의 objectId
+      type: String, // 메시지 종류 ("text": 일반 메시지, "s3img": S3에 업로드된 이미지, "in": 입장 메시지, "out": 퇴장 메시지, "payment": 결제 메시지, "settlement": 정산 완료 메시지, "account": 계좌 전송 메시지)
+      authorId: ObejctId, //작성자의 objectId
+      content: String, // 메시지 내용 (메시지 종류에 따라 포맷이 상이함)
+      time: String(ISO 8601), // ex) 2024-01-08T01:52:00.000Z
+      isValid: Boolean, // 클라이언트가 보낸 메시지가 유효한 지 여부. 클라이언트가 이미지를 업로드했을 때, 해당 이미지가 제대로 업로드됐는지 확인하기 전까지 이미지를 보여주지 않기 위해 사용됨.
+    }
+    `,
     requestBody: {
       content: {
         "application/json": {
