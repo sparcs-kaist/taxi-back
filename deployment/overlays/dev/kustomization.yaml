@@ -1,7 +1,7 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 images:
-- name: ghcr.io/sparcs-kaist/taxi-server
+- name: 666583083672.dkr.ecr.ap-northeast-2.amazonaws.com/taxi-back:latest
   newTag: latest
 resources:
 - ../../base
