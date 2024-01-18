@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: taxi-env
+data:
+  SPARCSSSO_CLIENT_ID: "Taxi"
+  AWS_ACCESS_KEY_ID: "AKIAZWM3SVKMBOCGSY2F"
+  AWS_S3_BUCKET_NAME: "sparcs-taxi-prod"
+  TEST_ACCOUNTS: "[\"suwon@sparcs.org\",\"otl-android-test@sparcs.org\"]"
+  REDIS_PATH: "redis://taxi-redis-service:6379"
+  API_ROOM_INFO: "http://taxi-svc/rooms/publicInfo?id={}"
+  FRONT_URL: "https://taxi-staging.sparcs.org"

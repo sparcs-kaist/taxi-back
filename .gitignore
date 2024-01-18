@@ -10,3 +10,6 @@
 
 # AdminJS 관련 디렉토리
 .adminjs
+
+# deployment secret
+deployment/**/secret.yaml

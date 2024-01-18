@@ -52,6 +52,8 @@ eventConfig &&
     require("./src/lottery").lotteryRouter
   );
 
+app.use("/hc", require("./src/routes/hc"));
+
 // [Middleware] 모든 API 요청에 대하여 origin 검증
 app.use(require("./src/middlewares/originValidator"));
 

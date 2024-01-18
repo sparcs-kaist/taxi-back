@@ -1,0 +1,22 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: taxi-redis
+  labels:
+    app: taxi-redis
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: taxi-redis
+  template:
+    metadata:
+      labels:
+        app: taxi-redis
+    spec:
+      containers:
+      - name: taxi-redis
+        image: redis:7.0.4-alpine
+        ports:
+        - containerPort: 6379
+          name: taxi-redis-port

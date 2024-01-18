@@ -4,6 +4,7 @@ const logininfoDocs = require("./logininfo");
 const locationsDocs = require("./locations");
 const authDocs = require("./auth");
 const usersDocs = require("./users");
+const hcDocs = require("./hc");
 const { port, nodeEnv } = require("../../../loadenv");
 
 const serverList = [
@@ -56,6 +57,10 @@ const swaggerDocs = {
       name: "users",
       description: "유저 계정 정보 수정 및 조회",
     },
+    {
+      name: "hc",
+      description: "서버 상태 확인",
+    },
   ],
   consumes: ["application/json"],
   produces: ["application/json"],
@@ -65,6 +70,7 @@ const swaggerDocs = {
     ...locationsDocs,
     ...usersDocs,
     ...authDocs,
+    ...hcDocs,
   },
   components: {
     schemas: {
