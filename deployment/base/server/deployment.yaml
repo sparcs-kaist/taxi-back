@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
         - name: taxi-server
-          image: 666583083672.dkr.ecr.ap-northeast-2.amazonaws.com/taxi-back:latest
+          image: 666583083672.dkr.ecr.ap-northeast-2.amazonaws.com/taxi-back:deploy
           ports:
           - containerPort: 80
           envFrom:
