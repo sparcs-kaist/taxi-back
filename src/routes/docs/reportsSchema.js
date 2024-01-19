@@ -1,3 +1,5 @@
+const { objectIdPattern } = require("./utils");
+
 const reportsSchema = {
   createHandler: {
     type: "object",
@@ -5,7 +7,7 @@ const reportsSchema = {
     properties: {
       reportedId: {
         type: "string",
-        pattern: "^[a-fA-F\\d]{24}$",
+        pattern: objectIdPattern,
       },
       type: {
         type: "string",
