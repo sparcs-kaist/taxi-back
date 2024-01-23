@@ -219,9 +219,11 @@ const emitUpdateEvent = async (io, roomId) => {
       throw new IllegalArgumentsException();
     }
 
-    part.forEach(({ user }) => io.in(`user-${user}`).emit("chat_update"), {
-      roomId,
-    });
+    part.forEach(({ user }) =>
+      io.in(`user-${user}`).emit("chat_update", {
+        roomId,
+      })
+    );
 
     return true;
   } catch (err) {

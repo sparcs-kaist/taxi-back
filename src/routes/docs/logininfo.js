@@ -1,3 +1,5 @@
+const { objectIdPattern } = require("./utils");
+
 const tag = "logininfo";
 const apiPrefix = "/logininfo";
 
@@ -18,6 +20,7 @@ logininfoDocs[`${apiPrefix}`] = {
               properties: {
                 oid: {
                   type: "string",
+                  type: objectIdPattern,
                 },
                 id: {
                   type: "string",

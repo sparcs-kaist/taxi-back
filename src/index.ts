@@ -3,7 +3,7 @@ import express from "express";
 import cookieParser from "cookie-parser";
 import http from "http";
 
-import { nodeEnv, port as httpPort } from "@/loadenv";
+import { nodeEnv, mongo as mongoUrl, port as httpPort } from "@/loadenv";
 import {
   corsMiddleware,
   sessionMiddleware,
@@ -38,7 +38,7 @@ initializeApp();
 const app = express();
 
 // 데이터베이스 연결
-connectDatabase();
+connectDatabase(mongoUrl);
 
 // [Middleware] request body 파싱
 app.use(express.urlencoded({ extended: false }));

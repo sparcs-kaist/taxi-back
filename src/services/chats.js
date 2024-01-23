@@ -273,7 +273,7 @@ const uploadChatImgDoneHandler = async (req, res) => {
     if (!user) {
       return res
         .status(500)
-        .send("Chat/uploadChatImg/getPUrl : internal server error");
+        .send("Chat/uploadChatImg/done : internal server error");
     }
     if (!chat) {
       return res.status(404).json({
@@ -294,7 +294,7 @@ const uploadChatImgDoneHandler = async (req, res) => {
       if (err) {
         return res
           .status(500)
-          .send("Chat/uploadChatImg/getPUrl : internal server error");
+          .send("Chat/uploadChatImg/done : internal server error");
       }
 
       chat.content = chat._id;
