@@ -1,7 +1,6 @@
 const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 
-const { mongo: mongoUrl } = require("../../../loadenv");
 const logger = require("../logger");
 
 const userSchema = Schema({
@@ -184,22 +183,26 @@ database.on("error", function (err) {
   logger.error("데이터베이스 연결 에러 발생: " + err);
   mongoose.disconnect();
 });
-database.on("disconnected", function () {
-  // 데이터베이스 연결이 끊어지면 5초 후 재연결을 시도합니다.
-  logger.error("데이터베이스와 연결이 끊어졌습니다!");
-  setTimeout(() => {
-    mongoose.connect(mongoUrl, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-    });
-  }, 5000);
-});
 
-const connectDatabase = () =>
+const connectDatabase = (mongoUrl) => {
+  database.on("disconnected", function () {
+    // 데이터베이스 연결이 끊어지면 5초 후 재연결을 시도합니다.
+    logger.error("데이터베이스와 연결이 끊어졌습니다!");
+    setTimeout(() => {
+      mongoose.connect(mongoUrl, {
+        useNewUrlParser: true,
+        useUnifiedTopology: true,
+      });
+    }, 5000);
+  });
+
   mongoose.connect(mongoUrl, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
   });
+
+  return database;
+};
 
 module.exports = {
   connectDatabase,

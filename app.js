@@ -1,7 +1,12 @@
 // 모듈 require
 const express = require("express");
 const http = require("http");
-const { nodeEnv, port: httpPort, eventConfig } = require("./loadenv");
+const {
+  nodeEnv,
+  port: httpPort,
+  eventConfig,
+  mongo: mongoUrl,
+} = require("./loadenv");
 const logger = require("./src/modules/logger");
 const { connectDatabase } = require("./src/modules/stores/mongo");
 const { startSocketServer } = require("./src/modules/socket");
@@ -13,7 +18,7 @@ require("./src/modules/fcm").initializeApp();
 const app = express();
 
 // 데이터베이스 연결
-connectDatabase();
+connectDatabase(mongoUrl);
 
 // [Middleware] request body 파싱
 app.use(express.urlencoded({ extended: false }));
