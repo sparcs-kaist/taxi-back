@@ -1,3 +1,5 @@
+const { objectIdPattern } = require("./utils");
+
 const tag = "reports";
 const apiPrefix = "/reports";
 
@@ -57,9 +59,17 @@ reportsDocs[`${apiPrefix}/searchByUser`] = {
               properties: {
                 reporting: {
                   type: "array",
+                  items: {
+                    type: "string",
+                    pattern: objectIdPattern,
+                  },
                 },
                 reported: {
                   type: "array",
+                  items: {
+                    type: "string",
+                    pattern: objectIdPattern,
+                  },
                 },
               },
             },
