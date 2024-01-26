@@ -1,9 +1,8 @@
-const mongoose = require("mongoose");
-const Schema = mongoose.Schema;
+import mongoose, { Schema, Model } from "mongoose";
+import logger from "@/modules/logger";
+import type { User, Participant, DeviceToken, NotificationOption, TopicSubscription, Room, Location, Chat, Report, AdminIPWhitelist, AdminLog } from "@/../types/mongo"; // TODO: Am I right..?
 
-const logger = require("@/modules/logger");
-
-const userSchema = Schema({
+const userSchema = new Schema<User, Model<User>, User>({
   name: { type: String, required: true }, //실명
   nickname: { type: String, required: true }, //닉네임
   id: { type: String, required: true, unique: true }, //택시 서비스에서만 사용되는 id
@@ -26,7 +25,7 @@ const userSchema = Schema({
   account: { type: String, default: "" }, //계좌번호 정보
 });
 
-const participantSchema = Schema({
+const participantSchema = new Schema<Participant, Model<Participant>, Participant>({
   user: { type: Schema.Types.ObjectId, ref: "User", required: true },
   settlementStatus: {
     type: String,
@@ -37,7 +36,7 @@ const participantSchema = Schema({
   readAt: { type: Date },
 });
 
-const deviceTokenSchema = Schema({
+const deviceTokenSchema = new Schema<DeviceToken, Model<DeviceToken>, DeviceToken>({
   userId: {
     type: Schema.Types.ObjectId,
     ref: "User",
@@ -48,7 +47,7 @@ const deviceTokenSchema = Schema({
 });
 
 // 각 디바이스의 알림 설정
-const notificationOptionSchema = Schema({
+const notificationOptionSchema = new Schema<NotificationOption, Model<NotificationOption>, NotificationOption>({
   deviceToken: {
     type: String,
     required: true,
@@ -82,7 +81,7 @@ const notificationOptionSchema = Schema({
   }, //광고성 알림 수신 여부
 });
 
-const topicSubscriptionSchema = Schema({
+const topicSubscriptionSchema = new Schema<TopicSubscription, Model<TopicSubscription>, TopicSubscription>({
   deviceToken: String,
   topic: String,
   subscribedAt: {
@@ -92,7 +91,7 @@ const topicSubscriptionSchema = Schema({
   },
 });
 
-const roomSchema = Schema({
+const roomSchema = new Schema<Room, Model<Room>, Room>({
   name: { type: String, required: true, default: "이름 없음", text: true },
   from: { type: Schema.Types.ObjectId, ref: "Location", required: true },
   to: { type: Schema.Types.ObjectId, ref: "Location", required: true },
@@ -100,7 +99,7 @@ const roomSchema = Schema({
   part: {
     type: [participantSchema],
     validate: [
-      function (value) {
+      function (this: Room, value: Participant[]) {
         return value.length <= this.maxPartLength;
       },
     ],
@@ -110,7 +109,7 @@ const roomSchema = Schema({
   maxPartLength: { type: Number, require: true, default: 4 },
 });
 
-const locationSchema = Schema({
+const locationSchema = new Schema<Location, Model<Location>, Location>({
   enName: { type: String, required: true },
   koName: { type: String, required: true },
   priority: { type: Number, default: 0 },
@@ -119,7 +118,7 @@ const locationSchema = Schema({
   longitude: { type: Number }, // 이후 required: true 로 수정 필요
 });
 
-const chatSchema = Schema({
+const chatSchema = new Schema<Chat, Model<Chat>, Chat>({
   roomId: { type: Schema.Types.ObjectId, ref: "Room", required: true },
   type: {
     type: String,
@@ -142,7 +141,7 @@ const chatSchema = Schema({
 });
 chatSchema.index({ roomId: 1, time: -1 });
 
-const reportSchema = Schema({
+const reportSchema = new Schema<Report, Model<Report>, Report>({
   creatorId: { type: Schema.Types.ObjectId, ref: "User", required: true }, // 신고한 사람 id
   reportedId: { type: Schema.Types.ObjectId, ref: "User", required: true }, // 신고받은 사람 id
   type: {
@@ -155,12 +154,12 @@ const reportSchema = Schema({
   roomId: { type: Schema.Types.ObjectId, ref: "Room" }, // 신고한 방 id
 });
 
-const adminIPWhitelistSchema = Schema({
+const adminIPWhitelistSchema = new Schema<AdminIPWhitelist, Model<AdminIPWhitelist>, AdminIPWhitelist>({
   ip: { type: String, required: true }, // IP 주소
   description: { type: String, default: "" }, // 설명
 });
 
-const adminLogSchema = Schema({
+const adminLogSchema = new Schema<AdminLog, Model<AdminLog>, AdminLog>({
   user: { type: Schema.Types.ObjectId, ref: "User", required: true }, // Log 취급자 User
   time: { type: Date, required: true }, // Log 발생 시각
   ip: { type: String, required: true }, // 접속 IP 주소
@@ -184,45 +183,42 @@ database.on("error", function (err) {
   mongoose.disconnect();
 });
 
-const connectDatabase = (mongoUrl) => {
+export const connectDatabase = (mongoUrl: string) => {
   database.on("disconnected", function () {
     // 데이터베이스 연결이 끊어지면 5초 후 재연결을 시도합니다.
     logger.error("데이터베이스와 연결이 끊어졌습니다!");
     setTimeout(() => {
-      mongoose.connect(mongoUrl, {
+      mongoose.connect(mongoUrl, /*{
         useNewUrlParser: true,
         useUnifiedTopology: true,
-      });
+      }*/); // NOTE: https://velog.io/@untiring_dev/MongoDB-MongoDB-Mongoose%EC%97%90-%EC%97%B0%EA%B2%B0
     }, 5000);
   });
 
-  mongoose.connect(mongoUrl, {
+  mongoose.connect(mongoUrl, /*{
     useNewUrlParser: true,
     useUnifiedTopology: true,
-  });
+  }*/);
 
   return database;
 };
 
-module.exports = {
-  connectDatabase,
-  userModel: mongoose.model("User", userSchema),
-  deviceTokenModel: mongoose.model("DeviceToken", deviceTokenSchema),
-  notificationOptionModel: mongoose.model(
-    "NotificationOption",
-    notificationOptionSchema
-  ),
-  topicSubscriptionModel: mongoose.model(
-    "TopicSubscription",
-    topicSubscriptionSchema
-  ),
-  roomModel: mongoose.model("Room", roomSchema),
-  locationModel: mongoose.model("Location", locationSchema),
-  chatModel: mongoose.model("Chat", chatSchema),
-  reportModel: mongoose.model("Report", reportSchema),
-  adminIPWhitelistModel: mongoose.model(
-    "AdminIPWhitelist",
-    adminIPWhitelistSchema
-  ),
-  adminLogModel: mongoose.model("AdminLog", adminLogSchema),
-};
+export const userModel = mongoose.model("User", userSchema);
+export const deviceTokenModel = mongoose.model("DeviceToken", deviceTokenSchema);
+export const notificationOptionModel = mongoose.model(
+  "NotificationOption",
+  notificationOptionSchema
+);
+export const topicSubscriptionModel = mongoose.model(
+  "TopicSubscription",
+  topicSubscriptionSchema
+);
+export const roomModel = mongoose.model("Room", roomSchema);
+export const locationModel = mongoose.model("Location", locationSchema);
+export const chatModel = mongoose.model("Chat", chatSchema);
+export const reportModel = mongoose.model("Report", reportSchema);
+export const adminIPWhitelistModel = mongoose.model(
+  "AdminIPWhitelist",
+  adminIPWhitelistSchema
+);
+export const adminLogModel = mongoose.model("AdminLog", adminLogSchema);

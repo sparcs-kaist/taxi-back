@@ -15,7 +15,7 @@ const authAdminMiddleware = async (
     // 관리자 유무를 확인
     const { id } = getLoginInfo(req);
     const user = await userModel.findOne({ id });
-    if (!user.isAdmin) return res.redirect(req.origin ?? "/");
+    if (!user?.isAdmin) return res.redirect(req.origin ?? "/");
 
     // 접속한 IP가 화이트리스트에 있는지 확인
     const ipWhitelist = await adminIPWhitelistModel.find({});
