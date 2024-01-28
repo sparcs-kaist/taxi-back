@@ -82,6 +82,7 @@ usersDocs[`${apiPrefix}/editNickname`] = {
             properties: {
               nickname: {
                 type: "string",
+                example: "끈질긴 열과 분자의 이동",
                 description: "유저의 새 닉네임",
               },
             },

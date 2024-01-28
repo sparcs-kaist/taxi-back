@@ -43,5 +43,5 @@ module.exports = {
   slackWebhookUrl: {
     report: process.env.SLACK_REPORT_WEBHOOK_URL || "", // optional
   },
-  eventConfig: process.env.EVENT_CONFIG && JSON.parse(process.env.EVENT_CONFIG),
+  eventConfig: process.env.EVENT_CONFIG && JSON.parse(process.env.EVENT_CONFIG), // optional
 };
