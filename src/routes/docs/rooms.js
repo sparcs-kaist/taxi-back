@@ -563,12 +563,14 @@ roomsDocs[`${apiPrefix}/search`] = {
       },
     ],
     responses: {
-      /* TODO: change to array */
       200: {
         content: {
           "application/json": {
             schema: {
-              $ref: "#/components/schemas/room",
+              type: "array",
+              items: {
+                $ref: "#/components/schemas/room",
+              },
             },
           },
         },
@@ -622,32 +624,205 @@ roomsDocs[`${apiPrefix}/search`] = {
 };
 
 roomsDocs[`${apiPrefix}/searchByUser`] = {
-  post: {
+  get: {
     tags: [tag],
-    summary: "",
-    description: "",
-    requestBody: {},
-    responses: {},
+    summary: "사용자가 참여 중인 방 검색",
+    description: `로그인 된 사용자가 참여 중인 방을 검색합니다.<br/>
+    정산 완료 여부 기준으로 진행 중인 방과 완료된 방을 \`ongoing\`과 \`done\`으로 각각 분리하여 응답을 전송합니다.<br/>
+    (\`ongoing\`은 \`isOver\`이 flase인 방, \`done\`은 \`isOver\`이 true인 방을 의미합니다.)`,
+    parameters: {},
+    responses: {
+      200: {
+        content: {
+          "application/json": {
+            schema: {
+              type: "object",
+              properties: {
+                ongoing: {
+                  type: "array",
+                  items: {
+                    $ref: "#/components/schemas/room",
+                  },
+                },
+                done: {
+                  type: "array",
+                  items: {
+                    $ref: "#/components/schemas/room",
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+      500: {
+        description: "내부 서버 오류",
+        content: {
+          "application/json": {
+            schema: {
+              type: "object",
+              properties: {
+                error: {
+                  type: "string",
+                },
+              },
+            },
+            example: {
+              error: "Rooms/searchByUser : internal server error",
+            },
+          },
+        },
+      },
+    },
   },
 };
 
 roomsDocs[`${apiPrefix}/commitPayment`] = {
   post: {
     tags: [tag],
-    summary: "",
-    description: "",
-    requestBody: {},
-    responses: {},
+    summary: "방 결제 처리",
+    description: `해당 방에 요청을 보낸 유저를 결제자로 처리합니다.<br/>
+    이미 출발한 방에 대해서만 요청을 처리합니다.<br/>
+    방의 \`part\` 배열에서 요청을 보낸 유저의 \`isSettlement\` 속성은 \`paid\`로 설정됩니다.<br/>
+    나머지 유저들의 \`isSettlement\` 속성을 \`send-required\`로 설정합니다.`,
+    requestBody: {
+      content: {
+        "application/json": {
+          schema: {
+            type: "object",
+            properties: {
+              roomId: {
+                type: "string",
+                pattern: objectIdPattern,
+              },
+            },
+          },
+        },
+      },
+    },
+    responses: {
+      200: {
+        description: "결제 정보가 수정된 방의 세부 정보가 담긴 room Object",
+        content: {
+          "application/json": {
+            schema: {
+              $ref: "#/components/schemas/room",
+            },
+          },
+        },
+      },
+      404: {
+        description: `잘못된 방 요청<br/>
+          (사용자가 참여 중인 방이 아니거나, 이미 다른 사람이 결제자이거나, 아직 방이 출발하지 않은 경우)`,
+        content: {
+          "application/json": {
+            schema: {
+              type: "object",
+              properties: {
+                error: {
+                  type: "string",
+                },
+              },
+            },
+            example: {
+              error: "Rooms/:id/commitPayment : cannot find settlement info",
+            },
+          },
+        },
+      },
+      500: {
+        description: "내부 서버 오류",
+        content: {
+          "application/json": {
+            schema: {
+              type: "object",
+              properties: {
+                error: {
+                  type: "string",
+                },
+              },
+            },
+            example: {
+              error: "Rooms/:id/commitPayment : internal server error",
+            },
+          },
+        },
+      },
+    },
   },
 };
 
 roomsDocs[`${apiPrefix}/commitSettlement`] = {
   post: {
     tags: [tag],
-    summary: "",
-    description: "",
-    requestBody: {},
-    responses: {},
+    summary: "방 정산 완료 처리",
+    description: `해당 방에 요청을 보낸 유저를 정산 완료로 처리합니다.<br/>
+    방의 \`part\` 배열에서 요청을 보낸 유저의 \`isSettlement\` 속성은 \`send-required\`에서 \`sent\`로 변경합니다.<br/>
+    방의 참여한 유저들이 모두 정산완료를 하면 방의 \`isOver\` 속성이 \`true\`로 변경되며, 과거 방으로 취급됩니다.`,
+    requestBody: {
+      content: {
+        "application/json": {
+          schema: {
+            type: "object",
+            properties: {
+              roomId: {
+                type: "string",
+                pattern: objectIdPattern,
+              },
+            },
+          },
+        },
+      },
+    },
+    responses: {
+      200: {
+        description: "결제 정보가 수정된 방의 세부 정보가 담긴 room Object",
+        content: {
+          "application/json": {
+            schema: {
+              $ref: "#/components/schemas/room",
+            },
+          },
+        },
+      },
+      404: {
+        description: `잘못된 방 요청<br/>
+        (사용자가 참여 중인 방이 아니거나, 사용자가 결제를 했거나 이미 정산한 경우)`,
+        content: {
+          "application/json": {
+            schema: {
+              type: "object",
+              properties: {
+                error: {
+                  type: "string",
+                },
+              },
+            },
+            example: {
+              error: "Rooms/:id/settlement : cannot find settlement info",
+            },
+          },
+        },
+      },
+      500: {
+        description: "내부 서버 오류",
+        content: {
+          "application/json": {
+            schema: {
+              type: "object",
+              properties: {
+                error: {
+                  type: "string",
+                },
+              },
+            },
+            example: {
+              error: "Rooms/:id/settlement : internal server error",
+            },
+          },
+        },
+      },
+    },
   },
 };
 
