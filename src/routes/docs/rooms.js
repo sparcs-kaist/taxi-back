@@ -122,7 +122,7 @@ roomsDocs[`${apiPrefix}/create`] = {
 roomsDocs[`${apiPrefix}/publicInfo`] = {
   get: {
     tags: [tag],
-    summary: "정산 정보를 제외한 방 세부 사항 반환 (로그인 필요 x)",
+    summary: "정산 정보를 제외한 방 세부 사항 반환",
     description:
       "특정 id 방의 정산 정보를 제외한 세부사항을 반환합니다. 로그인을 하지 않아도 접근 가능합니다.",
     parameters: [
@@ -487,7 +487,8 @@ roomsDocs[`${apiPrefix}/search`] = {
     tags: [tag],
     summary: "방 검색",
     description: `출발지/도착지/날짜를 받아 조건에 맞는 방을 검색합니다.<br/>
-    조건에 맞는 방이 있을 경우, 방들의 정보를 반환하고 없다면 빈 배열을 반환합니다.`,
+    조건에 맞는 방이 있을 경우, 방들의 정보를 반환하고 없다면 빈 배열을 반환합니다.<br/>
+    로그인을 하지 않아도 접근 가능합니다.`,
     parameters: [
       {
         in: "query",
