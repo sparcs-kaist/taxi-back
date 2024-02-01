@@ -10,31 +10,31 @@ export interface User {
   /** 계정 프로필 이미지 주소. */
   profileImageUrl: string;
   /** 사용자가 참여한 방 중 현재 진행 중인 방의 배열. */
-  ongoingRoom?: string[];
+  ongoingRoom?: Types.Array<Types.ObjectId>;
   /** 사용자가 참여한 방 중 완료된 방의 배열. */
-  doneRoom?: string[];
-  withdraw?: boolean;
+  doneRoom?: Types.Array<Types.ObjectId>;
+  withdraw: boolean;
   /** 사용자의 전화번호. 2023 가을 이벤트부터 추가됨. */
   phoneNumber?: string;
   /** 계정 정지 여부. */
-  ban?: boolean;
+  ban: boolean;
   /** 계정 가입 시각. */
   joinat: Date;
   /** 사용자의 Taxi 이용약관 동의 여부. */
-  agreeOnTermsOfService?: boolean;
+  agreeOnTermsOfService: boolean;
   subinfo?: {
     /** 사용자의 KAIST 학번. */
-    kaist?: string,
-    sparcs?: string,
-    facebook?: string,
-    twitter?: string,
+    kaist: string,
+    sparcs: string,
+    facebook: string,
+    twitter: string,
   };
   /** 사용자의 이메일 주소. */
   email: string;
   /** 계정의 관리자 여부. */
-  isAdmin?: boolean;
+  isAdmin: boolean;
   /** 사용자의 계좌번호 정보. */
-  account?: string;
+  account: string;
 }
 
 export interface Participant {
@@ -50,7 +50,7 @@ export interface DeviceToken {
   /** 디바이스 토큰 소유자의 User ObjectID. */
   userId: Types.ObjectId;
   /** 소유한 디바이스 토큰의 배열. */
-  deviceTokens: string[];
+  deviceTokens: Types.Array<string>;
 }
 
 export interface NotificationOption {
@@ -58,7 +58,7 @@ export interface NotificationOption {
   /** 채팅 알림 수신 여부. */
   chatting: boolean;
   /** 방 알림 키워드. */
-  keywords: string[];
+  keywords: Types.Array<string>;
   /** 출발 전 알림 발송 여부. */
   beforeDepart: boolean;
   /** 공지성 알림 수신 여부. */
@@ -83,7 +83,7 @@ export interface Room {
   /** 방의 출발 시각. */
   time: Date;
   /** 방 참여자의 배열. */
-  part?: Participant[];
+  part?: Types.DocumentArray<Participant>;
   /** 방의 생성 시각. */
   madeat: Date;
   /** 방 참여자 중 정산을 완료한 참여자의 수. */
@@ -95,12 +95,12 @@ export interface Room {
 export interface Location {
   enName: string;
   koName: string;
-  priority?: number;
-  isValid?: boolean;
+  priority: number;
+  isValid: boolean;
   /** 위도. */
-  latitude?: number;
+  latitude: number;
   /** 경도. */
-  longitude?: number;
+  longitude: number;
 }
 
 export interface Chat {
@@ -119,9 +119,9 @@ export interface Chat {
     | "arrival";
   /** 메세지의 작성자의 User ObjectID. */
   authorId?: Types.ObjectId;
-  content?: string;
+  content: string;
   time: Date;
-  isValid?: boolean;
+  isValid: boolean;
 }
 
 export interface Report {
@@ -132,7 +132,7 @@ export interface Report {
   /** 신고의 종류. */
   type: "no-settlement" | "no-show" | "etc-reason";
   /** 신고의 기타 세부 사유. */
-  etcDetail?: string;
+  etcDetail: string;
   /** 신고한 시각. */
   time: Date;
   /** 신고한 방의 ObjectID. */
@@ -141,13 +141,18 @@ export interface Report {
 
 export interface AdminIPWhitelist {
   ip: string;
-  description?: string;
+  description: string;
 }
 
 export interface AdminLog {
+  /** 로그 발생자의 User ObjectID. */
   user: Types.ObjectId;
+  /** 로그의 발생 시각. */
   time: Date;
+  /** 로그의 발생 IP 주소. */
   ip: string;
-  target?: string;
+  /** 취급한 대상. */
+  target: string;
+  /** 수행한 업무. */
   action: "create" | "read" | "update" | "delete";
 }
