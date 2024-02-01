@@ -1,8 +1,8 @@
-const { aws: awsEnv } = require("@/loadenv");
+import AWS from "aws-sdk";
+import { aws as awsEnv } from "@/loadenv";
+import logger from "@/modules/logger";
+import { type Report } from "@/../types/mongo"; // TODO: 이게맞나
 
-const logger = require("@/modules/logger");
-// Load the AWS-SDK and s3
-const AWS = require("aws-sdk");
 AWS.config.update({
   region: "ap-northeast-2",
   signatureVersion: "v4",
@@ -12,7 +12,10 @@ const s3 = new AWS.S3({ apiVersion: "2006-03-01" });
 const ses = new AWS.SES({ apiVersion: "2010-12-01" });
 
 // function to list Object
-module.exports.getList = (directoryPath, cb) => {
+export const getList = (
+  directoryPath: string,
+  cb: (err: AWS.AWSError, data: AWS.S3.ListObjectsOutput) => void
+) => {
   s3.listObjects(
     {
       Bucket: awsEnv.s3BucketName,
@@ -25,7 +28,10 @@ module.exports.getList = (directoryPath, cb) => {
 };
 
 // function to generate signed-url for upload(PUT)
-module.exports.getUploadPUrlPut = (filePath, contentType = "image/png") => {
+export const getUploadPUrlPut = (
+  filePath: string,
+  contentType: string = "image/png"
+) => {
   const presignedUrl = s3.getSignedUrl("putObject", {
     Bucket: awsEnv.s3BucketName,
     Key: filePath,
@@ -36,7 +42,11 @@ module.exports.getUploadPUrlPut = (filePath, contentType = "image/png") => {
 };
 
 // function to generate signed-url for upload(POST)
-module.exports.getUploadPUrlPost = (filePath, contentType, cb) => {
+export const getUploadPUrlPost = (
+  filePath: string,
+  contentType: string,
+  cb: (err: Error, data: AWS.S3.PresignedPost) => void
+) => {
   s3.createPresignedPost(
     {
       Bucket: awsEnv.s3BucketName,
@@ -54,7 +64,10 @@ module.exports.getUploadPUrlPost = (filePath, contentType, cb) => {
 };
 
 // function to delete object
-module.exports.deleteObject = (filePath, cb) => {
+export const deleteObject = (
+  filePath: string,
+  cb: (err: AWS.AWSError, data: AWS.S3.DeleteObjectOutput) => void
+) => {
   s3.deleteObject(
     {
       Bucket: awsEnv.s3BucketName,
@@ -67,7 +80,10 @@ module.exports.deleteObject = (filePath, cb) => {
 };
 
 // function to check exist of Object
-module.exports.foundObject = (filePath, cb) => {
+export const foundObject = (
+  filePath: string,
+  cb: (err: AWS.AWSError, data: AWS.S3.HeadObjectOutput) => void
+) => {
   s3.headObject(
     {
       Bucket: awsEnv.s3BucketName,
@@ -80,11 +96,15 @@ module.exports.foundObject = (filePath, cb) => {
 };
 
 // function to return full URL of the object
-module.exports.getS3Url = (filePath) => {
+export const getS3Url = (filePath: string) => {
   return `${awsEnv.s3Url}${filePath}`;
 };
 
-module.exports.sendReportEmail = (reportedEmail, report, html) => {
+export const sendReportEmail = (
+  reportedEmail: string,
+  report: Report,
+  html: string
+) => {
   const reportTypeMap = {
     "no-settlement": "정산을 하지 않음",
     "no-show": "택시에 동승하지 않음",
@@ -111,7 +131,7 @@ module.exports.sendReportEmail = (reportedEmail, report, html) => {
     Source: "taxi.sparcs@gmail.com",
   };
 
-  ses.sendEmail(params, (err, data) => {
+  ses.sendEmail(params, (err) => {
     if (err) {
       logger.error("Fail to send email", err);
     } else {
