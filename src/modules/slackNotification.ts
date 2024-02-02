@@ -1,8 +1,9 @@
-const { slackWebhookUrl: slackUrl } = require("@/loadenv");
-const axios = require("axios");
-const logger = require("./logger");
+import axios from "axios";
+import { slackWebhookUrl as slackUrl } from "@/loadenv";
+import logger from "@/modules/logger";
+import { type Report } from "@/../types/mongo";
 
-module.exports.notifyToReportChannel = (reportUser, report) => {
+export const notifyToReportChannel = (reportUser: string, report: Report) => {
   if (!slackUrl.report) return;
 
   const data = {
@@ -15,11 +16,11 @@ module.exports.notifyToReportChannel = (reportUser, report) => {
     기타: ${report.etcDetail}
     `,
   };
-  const config = { "Content-Type": "application/json" };
+  const config = { headers: { "Content-Type": "application/json" } };
 
   axios
     .post(slackUrl.report, data, config)
-    .then((res) => {
+    .then(() => {
       logger.info("Slack webhook sent successfully");
     })
     .catch((err) => {

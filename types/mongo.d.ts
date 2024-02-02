@@ -144,6 +144,8 @@ export interface AdminIPWhitelist {
   description: string;
 }
 
+export type AdminLogAction = "create" | "read" | "update" | "delete";
+
 export interface AdminLog {
   /** 로그 발생자의 User ObjectID. */
   user: Types.ObjectId;
@@ -154,5 +156,5 @@ export interface AdminLog {
   /** 취급한 대상. */
   target: string;
   /** 수행한 업무. */
-  action: "create" | "read" | "update" | "delete";
+  action: AdminLogAction;
 }

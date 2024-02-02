@@ -1,5 +1,5 @@
-const crypto = require("crypto");
-const aws = require("./stores/aws");
+import crypto from "crypto";
+import { getS3Url } from "@/modules/stores/aws";
 
 const nouns = [
   "재료역학",
@@ -64,7 +64,7 @@ const defaultProfile = [
 
 // 닉네임 규칙에 따라 새 유저의 닉네임을 생성해 반환합니다.
 // Ara의 닉네임 생성 규칙을 참고하였습니다.
-const generateNickname = (id) => {
+export const generateNickname = (id: string) => {
   const nounIdx = crypto.randomInt(nouns.length);
   const adjectiveIdx = crypto.randomInt(adjectives.length);
   const noun = nouns[nounIdx];
@@ -80,26 +80,19 @@ const generateNickname = (id) => {
 };
 
 // 기존 프로필 사진의 URI 중 하나를 무작위로 선택해 반환합니다.
-const generateProfileImageUrl = () => {
+export const generateProfileImageUrl = () => {
   const ridx = crypto.randomInt(defaultProfile.length);
-  return aws.getS3Url(`/profile-img/default/${defaultProfile[ridx]}`);
+  return getS3Url(`/profile-img/default/${defaultProfile[ridx]}`);
 };
 
 // 사용자의 이름과 성을 받아, 한글인지 영어인지에 따라 전체 이름을 반환합니다.
-const getFullUsername = (firstName, lastName) => {
+export const getFullUsername = (firstName: string, lastName: string) => {
   const koPattern = new RegExp("[가-힣]+");
   if (koPattern.test(firstName) && koPattern.test(lastName))
     return `${lastName}${firstName}`;
   else return `${firstName} ${lastName}`;
 };
 
-const replaceSpaceInNickname = (nickname) => {
+export const replaceSpaceInNickname = (nickname: string) => {
   return nickname.replace(/\s+/g, " ");
-};
-
-module.exports = {
-  generateNickname,
-  generateProfileImageUrl,
-  getFullUsername,
-  replaceSpaceInNickname,
 };
