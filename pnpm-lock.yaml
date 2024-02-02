@@ -36,8 +36,8 @@ dependencies:
     specifier: ^4.6.0
     version: 4.6.0(express-session@1.17.3)(mongodb@4.17.1)
   connect-redis:
-    specifier: ^6.1.3
-    version: 6.1.3
+    specifier: ^7.1.1
+    version: 7.1.1(express-session@1.17.3)
   cookie-parser:
     specifier: ^1.4.5
     version: 1.4.6
@@ -4829,9 +4829,13 @@ packages:
       - supports-color
     dev: false
 
-  /connect-redis@6.1.3:
-    resolution: {integrity: sha512-aaNluLlAn/3JPxRwdzw7lhvEoU6Enb+d83xnokUNhC9dktqBoawKWL+WuxinxvBLTz6q9vReTnUDnUslaz74aw==}
-    engines: {node: '>=12'}
+  /connect-redis@7.1.1(express-session@1.17.3):
+    resolution: {integrity: sha512-M+z7alnCJiuzKa8/1qAYdGUXHYfDnLolOGAUjOioB07pP39qxjG+X9ibsud7qUBc4jMV5Mcy3ugGv8eFcgamJQ==}
+    engines: {node: '>=16'}
+    peerDependencies:
+      express-session: '>=1'
+    dependencies:
+      express-session: 1.17.3
     dev: false
 
   /content-disposition@0.5.4:

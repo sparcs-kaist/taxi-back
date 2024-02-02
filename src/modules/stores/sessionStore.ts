@@ -1,20 +1,14 @@
-const expressSession = require("express-session");
-const redis = require("redis");
-const MongoStore = require("connect-mongo");
-const RedisStore = require("connect-redis")(expressSession);
-const {
-  redis: redisUrl,
-  mongo: mongoUrl,
-  session: sessionConfig,
-} = require("@/loadenv");
-const logger = require("@/modules/logger");
+import MongoStore from "connect-mongo";
+import RedisStore from "connect-redis"
+import redis from "redis";
+import { redis as redisUrl, mongo as mongoUrl, session as sessionConfig } from "@/loadenv";
+import logger from "@/modules/logger";
 
-const getSessionStore = (redisUrl) => {
+const getSessionStore = () => {
   // 환경변수 REDIS_PATH 유무에 따라 session 저장 방식이 변경됩니다.
   if (redisUrl) {
     const client = redis.createClient({
       url: redisUrl,
-      legacyMode: true,
     });
 
     // redis client 연결 성공 시 로그를 출력합니다.
@@ -34,4 +28,4 @@ const getSessionStore = (redisUrl) => {
   }
 };
 
-module.exports = getSessionStore(redisUrl);
+export default getSessionStore();
