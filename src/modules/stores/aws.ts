@@ -1,7 +1,7 @@
 import AWS from "aws-sdk";
 import { aws as awsEnv } from "@/loadenv";
 import logger from "@/modules/logger";
-import { type Report } from "@/../types/mongo"; // TODO: 이게맞나
+import { type Report } from "@/types/mongo";
 
 AWS.config.update({
   region: "ap-northeast-2",

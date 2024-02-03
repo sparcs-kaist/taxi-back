@@ -1,6 +1,6 @@
 import mongoose, { model, Schema, Types } from "mongoose";
 import logger from "@/modules/logger";
-import type { User, Participant, DeviceToken, NotificationOption, TopicSubscription, Room, Location, Chat, Report, AdminIPWhitelist, AdminLog } from "@/../types/mongo"; // TODO: Am I right..?
+import type { User, Participant, DeviceToken, NotificationOption, TopicSubscription, Room, Location, Chat, Report, AdminIPWhitelist, AdminLog } from "@/types/mongo";
 
 const userSchema = new Schema<User>({
   name: { type: String, required: true }, //실명
