@@ -1,6 +1,6 @@
-import { Types } from "mongoose";
+import { Document, Types } from "mongoose";
 
-export interface User {
+export interface User extends Document {
   /** 사용자의 실명. */
   name: string;
   /** 사용자의 닉네임. */
@@ -39,7 +39,7 @@ export interface User {
 
 export type SettlementStatus = "not-departed" | "paid" | "send-required" | "sent";
 
-export interface Participant {
+export interface Participant extends Document {
   /** 방 참여자의 User ObjectID. */
   user: Types.ObjectId;
   /** 방 참여자의 정산 상태. */
@@ -48,14 +48,14 @@ export interface Participant {
   readAt?: Date;
 }
 
-export interface DeviceToken {
+export interface DeviceToken extends Document {
   /** 디바이스 토큰 소유자의 User ObjectID. */
   userId: Types.ObjectId;
   /** 소유한 디바이스 토큰의 배열. */
   deviceTokens: Types.Array<string>;
 }
 
-export interface NotificationOption {
+export interface NotificationOption extends Document {
   deviceToken: string;
   /** 채팅 알림 수신 여부. */
   chatting: boolean;
@@ -69,13 +69,13 @@ export interface NotificationOption {
   advertisement: boolean;
 }
 
-export interface TopicSubscription {
+export interface TopicSubscription extends Document {
   deviceToken?: string;
   topic?: string;
   subscribedAt: Date;
 }
 
-export interface Room {
+export interface Room extends Document {
   /** 방의 이름. */
   name: string;
   /** 방의 출발지의 Location ObjectID. */
@@ -94,7 +94,7 @@ export interface Room {
   maxPartLength: number;
 }
 
-export interface Location {
+export interface Location extends Document {
   enName: string;
   koName: string;
   priority: number;
@@ -116,7 +116,7 @@ export type ChatType =
   | "departure"
   | "arrival";
 
-export interface Chat {
+export interface Chat extends Document {
   /** 메세지가 전송된 방의 Room ObjectID. */
   roomId: Types.ObjectId;
   /** 메세지의 종류. */
@@ -128,7 +128,7 @@ export interface Chat {
   isValid: boolean;
 }
 
-export interface Report {
+export interface Report extends Document {
   /** 신고한 사용자의 ObjectID. */
   creatorId: Types.ObjectId;
   /** 신고받은 사용자의 ObjectID. */
@@ -143,14 +143,14 @@ export interface Report {
   roomId?: Types.ObjectId;
 }
 
-export interface AdminIPWhitelist {
+export interface AdminIPWhitelist extends Document {
   ip: string;
   description: string;
 }
 
 export type AdminLogAction = "create" | "read" | "update" | "delete";
 
-export interface AdminLog {
+export interface AdminLog extends Document {
   /** 로그 발생자의 User ObjectID. */
   user: Types.ObjectId;
   /** 로그의 발생 시각. */
