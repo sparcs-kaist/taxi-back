@@ -37,11 +37,13 @@ export interface User {
   account: string;
 }
 
+export type SettlementStatus = "not-departed" | "paid" | "send-required" | "sent";
+
 export interface Participant {
   /** 방 참여자의 User ObjectID. */
   user: Types.ObjectId;
   /** 방 참여자의 정산 상태. */
-  settlementStatus: "not-departed" | "paid" | "send-required" | "sent";
+  settlementStatus: SettlementStatus;
   /** 방 참여자가 마지막으로 채팅을 읽은 시각. */
   readAt?: Date;
 }
@@ -103,20 +105,22 @@ export interface Location {
   longitude: number;
 }
 
+export type ChatType =
+  | "text"
+  | "in"
+  | "out"
+  | "s3img"
+  | "payment"
+  | "settlement"
+  | "account"
+  | "departure"
+  | "arrival";
+
 export interface Chat {
   /** 메세지가 전송된 방의 Room ObjectID. */
   roomId: Types.ObjectId;
   /** 메세지의 종류. */
-  type?:
-    | "text"
-    | "in"
-    | "out"
-    | "s3img"
-    | "payment"
-    | "settlement"
-    | "account"
-    | "departure"
-    | "arrival";
+  type?: ChatType;
   /** 메세지의 작성자의 User ObjectID. */
   authorId?: Types.ObjectId;
   content: string;
