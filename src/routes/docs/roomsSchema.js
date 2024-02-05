@@ -3,13 +3,22 @@ const { objectIdPattern, roomsPattern } = require("./utils");
 const participantSchema = {
   part: {
     type: "object",
-    required: ["user", "settlementStatus", "readAt"],
+    required: ["_id", "name", "nickname", "profileImageUrl", "readAt"],
     properties: {
-      user: {
+      _id: {
         type: "string",
         pattern: objectIdPattern,
       },
-      settlementStatus: {
+      name: {
+        type: "string",
+      },
+      nickname: {
+        type: "string",
+      },
+      profileImageUrl: {
+        type: "string",
+      },
+      isSettlement: {
         type: "string",
         enum: ["not-departed", "paid", "send-required", "sent"],
         default: "not-departed",
@@ -30,9 +39,10 @@ const roomsSchema = {
       "from",
       "to",
       "time",
+      "part",
       "madeat",
-      "settlementTotal",
       "maxPartLength",
+      "isDeparted",
     ],
     properties: {
       name: {
@@ -59,13 +69,19 @@ const roomsSchema = {
         type: "string",
         format: "date-time",
       },
+      maxPartLength: {
+        type: "integer",
+        default: 4,
+      },
       settlementTotal: {
         type: "integer",
         default: 0,
       },
-      maxPartLength: {
-        type: "integer",
-        default: 4,
+      isOver: {
+        type: "boolean",
+      },
+      isDeparted: {
+        type: "boolean",
       },
     },
   },
