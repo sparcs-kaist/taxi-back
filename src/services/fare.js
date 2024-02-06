@@ -11,11 +11,11 @@ const naverCloudApi = {
   "X-NCP-APIGW-API-KEY": naverCloudApiKey,
 };
 
-/* Initialize database
+/**  Initialize database
  * 1. Erase all previous data
  * 2. Sets all taxi fare to 0
- * 카이스트 본원 <-> 대전역의 경우 48개의 시간대에 대한 택시 요금을 0으로 설정합니다.
- * 카이스트 본원 <-> 대전역 외 나머지 경로, 238개의 경로에 대해서는 한 개의 collection씩 설정하여 time과 fare를 0으로 설정합니다.
+ * @summary 카이스트 본원 <-> 대전역의 경우 48개의 시간대에 대한 택시 요금을 0으로 설정합니다.
+ * @summary 카이스트 본원 <-> 대전역 외 나머지 경로, 238개의 경로에 대해서는 한 개의 collection씩 설정하여 time과 fare를 0으로 설정합니다.
  */
 const initDatabase = async (req, res) => {
   try {
@@ -28,6 +28,7 @@ const initDatabase = async (req, res) => {
       for (let gkey in locations) {
         if (skey === gkey) continue;
         let tableFare = [];
+        // 카이스트 본원 <-> 대전역의 경우 48개의 시간대에 대한 택시 요금을 0으로 설정
         if (
           (skey === "카이스트 본원" && gkey === "대전역") ||
           (skey === "대전역" && gkey === "카이스트 본원")
@@ -40,7 +41,9 @@ const initDatabase = async (req, res) => {
               fare: 0,
             });
           }
-        } else {
+        }
+        // 카이스트 본원 <-> 대전역외의 경로(238개)에 대해서는 1개씩만 collection 지정 설정
+        else {
           tableFare.push({
             start: skey,
             goal: gkey,
