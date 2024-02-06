@@ -98,7 +98,6 @@ const editAccountHandler = async (req, res) => {
 const editProfileImgGetPUrlHandler = async (req, res) => {
   try {
     const type = req.body.type;
-    logger.info(type);
     const user = await userModel.findOne({ id: req.userId }, "_id");
     if (!user) {
       return res
