@@ -5,7 +5,9 @@ const informationMiddleware = (
   res: Response,
   next: NextFunction
 ) => {
-  req.clientIP = <string | undefined>req.headers["x-forwarded-for"] || req.connection.remoteAddress;
+  req.clientIP =
+    (req.headers["x-forwarded-for"] as string | undefined) ||
+    req.connection.remoteAddress;
   req.timestamp = Date.now();
   next();
 };

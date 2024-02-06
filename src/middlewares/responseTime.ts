@@ -1,6 +1,6 @@
 import { type Request, type Response } from "express";
-import logger from "@/modules/logger";
 import responseTime from "response-time";
+import logger from "@/modules/logger";
 
 const responseTimeMiddleware = responseTime(
   (req: Request, res: Response, time: number) => {

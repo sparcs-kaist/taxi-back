@@ -1,5 +1,5 @@
-import logger from "@/modules/logger";
 import { type Request, type Response, type NextFunction } from "express";
+import logger from "@/modules/logger";
 
 /**
  * Express app에서 사용할 custom global error handler를 정의합니다.

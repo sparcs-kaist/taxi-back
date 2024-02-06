@@ -1,10 +1,10 @@
 import expressSession from "express-session";
 import { nodeEnv, session as sessionConfig } from "@/loadenv";
-import sessionStore from "@/modules/stores/sessionStore";
 import { type LoginInfo } from "@/modules/auths/login";
+import sessionStore from "@/modules/stores/sessionStore";
 
 // 세션에 저장할 데이터 타입을 지정합니다.
-declare module 'express-session' {
+declare module "express-session" {
   interface SessionData {
     /** 사용자 로그인 정보 */
     loginInfo?: LoginInfo;
