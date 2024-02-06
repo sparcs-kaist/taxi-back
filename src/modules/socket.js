@@ -235,37 +235,13 @@ const emitUpdateEvent = async (io, roomId) => {
 // https://socket.io/how-to/use-with-express-session 참고
 const startSocketServer = (server) => {
   const io = new Server(server, {
-    allowRequest: (req, callback) => {
-      const fakeRes = {
-        getHeader() {
-          return [];
-        },
-        setHeader(key, values) {
-          req.cookieHolder = values[0];
-        },
-        writeHead() {},
-      };
-      sessionMiddleware(req, fakeRes, () => {
-        if (req.session) {
-          fakeRes.writeHead();
-          req.session.save();
-        }
-        callback(null, true);
-      });
-    },
     cors: {
       origin: corsWhiteList,
       methods: ["GET", "POST"],
       credentials: true,
     },
   });
-
-  io.engine.on("initial_headers", (headers, req) => {
-    if (req.cookieHolder) {
-      headers["set-cookie"] = req.cookieHolder;
-      delete req.cookieHolder;
-    }
-  });
+  io.engine.use(sessionMiddleware);
 
   io.on("connection", (socket) => {
     try {
