@@ -24,10 +24,10 @@ export interface User extends Document {
   agreeOnTermsOfService: boolean;
   subinfo?: {
     /** 사용자의 KAIST 학번. */
-    kaist: string,
-    sparcs: string,
-    facebook: string,
-    twitter: string,
+    kaist: string;
+    sparcs: string;
+    facebook: string;
+    twitter: string;
   };
   /** 사용자의 이메일 주소. */
   email: string;
@@ -37,7 +37,11 @@ export interface User extends Document {
   account: string;
 }
 
-export type SettlementStatus = "not-departed" | "paid" | "send-required" | "sent";
+export type SettlementStatus =
+  | "not-departed"
+  | "paid"
+  | "send-required"
+  | "sent";
 
 export interface Participant extends Document {
   /** 방 참여자의 User ObjectID. */

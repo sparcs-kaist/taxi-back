@@ -9,4 +9,4 @@ export const chatPopulateOption = [
 
 export interface PopulatedChat extends Omit<Chat, "authorId"> {
   authorId?: Pick<User, "_id" | "nickname" | "profileImageUrl">;
-};
+}

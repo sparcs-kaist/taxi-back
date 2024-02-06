@@ -8,5 +8,8 @@ export const reportPopulateOption = [
 ];
 
 export interface PopulatedReport extends Omit<Report, "reportedId"> {
-  reportedId: Pick<User, "_id" | "id" | "name" | "nickname" | "profileImageUrl">;
-};
+  reportedId: Pick<
+    User,
+    "_id" | "id" | "name" | "nickname" | "profileImageUrl"
+  >;
+}

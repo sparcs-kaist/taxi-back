@@ -1,4 +1,10 @@
-import { type User, type SettlementStatus, type Participant, type Room, type Location } from "@/types/mongo";
+import {
+  type User,
+  type SettlementStatus,
+  type Participant,
+  type Room,
+  type Location,
+} from "@/types/mongo";
 
 /**
  * 쿼리를 통해 얻은 Room Document를 populate할 설정값을 정의합니다.
@@ -14,7 +20,8 @@ export const roomPopulateOption = [
   },
 ];
 
-interface PopulatedParticipant extends Pick<Participant, "settlementStatus" | "readAt"> {
+interface PopulatedParticipant
+  extends Pick<Participant, "settlementStatus" | "readAt"> {
   user: Pick<User, "_id" | "id" | "name" | "nickname" | "profileImageUrl">;
 }
 
@@ -24,7 +31,8 @@ export interface PopulatedRoom extends Omit<Room, "from" | "to" | "part"> {
   part?: PopulatedParticipant[];
 }
 
-export interface FormattedRoom extends Omit<PopulatedRoom, "part" | "settlementTotal"> {
+export interface FormattedRoom
+  extends Omit<PopulatedRoom, "part" | "settlementTotal"> {
   part?: {
     _id: string;
     name: string;
@@ -36,7 +44,7 @@ export interface FormattedRoom extends Omit<PopulatedRoom, "part" | "settlementT
   settlementTotal?: number;
   isOver?: boolean;
   isDeparted: boolean;
-};
+}
 
 /**
  * Room Object가 주어졌을 때 room의 part array의 각 요소를 API 명세에서와 같이 {userId: String, ... , isSettlement: String}으로 가공합니다.
@@ -71,7 +79,7 @@ export const formatSettlement = (
     isOver: includeSettlement ? isOver : undefined,
     isDeparted: new Date(roomObject.time) < new Date(timestamp),
   };
-}
+};
 
 /**
  * roomPopulateOption을 사용해 populate된 Room Object와 사용자의 id(userId)가 주어졌을 때, 해당 사용자의 정산 상태를 반환합니다.
@@ -86,7 +94,8 @@ export const getIsOver = (roomObject: PopulatedRoom, userId: string) => {
   });
 
   // 방에 참여중이지 않은 사용자의 경우, undefined을 반환합니다.
-  if (!participantSubDocuments || participantSubDocuments.length === 0) return undefined;
+  if (!participantSubDocuments || participantSubDocuments.length === 0)
+    return undefined;
 
   // 방에 참여중인 사용자의 경우, 정산 상태가 완료된 것인지("paid"거나 "sent"인지)를 반환합니다.
   return ["paid", "sent"].includes(participantSubDocuments[0].settlementStatus);

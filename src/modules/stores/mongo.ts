@@ -1,6 +1,18 @@
 import mongoose, { model, Schema, Types } from "mongoose";
 import logger from "@/modules/logger";
-import type { User, Participant, DeviceToken, NotificationOption, TopicSubscription, Room, Location, Chat, Report, AdminIPWhitelist, AdminLog } from "@/types/mongo";
+import type {
+  User,
+  Participant,
+  DeviceToken,
+  NotificationOption,
+  TopicSubscription,
+  Room,
+  Location,
+  Chat,
+  Report,
+  AdminIPWhitelist,
+  AdminLog,
+} from "@/types/mongo";
 
 const userSchema = new Schema<User>({
   name: { type: String, required: true }, //실명
@@ -217,17 +229,21 @@ export const connectDatabase = (mongoUrl: string) => {
     // 데이터베이스 연결이 끊어지면 5초 후 재연결을 시도합니다.
     logger.error("데이터베이스와 연결이 끊어졌습니다!");
     setTimeout(() => {
-      mongoose.connect(mongoUrl, /*{
+      mongoose.connect(
+        mongoUrl /*{
         useNewUrlParser: true,
         useUnifiedTopology: true,
-      }*/); // NOTE: https://velog.io/@untiring_dev/MongoDB-MongoDB-Mongoose%EC%97%90-%EC%97%B0%EA%B2%B0
+      }*/
+      ); // NOTE: https://velog.io/@untiring_dev/MongoDB-MongoDB-Mongoose%EC%97%90-%EC%97%B0%EA%B2%B0
     }, 5000);
   });
 
-  mongoose.connect(mongoUrl, /*{
+  mongoose.connect(
+    mongoUrl /*{
     useNewUrlParser: true,
     useUnifiedTopology: true,
-  }*/);
+  }*/
+  );
 
   return database;
 };

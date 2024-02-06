@@ -1,7 +1,11 @@
 import MongoStore from "connect-mongo";
-import RedisStore from "connect-redis"
+import RedisStore from "connect-redis";
 import redis from "redis";
-import { redis as redisUrl, mongo as mongoUrl, session as sessionConfig } from "@/loadenv";
+import {
+  redis as redisUrl,
+  mongo as mongoUrl,
+  session as sessionConfig,
+} from "@/loadenv";
 import logger from "@/modules/logger";
 
 const getSessionStore = () => {

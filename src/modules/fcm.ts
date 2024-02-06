@@ -30,7 +30,10 @@ export const initializeApp = () => {
  * @param {string} deviceToken - 등록하려는 FCM device token입니다.
  * @return {Promise<Array<string>>} 변경된 사용자의 deviceToken의 목록 Array를 반환합니다. 오류가 발생하면 빈 배열을 반환합니다.
  */
-export const registerDeviceToken = async (userId: string, deviceToken: string): Promise<string[]> => {
+export const registerDeviceToken = async (
+  userId: string,
+  deviceToken: string
+): Promise<string[]> => {
   try {
     // 디바이스 토큰을 다른 사용자가 사용하고 있는지 확인 및 삭제합니다.
     await deviceTokenModel.updateMany(
@@ -96,7 +99,10 @@ export const unregisterDeviceToken = async (deviceToken: string) => {
  * @param {Array<SendResponse>} fcmResponses - 등록하려는 FCM device token입니다.
  * @return {Promise<Array<Boolean>>} 각각의 토큰들의 삭제 성공 여부가 저장된 Array를 반환합니다. 해당 토큰을 DB에서 삭제하는 데 성공했으면 true, 아니면 false가 포함됩니다.
  */
-const removeExpiredTokens = async (deviceTokens: string[], fcmResponses: SendResponse[]) => {
+const removeExpiredTokens = async (
+  deviceTokens: string[],
+  fcmResponses: SendResponse[]
+) => {
   const removalResults = await Promise.all(
     deviceTokens.map(async (deviceToken, index) => {
       try {
@@ -151,7 +157,10 @@ export const validateDeviceToken = async (deviceToken: string) => {
  * @param {Boolean?} notificationOptions.chatting - true 또는 false로 주어진 경우, 채팅 알림 설정이 각각 true 또는 false로 설정된 사용자들의 deviceToken만 반환합니다.
  * @return {Promise<Array<string>>} deviceToken의 Array를 반환합니다. 오류가 발생하면 빈 배열을 반환합니다.
  */
-export const getTokensOfUsers = async (userIds: string[], notificationOptions: Object = {}) => {
+export const getTokensOfUsers = async (
+  userIds: string[],
+  notificationOptions: Object = {}
+) => {
   const deviceTokensOfUsers = (
     await Promise.all(
       userIds.map(
@@ -186,7 +195,14 @@ export const getTokensOfUsers = async (userIds: string[], notificationOptions: O
  * @param {string?} link - 메시지 알림 팝업을 클릭했을 때 이동할 주소입니다.
  * @return {Promise<Number>} 메시지 알림 전송에 실패한 기기의 수를 반환합니다. 오류가 발생하면 -1을 반환합니다.
  */
-export const sendMessageByTokens = async (tokens: string[], type: ChatType, title: string, body: string, icon?: string, link?: string) => {
+export const sendMessageByTokens = async (
+  tokens: string[],
+  type: ChatType,
+  title: string,
+  body: string,
+  icon?: string,
+  link?: string
+) => {
   if (tokens.length === 0) return -1;
   try {
     const message = {
@@ -227,7 +243,14 @@ export const sendMessageByTokens = async (tokens: string[], type: ChatType, titl
  * @param {string?} link - 메시지 알림 팝업을 클릭했을 때 이동할 주소입니다.
  * @return {Promise<boolean>} 메시지 알림 전송에 성공했으면 true, 아니면 false를 반환합니다.
  */
-export const sendMessageByTopic = async (topic: string, type: ChatType, title: string, body: string, icon?: string, link?: string) => {
+export const sendMessageByTopic = async (
+  topic: string,
+  type: ChatType,
+  title: string,
+  body: string,
+  icon?: string,
+  link?: string
+) => {
   try {
     const message = {
       topic,
@@ -305,7 +328,10 @@ export const subscribeUserToTopic = async (userId: string, topic: string) => {
  * @param {string} topic - 구독을 해제할 topic입니다.
  * @return {Promise<Number>} 토픽 구독 해제에 실패한 기기의 수를 반환합니다. 오류가 발생하면 -1을 반환합니다.
  */
-export const unsubscribeUserFromTopic = async (userId: string, topic: string) => {
+export const unsubscribeUserFromTopic = async (
+  userId: string,
+  topic: string
+) => {
   try {
     const deviceToken = await deviceTokenModel.findOne({
       userId,
