@@ -1,9 +1,11 @@
 const reportsSchema = require("./reportsSchema");
+const { participantSchema, roomsSchema } = require("./roomsSchema");
 const reportsDocs = require("./reports");
 const logininfoDocs = require("./logininfo");
 const locationsDocs = require("./locations");
 const authDocs = require("./auth");
 const usersDocs = require("./users");
+const roomsDocs = require("./rooms");
 const chatsDocs = require("./chats");
 const { port, nodeEnv } = require("../../../loadenv");
 
@@ -58,6 +60,10 @@ const swaggerDocs = {
       description: "유저 계정 정보 수정 및 조회",
     },
     {
+      name: "rooms",
+      description: "방 생성/수정/삭제/조회 및 관리 지원",
+    },
+    {
       name: "chats",
       description: "채팅 시 발생하는 이벤트 정리",
     },
@@ -71,10 +77,13 @@ const swaggerDocs = {
     ...usersDocs,
     ...authDocs,
     ...chatsDocs,
+    ...roomsDocs,
   },
   components: {
     schemas: {
       ...reportsSchema,
+      ...participantSchema,
+      ...roomsSchema,
     },
   },
 };
