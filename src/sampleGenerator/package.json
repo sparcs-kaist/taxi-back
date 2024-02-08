@@ -1,0 +1,17 @@
+{
+  "name": "taxisamplegenerator",
+  "version": "1.0.0",
+  "description": "sample generator",
+  "main": "index.js",
+  "scripts": {
+    "preinstall": "npx only-allow pnpm",
+    "start": "node index.js",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dumpDB": "node tools/dump.js",
+    "restoreDB": "node tools/restore.js"
+  },
+  "keywords": [
+    "test"
+  ],
+  "license": "ISC"
+}

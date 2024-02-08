@@ -49,4 +49,3 @@ See [contributors](https://github.com/sparcs-kaist/taxi-front/graphs/contributor
  - app : https://github.com/sparcs-kaist/taxi-app
  - docker : https://github.com/sparcs-kaist/taxi-docker
  - figma : https://www.figma.com/file/li34hP1oStJAzLNjcG5KjN/SPARCS-Taxi?node-id=0%3A1
- - taxiSampleGenerator : https://github.com/sparcs-kaist/taxiSampleGenerator

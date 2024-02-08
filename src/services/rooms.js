@@ -110,13 +110,13 @@ const publicInfoHandler = async (req, res) => {
       res.send(formatSettlement(roomObject, { includeSettlement: false }));
     } else {
       res.status(404).json({
-        error: "Rooms/info : id does not exist",
+        error: "Rooms/publicInfo : id does not exist",
       });
     }
   } catch (err) {
     logger.error(err);
     res.status(500).json({
-      error: "Rooms/info : internal server error",
+      error: "Rooms/publicInfo : internal server error",
     });
   }
 };
@@ -153,7 +153,7 @@ const joinHandler = async (req, res) => {
     // 사용자의 참여중인 진행중인 방이 5개 이상이면 오류를 반환합니다.
     if (user.ongoingRoom.length >= 5) {
       return res.status(400).json({
-        error: "Rooms/create : participating in too many rooms",
+        error: "Rooms/join : participating in too many rooms",
       });
     }
 
@@ -244,7 +244,7 @@ const abortHandler = async (req, res) => {
       .indexOf(user._id.toString());
     if (roomPartIndex === -1) {
       return res.status(403).json({
-        error: "Rooms/info : did not joined the room",
+        error: "Rooms/abort : did not joined the room",
       });
     }
 
@@ -254,7 +254,7 @@ const abortHandler = async (req, res) => {
     // 방의 출발시간이 지나고 정산이 되지 않으면 나갈 수 없음
     if (isOvertime(room, req.timestamp) && userOngoingRoomIndex !== -1) {
       return res.status(400).json({
-        error: "Rooms/info : cannot exit room. Settlement is not done",
+        error: "Rooms/abort : cannot exit room. Settlement is not done",
       });
     }
 
@@ -377,7 +377,6 @@ const searchHandler = async (req, res) => {
       .limit(1000)
       .populate(roomPopulateOption)
       .lean();
-
     res.json(
       rooms.map((room) => formatSettlement(room, { includeSettlement: false }))
     );
