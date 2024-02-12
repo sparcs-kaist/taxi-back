@@ -32,7 +32,7 @@ const loginReplaceHandler = (req, res) => {
   const { id } = req.body;
   const loginAfterState = req.session?.loginAfterState;
   if (!loginAfterState)
-    return res.status(400).send("SparcsssoCallbackHandler : invalid request");
+    return res.status(400).send("Auth/replace : invalid request");
   const { redirectOrigin, redirectPath } = loginAfterState;
   req.session.loginAfterState = undefined;
   tryLogin(req, res, createUserData(id), redirectOrigin, redirectPath);
