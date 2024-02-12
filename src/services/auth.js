@@ -119,13 +119,13 @@ const sparcsssoCallbackHandler = (req, res) => {
   const { state: stateForCmp, code } = req.query;
 
   if (!loginAfterState)
-    return res.status(400).send("SparcsssoCallbackHandler : invalid request");
+    return res.status(400).send("Auth/sparcssso/callback : invalid request");
 
   const { state, redirectOrigin, redirectPath } = loginAfterState;
   req.session.loginAfterState = undefined;
 
   if (!state || !redirectOrigin || !redirectPath) {
-    return res.status(400).send("SparcsssoCallbackHandler : invalid request");
+    return res.status(400).send("Auth/sparcssso/callback : invalid request");
   }
 
   if (state !== stateForCmp) {
@@ -150,7 +150,7 @@ const sparcsssoCallbackHandler = (req, res) => {
 
 const loginReplaceHandler = (req, res) => {
   res.status(400).json({
-    error: "Auths/login/replace : Bad Request",
+    error: "Auth/login/replace : Bad Request",
   });
 };
 
