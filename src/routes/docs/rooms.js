@@ -1,4 +1,3 @@
-const { roomsSchema } = require("./roomsSchema");
 const { objectIdPattern, roomsPattern } = require("./utils");
 
 const tag = "rooms";
