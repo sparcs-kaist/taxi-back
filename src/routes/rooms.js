@@ -78,19 +78,20 @@ router.post(
 // 로그인된 사용자의 모든 방들을 반환한다.
 router.get("/searchByUser", roomHandlers.searchByUserHandler);
 
+// 해당 방에 요청을 보낸 유저의 정산을 처리한다.
+router.post(
+  "/commitSettlement",
+  body("roomId").isMongoId(),
+  validator,
+  roomHandlers.commitSettlementHandler
+);
+
+// 해당 방에 요청을 보낸 유저의 송금을 처리한다.
 router.post(
   "/commitPayment",
   body("roomId").isMongoId(),
   validator,
   roomHandlers.commitPaymentHandler
-);
-
-// 해당 룸의 요청을 보낸 유저의 정산을 완료로 처리한다.
-router.post(
-  "/commitSettlement",
-  body("roomId").isMongoId(),
-  validator,
-  roomHandlers.settlementHandler
 );
 
 // json으로 수정할 값들을 받아 방의 정보를 수정합니다.
