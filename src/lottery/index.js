@@ -29,19 +29,19 @@ lotteryRouter.use("/items", require("./routes/items"));
 lotteryRouter.use("/public-notice", require("./routes/publicNotice"));
 lotteryRouter.use("/quests", require("./routes/quests"));
 
-const itemResource = buildResource([
-  addOneItemStockAction,
-  addFiveItemStockAction,
-])(itemModel);
-const otherResources = [eventStatusModel, questModel, transactionModel].map(
-  buildResource()
-);
+// [AdminJS] AdminJS에 표시할 Resource 생성
+const resources = eventConfig && [
+  buildResource()(eventStatusModel),
+  buildResource()(questModel),
+  buildResource([addOneItemStockAction, addFiveItemStockAction])(itemModel),
+  buildResource()(transactionModel),
+];
 
 const contracts =
   eventConfig && require(`./modules/contracts/${eventConfig.mode}`);
 
 module.exports = {
   lotteryRouter,
-  resources: [itemResource, ...otherResources],
+  resources: resources ?? [],
   contracts,
 };
