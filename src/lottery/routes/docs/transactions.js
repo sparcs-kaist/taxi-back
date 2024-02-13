@@ -45,9 +45,6 @@ transactionsDocs[`${apiPrefix}/`] = {
                           "Transaction과 관련된 퀘스트의 Id. 퀘스트와 관련된 Transaction인 경우에만 포함됩니다.",
                         example: "QUEST ID",
                       },
-                      item: {
-                        $ref: "#/components/schemas/relatedItem",
-                      },
                       comment: {
                         type: "string",
                         description: "입출금 내역에 대한 설명",
