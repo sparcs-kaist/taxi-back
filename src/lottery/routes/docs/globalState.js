@@ -18,6 +18,7 @@ globalStateDocs[`${apiPrefix}/`] = {
               required: [
                 "isAgreeOnTermsOfEvent",
                 "creditAmount",
+                "groupCreditAmount",
                 "completedQuests",
                 "group",
                 "quests",
@@ -31,7 +32,12 @@ globalStateDocs[`${apiPrefix}/`] = {
                 creditAmount: {
                   type: "number",
                   description: "재화 개수. 0 이상입니다.",
-                  example: 10000,
+                  example: 1000,
+                },
+                groupCreditAmount: {
+                  type: "number",
+                  description: "소속 새터반에 소속된 유저의 전체 재화 개수",
+                  example: 35000,
                 },
                 completedQuests: {
                   type: "array",

@@ -16,20 +16,42 @@ const getUserGlobalStateHandler = async (req, res) => {
       (await eventStatusModel
         .findOne({ userId }, "completedQuests creditAmount isBanned group")
         .lean());
-    if (eventStatus)
-      return res.json({
-        isAgreeOnTermsOfEvent: true,
-        ...eventStatus,
-        quests,
-      });
-    else
+    if (!eventStatus)
       return res.json({
         isAgreeOnTermsOfEvent: false,
         completedQuests: [],
         creditAmount: 0,
         group: 0,
+        groupCreditAmount: 0,
         quests,
       });
+
+    // group이 eventStatus.group과 같은 사용자들의 creditAmount를 합산합니다.
+    const groupCreditAmount = await eventStatusModel.aggregate([
+      {
+        $match: {
+          group: eventStatus.group,
+        },
+      },
+      {
+        $group: {
+          _id: null,
+          creditAmount: { $sum: "$creditAmount" },
+        },
+      },
+    ]);
+    const groupCreditAmountReal = groupCreditAmount[0]?.creditAmount;
+    if (!groupCreditAmountReal)
+      return res
+        .status(500)
+        .json({ error: "GlobalState/ : internal server error" });
+
+    return res.json({
+      isAgreeOnTermsOfEvent: true,
+      ...eventStatus,
+      groupCreditAmount: groupCreditAmountReal,
+      quests,
+    });
   } catch (err) {
     logger.error(err);
     res.status(500).json({ error: "GlobalState/ : internal server error" });
