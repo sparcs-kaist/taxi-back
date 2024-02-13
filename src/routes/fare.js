@@ -1,28 +1,36 @@
 const express = require("express");
-const { check } = require("express-validator");
+const { query } = require("express-validator");
 const router = express.Router();
 
-const { validator } = require("../middlewares/validator");
+const validator = require("../middlewares/validator");
 const { getTaxiFare, initDatabase } = require("../services/fare");
-const locations = require("../locations.json");
-
-const checkTaxiFareParams = [
-  check("start")
-    .isIn(Object.keys(locations)) //TODO: Change Location style of taxi-fare to match taxi-back
-    .withMessage("출발지가 올바르지 않습니다"),
-  check("goal")
-    .isIn(Object.keys(locations)) //TODO: Change Location style of taxi-fare to match taxi-back
-    .withMessage("도착지가 올바르지 않습니다"),
-  check("time")
-    .exists()
-    .withMessage("날짜/시간을 입력해주세요")
-    .isISO8601()
-    .withMessage("날짜/시간 형식이 올바르지 않습니다"),
-  validator,
-];
+const { locationModel } = require("../modules/stores/mongo");
 
 router.get("/init", initDatabase);
 
-router.get("/:start-:goal/time/:time", getTaxiFare);
+router.get(
+  "/getTaxiFare",
+  async (req, res, next) => {
+    req.locations = (
+      await locationModel.find({ isValid: { $ne: false } }, "koName")
+    ).map((location) => location.koName);
+    next();
+  },
+  query("start").custom((value, { req }) => {
+    if (!req.locations.includes(value)) {
+      throw new Error("Invalid start location");
+    }
+    return true;
+  }),
+  query("goal").custom((value, { req }) => {
+    if (!req.locations.includes(value)) {
+      throw new Error("Invalid goal location");
+    }
+    return true;
+  }),
+  query("time").isISO8601(),
+  validator,
+  getTaxiFare
+);
 
 module.exports = router;

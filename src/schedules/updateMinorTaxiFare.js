@@ -1,11 +1,14 @@
 const { updateTaxiFare } = require("../services/fare");
-const locations = require("../locations.json"); //TODO: Change Location style of taxi-fare to match taxi-back
+const { locationModel } = require("../modules/stores/mongo");
 
 /* 카이스트 본원<-> 대전역 경로 외의 238개 경로에 대한 택시 요금을 매일 18:00시에 캐싱합니다. */
 module.exports = (app) => async () => {
   try {
-    for (let locStart in locations) {
-      for (let locGoal in locations) {
+    const location = (
+      await locationModel.find({ isValid: { $ne: false } }, "koName")
+    ).map((location) => location.koName);
+    for (let locStart in location) {
+      for (let locGoal in location) {
         if (locStart === locGoal) continue;
         if (
           (locStart === "카이스트 본원" && locGoal === "대전역") ||
