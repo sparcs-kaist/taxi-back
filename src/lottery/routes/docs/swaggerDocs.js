@@ -14,7 +14,7 @@ const apiPrefix = `/events/${eventConfig.mode}`;
 const eventSwaggerDocs = {
   tags: [
     {
-      name: `${apiPrefix}/global-state`,
+      name: `${apiPrefix}/globalState`,
       description: "이벤트 - Global State 관련 API",
     },
     {
@@ -22,7 +22,7 @@ const eventSwaggerDocs = {
       description: "이벤트 - 아이템 관련 API",
     },
     {
-      name: `${apiPrefix}/public-notice`,
+      name: `${apiPrefix}/publicNotice`,
       description: "이벤트 - 아이템 구매, 뽑기, 획득 공지 관련 API",
     },
     {
