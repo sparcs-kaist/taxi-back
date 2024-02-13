@@ -13,7 +13,9 @@ const getUserGlobalStateHandler = async (req, res) => {
     const userId = isLogin(req) ? getLoginInfo(req).oid : null;
     const eventStatus =
       userId &&
-      (await eventStatusModel.findOne({ userId }, "-_id -userId -__v").lean());
+      (await eventStatusModel
+        .findOne({ userId }, "completedQuests creditAmount isBanned group")
+        .lean());
     if (eventStatus)
       return res.json({
         isAgreeOnTermsOfEvent: true,
@@ -25,8 +27,7 @@ const getUserGlobalStateHandler = async (req, res) => {
         isAgreeOnTermsOfEvent: false,
         completedQuests: [],
         creditAmount: 0,
-        ticket1Amount: 0,
-        ticket2Amount: 0,
+        group: 0,
         quests,
       });
   } catch (err) {
@@ -45,9 +46,19 @@ const createUserGlobalStateHandler = async (req, res) => {
         .status(400)
         .json({ error: "GlobalState/Create : already created" });
 
+    if (
+      req.body.inviter &&
+      (await eventStatusModel.findOne({ _id: req.body.inviter }).lean())
+    )
+      return res.status(400).json({
+        error: "GlobalState/Create : inviter did not participate in the event",
+      });
+
     eventStatus = new eventStatusModel({
       userId: req.userOid,
       creditAmount: eventConfig?.initialCreditAmount ?? 0,
+      group: req.body.group,
+      inviter: req.body.inviter,
     });
     await eventStatus.save();
 

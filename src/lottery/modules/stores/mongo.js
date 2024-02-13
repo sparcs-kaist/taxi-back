@@ -37,6 +37,15 @@ const eventStatusSchema = Schema({
   isBanned: {
     type: Boolean,
   },
+  group: {
+    type: Number,
+    min: 1,
+    validate: integerValidator,
+  }, // 소속된 새터반
+  inviter: {
+    type: Schema.Types.ObjectId,
+    ref: "User",
+  }, // 이 사용자를 초대한 사용자
 });
 
 const questSchema = Schema({

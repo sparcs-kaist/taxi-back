@@ -19,8 +19,7 @@ globalStateDocs[`${apiPrefix}/`] = {
                 "isAgreeOnTermsOfEvent",
                 "creditAmount",
                 "completedQuests",
-                "ticket1Amount",
-                "ticket2Amount",
+                "group",
                 "quests",
               ],
               properties: {
@@ -44,15 +43,15 @@ globalStateDocs[`${apiPrefix}/`] = {
                     example: "QUEST ID",
                   },
                 },
-                ticket1Amount: {
-                  type: "number",
-                  description: "일반 티켓의 개수. 0 이상입니다.",
-                  example: 10,
+                isBanned: {
+                  type: "boolean",
+                  description: "해당 유저 제재 대상 여부",
+                  example: false,
                 },
-                ticket2Amount: {
+                group: {
                   type: "number",
-                  description: "고급 티켓의 개수. 0 이상입니다.",
-                  example: 10,
+                  description: "유저의 소속 새터반",
+                  example: 16,
                 },
                 quests: {
                   type: "array",
@@ -93,17 +92,12 @@ globalStateDocs[`${apiPrefix}/`] = {
                       reward: {
                         type: "object",
                         description: "완료 보상",
-                        required: ["credit", "ticket1"],
+                        required: ["credit"],
                         properties: {
                           credit: {
                             type: "number",
                             description: "완료 보상 중 재화의 개수입니다.",
                             example: 100,
-                          },
-                          ticket1: {
-                            type: "number",
-                            description: "완료 보상 중 일반 티켓의 개수입니다.",
-                            example: 1,
                           },
                         },
                       },
@@ -119,11 +113,6 @@ globalStateDocs[`${apiPrefix}/`] = {
                       },
                     },
                   },
-                },
-                isBanned: {
-                  type: "boolean",
-                  description: "해당 유저 제재 대상 여부",
-                  example: false,
                 },
               },
             },
