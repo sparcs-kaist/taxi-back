@@ -54,6 +54,26 @@ const createUserGlobalStateHandler = async (req, res) => {
         error: "GlobalState/Create : inviter did not participate in the event",
       });
 
+    const user = await userModel.findOne({ _id: req.userOid });
+    if (!user)
+      return res
+        .status(500)
+        .json({ error: "GlobalState/Create : internal server error" });
+
+    // 24학번 학사 과정 학생이 아닌 경우 이벤트에 참여할 수 없습니다.
+    const kaistId = parseInt(user.subinfo?.kaist || "0");
+    if (!(20240001 <= kaistId && kaistId <= 20241500)) {
+      return res.status(400).json({
+        error: "GlobalState/Create : not an undergraduate freshman",
+      });
+    }
+
+    // 수집한 전화번호를 User Document에 저장합니다.
+    // 다른 이벤트 참여 과정에서 문제가 생길 수 있으므로, 이벤트 참여 자격이 있는 경우에만 저장합니다.
+    user.phoneNumber = req.body.phoneNumber;
+    await user.save();
+
+    // EventStatus Document를 생성합니다.
     eventStatus = new eventStatusModel({
       userId: req.userOid,
       creditAmount: eventConfig?.initialCreditAmount ?? 0,
@@ -61,11 +81,6 @@ const createUserGlobalStateHandler = async (req, res) => {
       inviter: req.body.inviter,
     });
     await eventStatus.save();
-
-    //logic2. 수집한 유저 전화번호 user Scheme 에 저장
-    const user = await userModel.findOne({ _id: req.userOid });
-    user.phoneNumber = req.body.phoneNumber;
-    await user.save();
 
     await contracts.completeFirstLoginQuest(req.userOid, req.timestamp);
 

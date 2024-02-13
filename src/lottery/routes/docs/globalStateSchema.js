@@ -10,7 +10,7 @@ const globalStateSchema = {
       group: {
         type: "integer",
         minimum: 1,
-        maximum: 40, // TODO: 실제로 '전기' 새터반이 몇 반까지 있는지 확인히 수정해야 합니다.
+        maximum: 26,
       },
       inviter: {
         type: "string",
