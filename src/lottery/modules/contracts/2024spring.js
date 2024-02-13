@@ -13,21 +13,19 @@ const quests = buildQuests({
   firstLogin: {
     name: "첫 발걸음",
     description:
-      "로그인만 해도 송편을 얻을 수 있다고?? 이벤트 기간에 처음으로 SPARCS Taxi 서비스에 로그인하여 송편을 받아보세요.",
+      "로그인만 해도 넙죽코인을 얻을 수 있다고?? 이벤트 기간에 처음으로 SPARCS Taxi 서비스에 로그인하여 넙죽코인을 받아보세요.",
     imageUrl:
       "https://sparcs-taxi-prod.s3.ap-northeast-2.amazonaws.com/assets/event-2023fall/quest_firstLogin.png",
-    reward: {
-      ticket1: 1,
-    },
+    reward: 50,
   },
   payingAndSending: {
     name: "함께하는 택시의 여정",
     description:
-      "2명 이상과 함께 택시를 타고 정산/송금까지 완료해보세요. 최대 3번까지 송편을 받을 수 있어요. 정산/송금 버튼은 채팅 페이지 좌측 하단의 <b>+버튼</b>을 눌러 확인할 수 있어요.",
+      "2명 이상과 함께 택시를 타고 정산/송금까지 완료해보세요. 최대 3번까지 넙죽코인을 받을 수 있어요. 정산/송금 버튼은 채팅 페이지 좌측 하단의 <b>+버튼</b>을 눌러 확인할 수 있어요.",
     imageUrl:
       "https://sparcs-taxi-prod.s3.ap-northeast-2.amazonaws.com/assets/event-2023fall/quest_payingAndSending.png",
-    reward: 300,
-    maxCount: 3,
+    reward: 150,
+    maxCount: 0,
   },
   firstRoomCreation: {
     name: "첫 방 개설",
@@ -38,7 +36,7 @@ const quests = buildQuests({
     reward: 50,
   },
   roomSharing: {
-    name: "Taxi로 모여라",
+    name: "너 T야? Taxi",
     description:
       "방을 공유해 친구들을 택시에 초대해보세요. 채팅창 상단의 햄버거(☰) 버튼을 누르면 <b>공유하기</b> 버튼을 찾을 수 있어요.",
     imageUrl:
@@ -53,19 +51,19 @@ const quests = buildQuests({
     imageUrl:
       "https://sparcs-taxi-prod.s3.ap-northeast-2.amazonaws.com/assets/event-2023fall/quest_paying.png",
     reward: 100,
-    maxCount: 3,
+    maxCount: 0,
   },
   sending: {
-    name: "송금 완료! 친구야 고마워",
+    name: "송금 완료면 I am 신뢰에요",
     description:
       "2명 이상과 함께 택시를 타고 택시비를 결제한 분께 송금해주세요. 송금하기 버튼은 채팅 페이지 좌측 하단의 <b>+버튼</b>을 눌러 확인할 수 있어요.",
     imageUrl:
       "https://sparcs-taxi-prod.s3.ap-northeast-2.amazonaws.com/assets/event-2023fall/quest_sending.png",
     reward: 50,
-    maxCount: 3,
+    maxCount: 0,
   },
   nicknameChanging: {
-    name: "닉네임 변신",
+    name: "닉네임 폼 미쳤다",
     description:
       "닉네임을 변경하여 자신을 표현하세요. <b>마이페이지</b>의 <b>수정하기</b> 버튼을 눌러 닉네임을 수정할 수 있어요.",
     imageUrl:
@@ -73,7 +71,7 @@ const quests = buildQuests({
     reward: 50,
   },
   accountChanging: {
-    name: "계좌 등록은 정산의 시작",
+    name: "계좌 등록을 해야 능률이 올라갑니다",
     description:
       "정산하기 기능을 더욱 빠르고 이용할 수 있다고? 계좌번호를 등록하면 정산하기를 할 때 계좌가 자동으로 입력돼요. <b>마이페이지</b>의 <b>수정하기</b> 버튼을 눌러 계좌번호를 등록 또는 수정할 수 있어요.",
     imageUrl:
@@ -88,23 +86,23 @@ const quests = buildQuests({
       "https://sparcs-taxi-prod.s3.ap-northeast-2.amazonaws.com/assets/event-2023fall/quest_adPushAgreement.png",
     reward: 50,
   },
-  eventSharingOnInstagram: {
-    name: "나만 알기에는 아까운 이벤트",
+  eventSharing: {
+    name: "너 나랑 ㅌ태태택 (1명)",
     description:
-      "추석에 맞춰 쏟아지는 혜택들. 나만 알 순 없죠. 인스타그램 친구들에게 스토리로 공유해보아요. <b>이벤트 안내 페이지</b>에서 <b>인스타그램 스토리에 공유하기</b>을 눌러보세요.",
+      "내가 초대한 사람이 Taxi에 가입하여 이벤트에 참여하면 넙죽코인을 드려요. 앱 내의 공유 버튼을 통해 카카오톡으로 초대 문자를 보낼 수 있어요!",
     imageUrl:
       "https://sparcs-taxi-prod.s3.ap-northeast-2.amazonaws.com/assets/event-2023fall/quest_eventSharingOnInstagram.png",
-    reward: 100,
-    isApiRequired: true,
+    reward: 50,
+    maxCount: 0,
   },
-  purchaseSharingOnInstagram: {
-    name: "상품 획득을 축하합니다",
+  eventSharing5: {
+    name: "너 나랑 ㅌ태태택 (5명)",
     description:
-      "이벤트를 열심히 즐긴 당신. 그 상품 획득을 축하 받을 자격이 충분합니다. <b>달토끼 상점</b>에서 상품 구매 후 뜨는 <b>인스타그램 스토리에 공유하기</b> 버튼을 눌러 상품 획득을 공유하세요.",
+      "내가 초대한 사람이 5명이 Taxi에 가입하여 이벤트에 참여하면 넙죽코인을 드려요. 앱 내의 공유 버튼을 통해 카카오톡으로 초대 문자를 보낼 수 있어요!",
     imageUrl:
-      "https://sparcs-taxi-prod.s3.ap-northeast-2.amazonaws.com/assets/event-2023fall/quest_purchaseSharingOnInstagram.png",
-    reward: 100,
-    isApiRequired: true,
+      "https://sparcs-taxi-prod.s3.ap-northeast-2.amazonaws.com/assets/event-2023fall/quest_eventSharingOnInstagram.png",
+    reward: 250,
+    maxCount: 0,
   },
 });
 
