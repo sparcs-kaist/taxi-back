@@ -55,26 +55,29 @@ class MockNodemailerTransport {
    */
   async getTransporter() {
     if (!this.#transporterPromise) {
-      try {
-        this.#transporterPromise = nodemailer
-          .createTestAccount()
-          .then((account) => {
-            return nodemailer.createTransport({
-              host: "smtp.ethereal.email",
-              port: 587,
-              secure: false,
-              auth: {
-                user: account.user,
-                pass: account.pass,
-              },
-            });
+      this.#transporterPromise = nodemailer
+        .createTestAccount()
+        .then((account) => {
+          return nodemailer.createTransport({
+            host: "smtp.ethereal.email",
+            port: 587,
+            secure: false,
+            auth: {
+              user: account.user,
+              pass: account.pass,
+            },
           });
-        return this.#transporterPromise;
-      } catch (err) {
-        logger.error(err);
-        throw err;
-      }
+        })
+        .catch((err) => {
+          // 네트워크 오류 등으로 mock 메일 전송을 위한 agent 객체 생성에 실패했을 때 에러를 반환합니다.
+          // sendMail 메서드가 다시 호출될 때 새로운 transporterPromise를 생성하기 위해 null로 초기화합니다.
+          logger.error("mock 메일 전송을 위한 agent 객체 생성에 실패했습니다.");
+          this.#transporterPromise = null;
+          throw err;
+        });
+      return this.#transporterPromise;
     } else {
+      // 이미 다른 caller에서 transporterPromise를 생성했다면 해당 Promise를 반환합니다.
       return this.#transporterPromise;
     }
   }
@@ -95,6 +98,7 @@ class MockNodemailerTransport {
       );
       return true;
     } catch (err) {
+      logger.error("메일 전송이 아래와 같은 사유로 실패했습니다: ");
       logger.error(err);
       return false;
     }

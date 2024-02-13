@@ -2,7 +2,7 @@
 require("dotenv").config({ path: `./.env.${process.env.NODE_ENV}` });
 
 module.exports = {
-  nodeEnv: process.env.NODE_ENV, // required ("production" or "development" or "test)
+  nodeEnv: process.env.NODE_ENV, // required ("production" or "development" or "test")
   mongo: process.env.DB_PATH, // required
   session: {
     secret: process.env.SESSION_KEY || "TAXI_SESSION_KEY", // optional
