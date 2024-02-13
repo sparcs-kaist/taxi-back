@@ -92,6 +92,7 @@ const calculateProbabilityV2 = (users, weightSum, weight) => {
   return 1 - Math.pow(base, weight);
 };
 
+// 2023 가을 이벤트를 위한 리더보드 API 핸들러입니다.
 const getTicketLeaderboardHandler = async (req, res) => {
   try {
     const users = await eventStatusModel
@@ -176,7 +177,52 @@ const getTicketLeaderboardHandler = async (req, res) => {
   }
 };
 
+// 2024 봄 이벤트를 위한 리더보드 API 핸들러입니다.
+const getGroupLeaderboardHandler = async (req, res) => {
+  try {
+    const leaderboard = await eventStatusModel.aggregate([
+      {
+        $group: {
+          _id: "$group",
+          creditAmount: { $sum: "$creditAmount" },
+        },
+      }, // group을 기준으로 사용자들의 creditAmount를 합산합니다.
+      {
+        $project: {
+          _id: false,
+          group: "$_id",
+          creditAmount: true,
+        },
+      }, // _id 필드의 이름을 group으로 변경합니다.
+      {
+        $sort: {
+          creditAmount: -1,
+          group: 1,
+        },
+      }, // creditAmount를 기준으로 내림차순 정렬합니다. creditAmount가 같을 경우 group을 기준으로 오름차순 정렬합니다.
+    ]);
+
+    const userId = isLogin(req) ? getLoginInfo(req).oid : null;
+    const user = userId && (await eventStatusModel.findOne({ userId }).lean());
+    if (user) {
+      res.json({
+        leaderboard,
+        group: user.group,
+        rank: leaderboard.findIndex((group) => group.group === user.group) + 1,
+      });
+    } else {
+      res.json({ leaderboard });
+    }
+  } catch (err) {
+    logger.error(err);
+    res
+      .status(500)
+      .json({ error: "PublicNotice/Leaderboard : internal server error" });
+  }
+};
+
 module.exports = {
   getRecentPurchaceItemListHandler,
   getTicketLeaderboardHandler,
+  getGroupLeaderboardHandler,
 };

@@ -8,6 +8,6 @@ router.get(
   "/recentTransactions",
   publicNoticeHandlers.getRecentPurchaceItemListHandler
 );
-router.get("/leaderboard", publicNoticeHandlers.getTicketLeaderboardHandler);
+router.get("/leaderboard", publicNoticeHandlers.getGroupLeaderboardHandler);
 
 module.exports = router;

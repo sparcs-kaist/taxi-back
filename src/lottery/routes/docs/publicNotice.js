@@ -38,7 +38,7 @@ publicNoticeDocs[`${apiPrefix}/leaderboard`] = {
     tags: [`${apiPrefix}`],
     summary: "리더보드 반환",
     description:
-      "티켓 개수(고급 티켓은 일반 티켓 5개와 등가입니다.) 기준의 리더보드와 관련된 정보를 가져옵니다.",
+      "새터반 별 재화 개수 기준의 리더보드와 관련된 정보를 가져옵니다.",
     responses: {
       200: {
         description: "",
@@ -46,89 +46,38 @@ publicNoticeDocs[`${apiPrefix}/leaderboard`] = {
           "application/json": {
             schema: {
               type: "object",
-              required: [
-                "leaderboard",
-                "totalTicket1Amount",
-                "totalTicket2Amount",
-                "totalUserAmount",
-              ],
+              required: ["leaderboard"],
               properties: {
                 leaderboard: {
                   type: "array",
-                  description: "상위 20명만 포함된 리더보드",
+                  description: "이벤트에 참여한 새터반 전체가 포함된 리더보드",
                   items: {
                     type: "object",
-                    required: [
-                      "nickname",
-                      "profileImageUrl",
-                      "ticket1Amount",
-                      "ticket2Amount",
-                      "probability",
-                      "probabilityV2",
-                    ],
+                    required: ["group", "creditAmount"],
                     properties: {
-                      nickname: {
-                        type: "string",
-                        description: "유저의 닉네임",
-                        example: "asdf",
-                      },
-                      profileImageUrl: {
-                        type: "string",
-                        description: "프로필 이미지 URL",
-                        example: "IMAGE URL",
-                      },
-                      ticket1Amount: {
+                      group: {
                         type: "number",
-                        description: "일반 티켓의 개수. 0 이상입니다.",
-                        example: 10,
+                        description: "새터반",
+                        example: 16,
                       },
-                      ticket2Amount: {
+                      creditAmount: {
                         type: "number",
-                        description: "고급 티켓의 개수. 0 이상입니다.",
-                        example: 10,
-                      },
-                      probability: {
-                        type: "number",
-                        description: "1등 당첨 확률",
-                        example: 0.001,
-                      },
-                      probabilityV2: {
-                        type: "number",
-                        description: "근사적인 상품 당첨 확률",
-                        example: 0.015,
+                        description: "새터반에 소속된 유저의 전체 재화 개수",
+                        example: 3000,
                       },
                     },
                   },
                 },
-                totalTicket1Amount: {
+                group: {
                   type: "number",
-                  description: "전체 일반 티켓의 수",
-                  example: 300,
-                },
-                totalTicket2Amount: {
-                  type: "number",
-                  description: "전체 고급 티켓의 수",
-                  example: 100,
-                },
-                totalUserAmount: {
-                  type: "number",
-                  description: "리더보드에 포함된 유저의 수",
-                  example: 100,
+                  description: "유저의 소속 새터반",
+                  example: 16,
                 },
                 rank: {
                   type: "number",
-                  description: "유저의 리더보드 순위. 1부터 시작합니다.",
-                  example: 30,
-                },
-                probability: {
-                  type: "number",
-                  description: "1등 당첨 확률",
-                  example: 0.00003,
-                },
-                probabilityV2: {
-                  type: "number",
-                  description: "근사적인 상품 당첨 확률",
-                  example: 0.00045,
+                  description:
+                    "유저의 소속 새터반의 리더보드 순위. 1부터 시작합니다.",
+                  example: 1,
                 },
               },
             },
