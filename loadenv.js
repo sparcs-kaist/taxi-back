@@ -48,7 +48,7 @@ module.exports = {
     mode: "2024spring",
     creditName: "넙죽코인",
     initialCreditAmount: 0,
-    startAt: "2024-02-16T00:00:00+09:00",
+    startAt: "2024-02-23T00:00:00+09:00",
     endAt: "2024-03-19T00:00:00+09:00",
   }, // optional
 };
