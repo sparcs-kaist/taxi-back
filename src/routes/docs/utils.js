@@ -1,4 +1,4 @@
-const objectIdPattern = `^[a-fA-F\d]{24}$`;
+const objectIdPattern = `^[a-fA-F\\d]{24}$`;
 const roomsPattern = {
   rooms: {
     name: RegExp(
