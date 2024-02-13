@@ -1,11 +1,15 @@
-const { transactionModel } = require("../modules/stores/mongo");
-const { eventStatusModel } = require("../modules/stores/mongo");
+const {
+  eventStatusModel,
+  transactionModel,
+} = require("../modules/stores/mongo");
 const { userModel } = require("../../modules/stores/mongo");
 const { isLogin, getLoginInfo } = require("../../modules/auths/login");
 const logger = require("../../modules/logger");
 const {
   publicNoticePopulateOption,
 } = require("../modules/populates/transactions");
+
+const { eventConfig } = require("../../../loadenv");
 
 /**
  * getValueRank 사용자의 상품 구매 내역 또는 경품 추첨 내역의 순위 결정을 위한 가치를 평가하는 함수
@@ -48,7 +52,7 @@ const getRecentPurchaceItemListHandler = async (req, res) => {
       .slice(0, 5)
       .map(({ userId, item, comment, createAt }) => ({
         text: `${userId.nickname}님께서 ${item.name}${
-          comment.startsWith("송편")
+          comment.startsWith(eventConfig?.creditName)
             ? "을(를) 구입하셨습니다."
             : comment.startsWith("랜덤박스")
             ? "을(를) 뽑았습니다."
