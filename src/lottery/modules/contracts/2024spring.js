@@ -256,6 +256,20 @@ const completeAdPushAgreementQuest = async (
   return await completeQuest(userId, timestamp, quests.adPushAgreement);
 };
 
+/**
+ * eventSharing, eventSharing5 퀘스트의 완료를 요청합니다.
+ * @param {string|mongoose.Types.ObjectId} userId - 퀘스트를 완료한 사용자의 ObjectId입니다.
+ * @param {number|Date} timestamp - 퀘스트 완료를 요청한 시각입니다.
+ * @returns {Promise}
+ * @description 초대 링크를 통해 사용자가 이벤트에 참여할 때마다, 초대한 사용자 및 초대받은 사용자에 대해 각각 호출해 주세요.
+ */
+const completeEventSharingQuest = async (userId, timestamp) => {
+  return [
+    await completeQuest(userId, timestamp, quests.eventSharing),
+    await completeQuest(userId, timestamp, quests.eventSharing5),
+  ];
+};
+
 module.exports = {
   quests,
   completeFirstLoginQuest,
@@ -266,4 +280,5 @@ module.exports = {
   completeNicknameChangingQuest,
   completeAccountChangingQuest,
   completeAdPushAgreementQuest,
+  completeEventSharingQuest,
 };
