@@ -1,5 +1,5 @@
 const { eventConfig } = require("../../../loadenv");
-const eventPeriod = eventConfig && {
+const eventPeriod = {
   startAt: new Date(eventConfig.startAt),
   endAt: new Date(eventConfig.endAt),
 };

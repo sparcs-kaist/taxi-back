@@ -4,8 +4,7 @@ const Schema = mongoose.Schema;
 // 이벤트마다 사용된 모델을 구분하기 위해 이름에 Prefix를 붙입니다.
 // 2023년 가을학기 이벤트 때에는 Prefix를 사용하지 않았으므로, 해당 경우에는 Prefix를 붙이지 않습니다.
 const { eventConfig } = require("../../../../loadenv");
-const modelNamePrefix =
-  eventConfig && eventConfig.mode !== "2023fall" ? eventConfig.mode : "";
+const modelNamePrefix = eventConfig.mode !== "2023fall" ? eventConfig.mode : "";
 
 const integerValidator = {
   validator: Number.isInteger,

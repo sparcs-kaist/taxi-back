@@ -3,9 +3,8 @@ const { userModel } = require("../../modules/stores/mongo");
 const logger = require("../../modules/logger");
 const { isLogin, getLoginInfo } = require("../../modules/auths/login");
 
-const { eventConfig } = require("../../../loadenv");
-const contracts = eventConfig && require("../modules/contracts");
-const quests = contracts && Object.values(contracts.quests);
+const contracts = require("../modules/contracts");
+const quests = Object.values(contracts.quests);
 
 const getUserGlobalStateHandler = async (req, res) => {
   try {

@@ -8,7 +8,7 @@ const logger = require("../../modules/logger");
 const mongoose = require("mongoose");
 
 const { eventConfig } = require("../../../loadenv");
-const eventPeriod = eventConfig && {
+const eventPeriod = {
   startAt: new Date(eventConfig.startAt),
   endAt: new Date(eventConfig.endAt),
 };
@@ -66,8 +66,6 @@ const buildQuests = (quests) => {
  */
 const completeQuest = (creditName) => async (userId, timestamp, quest) => {
   try {
-    if (!eventPeriod) throw new Error("eventPeriod is not defined");
-
     // 1단계: 유저의 EventStatus를 가져옵니다. 블록드리스트인지도 확인합니다.
     const eventStatus = await eventStatusModel.findOne({ userId }).lean();
     if (!eventStatus || eventStatus.isBanned) return null;

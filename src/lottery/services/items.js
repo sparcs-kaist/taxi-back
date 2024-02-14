@@ -5,8 +5,7 @@ const {
 } = require("../modules/stores/mongo");
 const logger = require("../../modules/logger");
 
-const { eventConfig } = require("../../../loadenv");
-const contracts = eventConfig && require("../modules/contracts");
+const contracts = require("../modules/contracts");
 
 const updateEventStatus = async (
   userId,
