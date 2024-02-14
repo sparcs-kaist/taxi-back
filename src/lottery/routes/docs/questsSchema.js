@@ -5,11 +5,7 @@ const questsSchema = {
     properties: {
       questId: {
         type: "string",
-        enum: [
-          "roomSharing",
-          "eventSharingOnInstagram",
-          "purchaseSharingOnInstagram",
-        ],
+        enum: ["roomSharing"],
       },
     },
   },

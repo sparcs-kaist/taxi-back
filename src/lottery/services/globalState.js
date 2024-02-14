@@ -2,6 +2,7 @@ const { eventStatusModel } = require("../modules/stores/mongo");
 const { userModel } = require("../../modules/stores/mongo");
 const logger = require("../../modules/logger");
 const { isLogin, getLoginInfo } = require("../../modules/auths/login");
+const { nodeEnv } = require("../../../loadenv");
 
 const contracts = require("../modules/contracts");
 const quests = Object.values(contracts.quests);
@@ -81,8 +82,12 @@ const createUserGlobalStateHandler = async (req, res) => {
         .json({ error: "GlobalState/Create : internal server error" });
 
     // 24학번 학사 과정 학생이 아닌 경우 이벤트에 참여할 수 없습니다.
+    // 테스트를 위해, production 환경에서만 학번을 확인합니다.
     const kaistId = parseInt(user.subinfo?.kaist || "0");
-    if (!(20240001 <= kaistId && kaistId <= 20241500)) {
+    if (
+      nodeEnv === "production" &&
+      !(20240001 <= kaistId && kaistId <= 20241500)
+    ) {
       return res.status(400).json({
         error: "GlobalState/Create : not an undergraduate freshman",
       });
