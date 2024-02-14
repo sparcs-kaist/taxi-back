@@ -39,7 +39,7 @@ const getUserGlobalStateHandler = async (req, res) => {
       },
     ]);
     const groupCreditAmountReal = groupCreditAmount[0]?.creditAmount;
-    if (!groupCreditAmountReal)
+    if (!groupCreditAmountReal && groupCreditAmountReal !== 0)
       return res
         .status(500)
         .json({ error: "GlobalState/ : internal server error" });
