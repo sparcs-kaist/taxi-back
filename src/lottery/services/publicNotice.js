@@ -10,6 +10,7 @@ const {
 } = require("../modules/populates/transactions");
 
 const { eventConfig } = require("../../../loadenv");
+const contracts = eventConfig && require("../modules/contracts");
 
 /**
  * getValueRank 사용자의 상품 구매 내역 또는 경품 추첨 내역의 순위 결정을 위한 가치를 평가하는 함수
@@ -52,7 +53,7 @@ const getRecentPurchaceItemListHandler = async (req, res) => {
       .slice(0, 5)
       .map(({ userId, item, comment, createAt }) => ({
         text: `${userId.nickname}님께서 ${item.name}${
-          comment.startsWith(eventConfig?.creditName)
+          comment.startsWith(contracts.creditInfo.name)
             ? "을(를) 구입하셨습니다."
             : comment.startsWith("랜덤박스")
             ? "을(를) 뽑았습니다."

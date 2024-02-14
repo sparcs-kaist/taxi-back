@@ -6,7 +6,6 @@ const eventPeriod = eventConfig && {
 
 const timestampValidator = (req, res, next) => {
   if (
-    !eventPeriod ||
     req.timestamp >= eventPeriod.endAt ||
     req.timestamp < eventPeriod.startAt
   ) {

@@ -6,6 +6,7 @@ const {
 const logger = require("../../modules/logger");
 
 const { eventConfig } = require("../../../loadenv");
+const contracts = eventConfig && require("../modules/contracts");
 
 const updateEventStatus = async (
   userId,
@@ -171,7 +172,7 @@ const purchaseHandler = async (req, res) => {
       userId: req.userOid,
       item: item._id,
       itemType: item.itemType,
-      comment: `${eventConfig?.creditName} ${item.price}개를 사용해 "${item.name}" 1개를 획득했습니다.`,
+      comment: `${contracts.creditInfo.name} ${item.price}개를 사용해 "${item.name}" 1개를 획득했습니다.`,
     });
     await transaction.save();
 

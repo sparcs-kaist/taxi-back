@@ -2,13 +2,11 @@ const { completeQuest } = require("../modules/quests");
 const logger = require("../../modules/logger");
 
 const { eventConfig } = require("../../../loadenv");
-const quests = eventConfig
-  ? require(`../modules/contracts/${eventConfig.mode}`).quests
-  : undefined;
+const contracts = eventConfig && require("../modules/contracts");
 
 const completeHandler = async (req, res) => {
   try {
-    const quest = quests[req.params.questId];
+    const quest = contracts.quests[req.params.questId];
     if (!quest || !quest.isApiRequired)
       return res.status(400).json({ error: "Quests/Complete: invalid Quest" });
 

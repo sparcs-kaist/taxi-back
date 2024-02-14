@@ -4,9 +4,8 @@ const logger = require("../../modules/logger");
 const { isLogin, getLoginInfo } = require("../../modules/auths/login");
 
 const { eventConfig } = require("../../../loadenv");
-const contracts =
-  eventConfig && require(`../modules/contracts/${eventConfig.mode}`);
-const quests = contracts ? Object.values(contracts.quests) : undefined;
+const contracts = eventConfig && require("../modules/contracts");
+const quests = contracts && Object.values(contracts.quests);
 
 const getUserGlobalStateHandler = async (req, res) => {
   try {
@@ -98,7 +97,7 @@ const createUserGlobalStateHandler = async (req, res) => {
     // EventStatus Document를 생성합니다.
     eventStatus = new eventStatusModel({
       userId: req.userOid,
-      creditAmount: eventConfig?.initialCreditAmount ?? 0,
+      creditAmount: contracts.creditInfo.initialAmount,
       group: req.body.group,
       inviter: req.body.inviter,
     });

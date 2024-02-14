@@ -13,7 +13,6 @@ const {
   deviceTokenModel,
   notificationOptionModel,
 } = require("../modules/stores/mongo");
-const { eventConfig } = require("../../loadenv");
 const { buildResource } = require("../modules/adminResource");
 
 const router = express.Router();
