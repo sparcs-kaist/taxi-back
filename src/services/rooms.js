@@ -20,7 +20,13 @@ const createHandler = async (req, res) => {
   try {
     if (from === to) {
       return res.status(400).json({
-        error: "Room/create : locations are same",
+        error: "Rooms/create : locations are same",
+      });
+    }
+
+    if (req.timestamp > Date.parse(req.body.time)) {
+      return res.status(400).json({
+        error: "Rooms/create : invalid timestamp",
       });
     }
 
@@ -33,7 +39,8 @@ const createHandler = async (req, res) => {
 
     if (createTime.getTime() > maxTime.getTime()) {
       return res.status(400).json({
-        error: "Room/create : cannot over 2 weeks on the basis of current Date",
+        error:
+          "Rooms/create : cannot over 2 weeks on the basis of current Date",
       });
     }
 
@@ -179,7 +186,7 @@ const joinHandler = async (req, res) => {
     // 방이 이미 출발한 경우, 400 오류를 반환합니다.
     if (req.timestamp >= room.time) {
       res.status(400).json({
-        error: "Room/join : The room has already departed",
+        error: "Rooms/join : The room has already departed",
       });
       return;
     }
@@ -187,7 +194,7 @@ const joinHandler = async (req, res) => {
     // 방의 인원이 모두 찬 경우, 400 오류를 반환합니다.
     if (room.part.length + 1 > room.maxPartLength) {
       res.status(400).json({
-        error: "Room/join : The room is already full",
+        error: "Rooms/join : The room is already full",
       });
       return;
     }
@@ -267,7 +274,7 @@ const abortHandler = async (req, res) => {
     } else {
       // room.part에는 user가 있지만 user.ongoingRoom이나 user.doneRoom에는 room이 없는 상황.
       logger.error(
-        `Room/abort: referential integrity error (user: ${user._id}, room: ${room._id})`
+        `Rooms/abort: referential integrity error (user: ${user._id}, room: ${room._id})`
       );
       return res.status(500).json({
         error: "Rooms/abort : internal server error",
@@ -311,7 +318,7 @@ const searchHandler = async (req, res) => {
     // 출발지와 도착지가 같은 경우
     if (from && to && from === to) {
       return res.status(400).json({
-        error: "Room/search : Bad request",
+        error: "Rooms/search : Bad request",
       });
     }
 
@@ -320,7 +327,7 @@ const searchHandler = async (req, res) => {
       const fromLocation = await locationModel.findById(from);
       if (!fromLocation || fromLocation?.isValid === false) {
         return res.status(400).json({
-          error: "Room/search : no corresponding locations",
+          error: "Rooms/search : no corresponding locations",
         });
       }
     }
@@ -328,7 +335,7 @@ const searchHandler = async (req, res) => {
       const toLocation = await locationModel.findById(to);
       if (!toLocation || toLocation?.isValid === false) {
         return res.status(400).json({
-          error: "Room/search : no corresponding locations",
+          error: "Rooms/search : no corresponding locations",
         });
       }
     }
