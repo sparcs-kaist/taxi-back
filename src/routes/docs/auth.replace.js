@@ -23,7 +23,7 @@ authReplaceDocs[`${apiPrefix}/sparcssso`] = {
   },
 };
 
-authReplaceDocs[`${apiPrefix}/replace`] = {
+authReplaceDocs[`${apiPrefix}/login/replace`] = {
   post: {
     tags: [tag],
     summary: "요청받은 정보로 로그인 시도",
@@ -60,7 +60,7 @@ authReplaceDocs[`${apiPrefix}/replace`] = {
       400: {
         content: {
           "text/html": {
-            example: "Auth/replace : invalid request",
+            example: "Auth/login/replace : invalid request",
           },
         },
       },
