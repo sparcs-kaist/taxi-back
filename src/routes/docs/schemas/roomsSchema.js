@@ -1,4 +1,4 @@
-const { objectIdPattern, roomsPattern } = require("./utils");
+const { objectIdPattern, roomsPattern } = require("../utils");
 
 const participantSchema = {
   part: {

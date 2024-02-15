@@ -1,9 +1,10 @@
-const reportsSchema = require("./reportsSchema");
-const { participantSchema, roomsSchema } = require("./roomsSchema");
+const reportsSchema = require("./schemas/reportsSchema");
+const { participantSchema, roomsSchema } = require("./schemas/roomsSchema");
 const reportsDocs = require("./reports");
 const logininfoDocs = require("./logininfo");
 const locationsDocs = require("./locations");
 const authDocs = require("./auth");
+const authReplaceDocs = require("./auth.replace");
 const usersDocs = require("./users");
 const roomsDocs = require("./rooms");
 const chatsDocs = require("./chats");
@@ -76,6 +77,7 @@ const swaggerDocs = {
     ...locationsDocs,
     ...usersDocs,
     ...authDocs,
+    ...authReplaceDocs,
     ...chatsDocs,
     ...roomsDocs,
   },
