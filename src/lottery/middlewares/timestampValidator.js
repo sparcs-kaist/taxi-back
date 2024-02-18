@@ -1,11 +1,12 @@
 const { eventConfig } = require("../../../loadenv");
-const eventPeriod = {
+const eventPeriod = eventConfig && {
   startAt: new Date(eventConfig.startAt),
   endAt: new Date(eventConfig.endAt),
 };
 
 const timestampValidator = (req, res, next) => {
   if (
+    !eventPeriod ||
     req.timestamp >= eventPeriod.endAt ||
     req.timestamp < eventPeriod.startAt
   ) {

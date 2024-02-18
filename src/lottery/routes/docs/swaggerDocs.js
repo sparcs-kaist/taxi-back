@@ -9,7 +9,7 @@ const globalStateSchema = require("./globalStateSchema");
 const questsSchema = require("./questsSchema");
 
 const { eventConfig } = require("../../../../loadenv");
-const apiPrefix = `/events/${eventConfig.mode}`;
+const apiPrefix = `/events/${eventConfig?.mode}`;
 
 const eventSwaggerDocs = {
   tags: [

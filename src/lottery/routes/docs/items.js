@@ -1,5 +1,5 @@
 const { eventConfig } = require("../../../../loadenv");
-const apiPrefix = `/events/${eventConfig.mode}/items`;
+const apiPrefix = `/events/${eventConfig?.mode}/items`;
 
 const itemsDocs = {};
 itemsDocs[`${apiPrefix}/list`] = {

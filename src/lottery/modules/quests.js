@@ -8,7 +8,7 @@ const logger = require("../../modules/logger");
 const mongoose = require("mongoose");
 
 const { eventConfig } = require("../../../loadenv");
-const eventPeriod = {
+const eventPeriod = eventConfig && {
   startAt: new Date(eventConfig.startAt),
   endAt: new Date(eventConfig.endAt),
 };
@@ -71,7 +71,11 @@ const completeQuest = (creditName) => async (userId, timestamp, quest) => {
     if (!eventStatus || eventStatus.isBanned) return null;
 
     // 2단계: 이벤트 기간인지 확인합니다.
-    if (timestamp >= eventPeriod.endAt || timestamp < eventPeriod.startAt) {
+    if (
+      !eventPeriod ||
+      timestamp >= eventPeriod.endAt ||
+      timestamp < eventPeriod.startAt
+    ) {
       logger.info(
         `User ${userId} failed to complete auto-disabled ${quest.id}Quest`
       );

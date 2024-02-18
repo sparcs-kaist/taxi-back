@@ -1,5 +1,5 @@
 const { eventConfig } = require("../../../../loadenv");
-const apiPrefix = `/events/${eventConfig.mode}/globalState`;
+const apiPrefix = `/events/${eventConfig?.mode}/globalState`;
 
 const globalStateDocs = {};
 globalStateDocs[`${apiPrefix}/`] = {
@@ -114,7 +114,7 @@ globalStateDocs[`${apiPrefix}/`] = {
                       },
                       isApiRequired: {
                         type: "boolean",
-                        description: `/events/${eventConfig.mode}/quests/complete/:questId API를 통해 퀘스트 완료를 요청할 수 있는지 여부`,
+                        description: `/events/${eventConfig?.mode}/quests/complete/:questId API를 통해 퀘스트 완료를 요청할 수 있는지 여부`,
                         example: false,
                       },
                     },

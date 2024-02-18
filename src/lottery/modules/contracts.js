@@ -3,7 +3,7 @@ const mongoose = require("mongoose");
 const logger = require("../../modules/logger");
 
 const { eventConfig } = require("../../../loadenv");
-const eventPeriod = {
+const eventPeriod = eventConfig && {
   startAt: new Date(eventConfig.startAt),
   endAt: new Date(eventConfig.endAt),
 };
@@ -144,6 +144,7 @@ const completePayingAndSendingQuest = async (userId, timestamp, roomObject) => {
 
   if (roomObject.part.length < 2) return null;
   if (
+    !eventPeriod ||
     roomObject.time >= eventPeriod.endAt ||
     roomObject.time < eventPeriod.startAt
   )
@@ -183,6 +184,7 @@ const completePayingQuest = async (userId, timestamp, roomObject) => {
 
   if (roomObject.part.length < 2) return null;
   if (
+    !eventPeriod ||
     roomObject.time >= eventPeriod.endAt ||
     roomObject.time < eventPeriod.startAt
   )
@@ -210,6 +212,7 @@ const completeSendingQuest = async (userId, timestamp, roomObject) => {
 
   if (roomObject.part.length < 2) return null;
   if (
+    !eventPeriod ||
     roomObject.time >= eventPeriod.endAt ||
     roomObject.time < eventPeriod.startAt
   )
