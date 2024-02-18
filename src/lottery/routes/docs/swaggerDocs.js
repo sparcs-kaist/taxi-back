@@ -17,10 +17,12 @@ const eventSwaggerDocs = {
       name: `${apiPrefix}/globalState`,
       description: "이벤트 - Global State 관련 API",
     },
-    {
-      name: `${apiPrefix}/items`,
-      description: "이벤트 - 아이템 관련 API",
-    },
+    // 이 태그는 2024 봄학기 이벤트에서 사용되지 않습니다.
+    //
+    // {
+    //   name: `${apiPrefix}/items`,
+    //   description: "이벤트 - 아이템 관련 API",
+    // },
     {
       name: `${apiPrefix}/publicNotice`,
       description: "이벤트 - 아이템 구매, 뽑기, 획득 공지 관련 API",
@@ -36,7 +38,7 @@ const eventSwaggerDocs = {
   ],
   paths: {
     ...globalStateDocs,
-    ...itemsDocs,
+    //...itemsDocs,
     ...publicNoticeDocs,
     ...questsDocs,
     ...transactionsDocs,
@@ -44,7 +46,7 @@ const eventSwaggerDocs = {
   components: {
     schemas: {
       ...globalStateSchema,
-      ...itemsSchema,
+      //...itemsSchema,
       ...questsSchema,
     },
   },

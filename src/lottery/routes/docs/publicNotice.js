@@ -2,37 +2,39 @@ const { eventConfig } = require("../../../../loadenv");
 const apiPrefix = `/events/${eventConfig?.mode}/publicNotice`;
 
 const publicNoticeDocs = {};
-publicNoticeDocs[`${apiPrefix}/recentTransactions`] = {
-  get: {
-    tags: [`${apiPrefix}`],
-    summary: "최근의 유의미한 상품 획득 기록 반환",
-    description: "모든 유저의 상품 획득 내역 중 유의미한 기록을 가져옵니다.",
-    responses: {
-      200: {
-        description: "",
-        content: {
-          "application/json": {
-            schema: {
-              type: "object",
-              required: ["transactions"],
-              properties: {
-                transactions: {
-                  type: "array",
-                  description: "상품 획득 기록의 배열",
-                  items: {
-                    type: "string",
-                    example:
-                      "tu**************님께서 일반응모권을(를) 획득하셨습니다.",
-                  },
-                },
-              },
-            },
-          },
-        },
-      },
-    },
-  },
-};
+// 다음 Endpoint는 2024 봄학기 이벤트에서 사용되지 않습니다.
+//
+// publicNoticeDocs[`${apiPrefix}/recentTransactions`] = {
+//   get: {
+//     tags: [`${apiPrefix}`],
+//     summary: "최근의 유의미한 상품 획득 기록 반환",
+//     description: "모든 유저의 상품 획득 내역 중 유의미한 기록을 가져옵니다.",
+//     responses: {
+//       200: {
+//         description: "",
+//         content: {
+//           "application/json": {
+//             schema: {
+//               type: "object",
+//               required: ["transactions"],
+//               properties: {
+//                 transactions: {
+//                   type: "array",
+//                   description: "상품 획득 기록의 배열",
+//                   items: {
+//                     type: "string",
+//                     example:
+//                       "tu**************님께서 일반응모권을(를) 획득하셨습니다.",
+//                   },
+//                 },
+//               },
+//             },
+//           },
+//         },
+//       },
+//     },
+//   },
+// };
 publicNoticeDocs[`${apiPrefix}/leaderboard`] = {
   get: {
     tags: [`${apiPrefix}`],
