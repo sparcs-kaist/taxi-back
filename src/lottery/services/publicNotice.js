@@ -180,7 +180,7 @@ const getTicketLeaderboardHandler = async (req, res) => {
 // 2024 봄 이벤트를 위한 리더보드 API 핸들러입니다.
 const getGroupLeaderboardHandler = async (req, res) => {
   try {
-    const leaderboard = await eventStatusModel.aggregate([
+    const leaderboardWithoutMvp = await eventStatusModel.aggregate([
       {
         $group: {
           _id: "$group",
@@ -201,6 +201,25 @@ const getGroupLeaderboardHandler = async (req, res) => {
         },
       }, // creditAmount를 기준으로 내림차순 정렬합니다. creditAmount가 같을 경우 group을 기준으로 오름차순 정렬합니다.
     ]);
+    const leaderboard = await Promise.all(
+      leaderboardWithoutMvp.map(async (group) => {
+        const mvp = await eventStatusModel
+          .find({ group: group.group })
+          .sort({ creditAmount: -1 })
+          .limit(1) // Aggreation을 사용하는 것보다, sort와 limit을 바로 붙여 사용하는 것이 더 효율적입니다.
+          .lean();
+        if (!mvp) throw new Error(`Fail to find MVP in group ${group.group}`);
+
+        const mvpInfo = await userModel.findOne({ _id: mvp[0].userId }).lean();
+        if (!mvpInfo) throw new Error(`Fail to find user ${mvp[0].userId}`);
+
+        return {
+          ...group,
+          mvpNickname: mvpInfo.nickname,
+          mvpProfileImageUrl: mvpInfo.profileImageUrl,
+        };
+      })
+    );
 
     const userId = isLogin(req) ? getLoginInfo(req).oid : null;
     const user = userId && (await eventStatusModel.findOne({ userId }).lean());

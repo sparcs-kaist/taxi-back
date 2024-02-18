@@ -55,7 +55,12 @@ publicNoticeDocs[`${apiPrefix}/leaderboard`] = {
                   description: "이벤트에 참여한 새터반 전체가 포함된 리더보드",
                   items: {
                     type: "object",
-                    required: ["group", "creditAmount"],
+                    required: [
+                      "group",
+                      "creditAmount",
+                      "mvpNickname",
+                      "mvpProfileImageUrl",
+                    ],
                     properties: {
                       group: {
                         type: "number",
@@ -66,6 +71,17 @@ publicNoticeDocs[`${apiPrefix}/leaderboard`] = {
                         type: "number",
                         description: "새터반에 소속된 유저의 전체 재화 개수",
                         example: 3000,
+                      },
+                      mvpNickname: {
+                        type: "string",
+                        description:
+                          "MVP(새터반 내에서 가장 많은 재화를 가진 유저)의 닉네임",
+                        example: "asdf",
+                      },
+                      mvpProfileImageUrl: {
+                        type: "string",
+                        description: "MVP의 프로필 이미지 URL",
+                        example: "IMAGE URL",
                       },
                     },
                   },
