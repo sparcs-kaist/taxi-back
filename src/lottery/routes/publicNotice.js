@@ -6,12 +6,11 @@ const publicNoticeHandlers = require("../services/publicNotice");
 
 router.get("/leaderboard", publicNoticeHandlers.getGroupLeaderboardHandler);
 
-// 아래의 Endpoint는 2023년 가을학기 이벤트 때에만 접근 가능
-if (eventConfig?.mode === "2023fall") {
-  router.get(
-    "/recentTransactions",
-    publicNoticeHandlers.getRecentPurchaceItemListHandler
-  );
-}
+// 아래의 Endpoint는 2024 봄학기 이벤트에서 사용되지 않습니다.
+//
+// router.get(
+//   "/recentTransactions",
+//   publicNoticeHandlers.getRecentPurchaceItemListHandler
+// );
 
 module.exports = router;
