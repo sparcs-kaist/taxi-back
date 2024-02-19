@@ -40,9 +40,11 @@ const eventStatusSchema = Schema({
   },
   isBanned: {
     type: Boolean,
+    default: false,
   },
   group: {
     type: Number,
+    required: true,
     min: 1,
     validate: integerValidator,
   }, // 소속된 새터반
