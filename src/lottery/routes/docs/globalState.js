@@ -17,6 +17,7 @@ globalStateDocs[`${apiPrefix}/`] = {
               type: "object",
               required: [
                 "isAgreeOnTermsOfEvent",
+                "eligibility",
                 "creditAmount",
                 "groupCreditAmount",
                 "completedQuests",
@@ -27,6 +28,11 @@ globalStateDocs[`${apiPrefix}/`] = {
                 isAgreeOnTermsOfEvent: {
                   type: "boolean",
                   description: "유저의 이벤트 참여 동의 여부",
+                  example: true,
+                },
+                eligibility: {
+                  type: "boolean",
+                  description: "유저의 이벤트 참여 가능 여부",
                   example: true,
                 },
                 creditAmount: {
