@@ -1,5 +1,5 @@
 const { eventConfig } = require("../../../../loadenv");
-const apiPrefix = `/events/${eventConfig.mode}/global-state`;
+const apiPrefix = `/events/${eventConfig?.mode}/globalState`;
 
 const globalStateDocs = {};
 globalStateDocs[`${apiPrefix}/`] = {
@@ -17,10 +17,11 @@ globalStateDocs[`${apiPrefix}/`] = {
               type: "object",
               required: [
                 "isAgreeOnTermsOfEvent",
+                "isEligible",
                 "creditAmount",
+                "groupCreditAmount",
                 "completedQuests",
-                "ticket1Amount",
-                "ticket2Amount",
+                "group",
                 "quests",
               ],
               properties: {
@@ -29,10 +30,20 @@ globalStateDocs[`${apiPrefix}/`] = {
                   description: "유저의 이벤트 참여 동의 여부",
                   example: true,
                 },
+                isEligible: {
+                  type: "boolean",
+                  description: "유저의 이벤트 참여 가능 여부",
+                  example: true,
+                },
                 creditAmount: {
                   type: "number",
                   description: "재화 개수. 0 이상입니다.",
-                  example: 10000,
+                  example: 1000,
+                },
+                groupCreditAmount: {
+                  type: "number",
+                  description: "소속 새터반에 소속된 유저의 전체 재화 개수",
+                  example: 35000,
                 },
                 completedQuests: {
                   type: "array",
@@ -44,15 +55,15 @@ globalStateDocs[`${apiPrefix}/`] = {
                     example: "QUEST ID",
                   },
                 },
-                ticket1Amount: {
-                  type: "number",
-                  description: "일반 티켓의 개수. 0 이상입니다.",
-                  example: 10,
+                isBanned: {
+                  type: "boolean",
+                  description: "해당 유저 제재 대상 여부",
+                  example: false,
                 },
-                ticket2Amount: {
+                group: {
                   type: "number",
-                  description: "고급 티켓의 개수. 0 이상입니다.",
-                  example: 10,
+                  description: "유저의 소속 새터반",
+                  example: 16,
                 },
                 quests: {
                   type: "array",
@@ -93,17 +104,12 @@ globalStateDocs[`${apiPrefix}/`] = {
                       reward: {
                         type: "object",
                         description: "완료 보상",
-                        required: ["credit", "ticket1"],
+                        required: ["credit"],
                         properties: {
                           credit: {
                             type: "number",
                             description: "완료 보상 중 재화의 개수입니다.",
                             example: 100,
-                          },
-                          ticket1: {
-                            type: "number",
-                            description: "완료 보상 중 일반 티켓의 개수입니다.",
-                            example: 1,
                           },
                         },
                       },
@@ -114,16 +120,11 @@ globalStateDocs[`${apiPrefix}/`] = {
                       },
                       isApiRequired: {
                         type: "boolean",
-                        description: `/events/${eventConfig.mode}/quests/complete/:questId API를 통해 퀘스트 완료를 요청할 수 있는지 여부`,
+                        description: `/events/${eventConfig?.mode}/quests/complete/:questId API를 통해 퀘스트 완료를 요청할 수 있는지 여부`,
                         example: false,
                       },
                     },
                   },
-                },
-                isBanned: {
-                  type: "boolean",
-                  description: "해당 유저 제재 대상 여부",
-                  example: false,
                 },
               },
             },

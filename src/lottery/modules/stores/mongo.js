@@ -1,6 +1,10 @@
 const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 
+// 이벤트마다 사용된 모델을 구분하기 위해 이름에 Prefix를 붙입니다.
+const { eventConfig } = require("../../../../loadenv");
+const modelNamePrefix = eventConfig?.mode ?? "";
+
 const integerValidator = {
   validator: Number.isInteger,
   message: "{VALUE} is not an integer value",
@@ -36,7 +40,18 @@ const eventStatusSchema = Schema({
   },
   isBanned: {
     type: Boolean,
+    default: false,
   },
+  group: {
+    type: Number,
+    required: true,
+    min: 1,
+    validate: integerValidator,
+  }, // 소속된 새터반
+  inviter: {
+    type: Schema.Types.ObjectId,
+    ref: "User",
+  }, // 이 사용자를 초대한 사용자
 });
 
 const questSchema = Schema({
@@ -122,7 +137,7 @@ const transactionSchema = Schema({
   },
   item: {
     type: Schema.Types.ObjectId,
-    ref: "Item",
+    ref: `${modelNamePrefix}Item`,
   },
   itemType: {
     type: Number,
@@ -139,8 +154,14 @@ transactionSchema.set("timestamps", {
 });
 
 module.exports = {
-  eventStatusModel: mongoose.model("EventStatus", eventStatusSchema),
-  questModel: mongoose.model("Quest", questSchema),
-  itemModel: mongoose.model("Item", itemSchema),
-  transactionModel: mongoose.model("Transaction", transactionSchema),
+  eventStatusModel: mongoose.model(
+    `${modelNamePrefix}EventStatus`,
+    eventStatusSchema
+  ),
+  questModel: mongoose.model(`${modelNamePrefix}Quest`, questSchema),
+  itemModel: mongoose.model(`${modelNamePrefix}Item`, itemSchema),
+  transactionModel: mongoose.model(
+    `${modelNamePrefix}Transaction`,
+    transactionSchema
+  ),
 };
