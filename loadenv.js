@@ -46,7 +46,13 @@ module.exports = {
   eventConfig: (process.env.EVENT_CONFIG &&
     JSON.parse(process.env.EVENT_CONFIG)) || {
     mode: "2024spring",
-    startAt: "2024-02-23T00:00:00+09:00",
-    endAt: "2024-03-19T00:00:00+09:00",
+    credit: {
+      name: "넙죽코인",
+      initialAmount: 0,
+    },
+    period: {
+      startAt: "2024-02-23T00:00:00+09:00",
+      endAt: "2024-03-19T00:00:00+09:00",
+    },
   }, // optional
 };

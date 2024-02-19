@@ -1,5 +1,4 @@
 const express = require("express");
-const { eventConfig } = require("../../../loadenv");
 
 const router = express.Router();
 const itemsHandlers = require("../services/items");

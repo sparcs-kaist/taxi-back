@@ -5,7 +5,7 @@ const {
 } = require("../modules/stores/mongo");
 const logger = require("../../modules/logger");
 
-const contracts = require("../modules/contracts");
+const { eventConfig } = require("../../../loadenv");
 
 const updateEventStatus = async (
   userId,
@@ -171,7 +171,7 @@ const purchaseHandler = async (req, res) => {
       userId: req.userOid,
       item: item._id,
       itemType: item.itemType,
-      comment: `${contracts.creditInfo.name} ${item.price}개를 사용해 "${item.name}" 1개를 획득했습니다.`,
+      comment: `${eventConfig?.credit.name} ${item.price}개를 사용해 "${item.name}" 1개를 획득했습니다.`,
     });
     await transaction.save();
 

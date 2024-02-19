@@ -1,17 +1,11 @@
-const { buildQuests, completeQuest: buildCompleteQuest } = require("./quests");
+const { buildQuests, completeQuest } = require("./quests");
 const mongoose = require("mongoose");
 const logger = require("../../modules/logger");
 
 const { eventConfig } = require("../../../loadenv");
 const eventPeriod = eventConfig && {
-  startAt: new Date(eventConfig.startAt),
-  endAt: new Date(eventConfig.endAt),
-};
-
-/** 재화 정보입니다. */
-const creditInfo = {
-  name: "넙죽코인",
-  initialAmount: 0,
+  startAt: new Date(eventConfig.period.startAt),
+  endAt: new Date(eventConfig.period.endAt),
 };
 
 /** 전체 퀘스트 목록입니다. */
@@ -111,8 +105,6 @@ const quests = buildQuests({
     maxCount: 0,
   },
 });
-
-const completeQuest = buildCompleteQuest(creditInfo.name);
 
 /**
  * firstLogin 퀘스트의 완료를 요청합니다.
@@ -282,7 +274,6 @@ const completeEventSharingQuest = async (userId, timestamp) => {
 };
 
 module.exports = {
-  creditInfo,
   quests,
   completeFirstLoginQuest,
   completePayingAndSendingQuest,
