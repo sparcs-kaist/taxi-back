@@ -9,7 +9,7 @@ const contracts = require("../modules/contracts");
 const quests = Object.values(contracts.quests);
 
 // 유저가 이벤트에 참여할 수 있는지 확인하는 함수입니다.
-const checkUserEligibility = async (user) => {
+const checkUserEligibility = (user) => {
   // production 환경이 아닌 경우 테스트를 위해 참여 조건을 확인하지 않습니다.
   if (nodeEnv !== "production") return true;
 
@@ -30,7 +30,7 @@ const getUserGlobalStateHandler = async (req, res) => {
     if (!eventStatus)
       return res.json({
         isAgreeOnTermsOfEvent: false,
-        eligibility: await checkUserEligibility(user),
+        eligibility: checkUserEligibility(user),
         completedQuests: [],
         creditAmount: 0,
         group: 0,
@@ -96,7 +96,7 @@ const createUserGlobalStateHandler = async (req, res) => {
         .json({ error: "GlobalState/Create : internal server error" });
 
     // 유저가 이벤트에 참여할 수 있는지 확인합니다.
-    const eligibility = await checkUserEligibility(user);
+    const eligibility = checkUserEligibility(user);
     if (!eligibility)
       return res.status(400).json({
         error: "GlobalState/Create : not eligible to participate in the event",
