@@ -40,7 +40,7 @@ const getUserGlobalStateHandler = async (req, res) => {
         },
       },
     ]);
-    const groupCreditAmountReal = groupCreditAmount[0]?.creditAmount;
+    const groupCreditAmountReal = groupCreditAmount?.[0].creditAmount;
     if (!groupCreditAmountReal && groupCreditAmountReal !== 0)
       return res
         .status(500)
