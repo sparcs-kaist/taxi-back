@@ -102,7 +102,7 @@ const createUserGlobalStateHandler = async (req, res) => {
     // EventStatus Document를 생성합니다.
     eventStatus = new eventStatusModel({
       userId: req.userOid,
-      creditAmount: eventConfig?.credit.initialAmount,
+      creditAmount: eventConfig?.credit.initialAmount ?? 0,
       group: req.body.group,
       inviter: req.body.inviter,
     });

@@ -208,7 +208,8 @@ const getGroupLeaderboardHandler = async (req, res) => {
           .sort({ creditAmount: -1 })
           .limit(1) // Aggreation을 사용하는 것보다, sort와 limit을 바로 붙여 사용하는 것이 더 효율적입니다.
           .lean();
-        if (!mvp) throw new Error(`Fail to find MVP in group ${group.group}`);
+        if (mvp?.length !== 1)
+          throw new Error(`Fail to find MVP in group ${group.group}`);
 
         const mvpInfo = await userModel.findOne({ _id: mvp[0].userId }).lean();
         if (!mvpInfo) throw new Error(`Fail to find user ${mvp[0].userId}`);
