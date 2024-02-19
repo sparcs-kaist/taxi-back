@@ -6,8 +6,7 @@ authDocs[`${apiPrefix}/sparcssso`] = {
   get: {
     tags: [tag],
     summary: "SPARCS SSO 로그인 페이지로 리다이렉트",
-    description:
-      "Prod의 경우 SSO 로그인 페이지로, Dev의 경우 replace 페이지로 리다이렉트함.",
+    description: "SSO 로그인 페이지로 리다이렉트합니다.",
     parameters: [
       {
         in: "query",
@@ -46,7 +45,7 @@ authDocs[`${apiPrefix}/sparcssso/callback`] = {
     tags: [tag],
     summary: "SPARCS SSO 로그인 페이지에서 다시 리다이렉트를 처리",
     description:
-      "SPARCS SSO 로그인 페이지로부터 프론트로 다시 리다이렉트되었을 때 로그인을 시도함.",
+      "SPARCS SSO 로그인 페이지로부터 프론트로 다시 리다이렉트되었을 때 로그인을 시도.",
     parameters: [
       {
         in: "query",
@@ -80,7 +79,33 @@ authDocs[`${apiPrefix}/sparcssso/callback`] = {
       400: {
         content: {
           "text/html": {
-            example: "SparcsssoCallbackHandler : invalid request",
+            example: "Auth/sparcssso/callback : invalid request",
+          },
+        },
+      },
+    },
+  },
+};
+
+authDocs[`${apiPrefix}/login/replace`] = {
+  get: {
+    tags: [tag],
+    summary: "replace 로그인 시도",
+    description:
+      "개발용으로 만들어진 replace 로그인을 시도합니다. Prod 환경일 경우 error를 반환합니다.",
+    responses: {
+      400: {
+        content: {
+          "application/json": {
+            schema: {
+              type: "object",
+              properties: {
+                error: {
+                  type: "string",
+                  example: "Auth/login/replace : Bad Request",
+                },
+              },
+            },
           },
         },
       },

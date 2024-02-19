@@ -1,5 +1,5 @@
 const express = require("express");
-const reportsSchema = require("./docs/reportsSchema");
+const reportsSchema = require("./docs/schemas/reportsSchema");
 const { validateBody } = require("../middlewares/ajv");
 const router = express.Router();
 const reportHandlers = require("../services/reports");
