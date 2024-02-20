@@ -1,8 +1,8 @@
 const { eventConfig } = require("../../../../loadenv");
 const apiPrefix = `/events/${eventConfig?.mode}/quests`;
 
-const eventsDocs = {};
-eventsDocs[`${apiPrefix}/complete/:questId`] = {
+const questsDocs = {};
+questsDocs[`${apiPrefix}/complete/:questId`] = {
   post: {
     tags: [`${apiPrefix}`],
     summary: "퀘스트 완료 요청",
@@ -59,4 +59,4 @@ eventsDocs[`${apiPrefix}/complete/:questId`] = {
   },
 };
 
-module.exports = eventsDocs;
+module.exports = questsDocs;
