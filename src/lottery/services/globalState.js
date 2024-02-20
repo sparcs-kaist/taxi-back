@@ -127,13 +127,14 @@ const createUserGlobalStateHandler = async (req, res) => {
     await eventStatus.save();
 
     await contracts.completeFirstLoginQuest(req.userOid, req.timestamp);
-    await contracts.completeEventSharingQuest(req.userOid, req.timestamp);
 
-    if (req.body.inviter)
+    if (req.body.inviter) {
+      await contracts.completeEventSharingQuest(req.userOid, req.timestamp);
       await contracts.completeEventSharingQuest(
         inviterStatus.userId,
         req.timestamp
       );
+    }
 
     return res.json({ result: true });
   } catch (err) {

@@ -267,10 +267,20 @@ const completeAdPushAgreementQuest = async (
  * @description 초대 링크를 통해 사용자가 이벤트에 참여할 때마다, 초대한 사용자 및 초대받은 사용자에 대해 각각 호출해 주세요.
  */
 const completeEventSharingQuest = async (userId, timestamp) => {
-  return [
-    await completeQuest(userId, timestamp, quests.eventSharing),
-    await completeQuest(userId, timestamp, quests.eventSharing5),
-  ];
+  const eventSharingResult = await completeQuest(
+    userId,
+    timestamp,
+    quests.eventSharing
+  );
+  if (!eventSharingResult || eventSharingResult.questCount % 5 !== 0)
+    return [eventSharingResult, null];
+
+  const eventSharing5Result = await completeQuest(
+    userId,
+    timestamp,
+    quests.eventSharing5
+  );
+  return [eventSharingResult, eventSharing5Result];
 };
 
 module.exports = {
