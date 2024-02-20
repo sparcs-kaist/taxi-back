@@ -2,6 +2,8 @@ const { eventStatusModel } = require("../modules/stores/mongo");
 const { userModel } = require("../../modules/stores/mongo");
 const logger = require("../../modules/logger");
 
+const { eventConfig } = require("../../../loadenv");
+
 const searchInviterHandler = async (req, res) => {
   try {
     const { inviter } = req.params;
@@ -31,7 +33,7 @@ const searchInviterHandler = async (req, res) => {
 
 const createInviteUrlHandler = async (req, res) => {
   try {
-    const inviteUrl = `https://temp/${req.eventStatus._id}`;
+    const inviteUrl = `${req.origin}/event/${eventConfig?.mode}-invite/${req.eventStatus._id}`;
 
     if (req.eventStatus.isEnabledInviteUrl) return res.json({ inviteUrl });
 
