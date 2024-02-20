@@ -31,7 +31,27 @@ const searchInviterHandler = async (req, res) => {
 
 const createInviteUrlHandler = async (req, res) => {
   try {
-    // TODO
+    const inviteUrl = `https://temp/${req.eventStatus._id}`;
+
+    if (req.eventStatus.isEnabledInviteUrl) return res.json({ inviteUrl });
+
+    const eventStatus = await eventStatusModel
+      .findOneAndUpdate(
+        {
+          _id: req.eventStatus._id,
+          isEnabledInviteUrl: false,
+        },
+        {
+          isEnabledInviteUrl: true,
+        }
+      )
+      .lean();
+    if (!eventStatus)
+      return res
+        .status(500)
+        .json({ error: "Invite/Create : internal server error" });
+
+    return res.json({ inviteUrl });
   } catch (err) {
     logger.error(err);
     res.status(500).json({ error: "Invite/Create : internal server error" });
