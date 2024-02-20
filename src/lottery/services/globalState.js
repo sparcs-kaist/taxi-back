@@ -81,9 +81,19 @@ const createUserGlobalStateHandler = async (req, res) => {
         .status(400)
         .json({ error: "GlobalState/Create : already created" });
 
+    /* Request의 inviter 필드가 설정되어 있는데,
+       1. 해당되는 유저가 이벤트에 참여하지 않았거나,
+       2. 해당되는 유저의 이벤트 참여가 제한된 상태이거나,
+       3. 해당되는 유저의 초대 링크가 활성화되지 않았으면,
+       에러를 발생시킵니다. 개인정보 보호를 위해 오류 메세지는 하나로 통일하였습니다. */
+    const inviterStatus =
+      req.body.inviter &&
+      (await eventStatusModel.findOne({ _id: req.body.inviter }).lean());
     if (
       req.body.inviter &&
-      (await eventStatusModel.findOne({ _id: req.body.inviter }).lean())
+      (!inviterStatus ||
+        inviterStatus.isBanned ||
+        !inviterStatus.isEnabledInviteUrl)
     )
       return res.status(400).json({
         error: "GlobalState/Create : inviter did not participate in the event",
@@ -117,8 +127,15 @@ const createUserGlobalStateHandler = async (req, res) => {
     await eventStatus.save();
 
     await contracts.completeFirstLoginQuest(req.userOid, req.timestamp);
+    await contracts.completeEventSharingQuest(req.userOid, req.timestamp);
 
-    res.json({ result: true });
+    if (req.body.inviter)
+      await contracts.completeEventSharingQuest(
+        inviterStatus.userId,
+        req.timestamp
+      );
+
+    return res.json({ result: true });
   } catch (err) {
     logger.error(err);
     res
