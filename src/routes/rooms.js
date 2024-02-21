@@ -55,6 +55,19 @@ router.post(
   roomHandlers.createHandler
 );
 
+// 방을 생성하기 전, 생성하고자 하는 방이 실제로 택시 탑승의 목적성을 갖고 있는지 예측합니다.
+router.post(
+  "/create/test",
+  [
+    body("from").isMongoId(),
+    body("to").isMongoId(),
+    body("time").isISO8601(),
+    body("maxPartLength").isInt({ min: 2, max: 4 }),
+  ],
+  validator,
+  roomHandlers.createTestHandler
+);
+
 // 새로운 사용자를 방에 참여시킨다.
 // FIXME: req.body.users 검증할 때 SSO ID 규칙 반영하기
 router.post(
