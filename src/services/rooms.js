@@ -11,7 +11,7 @@ const {
   getIsOver,
 } = require("../modules/populates/rooms");
 const {
-  notifyAbusingToReportChannel,
+  notifyRoomCreationAbuseToReportChannel,
 } = require("../modules/slackNotification");
 
 // 이벤트 코드입니다.
@@ -200,7 +200,7 @@ const createTestHandler = async (req, res) => {
       candidateRoomsByTime
     );
     if (isAbusing) {
-      notifyAbusingToReportChannel(req.userId, req.body);
+      notifyRoomCreationAbuseToReportChannel(req.userId, req.body);
     }
 
     return res.json({ result: !isAbusing });

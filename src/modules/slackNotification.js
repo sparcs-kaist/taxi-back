@@ -32,7 +32,7 @@ const notifyReportToReportChannel = (reportUser, report) => {
   );
 };
 
-const notifyAbusingToReportChannel = (
+const notifyRoomCreationAbuseToReportChannel = (
   abusingUser,
   { from, to, time, maxPartLength }
 ) => {
@@ -48,5 +48,5 @@ const notifyAbusingToReportChannel = (
 
 module.exports = {
   notifyReportToReportChannel,
-  notifyAbusingToReportChannel,
+  notifyRoomCreationAbuseToReportChannel,
 };
