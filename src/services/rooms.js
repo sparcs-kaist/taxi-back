@@ -162,6 +162,7 @@ const checkIsAbusing = (
 };
 
 const createTestHandler = async (req, res) => {
+  // 이 Handler에서는 Parameter에 대해 추가적인 Validation을 하지 않습니다.
   const { time } = req.body;
 
   try {
@@ -200,7 +201,11 @@ const createTestHandler = async (req, res) => {
       candidateRoomsByTime
     );
     if (isAbusing) {
-      notifyRoomCreationAbuseToReportChannel(req.userId, req.body);
+      const user = await userModel.findById(req.userOid).lean();
+      notifyRoomCreationAbuseToReportChannel(
+        user?.nickname ?? req.userOid,
+        req.body
+      );
     }
 
     return res.json({ result: !isAbusing });
