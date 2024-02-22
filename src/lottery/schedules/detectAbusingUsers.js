@@ -76,6 +76,7 @@ const detectMultiplePartUsers = async (candidateUserIds) => {
     }, // 후보 방들을 날짜별로 그룹화
     {
       $project: {
+        roomIds: true,
         users: {
           $reduce: {
             input: "$users",
@@ -186,9 +187,6 @@ module.exports = async () => {
     logger.info(
       `Total ${abusingUsers.length} users detected! Refer to Slack for more information`
     );
-
-    logger.info(rooms);
-    logger.info(multiplePartUserIds);
 
     // Slack으로 알림 전송
     notifyAbuseDetectionResultToReportChannel(
