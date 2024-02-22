@@ -55,7 +55,7 @@ router.post(
   roomHandlers.createHandler
 );
 
-// 방을 생성하기 전, 생성하고자 하는 방이 실제로 택시 탑승의 목적성을 갖고 있는지 예측합니다.
+// 방을 생성하기 전, 생성하고자 하는 방이 실제로 택시 탑승의 목적성을 갖고 있는지 예측한다.
 router.post(
   "/create/test",
   [

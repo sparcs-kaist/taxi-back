@@ -15,6 +15,11 @@ const {
 } = require("../modules/slackNotification");
 
 // 이벤트 코드입니다.
+const { eventConfig } = require("../../loadenv");
+const eventPeriod = eventConfig && {
+  startAt: new Date(eventConfig.period.startAt),
+  endAt: new Date(eventConfig.period.endAt),
+};
 const { contracts } = require("../lottery");
 
 const createHandler = async (req, res) => {
@@ -166,6 +171,14 @@ const createTestHandler = async (req, res) => {
   const { time } = req.body;
 
   try {
+    // 이벤트 코드입니다.
+    if (
+      !eventPeriod ||
+      req.timestamp >= eventPeriod.endAt ||
+      req.timestamp < eventPeriod.startAt
+    )
+      return res.json({ result: true });
+
     const countRecentlyMadeRooms = await roomModel.countDocuments({
       madeat: { $gte: new Date(req.timestamp - 86400000) }, // 밀리초 단위로 24시간을 나타냅니다.
       "part.0.user": req.userOid, // 방 최초 생성자를 저장하는 필드가 없으므로, 첫 번째 참여자를 생성자로 간주합니다.
