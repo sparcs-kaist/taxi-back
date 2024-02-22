@@ -47,6 +47,7 @@ const notifyRoomCreationAbuseToReportChannel = (
 };
 
 module.exports = {
+  sendTextToReportChannel,
   notifyReportToReportChannel,
   notifyRoomCreationAbuseToReportChannel,
 };
