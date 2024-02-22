@@ -33,13 +33,13 @@ const removeObjectIdDuplicates = (array) => {
 };
 
 // 기준 1. "기타 사유"로 신고받은 사용자
-const detectReportedUsers = async (candidateUserIds) => {
+const detectReportedUsers = async (period, candidateUserIds) => {
   const reports = await reportModel.aggregate([
     {
       $match: {
         reportedId: { $in: candidateUserIds },
         type: "etc-reason",
-        time: { $gte: eventPeriod.startAt, $lt: eventPeriod.endAt },
+        time: { $gte: period.startAt, $lt: period.endAt },
       },
     },
   ]);
@@ -51,13 +51,13 @@ const detectReportedUsers = async (candidateUserIds) => {
 };
 
 // 기준 2. 하루에 탑승 기록이 많은 사용자
-const detectMultiplePartUsers = async (candidateUserIds) => {
+const detectMultiplePartUsers = async (period, candidateUserIds) => {
   const rooms = await roomModel.aggregate([
     {
       $match: {
         part: { $elemMatch: { user: { $in: candidateUserIds } } }, // 방 참여자 중 후보자가 존재
         "part.1": { $exists: true }, // 방 참여자가 2명 이상
-        time: { $gte: eventPeriod.startAt, $lt: eventPeriod.endAt },
+        time: { $gte: period.startAt, $lt: period.endAt },
         settlementTotal: { $gt: 0 },
       },
     },
@@ -105,11 +105,11 @@ const detectMultiplePartUsers = async (candidateUserIds) => {
 };
 
 // 기준 3. 채팅 개수가 5개 미만인 방에 속한 사용자
-const detectLessChatUsers = async (candidateUserIds) => {
+const detectLessChatUsers = async (period, candidateUserIds) => {
   const chats = await chatModel.aggregate([
     {
       $match: {
-        time: { $gte: eventPeriod.startAt, $lt: eventPeriod.endAt },
+        time: { $gte: period.startAt, $lt: period.endAt },
       },
     },
     {
@@ -164,17 +164,35 @@ module.exports = async () => {
   try {
     logger.info("Abusing user detection started");
 
+    // 오늘 자정(0시)
+    const todayMidnight = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    // 어제 자정
+    const yesterdayMidnight = new Date();
+    yesterday.setDate(yesterdayMidnight.getDate() - 1);
+    yesterday.setHours(0, 0, 0, 0);
+
+    // 어제 있었던 활동을 기준으로 감지
+    const period = {
+      startAt: yesterdayMidnight,
+      endAt: todayMidnight,
+    };
+
     const candidateUsers = await eventStatusModel.find({}, "userId").lean();
     const candidateUserIds = candidateUsers.map((user) => user.userId);
 
     // 기준 1 ~ 기준 3에 각각 해당되는 사용자 목록
     const { reports, reportedUserIds } = await detectReportedUsers(
+      period,
       candidateUserIds
     );
     const { rooms, multiplePartUserIds } = await detectMultiplePartUsers(
+      period,
       candidateUserIds
     );
     const { lessChatRooms, lessChatUserIds } = await detectLessChatUsers(
+      period,
       candidateUserIds
     );
 
