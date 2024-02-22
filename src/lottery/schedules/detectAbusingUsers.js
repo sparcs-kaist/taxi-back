@@ -166,12 +166,12 @@ module.exports = async () => {
 
     // 오늘 자정(0시)
     const todayMidnight = new Date();
-    today.setHours(0, 0, 0, 0);
+    todayMidnight.setHours(0, 0, 0, 0);
 
     // 어제 자정
     const yesterdayMidnight = new Date();
-    yesterday.setDate(yesterdayMidnight.getDate() - 1);
-    yesterday.setHours(0, 0, 0, 0);
+    yesterdayMidnight.setDate(yesterdayMidnight.getDate() - 1);
+    yesterdayMidnight.setHours(0, 0, 0, 0);
 
     // 어제 있었던 활동을 기준으로 감지
     const period = {
