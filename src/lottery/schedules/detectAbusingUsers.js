@@ -134,25 +134,24 @@ const detectLessChatUsers = async (period, candidateUserIds) => {
       if (
         period.startAt > room.time ||
         period.endAt <= room.time ||
-        room.settlementTotal <= 0
+        room.settlementTotal === 0
       )
         return null;
 
-      const users = room.part
+      const parts = room.part
         .map((part) => part.user)
         .filter((userId) => candidateUserIds.some(equalsObjectId(userId)));
-      if (users.length <= 0) return null;
+      if (parts.length === 0) return null;
 
       return {
         roomId,
-        chatCount: count,
-        users,
+        parts,
       };
     })
   );
   const lessChatUserIds = removeObjectIdDuplicates(
     lessChatRooms.reduce(
-      (array, day) => (day ? array.concat(day.users) : array),
+      (array, day) => (day ? array.concat(day.parts) : array),
       []
     )
   );
