@@ -6,7 +6,7 @@ const generateContent = (name, userIds, roomIds = []) => {
   const strUserIds = userIds.join(", ");
   const strRoomIds =
     roomIds.length > 0 ? ` (관련된 방: ${roomIds.join(", ")})` : "";
-  return `\n${name}: ${strUserIds}${strRoomIds}`;
+  return `\n    ${name}: ${strUserIds}${strRoomIds}`;
 };
 
 const notifyAbuseDetectionResultToReportChannel = (

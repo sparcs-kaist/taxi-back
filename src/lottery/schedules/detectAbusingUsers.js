@@ -132,8 +132,8 @@ const detectLessChatUsers = async (period, candidateUserIds) => {
     chats.map(async ({ _id: roomId, count }) => {
       const room = await roomModel.findById(roomId).lean();
       if (
-        eventPeriod.startAt > room.time ||
-        eventPeriod.endAt <= room.time ||
+        period.startAt > room.time ||
+        period.endAt <= room.time ||
         room.settlementTotal <= 0
       )
         return null;
@@ -162,8 +162,6 @@ const detectLessChatUsers = async (period, candidateUserIds) => {
 
 module.exports = async () => {
   try {
-    logger.info("Abusing user detection started");
-
     // 오늘 자정(0시)
     const todayMidnight = new Date();
     todayMidnight.setHours(0, 0, 0, 0);
@@ -172,6 +170,16 @@ module.exports = async () => {
     const yesterdayMidnight = new Date();
     yesterdayMidnight.setDate(yesterdayMidnight.getDate() - 1);
     yesterdayMidnight.setHours(0, 0, 0, 0);
+
+    // 이벤트 기간이 아니면 종료
+    if (
+      !eventPeriod ||
+      yesterdayMidnight >= eventPeriod.endAt ||
+      todayMidnight <= eventPeriod.startAt
+    )
+      return;
+
+    logger.info("Abusing user detection started");
 
     // 어제 있었던 활동을 기준으로 감지
     const period = {
