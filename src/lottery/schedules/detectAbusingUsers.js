@@ -108,14 +108,17 @@ const detectLessChatUsers = async (candidateUserIds) => {
   const chats = await chatModel.aggregate([
     {
       $match: {
-        type: "text",
         time: { $gte: eventPeriod.startAt, $lt: eventPeriod.endAt },
       },
     },
     {
       $group: {
         _id: "$roomId",
-        count: { $sum: 1 },
+        count: {
+          $sum: {
+            $cond: [{ $eq: ["$type", "text"] }, 1, 0], // type이 text인 경우만 count
+          },
+        },
       },
     }, // 채팅들을 방별로 그룹화
     {
@@ -184,12 +187,8 @@ module.exports = async () => {
       `Total ${abusingUsers.length} users detected! Refer to Slack for more information`
     );
 
-    logger.info(reports);
-    logger.info(reportedUserIds);
     logger.info(rooms);
     logger.info(multiplePartUserIds);
-    logger.info(lessChatRooms);
-    logger.info(lessChatUserIds);
 
     // Slack으로 알림 전송
     notifyAbuseDetectionResultToReportChannel(
