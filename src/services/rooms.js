@@ -117,7 +117,7 @@ const createHandler = async (req, res) => {
 const checkIsAbusing = (
   { from, to, time, maxPartLength },
   countRecentlyMadeRooms,
-  candidateRoomsByTime
+  candidateRooms
 ) => {
   /**
    * 방을 생성하였을 때, 다음 조건 중 하나라도 만족하게 되면 어뷰징 가능성이 있다고 판단합니다.
@@ -134,14 +134,14 @@ const checkIsAbusing = (
 
   if (countRecentlyMadeRooms + 1 >= 4) return true; // 조건 3
 
-  if (candidateRoomsByTime.length + 1 >= 3) return true; // 조건 1
-  if (candidateRoomsByTime.length + 1 < 2) return false; // 조건 2의 여집합
+  if (candidateRooms.length + 1 >= 3) return true; // 조건 1
+  if (candidateRooms.length + 1 < 2) return false; // 조건 2의 여집합
 
   let firstRoom = {
-    from: candidateRoomsByTime[0].from.toString(),
-    to: candidateRoomsByTime[0].to.toString(),
-    time: candidateRoomsByTime[0].time,
-    maxPartLength: candidateRoomsByTime[0].maxPartLength,
+    from: candidateRooms[0].from.toString(),
+    to: candidateRooms[0].to.toString(),
+    time: candidateRooms[0].time,
+    maxPartLength: candidateRooms[0].maxPartLength,
   };
   let secondRoom = {
     from,
@@ -189,7 +189,7 @@ const createTestHandler = async (req, res) => {
         .json({ error: "Rooms/create/test : internal server error" });
 
     const dateTime = new Date(time);
-    const candidateRoomsByTime = await roomModel
+    const candidateRooms = await roomModel
       .find(
         {
           time: {
@@ -200,10 +200,9 @@ const createTestHandler = async (req, res) => {
         },
         "from to time maxPartLength"
       )
-      .sort({ time: 1 })
       .limit(2)
       .lean();
-    if (!candidateRoomsByTime)
+    if (!candidateRooms)
       return res
         .status(500)
         .json({ error: "Rooms/create/test : internal server error" });
@@ -211,7 +210,7 @@ const createTestHandler = async (req, res) => {
     const isAbusing = checkIsAbusing(
       req.body,
       countRecentlyMadeRooms,
-      candidateRoomsByTime
+      candidateRooms
     );
     if (isAbusing) {
       const user = await userModel.findById(req.userOid).lean();
