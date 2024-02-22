@@ -18,6 +18,9 @@ const contracts = eventConfig && require("./modules/contracts");
 // [Routes] 기존 docs 라우터의 docs extend
 eventConfig && require("./routes/docs")();
 
+// [Schedule] 스케줄러 시작
+eventConfig && require("./schedules")();
+
 const lotteryRouter = express.Router();
 
 // [Middleware] 모든 API 요청에 대하여 origin 검증

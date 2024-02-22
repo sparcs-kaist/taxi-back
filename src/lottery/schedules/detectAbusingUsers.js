@@ -32,6 +32,130 @@ const removeObjectIdDuplicates = (array) => {
   );
 };
 
+// 기준 1. "기타 사유"로 신고받은 사용자
+const detectReportedUsers = async (candidateUserIds) => {
+  const reports = await reportModel.aggregate([
+    {
+      $match: {
+        reportedId: { $in: candidateUserIds },
+        type: "etc-reason",
+        time: { $gte: eventPeriod.startAt, $lt: eventPeriod.endAt },
+      },
+    },
+  ]);
+  const reportedUserIds = removeObjectIdDuplicates(
+    reports.map((report) => report.reportedId)
+  );
+
+  return { reports, reportedUserIds };
+};
+
+// 기준 2. 하루에 탑승 기록이 많은 사용자
+const detectMultiplePartUsers = async (candidateUserIds) => {
+  const rooms = await roomModel.aggregate([
+    {
+      $match: {
+        part: { $elemMatch: { user: { $in: candidateUserIds } } }, // 방 참여자 중 후보자가 존재
+        "part.1": { $exists: true }, // 방 참여자가 2명 이상
+        time: { $gte: eventPeriod.startAt, $lt: eventPeriod.endAt },
+        settlementTotal: { $gt: 0 },
+      },
+    },
+    {
+      $group: {
+        _id: {
+          $dateToString: {
+            date: "$time",
+            format: "%Y-%m-%d",
+            timezone: "+09:00",
+          },
+        },
+        roomIds: { $push: "$_id" },
+        users: { $push: "$part.user" },
+      },
+    }, // 후보 방들을 날짜별로 그룹화
+    {
+      $project: {
+        users: {
+          $reduce: {
+            input: "$users",
+            initialValue: [],
+            in: { $concatArrays: ["$$value", "$$this"] },
+          },
+        },
+      },
+    }, // 날짜별로 방 참여자들의 목록을 병합
+  ]);
+  const multiplePartUserIds = removeObjectIdDuplicates(
+    rooms.reduce(
+      (array, { users }) =>
+        array.concat(
+          removeObjectIdDuplicates(users).filter(
+            (userId) =>
+              users.findIndex(equalsObjectId(userId)) !==
+              users.findLastIndex(equalsObjectId(userId)) // 두 값이 다르면 중복된 값이 존재
+          )
+        ),
+      []
+    )
+  );
+
+  return { rooms, multiplePartUserIds };
+};
+
+// 기준 3. 채팅 개수가 5개 미만인 방에 속한 사용자
+const detectLessChatUsers = async (candidateUserIds) => {
+  const chats = await chatModel.aggregate([
+    {
+      $match: {
+        type: "text",
+        time: { $gte: eventPeriod.startAt, $lt: eventPeriod.endAt },
+      },
+    },
+    {
+      $group: {
+        _id: "$roomId",
+        count: { $sum: 1 },
+      },
+    }, // 채팅들을 방별로 그룹화
+    {
+      $match: {
+        count: { $lt: 5 },
+      },
+    },
+  ]);
+  const lessChatRooms = await Promise.all(
+    chats.map(async ({ _id: roomId, count }) => {
+      const room = await roomModel.findById(roomId).lean();
+      if (
+        eventPeriod.startAt > room.time ||
+        eventPeriod.endAt <= room.time ||
+        room.settlementTotal <= 0
+      )
+        return null;
+
+      const users = room.part
+        .map((part) => part.user)
+        .filter((userId) => candidateUserIds.some(equalsObjectId(userId)));
+      if (users.length <= 0) return null;
+
+      return {
+        roomId,
+        chatCount: count,
+        users,
+      };
+    })
+  );
+  const lessChatUserIds = removeObjectIdDuplicates(
+    lessChatRooms.reduce(
+      (array, day) => (day ? array.concat(day.users) : array),
+      []
+    )
+  );
+
+  return { lessChatRooms, lessChatUserIds };
+};
+
 module.exports = async () => {
   try {
     logger.info("Abusing user detection started");
@@ -39,147 +163,43 @@ module.exports = async () => {
     const candidateUsers = await eventStatusModel.find({}, "userId").lean();
     const candidateUserIds = candidateUsers.map((user) => user.userId);
 
-    // 기준 1. "기타 사유"로 신고받은 사용자
-    const reports = await reportModel.aggregate([
-      {
-        $match: {
-          reportedId: { $in: candidateUserIds },
-          type: "etc-reason",
-          time: { $gte: eventPeriod.startAt, $lt: eventPeriod.endAt },
-        },
-      },
-    ]);
-    const reportedUsers = reports.reduce((obj, report) => {
-      if (!obj[report.reportedId]) {
-        obj[report.reportedId] = [];
-      }
-
-      obj[report.reportedId].push(report);
-      return obj;
-    }, {});
-
-    // 기준 2. 하루에 탑승 기록이 많은 사용자
-    const rooms = await roomModel.aggregate([
-      {
-        $match: {
-          part: { $elemMatch: { user: { $in: candidateUserIds } } }, // 방 참여자 중 후보자가 존재
-          "part.1": { $exists: true }, // 방 참여자가 2명 이상
-          time: { $gte: eventPeriod.startAt, $lt: eventPeriod.endAt },
-          settlementTotal: { $gt: 0 },
-        },
-      },
-      {
-        $group: {
-          _id: {
-            $dateToString: {
-              date: "$time",
-              format: "%Y-%m-%d",
-              timezone: "+09:00",
-            },
-          },
-          users: { $push: "$part.user" },
-        },
-      },
-      {
-        $project: {
-          users: {
-            $reduce: {
-              input: "$users",
-              initialValue: [],
-              in: { $concatArrays: ["$$value", "$$this"] },
-            },
-          },
-        },
-      },
-    ]);
-    const multiplePartUserIds = rooms.reduce(
-      (array, { users }) =>
-        array.concat(
-          removeObjectIdDuplicates(users).filter(
-            (userId) =>
-              users.findIndex(equalsObjectId(userId)) ===
-              users.findLastIndex(equalsObjectId(userId)) // 두 값이 다르면 중복된 값이 존재함
-          )
-        ),
-      []
+    // 기준 1 ~ 기준 3에 각각 해당되는 사용자 목록
+    const { reports, reportedUserIds } = await detectReportedUsers(
+      candidateUserIds
+    );
+    const { rooms, multiplePartUserIds } = await detectMultiplePartUsers(
+      candidateUserIds
+    );
+    const { lessChatRooms, lessChatUserIds } = await detectLessChatUsers(
+      candidateUserIds
     );
 
-    // 기준 3. 채팅 개수가 5개 미만인 방에 속한 사용자
-    const chats = await chatModel.aggregate([
-      {
-        $match: {
-          time: { $gte: eventPeriod.startAt, $lt: eventPeriod.endAt },
-        },
-      },
-      {
-        $group: {
-          _id: "$roomId",
-          count: { $sum: 1 },
-        },
-      },
-      {
-        $match: {
-          count: { $lt: 5 },
-        },
-      },
-    ]);
-    const lessChatRooms = await Promise.all(
-      chats.map(async ({ _id: roomId, count }) => {
-        const room = await roomModel.findById(roomId).lean();
-        if (
-          eventPeriod.startAt > room.time ||
-          eventPeriod.endAt <= room.time ||
-          room.settlementTotal <= 0
-        )
-          return null;
-
-        const targetUsers = room.part
-          .map((part) => part.user)
-          .filter((userId) => candidateUserIds.some(equalsObjectId(userId)));
-        if (targetUsers.length <= 0) return null;
-
-        return {
-          roomId,
-          chatCount: count,
-          targetUsers,
-        };
-      })
-    );
-    const lessChatUsers = lessChatRooms.reduce((obj, room) => {
-      if (!room) return obj;
-
-      room.targetUsers.forEach((userId) => {
-        if (!obj[userId]) {
-          obj[userId] = [];
-        }
-
-        obj[userId].push({
-          roomId: room.roomId,
-          chatCount: room.chatCount,
-        });
-      });
-      return obj;
-    }, {});
-
-    // 기준 1 ~ 기준 3 중 하나라도 해당되는 사용자
+    // 기준 1 ~ 기준 3 중 하나라도 해당되는 사용자 목록
     const abusingUsers = removeObjectIdDuplicates(
-      Object.keys(reportedUsers)
-        .concat(multiplePartUserIds)
-        .concat(Object.keys(lessChatUsers))
+      reportedUserIds.concat(multiplePartUserIds, lessChatUserIds)
     );
 
     logger.info("Abusing user detection successfully finished");
     logger.info(
-      `${abusingUsers.length} users detected! Refer to Slack for more information`
+      `Total ${abusingUsers.length} users detected! Refer to Slack for more information`
     );
+
+    logger.info(reports);
+    logger.info(reportedUserIds);
+    logger.info(rooms);
+    logger.info(multiplePartUserIds);
+    logger.info(lessChatRooms);
+    logger.info(lessChatUserIds);
 
     // Slack으로 알림 전송
     notifyAbuseDetectionResultToReportChannel(
       abusingUsers,
       reports,
       reportedUserIds,
+      rooms,
       multiplePartUserIds,
-      lessChatUsers
+      lessChatRooms,
+      lessChatUserIds
     );
   } catch (err) {
     logger.error(err);
