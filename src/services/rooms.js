@@ -115,7 +115,7 @@ const createHandler = async (req, res) => {
 };
 
 const checkIsAbusing = (
-  { from, to, maxPartLength },
+  { from, to, time, maxPartLength },
   countRecentlyMadeRooms,
   candidateRoomsByTime
 ) => {
@@ -146,7 +146,7 @@ const checkIsAbusing = (
   let secondRoom = {
     from,
     to,
-    time: dateTime,
+    time: new Date(time),
     maxPartLength,
   };
   if (secondRoom.time < firstRoom.time) {
@@ -203,7 +203,7 @@ const createTestHandler = async (req, res) => {
       .sort({ time: 1 })
       .limit(2)
       .lean();
-    if (!candidateRoomsByTime && candidateRoomsByTime?.length !== 0)
+    if (!candidateRoomsByTime)
       return res
         .status(500)
         .json({ error: "Rooms/create/test : internal server error" });
