@@ -10,8 +10,16 @@ const {
   formatSettlement,
   getIsOver,
 } = require("../modules/populates/rooms");
+const {
+  notifyRoomCreationAbuseToReportChannel,
+} = require("../modules/slackNotification");
 
 // 이벤트 코드입니다.
+const { eventConfig } = require("../../loadenv");
+const eventPeriod = eventConfig && {
+  startAt: new Date(eventConfig.period.startAt),
+  endAt: new Date(eventConfig.period.endAt),
+};
 const { contracts } = require("../lottery");
 
 const createHandler = async (req, res) => {
@@ -103,6 +111,121 @@ const createHandler = async (req, res) => {
       error: "Rooms/create : internal server error",
     });
     return;
+  }
+};
+
+const checkIsAbusing = (
+  { from, to, time, maxPartLength },
+  countRecentlyMadeRooms,
+  candidateRooms
+) => {
+  /**
+   * 방을 생성하였을 때, 다음 조건 중 하나라도 만족하게 되면 어뷰징 가능성이 있다고 판단합니다.
+   * 1. 참여한 방 중, 생성하려는 방의 출발 시간 앞 뒤 12시간 내에 출발하는 방이 3개 이상인 경우
+   * 2. 참여한 방 중, 생성하려는 방의 출발 시간 앞 뒤 12시간 내에 출발하는 방이 2개이고, 다음 조건 중 하나 이상을 만족하는 경우
+   *    a. 두 방의 출발 시간 간격이 1시간 이하인 경우
+   *    b. 두 방의 출발 시간 간격이 1시간 초과이고, 다음 조건 중 하나 이상을 만족하는 경우
+   *       i. 두 방의 출발지가 같은 경우
+   *       ii. 두 방의 목적지가 같은 경우
+   *       iii. 먼저 출발하는 방의 목적지와 나중에 출발하는 방의 출발지가 다른 경우
+   *       iv. 두 방의 최대 탑승 가능 인원이 모두 2명인 경우
+   * 3. 최근 24시간 내에 생성한 방이 4개 이상인 경우
+   */
+
+  if (countRecentlyMadeRooms + 1 >= 4) return true; // 조건 3
+
+  if (candidateRooms.length + 1 >= 3) return true; // 조건 1
+  if (candidateRooms.length + 1 < 2) return false; // 조건 2의 여집합
+
+  let firstRoom = {
+    from: candidateRooms[0].from.toString(),
+    to: candidateRooms[0].to.toString(),
+    time: candidateRooms[0].time,
+    maxPartLength: candidateRooms[0].maxPartLength,
+  };
+  let secondRoom = {
+    from,
+    to,
+    time: new Date(time),
+    maxPartLength,
+  };
+  if (secondRoom.time < firstRoom.time) {
+    [firstRoom, secondRoom] = [secondRoom, firstRoom];
+  }
+
+  if (secondRoom.time - firstRoom.time <= 3600000) return true; // 조건 2-a
+  if (
+    firstRoom.from === secondRoom.from ||
+    firstRoom.to === secondRoom.to ||
+    firstRoom.to !== secondRoom.from
+  )
+    return true; // 조건 2-b-i, 2-b-ii, 2-b-iii
+  if (firstRoom.maxPartLength === 2 && secondRoom.maxPartLength === 2)
+    return true; // 조건 2-b-iv
+
+  return false;
+};
+
+const createTestHandler = async (req, res) => {
+  // 이 Handler에서는 Parameter에 대해 추가적인 Validation을 하지 않습니다.
+  const { time } = req.body;
+
+  try {
+    // 이벤트 코드입니다.
+    if (
+      !eventPeriod ||
+      req.timestamp >= eventPeriod.endAt ||
+      req.timestamp < eventPeriod.startAt
+    )
+      return res.json({ result: true });
+
+    const countRecentlyMadeRooms = await roomModel.countDocuments({
+      madeat: { $gte: new Date(req.timestamp - 86400000) }, // 밀리초 단위로 24시간을 나타냅니다.
+      "part.0.user": req.userOid, // 방 최초 생성자를 저장하는 필드가 없으므로, 첫 번째 참여자를 생성자로 간주합니다.
+    });
+    if (!countRecentlyMadeRooms && countRecentlyMadeRooms !== 0)
+      return res
+        .status(500)
+        .json({ error: "Rooms/create/test : internal server error" });
+
+    const dateTime = new Date(time);
+    const candidateRooms = await roomModel
+      .find(
+        {
+          time: {
+            $gte: new Date(dateTime.getTime() - 43200000),
+            $lte: new Date(dateTime.getTime() + 43200000),
+          },
+          part: { $elemMatch: { user: req.userOid } },
+        },
+        "from to time maxPartLength"
+      )
+      .limit(2)
+      .lean();
+    if (!candidateRooms)
+      return res
+        .status(500)
+        .json({ error: "Rooms/create/test : internal server error" });
+
+    const isAbusing = checkIsAbusing(
+      req.body,
+      countRecentlyMadeRooms,
+      candidateRooms
+    );
+    if (isAbusing) {
+      const user = await userModel.findById(req.userOid).lean();
+      notifyRoomCreationAbuseToReportChannel(
+        user?.nickname ?? req.userOid,
+        req.body
+      );
+    }
+
+    return res.json({ result: !isAbusing });
+  } catch (err) {
+    logger.error(err);
+    res.status(500).json({
+      error: "Rooms/create/test : internal server error",
+    });
   }
 };
 
@@ -681,6 +804,7 @@ module.exports = {
   publicInfoHandler,
   infoHandler,
   createHandler,
+  createTestHandler,
   joinHandler,
   abortHandler,
   searchHandler,
