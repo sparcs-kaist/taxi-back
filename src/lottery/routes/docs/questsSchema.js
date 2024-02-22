@@ -8,6 +8,7 @@ const questsSchema = {
         enum: ["roomSharing"],
       },
     },
+    errorMessage: "validation: bad request",
   },
 };
 

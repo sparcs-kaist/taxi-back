@@ -154,6 +154,7 @@ const completeQuest = async (userId, timestamp, quest) => {
     logger.info(`User ${userId} successfully completed ${quest.id}Quest`);
     return {
       quest,
+      questCount: questCount + 1,
       transactionsId,
     };
   } catch (err) {
