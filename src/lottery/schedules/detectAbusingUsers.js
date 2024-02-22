@@ -183,7 +183,7 @@ module.exports = async () => {
     const candidateUserIds = candidateUsers.map((user) => user.userId);
 
     // 기준 1 ~ 기준 3에 각각 해당되는 사용자 목록
-    const { reports, reportedUserIds } = await detectReportedUsers(
+    const { reportedUserIds } = await detectReportedUsers(
       period,
       candidateUserIds
     );
@@ -197,25 +197,25 @@ module.exports = async () => {
     );
 
     // 기준 1 ~ 기준 3 중 하나라도 해당되는 사용자 목록
-    const abusingUsers = removeObjectIdDuplicates(
+    const abusingUserIds = removeObjectIdDuplicates(
       reportedUserIds.concat(multiplePartUserIds, lessChatUserIds)
     );
 
-    logger.info("Abusing user detection successfully finished");
     logger.info(
-      `Total ${abusingUsers.length} users detected! Refer to Slack for more information`
+      `Total ${abusingUserIds.length} users detected! Refer to Slack for more information`
     );
 
     // Slack으로 알림 전송
     notifyAbuseDetectionResultToReportChannel(
-      abusingUsers,
-      reports,
+      abusingUserIds,
       reportedUserIds,
       rooms,
       multiplePartUserIds,
       lessChatRooms,
       lessChatUserIds
     );
+
+    logger.info("Abusing user detection successfully finished");
   } catch (err) {
     logger.error(err);
     logger.error("Abusing user detection failed");
