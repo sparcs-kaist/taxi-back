@@ -1,4 +1,4 @@
-const { objectIdPattern } = require("./utils");
+const { objectIdPattern } = require("../utils");
 
 const reportsSchema = {
   createHandler: {
