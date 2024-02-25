@@ -215,6 +215,7 @@ const createTestHandler = async (req, res) => {
     if (isAbusing) {
       const user = await userModel.findById(req.userOid).lean();
       notifyRoomCreationAbuseToReportChannel(
+        req.userOid,
         user?.nickname ?? req.userOid,
         req.body
       );
