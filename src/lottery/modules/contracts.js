@@ -89,7 +89,7 @@ const quests = buildQuests({
   eventSharing: {
     name: "너 나랑 ㅌ태태택 (1명)",
     description:
-      "내가 초대한 사람이 Taxi에 가입하여 이벤트에 참여하면 넙죽코인을 드려요. 앱 내의 공유 버튼을 통해 카카오톡으로 초대 문자를 보낼 수 있어요!",
+      "내가 초대한 사람이 Taxi에 가입하여 이벤트에 참여하면 넙죽코인을 드려요. 내가 초대한 사람도 넙죽코인을 받아요. 이벤트 안내 페이지의 <b>이벤트 공유하기</b> 버튼을 통해 카카오톡으로 초대 문자를 보낼 수 있어요!",
     imageUrl:
       "https://sparcs-taxi-prod.s3.ap-northeast-2.amazonaws.com/assets/event-2024spring/quest_eventSharing.png",
     reward: 50,
@@ -98,7 +98,7 @@ const quests = buildQuests({
   eventSharing5: {
     name: "너 나랑 ㅌ태태택 (5명)",
     description:
-      "내가 초대한 사람이 5명이 Taxi에 가입하여 이벤트에 참여하면 넙죽코인을 드려요. 앱 내의 공유 버튼을 통해 카카오톡으로 초대 문자를 보낼 수 있어요!",
+      "내가 초대한 사람이 5명이 Taxi에 가입하여 이벤트에 참여하면 넙죽코인을 드려요. 내가 초대한 사람도 넙죽코인을 받아요. 이벤트 안내 페이지의 <b>이벤트 공유하기</b> 버튼을 통해 카카오톡으로 초대 문자를 보낼 수 있어요!",
     imageUrl:
       "https://sparcs-taxi-prod.s3.ap-northeast-2.amazonaws.com/assets/event-2024spring/quest_eventSharing.png",
     reward: 250,

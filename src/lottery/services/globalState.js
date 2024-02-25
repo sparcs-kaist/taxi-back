@@ -30,7 +30,7 @@ const getUserGlobalStateHandler = async (req, res) => {
     if (!eventStatus)
       return res.json({
         isAgreeOnTermsOfEvent: false,
-        isEligible: checkIsUserEligible(user),
+        isEligible: checkIsUserEligible(user) || !!user?.isAdmin, // 테스트를 위해 관리자인 경우 true로 설정합니다. 하지만 관리자이더라도 이벤트에 참여할 수 없습니다.
         completedQuests: [],
         creditAmount: 0,
         group: 0,
