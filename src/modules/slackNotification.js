@@ -1,4 +1,4 @@
-const { slackWebhookUrl: slackUrl } = require("../../loadenv");
+const { nodeEnv, slackWebhookUrl: slackUrl } = require("../../loadenv");
 const axios = require("axios");
 const logger = require("../modules/logger");
 
@@ -6,7 +6,7 @@ const sendTextToReportChannel = (text) => {
   if (!slackUrl.report) return;
 
   const data = {
-    text,
+    text: nodeEnv === "production" ? text : `(${nodeEnv}) ${text}`, // Production 환경이 아닌 경우, 환경 이름을 붙여서 전송합니다.
   };
   const config = { "Content-Type": "application/json" };
 
@@ -34,11 +34,13 @@ const notifyReportToReportChannel = (reportUser, report) => {
 
 const notifyRoomCreationAbuseToReportChannel = (
   abusingUser,
+  abusingUserNickname,
   { from, to, time, maxPartLength }
 ) => {
   sendTextToReportChannel(
-    `${abusingUser}님이 어뷰징이 의심되는 방을 생성하려고 시도했습니다.
+    `${abusingUserNickname}님이 어뷰징이 의심되는 방을 생성하려고 시도했습니다.
 
+    사용자 ID: ${abusingUser}
     출발지: ${from}
     도착지: ${to}
     출발 시간: ${time}
