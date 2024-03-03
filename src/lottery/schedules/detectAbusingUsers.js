@@ -134,6 +134,7 @@ const detectLessChatUsers = async (period, candidateUserIds) => {
       if (
         period.startAt > room.time ||
         period.endAt <= room.time ||
+        room.part.length < 2 ||
         room.settlementTotal === 0
       )
         return null;
