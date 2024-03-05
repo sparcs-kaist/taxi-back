@@ -24,7 +24,7 @@ module.exports = `
                 }
                 const submitHandler = () => {
                     const value = document.getElementById("input-id").value;
-                    if(value) post('/auth/login/replace', {
+                    if(value) post('/api/auth/login/replace', {
                       id: value,
                     });
                 }
