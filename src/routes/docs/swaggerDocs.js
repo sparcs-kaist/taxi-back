@@ -1,4 +1,4 @@
-const reportsSchema = require("./schemas/reportsSchema");
+const { reportsSchema } = require("./schemas/reportsSchema");
 const { participantSchema, roomsSchema } = require("./schemas/roomsSchema");
 const reportsDocs = require("./reports");
 const logininfoDocs = require("./logininfo");

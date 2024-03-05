@@ -1,34 +1,21 @@
+const { z } = require("zod");
+const { zodToJsonSchema } = require("zod-to-json-schema");
 const { objectIdPattern } = require("../utils");
 
-const reportsSchema = {
-  createHandler: {
-    type: "object",
-    required: ["reportedId", "type", "time", "roomId"],
-    properties: {
-      reportedId: {
-        type: "string",
-        pattern: objectIdPattern,
-      },
-      type: {
-        type: "string",
-        enum: ["no-settlement", "no-show", "etc-reason"],
-      },
-      etcDetail: {
-        type: "string",
-        maxLength: 30,
-        default: "",
-      },
-      time: {
-        type: "string",
-        format: "date-time",
-      },
-      roomId: {
-        type: "string",
-        pattern: "^[a-fA-F\\d]{24}$",
-      },
-    },
-    errorMessage: "validation: bad request",
-  },
+const reportsZod = {
+  createHandler: z
+    .object({
+      reportedId: z.string().regex(new RegExp(objectIdPattern)),
+      type: z.enum(["no-settlement", "no-show", "etc-reason"]),
+      etcDetail: z.string().max(30).default(""),
+      time: z.string().datetime(),
+      roomId: z.string().regex(new RegExp(objectIdPattern)),
+    })
+    .required({ reportedId: true, type: true, time: true, roomId: true }),
 };
 
-module.exports = reportsSchema;
+const reportsSchema = {
+  createHandler: zodToJsonSchema(reportsZod.createHandler),
+};
+
+module.exports = { reportsSchema, reportsZod };
