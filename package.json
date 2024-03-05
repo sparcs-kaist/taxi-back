@@ -53,7 +53,10 @@
     "swagger-ui-express": "^4.6.0",
     "validator": "^13.7.0",
     "winston": "^3.8.1",
-    "winston-daily-rotate-file": "^4.7.1"
+    "winston-daily-rotate-file": "^4.7.1",
+    "zod": "^3.22.4",
+    "zod-express-middleware": "^1.4.0",
+    "zod-to-json-schema": "^3.22.4"
   },
   "devDependencies": {
     "chai": "^4.3.10",
