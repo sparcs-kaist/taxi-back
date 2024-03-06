@@ -92,7 +92,7 @@ class MockNodemailerTransport {
       const transporter = await this.getTransporter();
       const response = await transporter.sendMail(mailOptions);
       logger.info(
-        `Mock mail sent successfully. Preview url: ${nodeEnv.getTestMessageUrl(
+        `Mock mail sent successfully. Preview url: ${nodemailer.getTestMessageUrl(
           response
         )}`
       );
