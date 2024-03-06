@@ -23,9 +23,6 @@
     "@adminjs/express": "^5.1.0",
     "@adminjs/mongoose": "^3.0.3",
     "adminjs": "^6.8.7",
-    "ajv": "^8.12.0",
-    "ajv-errors": "^3.0.0",
-    "ajv-formats": "^2.1.1",
     "aws-sdk": "^2.1386.0",
     "axios": "^0.27.2",
     "ci": "^2.2.0",
@@ -56,7 +53,6 @@
     "winston": "^3.8.1",
     "winston-daily-rotate-file": "^4.7.1",
     "zod": "^3.22.4",
-    "zod-express-middleware": "^1.4.0",
     "zod-to-json-schema": "^3.22.4"
   },
   "devDependencies": {
