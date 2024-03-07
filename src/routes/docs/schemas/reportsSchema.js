@@ -1,21 +1,19 @@
 const { z } = require("zod");
-const { zodToJsonSchema } = require("zod-to-json-schema");
-const { objectIdPattern } = require("../utils");
+const { zodToSchemaObject } = require("../utils");
+const { objectId } = require("../../../modules/patterns");
 
 const reportsZod = {
   createHandler: z
     .object({
-      reportedId: z.string().regex(new RegExp(objectIdPattern)),
+      reportedId: z.string().regex(objectId),
       type: z.enum(["no-settlement", "no-show", "etc-reason"]),
       etcDetail: z.string().max(30).default(""),
       time: z.string().datetime(),
-      roomId: z.string().regex(new RegExp(objectIdPattern)),
+      roomId: z.string().regex(objectId),
     })
-    .required({ reportedId: true, type: true, time: true, roomId: true }),
+    .partial({ etcDetail: true }),
 };
 
-const reportsSchema = {
-  createHandler: zodToJsonSchema(reportsZod.createHandler),
-};
+const reportsSchema = zodToSchemaObject(reportsZod);
 
 module.exports = { reportsSchema, reportsZod };

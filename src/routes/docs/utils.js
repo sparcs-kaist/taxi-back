@@ -1,3 +1,5 @@
+const { zodToJsonSchema } = require("zod-to-json-schema");
+
 const objectIdPattern = `^[a-fA-F\\d]{24}$`;
 const roomsPattern = {
   rooms: {
@@ -9,4 +11,16 @@ const roomsPattern = {
   },
 };
 
-module.exports = { objectIdPattern, roomsPattern };
+const zodToSchemaObject = (zodObejct) => {
+  try {
+    const schemaObject = {};
+    Object.keys(zodObejct).forEach((key) => {
+      schemaObject[key] = zodToJsonSchema(zodObejct[key]);
+    });
+    return schemaObject;
+  } catch {
+    return {};
+  }
+};
+
+module.exports = { objectIdPattern, roomsPattern, zodToSchemaObject };

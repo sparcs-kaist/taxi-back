@@ -1,14 +1,10 @@
 const { z } = require("zod");
-const { zodToJsonSchema } = require("zod-to-json-schema");
+const { zodToSchemaObject } = require("../../../../routes/docs/utils");
 
 const questsZod = {
-  completeHandler: z
-    .object({ questId: z.enum(["roomSharing"]) })
-    .required({ questId: true }),
+  completeHandler: z.object({ questId: z.enum(["roomSharing"]) }),
 };
 
-const questsSchema = {
-  completeHandler: zodToJsonSchema(questsZod.completeHandler),
-};
+const questsSchema = zodToSchemaObject(questsZod);
 
 module.exports = { questsZod, questsSchema };

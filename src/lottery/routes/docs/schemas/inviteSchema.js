@@ -1,16 +1,13 @@
 const { z } = require("zod");
-const { zodToJsonSchema } = require("zod-to-json-schema");
+const { zodToSchemaObject } = require("../../../../routes/docs/utils");
+const { objectId } = require("../../../../modules/patterns");
 
 const inviteZod = {
-  searchInviterHandler: z
-    .object({
-      inviter: z.string().regex(new RegExp("^[a-fA-F\\d]{24}$")),
-    })
-    .required({ inviter: true }),
+  searchInviterHandler: z.object({
+    inviter: z.string().regex(objectId),
+  }),
 };
 
-const inviteSchema = {
-  searchInviterHandler: zodToJsonSchema(inviteZod.searchInviterHandler),
-};
+const inviteSchema = zodToSchemaObject(inviteZod);
 
 module.exports = { inviteSchema, inviteZod };

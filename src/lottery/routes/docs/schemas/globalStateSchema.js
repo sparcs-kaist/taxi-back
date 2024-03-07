@@ -1,22 +1,17 @@
 const { z } = require("zod");
-const { zodToJsonSchema } = require("zod-to-json-schema");
+const { zodToSchemaObject } = require("../../../../routes/docs/utils");
+const { objectId, user } = require("../../../../modules/patterns");
 
 const globalStateZod = {
   createUserGlobalStateHandler: z
     .object({
-      phoneNumber: z
-        .string()
-        .regex(new RegExp("^010-?([0-9]{3,4})-?([0-9]{4})$")),
+      phoneNumber: z.string().regex(user.phoneNumber),
       group: z.number().gte(1).lte(26),
-      inviter: z.string().regex(new RegExp("^[a-fA-F\\d]{24}$")),
+      inviter: z.string().regex(objectId),
     })
-    .required({ phoneNumber: true, group: true }),
+    .partial({ inviter: true }),
 };
 
-const globalStateSchema = {
-  createUserGlobalStateHandler: zodToJsonSchema(
-    globalStateZod.createUserGlobalStateHandler
-  ),
-};
+const globalStateSchema = zodToSchemaObject(globalStateZod);
 
 module.exports = { globalStateZod, globalStateSchema };
