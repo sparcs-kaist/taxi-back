@@ -93,8 +93,9 @@ const detectMultiplePartUsers = async (period, candidateUserIds) => {
         array.concat(
           removeObjectIdDuplicates(users).filter(
             (userId) =>
+              candidateUserIds.some(equalsObjectId(userId)) &&
               users.findIndex(equalsObjectId(userId)) !==
-              users.findLastIndex(equalsObjectId(userId)) // 두 값이 다르면 중복된 값이 존재
+                users.findLastIndex(equalsObjectId(userId)) // 두 값이 다르면 중복된 값이 존재
           )
         ),
       []
