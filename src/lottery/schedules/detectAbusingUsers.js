@@ -87,21 +87,16 @@ const detectMultiplePartUsers = async (period, candidateUserIds) => {
       },
     }, // 날짜별로 방 참여자들의 목록을 병합
   ]);
-  const multiplePartUserIdsByDay = rooms.map(({ users }) =>
-    removeObjectIdDuplicates(users)
-      .filter((userId) => candidateUserIds.some(equalsObjectId(userId)))
-      .filter(
-        (userId) =>
-          users.findIndex(equalsObjectId(userId)) !==
-          users.findLastIndex(equalsObjectId(userId)) // 두 값이 다르면 중복된 값이 존재
-      )
-  );
-  const multiplePartUserIds = removeObjectIdDuplicates(
-    multiplePartUserIdsByDay.reduce(
-      (array, userIds) => array.concat(userIds),
-      []
-    )
-  );
+  const multiplePartUserIdsByDay = rooms.map(
+    ({ users }) =>
+      removeObjectIdDuplicates(users)
+        .filter((userId) => candidateUserIds.some(equalsObjectId(userId))) // 후보자
+        .filter(
+          (userId) =>
+            users.findIndex(equalsObjectId(userId)) !==
+            users.findLastIndex(equalsObjectId(userId)) // 두 값이 다르면 중복된 값이 존재
+        ) // 하루에 2번 이상 탑승한 사용자
+  ); // 날짜별로 하루에 2번 이상 탑승한 후보자만 필터링
   const multiplePartRooms = await Promise.all(
     rooms.map(
       async ({ roomIds }, index) =>
@@ -113,6 +108,12 @@ const detectMultiplePartUsers = async (period, candidateUserIds) => {
             $elemMatch: { user: { $in: multiplePartUserIdsByDay[index] } },
           },
         })
+    )
+  ); // 날짜별로 하루에 2번 이상 탑승한 후보자가 참여한 방들을 필터링
+  const multiplePartUserIds = removeObjectIdDuplicates(
+    multiplePartUserIdsByDay.reduce(
+      (array, userIds) => array.concat(userIds),
+      []
     )
   );
 
@@ -164,7 +165,7 @@ const detectLessChatUsers = async (period, candidateUserIds) => {
         parts,
       };
     })
-  );
+  ); // 방 정보에 기반하여 추가적으로 필터링
   const lessChatUserIds = removeObjectIdDuplicates(
     lessChatRooms.reduce(
       (array, day) => (day ? array.concat(day.parts) : array),
