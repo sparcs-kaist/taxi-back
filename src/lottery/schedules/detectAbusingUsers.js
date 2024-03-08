@@ -87,22 +87,36 @@ const detectMultiplePartUsers = async (period, candidateUserIds) => {
       },
     }, // 날짜별로 방 참여자들의 목록을 병합
   ]);
+  const multiplePartUserIdsByDay = rooms.map(({ users }) =>
+    removeObjectIdDuplicates(users)
+      .filter((userId) => candidateUserIds.some(equalsObjectId(userId)))
+      .filter(
+        (userId) =>
+          users.findIndex(equalsObjectId(userId)) !==
+          users.findLastIndex(equalsObjectId(userId)) // 두 값이 다르면 중복된 값이 존재
+      )
+  );
   const multiplePartUserIds = removeObjectIdDuplicates(
-    rooms.reduce(
-      (array, { users }) =>
-        array.concat(
-          removeObjectIdDuplicates(users).filter(
-            (userId) =>
-              candidateUserIds.some(equalsObjectId(userId)) &&
-              users.findIndex(equalsObjectId(userId)) !==
-                users.findLastIndex(equalsObjectId(userId)) // 두 값이 다르면 중복된 값이 존재
-          )
-        ),
+    multiplePartUserIdsByDay.reduce(
+      (array, userIds) => array.concat(userIds),
       []
     )
   );
+  const multiplePartRooms = await Promise.all(
+    rooms.map(
+      async ({ roomIds }, index) =>
+        await roomModel.find({
+          _id: {
+            $in: roomIds,
+          },
+          part: {
+            $elemMatch: { user: { $in: multiplePartUserIdsByDay[index] } },
+          },
+        })
+    )
+  );
 
-  return { rooms, multiplePartUserIds };
+  return { multiplePartRooms, multiplePartUserIds };
 };
 
 // 기준 3. 채팅 개수가 5개 미만인 방에 속한 사용자
@@ -196,10 +210,8 @@ module.exports = async () => {
       period,
       candidateUserIds
     );
-    const { rooms, multiplePartUserIds } = await detectMultiplePartUsers(
-      period,
-      candidateUserIds
-    );
+    const { multiplePartRooms, multiplePartUserIds } =
+      await detectMultiplePartUsers(period, candidateUserIds);
     const { lessChatRooms, lessChatUserIds } = await detectLessChatUsers(
       period,
       candidateUserIds
@@ -218,7 +230,7 @@ module.exports = async () => {
     notifyAbuseDetectionResultToReportChannel(
       abusingUserIds,
       reportedUserIds,
-      rooms,
+      multiplePartRooms,
       multiplePartUserIds,
       lessChatRooms,
       lessChatUserIds
