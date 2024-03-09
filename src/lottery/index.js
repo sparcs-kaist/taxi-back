@@ -13,9 +13,13 @@ const {
 } = require("./modules/items");
 
 const { eventConfig } = require("../../loadenv");
+const contracts = eventConfig && require("./modules/contracts");
 
 // [Routes] 기존 docs 라우터의 docs extend
 eventConfig && require("./routes/docs")();
+
+// [Schedule] 스케줄러 시작
+eventConfig && require("./schedules")();
 
 const lotteryRouter = express.Router();
 
@@ -23,25 +27,25 @@ const lotteryRouter = express.Router();
 lotteryRouter.use(require("../middlewares/originValidator"));
 
 // [Router] APIs
-lotteryRouter.use("/global-state", require("./routes/globalState"));
+lotteryRouter.use("/globalState", require("./routes/globalState"));
+lotteryRouter.use("/invite", require("./routes/invite"));
 lotteryRouter.use("/transactions", require("./routes/transactions"));
 lotteryRouter.use("/items", require("./routes/items"));
-lotteryRouter.use("/public-notice", require("./routes/publicNotice"));
+lotteryRouter.use("/publicNotice", require("./routes/publicNotice"));
 lotteryRouter.use("/quests", require("./routes/quests"));
 
-const itemResource = buildResource([
-  addOneItemStockAction,
-  addFiveItemStockAction,
-])(itemModel);
-const otherResources = [eventStatusModel, questModel, transactionModel].map(
-  buildResource()
-);
-
-const contracts =
-  eventConfig && require(`./modules/contracts/${eventConfig.mode}`);
+// [AdminJS] AdminJS에 표시할 Resource 생성
+const resources =
+  (eventConfig && [
+    buildResource()(eventStatusModel),
+    buildResource()(questModel),
+    buildResource([addOneItemStockAction, addFiveItemStockAction])(itemModel),
+    buildResource()(transactionModel),
+  ]) ||
+  [];
 
 module.exports = {
   lotteryRouter,
-  resources: [itemResource, ...otherResources],
   contracts,
+  resources,
 };

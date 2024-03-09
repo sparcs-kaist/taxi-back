@@ -1,4 +1,3 @@
-const { roomsSchema } = require("./roomsSchema");
 const { objectIdPattern, roomsPattern } = require("./utils");
 
 const tag = "rooms";
@@ -74,13 +73,18 @@ roomsDocs[`${apiPrefix}/create`] = {
             examples: {
               "출발지와 도착지가 같음": {
                 value: {
-                  error: "Room/create : locations are same",
+                  error: "Rooms/create : locations are same",
                 },
               },
               "현재로부터 2주일보다 이후의 방을 생성": {
                 value: {
                   error:
-                    "Room/create : cannot over 2 weeks on the basis of current Date",
+                    "Rooms/create : cannot over 2 weeks on the basis of current Date",
+                },
+              },
+              "설정된 출발 시각 이후에 방을 생성": {
+                value: {
+                  error: "Rooms/create : invalid timestamp",
                 },
               },
               "존재하지 않는 location Document를 입력": {
@@ -306,12 +310,12 @@ roomsDocs[`${apiPrefix}/join`] = {
               },
               "입력한 시간의 방이 이미 출발함": {
                 value: {
-                  error: "Room/join : The room has already departed",
+                  error: "Rooms/join : The room has already departed",
                 },
               },
               "방의 인원이 모두 찼음": {
                 value: {
-                  error: "Room/join : The room is already full",
+                  error: "Rooms/join : The room is already full",
                 },
               },
             },
@@ -590,12 +594,12 @@ roomsDocs[`${apiPrefix}/search`] = {
             examples: {
               "출발지와 도착지가 같음": {
                 value: {
-                  error: "Room/search : Bad request",
+                  error: "Rooms/search : Bad request",
                 },
               },
               "출발/도착지가 존재하지 않는 장소": {
                 value: {
-                  error: "Room/search : no corresponding locations",
+                  error: "Rooms/search : no corresponding locations",
                 },
               },
             },

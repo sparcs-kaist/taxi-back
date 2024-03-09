@@ -4,10 +4,10 @@ const {
   roomModel,
 } = require("../modules/stores/mongo");
 const { reportPopulateOption } = require("../modules/populates/reports");
-const { sendReportEmail } = require("../modules/stores/aws");
+const { sendReportEmail } = require("../modules/email");
 const logger = require("../modules/logger");
 const emailPage = require("../views/emailNoSettlementPage");
-const { notifyToReportChannel } = require("../modules/slackNotification");
+const { notifyReportToReportChannel } = require("../modules/slackNotification");
 
 const createHandler = async (req, res) => {
   try {
@@ -40,7 +40,7 @@ const createHandler = async (req, res) => {
 
     await report.save();
 
-    notifyToReportChannel(user.nickname, report);
+    notifyReportToReportChannel(user.nickname, report);
 
     if (report.type === "no-settlement") {
       const emailRoomName = room ? room.name : "";
