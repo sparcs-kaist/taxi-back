@@ -11,6 +11,7 @@ class NodemailerTransport {
 
   constructor() {
     this.#transporter = nodemailer.createTransport({
+      name: "sparcs.org",
       host: "smtp-relay.gmail.com",
       secure: false,
       port: 587,
