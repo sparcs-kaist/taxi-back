@@ -12,7 +12,7 @@ class NodemailerTransport {
   constructor() {
     this.#transporter = nodemailer.createTransport({
       host: "smtp-relay.gmail.com",
-      secure: true,
+      secure: false,
       port: 587,
     });
   }
