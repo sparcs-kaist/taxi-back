@@ -46,22 +46,18 @@ module.exports.getUploadPUrlPut = async (
 
 // function to generate signed-url for upload(POST)
 module.exports.getUploadPUrlPost = async (filePath, contentType) => {
-  try {
-    const presignedUrl = await getSignedUrl(
-      s3,
-      new PutObjectCommand({
-        Bucket: awsEnv.s3BucketName,
-        Key: filePath,
-        contentType: contentType,
-      }),
-      {
-        expiresIn: 60,
-      }
-    );
-    return presignedUrl;
-  } catch (e) {
-    return e;
-  }
+  const presignedUrl = await getSignedUrl(
+    s3,
+    new PutObjectCommand({
+      Bucket: awsEnv.s3BucketName,
+      Key: filePath,
+      contentType: contentType,
+    }),
+    {
+      expiresIn: 60,
+    }
+  );
+  return presignedUrl;
 };
 
 // function to delete object
