@@ -2,14 +2,15 @@ const { aws: awsEnv } = require("../../../loadenv");
 
 const logger = require("../logger");
 // Load the AWS-SDK and s3
-const AWS = require("aws-sdk");
-AWS.config.update({
-  region: "ap-northeast-2",
-  signatureVersion: "v4",
-});
+const { getSignedUrl } = require("@aws-sdk/s3-request-presigner");
+const { PutObjectCommand, S3 } = require("@aws-sdk/client-s3");
+const { SES } = require("@aws-sdk/client-ses");
 
-const s3 = new AWS.S3({ apiVersion: "2006-03-01" });
-const ses = new AWS.SES({ apiVersion: "2010-12-01" });
+const s3 = new S3({
+  apiVersion: "2006-03-01",
+  region: "ap-northeast-2",
+});
+const ses = new SES({ apiVersion: "2010-12-01", region: "ap-northeast-2" });
 
 // function to list Object
 module.exports.getList = (directoryPath, cb) => {
@@ -25,32 +26,38 @@ module.exports.getList = (directoryPath, cb) => {
 };
 
 // function to generate signed-url for upload(PUT)
-module.exports.getUploadPUrlPut = (filePath, contentType = "image/png") => {
-  const presignedUrl = s3.getSignedUrl("putObject", {
-    Bucket: awsEnv.s3BucketName,
-    Key: filePath,
-    ContentType: contentType,
-    Expires: 60, // 1 min
-  });
+module.exports.getUploadPUrlPut = async (
+  filePath,
+  contentType = "image/png"
+) => {
+  const presignedUrl = await getSignedUrl(
+    s3,
+    new PutObjectCommand({
+      Bucket: awsEnv.s3BucketName,
+      Key: filePath,
+      ContentType: contentType,
+    }),
+    {
+      expiresIn: 60,
+    }
+  );
   return presignedUrl;
 };
 
 // function to generate signed-url for upload(POST)
-module.exports.getUploadPUrlPost = (filePath, contentType, cb) => {
-  s3.createPresignedPost(
-    {
+module.exports.getUploadPUrlPost = async (filePath, contentType) => {
+  const presignedUrl = await getSignedUrl(
+    s3,
+    new PutObjectCommand({
       Bucket: awsEnv.s3BucketName,
-      Expires: 60, // 1 min
-      Conditions: [
-        { key: filePath },
-        ["eq", "$Content-Type", contentType],
-        ["content-length-range", 1, 2 * 1024 * 1024], // Maximum file size is 2MB
-      ],
-    },
-    (err, data) => {
-      cb(err, data);
+      Key: filePath,
+      contentType: contentType,
+    }),
+    {
+      expiresIn: 60,
     }
   );
+  return presignedUrl;
 };
 
 // function to delete object

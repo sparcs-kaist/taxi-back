@@ -105,19 +105,8 @@ const editProfileImgGetPUrlHandler = async (req, res) => {
         .send("Users/editProfileImg/getPUrl : internal server error");
     }
     const key = `profile-img/${user._id}`;
-    aws.getUploadPUrlPost(key, type, (err, data) => {
-      if (err) {
-        return res
-          .status(500)
-          .send("Users/editProfileImg/getPUrl : internal server error");
-      }
-      data.fields["Content-Type"] = type;
-      data.fields["key"] = key;
-      res.json({
-        url: data.url,
-        fields: data.fields,
-      });
-    });
+    const data = await aws.getUploadPUrlPost(key, type);
+    res.json({ url: data });
   } catch (e) {
     res
       .status(500)
