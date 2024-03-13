@@ -12,8 +12,8 @@ router.get(
   "/getTaxiFare",
   async (req, res, next) => {
     req.locations = (
-      await locationModel.find({ isValid: { $ne: false } }, "koName")
-    ).map((location) => location.koName);
+      await locationModel.find({ isValid: { $ne: false } }, "_id")
+    ).map((location) => location._id);
     next();
   },
   query("start").custom((value, { req }) => {
