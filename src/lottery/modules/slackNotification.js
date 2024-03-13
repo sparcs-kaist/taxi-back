@@ -12,7 +12,7 @@ const generateContent = (name, userIds, roomIds = []) => {
 const notifyAbuseDetectionResultToReportChannel = (
   abusingUserIds,
   reportedUserIds,
-  rooms,
+  multiplePartRooms,
   multiplePartUserIds,
   lessChatRooms,
   lessChatUserIds
@@ -35,7 +35,10 @@ const notifyAbuseDetectionResultToReportChannel = (
   const strMultiplePartUsers = generateContent(
     "하루에 탑승 기록이 많은 사용자",
     multiplePartUserIds,
-    rooms.reduce((array, { roomIds }) => array.concat(roomIds), [])
+    multiplePartRooms.reduce(
+      (array, rooms) => array.concat(rooms.map((room) => room._id)),
+      []
+    )
   );
   const strLessChatUsers = generateContent(
     "채팅 개수가 5개 미만인 방에 속한 사용자",
