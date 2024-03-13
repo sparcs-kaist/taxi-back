@@ -1,5 +1,5 @@
 // 환경 변수에 따라 .env.production 또는 .env.development 파일을 읽어옴
-require("dotenv").config({ path: `./.env.${process.env.NODE_ENV}` });
+require("dotenv").config({ path: `./.env.development` });
 
 module.exports = {
   nodeEnv: process.env.NODE_ENV, // required ("production" or "development" or "test")

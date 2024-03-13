@@ -92,9 +92,9 @@ const initDatabase = async (req, res) => {
         await taxiFareModel.insertMany(tableFare);
       });
     });
-    res.state(200).json({ message: "TaxiFare Database initialized" });
+    res.status(200).send("TaxiFare Database initialized");
   } catch (err) {
-    res.status(500).json({ error: "Failed with exception " + err.message });
+    res.status(500).json({ error: "fare/init: TaxiFare Database failed" });
   }
 };
 
@@ -115,15 +115,18 @@ const getTaxiFare = async (req, res) => {
     const goal = await locationModel
       .findOne({ _id: { $eq: req.query.goal } })
       .clone();
-    const time = new Date(req.query.time);
-    const sTime = scaledTime(time); // Scaled Time
+    const sTime = scaledTime(new Date(req.query.time));
+
+    if (!start || !goal) {
+      res.status(400).json({ error: "fare/getTaxiFare: Wrong location" });
+    }
 
     // 카이스트 본원 <-> 대전역
     if (
       (start.koName === "카이스트 본원" && goal.koName === "대전역") ||
       (start.koName === "대전역" && goal.koName === "카이스트 본원")
     ) {
-      let taxiFare = await taxiFareModel
+      const taxiFare = await taxiFareModel
         .findOne(
           {
             start: start._id,
@@ -141,20 +144,22 @@ const getTaxiFare = async (req, res) => {
         .clone();
       //만일 cron이 아직 돌지 않은 상태의 시간대의 정보를 필요로하는 비상시의 경우 대비
       if (!taxiFare || taxiFare.fare === 0) {
-        let response = await axios.get(
-          `${naverCloudApiCall + start.longitude + "," + start.latitude}&goal=${
-            goal.longitude + "," + goal.latitude
-          }&options=traoptimal`,
-          { headers: naverCloudApi }
-        );
-        res.json({ fare: response.data.route.traoptimal[0].summary.taxiFare });
+        const fare = (
+          await axios.get(
+            `${
+              naverCloudApiCall + start.longitude + "," + start.latitude
+            }&goal=${goal.longitude + "," + goal.latitude}&options=traoptimal`,
+            { headers: naverCloudApi }
+          )
+        ).data.route.traoptimal[0].summary.taxiFare;
+        res.status(200).send(fare);
       } else {
-        res.json({ fare: taxiFare.fare });
+        res.status(200).send(taxiFare.fare);
       }
     }
     // 카이스트 본원 <-> 대전역이 아닌 경우
     else {
-      let taxiFare = await taxiFareModel
+      const taxiFare = await taxiFareModel
         .findOne(
           {
             start: start._id,
@@ -172,20 +177,24 @@ const getTaxiFare = async (req, res) => {
         .clone();
       //만일 cron이 아직 돌지 않은 상태의 시간대의 정보를 필요로하는 비상시의 경우 대비
       if (!taxiFare || taxiFare.fare === 0) {
-        let response = await axios.get(
-          `${naverCloudApiCall + start.longitude + "," + start.latitude}&goal=${
-            goal.longitude + "," + goal.latitude
-          }&options=traoptimal`,
-          { headers: naverCloudApi }
-        );
-        res.json({ fare: response.data.route.traoptimal[0].summary.taxiFare });
+        const fare = (
+          await axios.get(
+            `${
+              naverCloudApiCall + start.longitude + "," + start.latitude
+            }&goal=${goal.longitude + "," + goal.latitude}&options=traoptimal`,
+            { headers: naverCloudApi }
+          )
+        ).data.route.traoptimal[0].summary.taxiFare;
+        res.status(200).send(fare);
       } else {
-        res.json({ fare: taxiFare.fare });
+        res.status(200).send(taxiFare.fare);
       }
     }
   } catch (err) {
     logger.error("Failed with exception: " + err.message);
-    res.status(500).json({ error: "Failed with exception: " + err.message });
+    res
+      .status(500)
+      .json({ error: "fare/getTaxiFare: Failed to load taxi fare" });
   }
 };
 
