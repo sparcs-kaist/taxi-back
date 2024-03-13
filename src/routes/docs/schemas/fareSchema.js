@@ -3,13 +3,13 @@ const { objectIdPattern } = require("../utils");
 const fareSchema = {
   getTaxiFare: {
     type: "object",
-    required: ["start", "goal", "time"],
+    required: ["from", "to", "time"],
     properties: {
-      start: {
+      from: {
         type: "string",
         format: objectIdPattern,
       },
-      goal: {
+      to: {
         type: "string",
         format: objectIdPattern,
       },

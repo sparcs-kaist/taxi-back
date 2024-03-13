@@ -45,8 +45,8 @@ fareDocs[`${apiPrefix}/getTaxiFare`] = {
           schema: {
             type: "object",
             properties: {
-              start: { type: "string", pattern: objectIdPattern },
-              goal: { type: "string", pattern: objectIdPattern },
+              from: { type: "string", pattern: objectIdPattern },
+              to: { type: "string", pattern: objectIdPattern },
               time: { type: "string", format: "date-time" },
             },
           },
