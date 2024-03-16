@@ -1,4 +1,4 @@
-const { objectIdPattern, roomsPattern } = require("./utils");
+const { objectId, room } = require("../../modules/patterns");
 
 const tag = "rooms";
 const apiPrefix = "/rooms";
@@ -18,18 +18,18 @@ roomsDocs[`${apiPrefix}/create`] = {
             properties: {
               name: {
                 type: "string",
-                pattern: roomsPattern.rooms.name,
+                pattern: room.name.source,
                 description: `방 이름<br/>
                 1~50 글자로 구성되며 영어 대소문자, 숫자, 한글, 특정 특수기호("-", ",", ".", "?", "!", "_")만 가능`,
               },
               from: {
                 type: "string",
-                pattern: roomsPattern.rooms.from,
+                pattern: objectId.source,
                 description: "출발지 location Document의 ObjectId",
               },
               to: {
                 type: "string",
-                pattern: roomsPattern.rooms.to,
+                pattern: objectId.source,
                 description: "도착지 location Document의 ObjectId",
               },
               time: {
@@ -135,7 +135,7 @@ roomsDocs[`${apiPrefix}/publicInfo`] = {
         name: "id",
         schema: {
           type: "string",
-          pattern: objectIdPattern,
+          pattern: objectId.source,
         },
         description: "찾고 싶은 방의 Object id",
       },
@@ -202,7 +202,7 @@ roomsDocs[`${apiPrefix}/info`] = {
         name: "id",
         schema: {
           type: "string",
-          pattern: objectIdPattern,
+          pattern: objectId.source,
         },
         description: "찾고 싶은 방의 Object id",
       },
@@ -273,7 +273,7 @@ roomsDocs[`${apiPrefix}/join`] = {
             properties: {
               roomId: {
                 type: "string",
-                pattern: objectIdPattern,
+                pattern: objectId.source,
               },
             },
           },
@@ -384,7 +384,7 @@ roomsDocs[`${apiPrefix}/abort`] = {
             properties: {
               roomId: {
                 type: "string",
-                pattern: objectIdPattern,
+                pattern: objectId.source,
               },
             },
           },
@@ -509,7 +509,7 @@ roomsDocs[`${apiPrefix}/search`] = {
         name: "from",
         schema: {
           type: "string",
-          pattern: objectIdPattern,
+          pattern: objectId.source,
         },
         description: `출발지 Document의 ObjectId<br/>
         주어진 경우 출발지가 일치하는 방들만 반환.<br/>
@@ -520,7 +520,7 @@ roomsDocs[`${apiPrefix}/search`] = {
         name: "to",
         schema: {
           type: "string",
-          pattern: objectIdPattern,
+          pattern: objectId.source,
         },
         description: `도착지 Document의 ObjectId<br/>
         주어진 경우 도착지가 일치하는 방들만 반환.<br/>
@@ -698,7 +698,7 @@ roomsDocs[`${apiPrefix}/commitPayment`] = {
             properties: {
               roomId: {
                 type: "string",
-                pattern: objectIdPattern,
+                pattern: objectId.source,
               },
             },
           },
@@ -772,7 +772,7 @@ roomsDocs[`${apiPrefix}/commitSettlement`] = {
             properties: {
               roomId: {
                 type: "string",
-                pattern: objectIdPattern,
+                pattern: objectId.source,
               },
             },
           },
