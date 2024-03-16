@@ -21,6 +21,7 @@ roomsDocs[`${apiPrefix}/create`] = {
                 pattern: room.name.source,
                 description: `방 이름<br/>
                 1~50 글자로 구성되며 영어 대소문자, 숫자, 한글, 특정 특수기호("-", ",", ".", "?", "!", "_")만 가능`,
+                example: "함께 타는 택시의 여유",
               },
               from: {
                 type: "string",
