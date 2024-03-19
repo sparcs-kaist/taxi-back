@@ -1,5 +1,7 @@
 const express = require("express");
 const { query, body } = require("express-validator");
+const { validateBody } = require("../middlewares/zod");
+const { roomsZod } = require("./docs/schemas/roomsSchema");
 const router = express.Router();
 
 const roomHandlers = require("../services/rooms");
@@ -94,16 +96,14 @@ router.get("/searchByUser", roomHandlers.searchByUserHandler);
 // 해당 방에 요청을 보낸 유저의 정산을 처리한다.
 router.post(
   "/commitSettlement",
-  body("roomId").isMongoId(),
-  validator,
+  validateBody(roomsZod.commitSettlement),
   roomHandlers.commitSettlementHandler
 );
 
 // 해당 방에 요청을 보낸 유저의 송금을 처리한다.
 router.post(
   "/commitPayment",
-  body("roomId").isMongoId(),
-  validator,
+  validateBody(roomsZod.commitPayment),
   roomHandlers.commitPaymentHandler
 );
 
