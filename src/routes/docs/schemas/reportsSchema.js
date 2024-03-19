@@ -1,34 +1,19 @@
-const { objectIdPattern } = require("../utils");
+const { z } = require("zod");
+const { zodToSchemaObject } = require("../utils");
+const { objectId } = require("../../../modules/patterns");
 
-const reportsSchema = {
-  createHandler: {
-    type: "object",
-    required: ["reportedId", "type", "time", "roomId"],
-    properties: {
-      reportedId: {
-        type: "string",
-        pattern: objectIdPattern,
-      },
-      type: {
-        type: "string",
-        enum: ["no-settlement", "no-show", "etc-reason"],
-      },
-      etcDetail: {
-        type: "string",
-        maxLength: 30,
-        default: "",
-      },
-      time: {
-        type: "string",
-        format: "date-time",
-      },
-      roomId: {
-        type: "string",
-        pattern: "^[a-fA-F\\d]{24}$",
-      },
-    },
-    errorMessage: "validation: bad request",
-  },
+const reportsZod = {
+  createHandler: z
+    .object({
+      reportedId: z.string().regex(objectId),
+      type: z.enum(["no-settlement", "no-show", "etc-reason"]),
+      etcDetail: z.string().max(30).default(""),
+      time: z.string().datetime(),
+      roomId: z.string().regex(objectId),
+    })
+    .partial({ etcDetail: true }),
 };
 
-module.exports = reportsSchema;
+const reportsSchema = zodToSchemaObject(reportsZod);
+
+module.exports = { reportsSchema, reportsZod };
