@@ -1,10 +1,9 @@
 const express = require("express");
 
 const router = express.Router();
+// TODO: 추후 코드 재사용시 상황에 맞춰 zod로 이전이 필요합니다.
 const itemsHandlers = require("../services/items");
-
-const { validateParams } = require("../../middlewares/ajv");
-const itemsSchema = require("./docs/itemsSchema");
+const itemsSchema = require("./docs/schemas/itemsSchema");
 
 // 아래의 Endpoint는 2024 봄학기 이벤트에서 사용되지 않습니다.
 //

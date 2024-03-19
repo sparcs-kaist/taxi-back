@@ -1,22 +1,21 @@
-const Ajv = require("ajv");
-const ajvErrors = require("ajv-errors");
-const { default: addFormats } = require("ajv-formats");
+const logger = require("../modules/logger");
 
-const ajv = new Ajv({ verbose: true, allErrors: true });
-addFormats(ajv);
-ajvErrors(ajv);
-
-const parseAjvErrors = (errors, res) => {
+const parseZodErrors = (statusCode, errors, res) => {
   const error_message = errors;
-  res.status(400).send(error_message);
+  res.status(statusCode).send(error_message);
 };
 
 const validate = (schema, req, res) => {
-  const validate = ajv.compile(schema);
-  if (validate(req)) {
-    return true;
-  } else {
-    parseAjvErrors(validate.errors[0].message, res);
+  try {
+    const result = schema.safeParse(req);
+    if (result.success) {
+      return true;
+    } else {
+      parseZodErrors(400, result.error.issues[0].message, res);
+    }
+  } catch (err) {
+    logger.error(err);
+    parseZodErrors(400, err, res);
   }
 };
 

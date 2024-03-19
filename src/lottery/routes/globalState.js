@@ -1,9 +1,8 @@
 const express = require("express");
-
+const { validateBody } = require("../../middlewares/zod");
+const { globalStateZod } = require("./docs/schemas/globalStateSchema");
 const router = express.Router();
 const globalStateHandlers = require("../services/globalState");
-const { validateBody } = require("../../middlewares/ajv");
-const globalStateSchema = require("./docs/globalStateSchema");
 
 router.get("/", globalStateHandlers.getUserGlobalStateHandler);
 
@@ -13,7 +12,7 @@ router.use(require("../middlewares/timestampValidator"));
 
 router.post(
   "/create",
-  validateBody(globalStateSchema.createUserGlobalStateHandler),
+  validateBody(globalStateZod.createUserGlobalStateHandler),
   globalStateHandlers.createUserGlobalStateHandler
 );
 

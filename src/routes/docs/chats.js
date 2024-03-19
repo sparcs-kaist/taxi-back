@@ -1,4 +1,4 @@
-const { objectIdPattern } = require("./utils");
+const { objectId } = require("../../modules/patterns");
 
 const tag = "chats";
 const apiPrefix = "/chats";
@@ -17,7 +17,7 @@ chatsDocs[`${apiPrefix}`] = {
             properties: {
               roomId: {
                 type: "string",
-                pattern: objectIdPattern,
+                pattern: objectId.source,
                 description: "채팅을 보내는 방의 id",
               },
             },
@@ -77,7 +77,7 @@ chatsDocs[`${apiPrefix}/load/before`] = {
             properties: {
               roomId: {
                 type: "string",
-                pattern: objectIdPattern,
+                pattern: objectId.source,
                 description: "채팅을 보내는 방의 id",
               },
               lastMsgDate: {
@@ -145,7 +145,7 @@ chatsDocs[`${apiPrefix}/load/after`] = {
             properties: {
               roomId: {
                 type: "string",
-                pattern: objectIdPattern,
+                pattern: objectId.source,
                 description: "채팅을 보내는 방의 id",
               },
               lastMsgDate: {
@@ -226,7 +226,7 @@ chatsDocs[`${apiPrefix}/send`] = {
             properties: {
               roomId: {
                 type: "string",
-                pattern: objectIdPattern,
+                pattern: objectId.source,
                 description: "채팅을 보내는 방의 id",
               },
               type: {
@@ -311,7 +311,7 @@ chatsDocs[`${apiPrefix}/read`] = {
             properties: {
               roomId: {
                 type: "string",
-                pattern: objectIdPattern,
+                pattern: objectId.source,
                 description: "채팅을 보내는 방의 id",
               },
             },
@@ -382,7 +382,7 @@ chatsDocs[`${apiPrefix}/uploadChatImg/getPUrl`] = {
             properties: {
               roomId: {
                 type: "string",
-                pattern: objectIdPattern,
+                pattern: objectId.source,
                 description: "채팅 이미지를 보내는 방의 id",
               },
               type: {
@@ -404,7 +404,7 @@ chatsDocs[`${apiPrefix}/uploadChatImg/getPUrl`] = {
               properties: {
                 id: {
                   type: "string",
-                  pattern: objectIdPattern,
+                  pattern: objectId.source,
                   description: "생성된 chat Document의 object id",
                 },
                 url: {
@@ -468,7 +468,7 @@ chatsDocs[`${apiPrefix}/uploadChatImg/done`] = {
             properties: {
               roomId: {
                 type: "string",
-                pattern: objectIdPattern,
+                pattern: objectId.source,
                 description: "채팅 이미지를 보내는 방의 id",
               },
             },
