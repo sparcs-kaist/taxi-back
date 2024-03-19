@@ -5,10 +5,10 @@ const publicNoticeDocs = require("./publicNotice");
 const questsDocs = require("./quests");
 const transactionsDocs = require("./transactions");
 
-const globalStateSchema = require("./globalStateSchema");
-const inviteSchema = require("./inviteSchema");
-const itemsSchema = require("./itemsSchema");
-const questsSchema = require("./questsSchema");
+const { globalStateSchema } = require("./schemas/globalStateSchema");
+const { inviteSchema } = require("./schemas/inviteSchema");
+const itemsSchema = require("./schemas/itemsSchema");
+const { questsSchema } = require("./schemas/questsSchema");
 
 const { eventConfig } = require("../../../../loadenv");
 const apiPrefix = `/events/${eventConfig?.mode}`;
