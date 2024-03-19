@@ -128,7 +128,6 @@ const sendReportEmail = async (reportedEmail, report, html) => {
 
   return transporter.sendMail({
     from: "taxi@sparcs.org",
-    cc: "taxi@sparcs.org",
     to: reportedEmail,
     subject: `[SPARCS TAXI] 신고가 접수되었습니다 (사유: ${
       reportTypeMap[report.type]
