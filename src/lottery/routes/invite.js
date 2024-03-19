@@ -1,14 +1,12 @@
 const express = require("express");
-
+const { validateParams } = require("../../middlewares/zod");
+const { inviteZod } = require("./docs/schemas/inviteSchema");
 const router = express.Router();
 const inviteHandlers = require("../services/invite");
 
-const { validateParams } = require("../../middlewares/ajv");
-const inviteSchema = require("./docs/inviteSchema");
-
 router.get(
   "/search/:inviter",
-  validateParams(inviteSchema.searchInviterHandler),
+  validateParams(inviteZod.searchInviterHandler),
   inviteHandlers.searchInviterHandler
 );
 
