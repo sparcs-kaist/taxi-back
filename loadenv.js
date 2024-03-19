@@ -2,7 +2,7 @@
 require("dotenv").config({ path: `./.env.${process.env.NODE_ENV}` });
 
 module.exports = {
-  nodeEnv: process.env.NODE_ENV, // required
+  nodeEnv: process.env.NODE_ENV, // required ("production" or "development" or "test")
   mongo: process.env.DB_PATH, // required
   session: {
     secret: process.env.SESSION_KEY || "TAXI_SESSION_KEY", // optional
@@ -43,5 +43,16 @@ module.exports = {
   slackWebhookUrl: {
     report: process.env.SLACK_REPORT_WEBHOOK_URL || "", // optional
   },
-  eventConfig: process.env.EVENT_CONFIG && JSON.parse(process.env.EVENT_CONFIG), // optional
+  eventConfig: (process.env.EVENT_CONFIG &&
+    JSON.parse(process.env.EVENT_CONFIG)) || {
+    mode: "2024spring",
+    credit: {
+      name: "넙죽코인",
+      initialAmount: 0,
+    },
+    period: {
+      startAt: "2024-02-23T00:00:00+09:00",
+      endAt: "2024-03-19T00:00:00+09:00",
+    },
+  }, // optional
 };

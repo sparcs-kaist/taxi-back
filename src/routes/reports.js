@@ -1,6 +1,6 @@
 const express = require("express");
-const reportsSchema = require("./docs/reportsSchema");
-const { validateBody } = require("../middlewares/ajv");
+const { validateBody } = require("../middlewares/zod");
+const { reportsZod } = require("./docs/schemas/reportsSchema");
 const router = express.Router();
 const reportHandlers = require("../services/reports");
 
@@ -9,7 +9,7 @@ router.use(require("../middlewares/auth"));
 
 router.post(
   "/create",
-  validateBody(reportsSchema.createHandler),
+  validateBody(reportsZod.createHandler),
   reportHandlers.createHandler
 );
 

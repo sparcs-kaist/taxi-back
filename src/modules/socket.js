@@ -247,7 +247,9 @@ const startSocketServer = (server) => {
     try {
       const req = socket.request;
       req.session.reload((err) => {
-        if (err) throw err;
+        if (err) {
+          return socket.disconnect();
+        }
 
         const { oid: userOid } = getLoginInfo(req);
         if (!userOid) return;
