@@ -24,9 +24,7 @@ const initDatabase = async (req, res) => {
     // Remove all previous data
     await taxiFareModel.deleteMany({});
 
-    const location = await locationModel
-      .find({ isValid: { $ne: false } })
-      .toArray();
+    const location = await locationModel.find({ isValid: { $eq: true } });
 
     location.map((from) => {
       location.map(async (to) => {
@@ -72,12 +70,21 @@ const initDatabase = async (req, res) => {
         }
         // 카이스트 본원 <-> 대전역외의 경로(238개)에 대해서는 7개(일주일) 씩 collection 지정 설정
         else {
+          const fare = (
+            await axios.get(
+              `${
+                naverCloudApiCall + from.longitude + "," + from.latitude
+              }&goal=${to.longitude + "," + to.latitude}&options=traoptimal`,
+              { headers: naverCloudApi }
+            )
+          ).data.route.traoptimal[0].summary.taxiFare;
+          setTimeout(() => {}, 100);
           [...Array(7)].map((_, i) => {
             tableFare.push({
               from: from,
               to: to,
               time: i * 48,
-              fare: 0,
+              fare: fare,
               isMajor: false,
             });
           });
@@ -111,7 +118,9 @@ const getTaxiFare = async (req, res) => {
     const sTime = scaledTime(new Date(req.query.time));
 
     if (!from || !to) {
+      console.log("asds");
       res.status(400).json({ error: "fare/getTaxiFare: Wrong location" });
+      return;
     }
 
     // 카이스트 본원 <-> 대전역
@@ -119,13 +128,13 @@ const getTaxiFare = async (req, res) => {
       (from.koName === "카이스트 본원" && to.koName === "대전역") ||
       (from.koName === "대전역" && to.koName === "카이스트 본원")
     ) {
+      console.log("asds");
       const taxiFare = await taxiFareModel
         .findOne(
           {
             from: from._id,
             to: to._id,
             time: sTime,
-            isMajor: true,
           },
           function (err, docs) {
             if (err)
@@ -145,9 +154,9 @@ const getTaxiFare = async (req, res) => {
             { headers: naverCloudApi }
           )
         ).data.route.traoptimal[0].summary.taxiFare;
-        res.status(200).send(fare);
+        res.state(200).send(fare);
       } else {
-        res.status(200).send(taxiFare.fare);
+        res.state(200).send(taxiFare.fare);
       }
     }
     // 카이스트 본원 <-> 대전역이 아닌 경우
@@ -158,7 +167,6 @@ const getTaxiFare = async (req, res) => {
             from: from._id,
             to: to._id,
             time: 0,
-            isMajor: false,
           },
           function (err, docs) {
             if (err)
@@ -168,6 +176,7 @@ const getTaxiFare = async (req, res) => {
           }
         )
         .clone();
+      console.log(taxiFare.fare);
       //만일 cron이 아직 돌지 않은 상태의 시간대의 정보를 필요로하는 비상시의 경우 대비
       if (!taxiFare || taxiFare.fare === 0) {
         const fare = (
@@ -178,13 +187,13 @@ const getTaxiFare = async (req, res) => {
             { headers: naverCloudApi }
           )
         ).data.route.traoptimal[0].summary.taxiFare;
-        res.status(200).send(fare);
+        res.send(fare);
       } else {
-        res.status(200).send(taxiFare.fare);
+        res.send(taxiFare.fare);
       }
     }
   } catch (err) {
-    logger.error("Failed with exception: " + err.message);
+    logger.error(err.message);
     res
       .status(500)
       .json({ error: "fare/getTaxiFare: Failed to load taxi fare" });
@@ -199,11 +208,11 @@ const getTaxiFare = async (req, res) => {
  * @param {Boolean} isMajor - 카이스트 본원 <-> 대전역 여부
  */
 const updateTaxiFare = async (sTime, isMajor) => {
-  const prevFare = await taxiFareModel.findOne({
+  const prevFares = await taxiFareModel.find({
     time: sTime,
     isMajor: isMajor,
   });
-  prevFare.map(async (item) => {
+  prevFares.map(async (item) => {
     const from = await locationModel.findOne({ _id: item.from });
     const to = await locationModel.findOne({ _id: item.to });
     const fare = (
