@@ -13,7 +13,6 @@ const {
   deviceTokenModel,
   notificationOptionModel,
 } = require("@/modules/stores/mongo");
-const { eventConfig } = require("@/loadenv");
 const { buildResource } = require("@/modules/adminResource");
 
 const router = express.Router();
@@ -25,7 +24,7 @@ router.use(require("@/middlewares/auth"));
 // Registration of the mongoose adapter
 AdminJS.registerAdapter(AdminJSMongoose);
 
-const baseResources = [
+const resources = [
   userModel,
   roomModel,
   locationModel,
@@ -35,10 +34,9 @@ const baseResources = [
   adminLogModel,
   deviceTokenModel,
   notificationOptionModel,
-].map(buildResource());
-const resources = baseResources.concat(
-  eventConfig?.mode === "2023fall" ? require("../lottery").resources : []
-);
+]
+  .map(buildResource())
+  .concat(require("../lottery").resources);
 
 // Create router for admin page
 const adminJS = new AdminJS({ resources });

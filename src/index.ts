@@ -69,7 +69,7 @@ app.use(limitRateMiddleware);
 // [Router] Swagger (API 문서)
 app.use("/docs", docsRouter);
 
-// 2023 추석 이벤트 전용 라우터입니다.
+// [Router] 이벤트 전용 라우터입니다.
 // eventConfig &&
 //   app.use(`/events/${eventConfig.mode}`, require("@/lottery").lotteryRouter);
 

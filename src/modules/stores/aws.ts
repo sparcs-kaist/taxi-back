@@ -1,7 +1,5 @@
 import AWS from "aws-sdk";
 import { aws as awsEnv } from "@/loadenv";
-import logger from "@/modules/logger";
-import { type Report } from "@/types/mongo";
 
 AWS.config.update({
   region: "ap-northeast-2",
@@ -98,44 +96,4 @@ export const foundObject = (
 // function to return full URL of the object
 export const getS3Url = (filePath: string) => {
   return `${awsEnv.s3Url}${filePath}`;
-};
-
-export const sendReportEmail = (
-  reportedEmail: string,
-  report: Report,
-  html: string
-) => {
-  const reportTypeMap = {
-    "no-settlement": "정산을 하지 않음",
-    "no-show": "택시에 동승하지 않음",
-    "etc-reason": "기타 사유",
-  };
-
-  const params = {
-    Destination: {
-      ToAddresses: [reportedEmail],
-    },
-    Message: {
-      Body: {
-        Html: {
-          Data: html,
-        },
-      },
-      Subject: {
-        Charset: "UTF-8",
-        Data: `[SPARCS TAXI] 신고가 접수되었습니다 (사유: ${
-          reportTypeMap[report.type]
-        })`,
-      },
-    },
-    Source: "taxi.sparcs@gmail.com",
-  };
-
-  ses.sendEmail(params, (err) => {
-    if (err) {
-      logger.error("Fail to send email", err);
-    } else {
-      logger.info("Email sent successfully");
-    }
-  });
 };

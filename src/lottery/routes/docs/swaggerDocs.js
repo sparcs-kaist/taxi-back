@@ -1,28 +1,36 @@
 const globalStateDocs = require("./globalState");
+const inviteDocs = require("./invite");
 const itemsDocs = require("./items");
 const publicNoticeDocs = require("./publicNotice");
 const questsDocs = require("./quests");
 const transactionsDocs = require("./transactions");
 
-const itemsSchema = require("./itemsSchema");
-const globalStateSchema = require("./globalStateSchema");
-const questsSchema = require("./questsSchema");
+const { globalStateSchema } = require("./schemas/globalStateSchema");
+const { inviteSchema } = require("./schemas/inviteSchema");
+const itemsSchema = require("./schemas/itemsSchema");
+const { questsSchema } = require("./schemas/questsSchema");
 
 const { eventConfig } = require("../../../../loadenv");
-const apiPrefix = `/events/${eventConfig.mode}`;
+const apiPrefix = `/events/${eventConfig?.mode}`;
 
 const eventSwaggerDocs = {
   tags: [
     {
-      name: `${apiPrefix}/global-state`,
+      name: `${apiPrefix}/globalState`,
       description: "이벤트 - Global State 관련 API",
     },
     {
-      name: `${apiPrefix}/items`,
-      description: "이벤트 - 아이템 관련 API",
+      name: `${apiPrefix}/invite`,
+      description: "이벤트 - 초대 링크 관련 API",
     },
+    // 이 태그는 2024 봄학기 이벤트에서 사용되지 않습니다.
+    //
+    // {
+    //   name: `${apiPrefix}/items`,
+    //   description: "이벤트 - 아이템 관련 API",
+    // },
     {
-      name: `${apiPrefix}/public-notice`,
+      name: `${apiPrefix}/publicNotice`,
       description: "이벤트 - 아이템 구매, 뽑기, 획득 공지 관련 API",
     },
     {
@@ -36,7 +44,8 @@ const eventSwaggerDocs = {
   ],
   paths: {
     ...globalStateDocs,
-    ...itemsDocs,
+    ...inviteDocs,
+    //...itemsDocs,
     ...publicNoticeDocs,
     ...questsDocs,
     ...transactionsDocs,
@@ -44,7 +53,8 @@ const eventSwaggerDocs = {
   components: {
     schemas: {
       ...globalStateSchema,
-      ...itemsSchema,
+      ...inviteSchema,
+      //...itemsSchema,
       ...questsSchema,
     },
   },

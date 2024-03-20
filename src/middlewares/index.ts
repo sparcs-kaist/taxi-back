@@ -1,5 +1,4 @@
 // middleware를 모아 export합니다.
-export * from "./ajv";
 export { default as authMiddleware } from "./auth";
 export { default as authAdminMiddleware } from "./authAdmin";
 export { default as corsMiddleware } from "./cors";
@@ -10,3 +9,4 @@ export { default as originValidatorMiddleware } from "./originValidator";
 export { default as responseTimeMiddleware } from "./responseTime";
 export { default as sessionMiddleware } from "./session";
 export { default as validatorMiddleware } from "./validator";
+export * from "./zod";

@@ -1,11 +1,15 @@
-const { transactionModel } = require("../modules/stores/mongo");
-const { eventStatusModel } = require("../modules/stores/mongo");
+const {
+  eventStatusModel,
+  transactionModel,
+} = require("../modules/stores/mongo");
 const { userModel } = require("../../modules/stores/mongo");
 const { isLogin, getLoginInfo } = require("../../modules/auths/login");
 const logger = require("../../modules/logger");
 const {
   publicNoticePopulateOption,
 } = require("../modules/populates/transactions");
+
+const { eventConfig } = require("../../../loadenv");
 
 /**
  * getValueRank 사용자의 상품 구매 내역 또는 경품 추첨 내역의 순위 결정을 위한 가치를 평가하는 함수
@@ -48,7 +52,7 @@ const getRecentPurchaceItemListHandler = async (req, res) => {
       .slice(0, 5)
       .map(({ userId, item, comment, createAt }) => ({
         text: `${userId.nickname}님께서 ${item.name}${
-          comment.startsWith("송편")
+          comment.startsWith(eventConfig?.credit.name)
             ? "을(를) 구입하셨습니다."
             : comment.startsWith("랜덤박스")
             ? "을(를) 뽑았습니다."
@@ -88,6 +92,7 @@ const calculateProbabilityV2 = (users, weightSum, weight) => {
   return 1 - Math.pow(base, weight);
 };
 
+// 2023 가을 이벤트를 위한 리더보드 API 핸들러입니다.
 const getTicketLeaderboardHandler = async (req, res) => {
   try {
     const users = await eventStatusModel
@@ -172,7 +177,72 @@ const getTicketLeaderboardHandler = async (req, res) => {
   }
 };
 
+// 2024 봄 이벤트를 위한 리더보드 API 핸들러입니다.
+const getGroupLeaderboardHandler = async (req, res) => {
+  try {
+    const leaderboardWithoutMvp = await eventStatusModel.aggregate([
+      {
+        $group: {
+          _id: "$group",
+          creditAmount: { $sum: "$creditAmount" },
+        },
+      }, // group을 기준으로 사용자들의 creditAmount를 합산합니다.
+      {
+        $project: {
+          _id: false,
+          group: "$_id",
+          creditAmount: true,
+        },
+      }, // _id 필드의 이름을 group으로 변경합니다.
+      {
+        $sort: {
+          creditAmount: -1,
+          group: 1,
+        },
+      }, // creditAmount를 기준으로 내림차순 정렬합니다. creditAmount가 같을 경우 group을 기준으로 오름차순 정렬합니다.
+    ]);
+    const leaderboard = await Promise.all(
+      leaderboardWithoutMvp.map(async (group) => {
+        const mvp = await eventStatusModel
+          .find({ group: group.group })
+          .sort({ creditAmount: -1 })
+          .limit(1) // Aggreation을 사용하는 것보다, sort와 limit을 바로 붙여 사용하는 것이 더 효율적입니다.
+          .lean();
+        if (mvp?.length !== 1)
+          throw new Error(`Fail to find MVP in group ${group.group}`);
+
+        const mvpInfo = await userModel.findOne({ _id: mvp[0].userId }).lean();
+        if (!mvpInfo) throw new Error(`Fail to find user ${mvp[0].userId}`);
+
+        return {
+          ...group,
+          mvpNickname: mvpInfo.nickname,
+          mvpProfileImageUrl: mvpInfo.profileImageUrl,
+        };
+      })
+    );
+
+    const userId = isLogin(req) ? getLoginInfo(req).oid : null;
+    const user = userId && (await eventStatusModel.findOne({ userId }).lean());
+    if (user) {
+      res.json({
+        leaderboard,
+        group: user.group,
+        rank: leaderboard.findIndex((group) => group.group === user.group) + 1,
+      });
+    } else {
+      res.json({ leaderboard });
+    }
+  } catch (err) {
+    logger.error(err);
+    res
+      .status(500)
+      .json({ error: "PublicNotice/Leaderboard : internal server error" });
+  }
+};
+
 module.exports = {
   getRecentPurchaceItemListHandler,
   getTicketLeaderboardHandler,
+  getGroupLeaderboardHandler,
 };

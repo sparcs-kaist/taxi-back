@@ -18,7 +18,7 @@ if (process.env.DB_PATH === undefined) {
   process.exit(1);
 }
 
-export const nodeEnv = process.env.NODE_ENV; // required
+export const nodeEnv = process.env.NODE_ENV; // required ("production" or "development" or "test")
 export const mongo = process.env.DB_PATH; // required
 export const session = {
   secret: process.env.SESSION_KEY || "TAXI_SESSION_KEY", // optional
@@ -31,7 +31,7 @@ export const sparcssso = {
 };
 export const port = process.env.PORT ? parseInt(process.env.PORT) : 80; // optional (default = 80)
 export const corsWhiteList = (process.env.CORS_WHITELIST &&
-  JSON.parse(process.env.CORS_WHITELIST) as string[]) || [true]; // optional (default = [true])
+  (JSON.parse(process.env.CORS_WHITELIST) as string[])) || [true]; // optional (default = [true])
 export const aws = {
   accessKeyId: process.env.AWS_ACCESS_KEY_ID as string, // required
   secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY as string, // required
@@ -53,11 +53,13 @@ export const jwt = {
 };
 export const googleApplicationCredentials =
   process.env.GOOGLE_APPLICATION_CREDENTIALS &&
-  JSON.parse(process.env.GOOGLE_APPLICATION_CREDENTIALS) as ServiceAccount; // optional
+  (JSON.parse(process.env.GOOGLE_APPLICATION_CREDENTIALS) as ServiceAccount); // optional
 export const testAccounts =
-  (process.env.TEST_ACCOUNTS && JSON.parse(process.env.TEST_ACCOUNTS) as string[]) || []; // optional
+  (process.env.TEST_ACCOUNTS &&
+    (JSON.parse(process.env.TEST_ACCOUNTS) as string[])) ||
+  []; // optional
 export const slackWebhookUrl = {
   report: process.env.SLACK_REPORT_WEBHOOK_URL || "", // optional
 };
 // export const eventConfig =
-//   process.env.EVENT_CONFIG && JSON.parse(process.env.EVENT_CONFIG);
+//   process.env.EVENT_CONFIG && JSON.parse(process.env.EVENT_CONFIG); // optional

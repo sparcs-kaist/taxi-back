@@ -9,8 +9,8 @@ const mongoose = require("mongoose");
 
 const { eventConfig } = require("../../../loadenv");
 const eventPeriod = eventConfig && {
-  startAt: new Date(eventConfig.startAt),
-  endAt: new Date(eventConfig.endAt),
+  startAt: new Date(eventConfig.period.startAt),
+  endAt: new Date(eventConfig.period.endAt),
 };
 
 const requiredQuestFields = ["name", "description", "imageUrl", "reward"];
@@ -70,7 +70,11 @@ const completeQuest = async (userId, timestamp, quest) => {
     if (!eventStatus || eventStatus.isBanned) return null;
 
     // 2단계: 이벤트 기간인지 확인합니다.
-    if (timestamp >= eventPeriod.endAt || timestamp < eventPeriod.startAt) {
+    if (
+      !eventPeriod ||
+      timestamp >= eventPeriod.endAt ||
+      timestamp < eventPeriod.startAt
+    ) {
       logger.info(
         `User ${userId} failed to complete auto-disabled ${quest.id}Quest`
       );
@@ -78,10 +82,11 @@ const completeQuest = async (userId, timestamp, quest) => {
     }
 
     // 3단계: 유저의 퀘스트 완료 횟수를 확인합니다.
+    // maxCount가 0인 경우, 무제한으로 퀘스트를 완료할 수 있습니다.
     const questCount = eventStatus.completedQuests.filter(
       (completedQuestId) => completedQuestId === quest.id
     ).length;
-    if (questCount >= quest.maxCount) {
+    if (quest.maxCount > 0 && questCount >= quest.maxCount) {
       logger.info(
         `User ${userId} already completed ${quest.id}Quest ${questCount} times`
       );
@@ -126,7 +131,7 @@ const completeQuest = async (userId, timestamp, quest) => {
         amount: quest.reward.credit,
         userId,
         questId: quest.id,
-        comment: `"${quest.name}" 퀘스트를 완료해 송편 ${quest.reward.credit}개를 획득했습니다.`,
+        comment: `"${quest.name}" 퀘스트를 완료해 ${eventConfig?.credit.name} ${quest.reward.credit}개를 획득했습니다.`,
       });
       await transaction.save();
 
@@ -149,6 +154,7 @@ const completeQuest = async (userId, timestamp, quest) => {
     logger.info(`User ${userId} successfully completed ${quest.id}Quest`);
     return {
       quest,
+      questCount: questCount + 1,
       transactionsId,
     };
   } catch (err) {

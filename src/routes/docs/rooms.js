@@ -1,5 +1,4 @@
-const { roomsSchema } = require("./roomsSchema");
-const { objectIdPattern, roomsPattern } = require("./utils");
+const { objectId, room } = require("../../modules/patterns");
 
 const tag = "rooms";
 const apiPrefix = "/rooms";
@@ -19,18 +18,19 @@ roomsDocs[`${apiPrefix}/create`] = {
             properties: {
               name: {
                 type: "string",
-                pattern: roomsPattern.rooms.name,
+                pattern: room.name.source,
                 description: `방 이름<br/>
                 1~50 글자로 구성되며 영어 대소문자, 숫자, 한글, 특정 특수기호("-", ",", ".", "?", "!", "_")만 가능`,
+                example: "함께 타는 택시의 여유",
               },
               from: {
                 type: "string",
-                pattern: roomsPattern.rooms.from,
+                pattern: objectId.source,
                 description: "출발지 location Document의 ObjectId",
               },
               to: {
                 type: "string",
-                pattern: roomsPattern.rooms.to,
+                pattern: objectId.source,
                 description: "도착지 location Document의 ObjectId",
               },
               time: {
@@ -74,13 +74,18 @@ roomsDocs[`${apiPrefix}/create`] = {
             examples: {
               "출발지와 도착지가 같음": {
                 value: {
-                  error: "Room/create : locations are same",
+                  error: "Rooms/create : locations are same",
                 },
               },
               "현재로부터 2주일보다 이후의 방을 생성": {
                 value: {
                   error:
-                    "Room/create : cannot over 2 weeks on the basis of current Date",
+                    "Rooms/create : cannot over 2 weeks on the basis of current Date",
+                },
+              },
+              "설정된 출발 시각 이후에 방을 생성": {
+                value: {
+                  error: "Rooms/create : invalid timestamp",
                 },
               },
               "존재하지 않는 location Document를 입력": {
@@ -131,7 +136,7 @@ roomsDocs[`${apiPrefix}/publicInfo`] = {
         name: "id",
         schema: {
           type: "string",
-          pattern: objectIdPattern,
+          pattern: objectId.source,
         },
         description: "찾고 싶은 방의 Object id",
       },
@@ -198,7 +203,7 @@ roomsDocs[`${apiPrefix}/info`] = {
         name: "id",
         schema: {
           type: "string",
-          pattern: objectIdPattern,
+          pattern: objectId.source,
         },
         description: "찾고 싶은 방의 Object id",
       },
@@ -269,7 +274,7 @@ roomsDocs[`${apiPrefix}/join`] = {
             properties: {
               roomId: {
                 type: "string",
-                pattern: objectIdPattern,
+                pattern: objectId.source,
               },
             },
           },
@@ -306,12 +311,12 @@ roomsDocs[`${apiPrefix}/join`] = {
               },
               "입력한 시간의 방이 이미 출발함": {
                 value: {
-                  error: "Room/join : The room has already departed",
+                  error: "Rooms/join : The room has already departed",
                 },
               },
               "방의 인원이 모두 찼음": {
                 value: {
-                  error: "Room/join : The room is already full",
+                  error: "Rooms/join : The room is already full",
                 },
               },
             },
@@ -380,7 +385,7 @@ roomsDocs[`${apiPrefix}/abort`] = {
             properties: {
               roomId: {
                 type: "string",
-                pattern: objectIdPattern,
+                pattern: objectId.source,
               },
             },
           },
@@ -505,7 +510,7 @@ roomsDocs[`${apiPrefix}/search`] = {
         name: "from",
         schema: {
           type: "string",
-          pattern: objectIdPattern,
+          pattern: objectId.source,
         },
         description: `출발지 Document의 ObjectId<br/>
         주어진 경우 출발지가 일치하는 방들만 반환.<br/>
@@ -516,7 +521,7 @@ roomsDocs[`${apiPrefix}/search`] = {
         name: "to",
         schema: {
           type: "string",
-          pattern: objectIdPattern,
+          pattern: objectId.source,
         },
         description: `도착지 Document의 ObjectId<br/>
         주어진 경우 도착지가 일치하는 방들만 반환.<br/>
@@ -590,12 +595,12 @@ roomsDocs[`${apiPrefix}/search`] = {
             examples: {
               "출발지와 도착지가 같음": {
                 value: {
-                  error: "Room/search : Bad request",
+                  error: "Rooms/search : Bad request",
                 },
               },
               "출발/도착지가 존재하지 않는 장소": {
                 value: {
-                  error: "Room/search : no corresponding locations",
+                  error: "Rooms/search : no corresponding locations",
                 },
               },
             },
@@ -694,7 +699,7 @@ roomsDocs[`${apiPrefix}/commitPayment`] = {
             properties: {
               roomId: {
                 type: "string",
-                pattern: objectIdPattern,
+                pattern: objectId.source,
               },
             },
           },
@@ -768,7 +773,7 @@ roomsDocs[`${apiPrefix}/commitSettlement`] = {
             properties: {
               roomId: {
                 type: "string",
-                pattern: objectIdPattern,
+                pattern: objectId.source,
               },
             },
           },
