@@ -1,6 +1,6 @@
 const { userModel } = require("@/modules/stores/mongo");
 const { getLoginInfo } = require("@/modules/auths/login");
-const logger = require("@/modules/logger");
+const logger = require("@/modules/logger").default;
 
 const logininfoHandler = async (req, res) => {
   try {

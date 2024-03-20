@@ -4,7 +4,7 @@ const {
   userModel,
 } = require("@/modules/stores/mongo");
 const { emitChatEvent } = require("@/modules/socket");
-const logger = require("@/modules/logger");
+const logger = require("@/modules/logger").default;
 const {
   roomPopulateOption,
   formatSettlement,
@@ -15,12 +15,12 @@ const {
 } = require("@/modules/slackNotification");
 
 // 이벤트 코드입니다.
-// const { eventConfig } = require("../../loadenv");
+// const { eventConfig } = require("@/loadenv");
 // const eventPeriod = eventConfig && {
 //   startAt: new Date(eventConfig.period.startAt),
 //   endAt: new Date(eventConfig.period.endAt),
 // };
-// const { contracts } = require("../lottery");
+// const { contracts } = require("@/lottery");
 
 const createHandler = async (req, res) => {
   const { name, from, to, time, maxPartLength } = req.body;

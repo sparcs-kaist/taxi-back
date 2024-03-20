@@ -3,10 +3,10 @@ const router = express.Router();
 const { body } = require("express-validator");
 
 const notificationHandlers = require("@/services/notifications");
-const validator = require("@/middlewares/validator");
+const validator = require("@/middlewares/validator").default;
 
 // 라우터 접근 시 로그인 필요
-router.use(require("@/middlewares/auth"));
+router.use(require("@/middlewares/auth").default);
 
 // FCM 토큰 등록
 router.post(

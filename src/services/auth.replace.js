@@ -6,11 +6,11 @@ const {
   generateNickname,
   generateProfileImageUrl,
 } = require("@/modules/modifyProfile");
-const logger = require("@/modules/logger");
-const jwt = require("@/modules/auths/jwt");
+const logger = require("@/modules/logger").default;
+const jwt = require("@/modules/auths/jwt").default;
 
 const { registerDeviceTokenHandler, tryLogin } = require("@/services/auth");
-const loginReplacePage = require("@/views/loginReplacePage");
+const loginReplacePage = require("@/views/loginReplacePage").default;
 
 const createUserData = (id) => {
   const info = {

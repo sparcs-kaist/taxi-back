@@ -1,7 +1,7 @@
 const { roomModel, chatModel } = require("@/modules/stores/mongo");
 // const { roomPopulateOption } = require("@/modules/populates/rooms");
 const { emitChatEvent } = require("@/modules/socket");
-const logger = require("@/modules/logger");
+const logger = require("@/modules/logger").default;
 
 const MS_PER_MINUTE = 60000;
 

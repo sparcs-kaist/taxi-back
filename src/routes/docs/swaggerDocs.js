@@ -8,7 +8,7 @@ const authReplaceDocs = require("./auth.replace");
 const usersDocs = require("./users");
 const roomsDocs = require("./rooms");
 const chatsDocs = require("./chats");
-const { port, nodeEnv } = require("../../../loadenv");
+const { port, nodeEnv } = require("../../loadenv");
 
 const serverList = [
   {

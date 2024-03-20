@@ -1,7 +1,7 @@
 const express = require("express");
 const { body } = require("express-validator");
-const validator = require("@/middlewares/validator");
-const patterns = require("@/modules/patterns");
+const validator = require("@/middlewares/validator").default;
+const patterns = require("@/modules/patterns").default;
 
 const router = express.Router();
 const userHandlers = require("@/services/users");
@@ -9,7 +9,7 @@ const userHandlers = require("@/services/users");
 const { replaceSpaceInNickname } = require("@/modules/modifyProfile");
 
 // 라우터 접근 시 로그인 필요
-router.use(require("@/middlewares/auth"));
+router.use(require("@/middlewares/auth").default);
 
 // 이용 약관에 동의합니다.
 router.post(

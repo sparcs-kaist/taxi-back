@@ -1,11 +1,11 @@
 const { userModel } = require("@/modules/stores/mongo");
 const { notificationOptionModel } = require("@/modules/stores/mongo");
-const logger = require("@/modules/logger");
+const logger = require("@/modules/logger").default;
 
 const { registerDeviceToken, validateDeviceToken } = require("@/modules/fcm");
 
 // 이벤트 코드입니다.
-// const { contracts } = require("../lottery");
+// const { contracts } = require("@/lottery");
 
 const registerDeviceTokenHandler = async (req, res) => {
   try {

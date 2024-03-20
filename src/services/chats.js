@@ -1,13 +1,13 @@
 const { chatModel, userModel, roomModel } = require("@/modules/stores/mongo");
 const { chatPopulateOption } = require("@/modules/populates/chats");
 const { roomPopulateOption } = require("@/modules/populates/rooms");
-const aws = require("@/modules/stores/aws");
+const aws = require("@/modules/stores/aws").default;
 const {
   transformChatsForRoom,
   emitChatEvent,
   emitUpdateEvent,
 } = require("@/modules/socket");
-const logger = require("@/modules/logger");
+const logger = require("@/modules/logger").default;
 
 const chatCount = 60;
 

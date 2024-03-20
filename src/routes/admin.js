@@ -18,8 +18,8 @@ const { buildResource } = require("@/modules/adminResource");
 const router = express.Router();
 
 // Requires admin property of the user to enter admin page.
-router.use(require("@/middlewares/authAdmin"));
-router.use(require("@/middlewares/auth"));
+router.use(require("@/middlewares/authAdmin").default);
+router.use(require("@/middlewares/auth").default);
 
 // Registration of the mongoose adapter
 AdminJS.registerAdapter(AdminJSMongoose);
@@ -36,7 +36,7 @@ const resources = [
   notificationOptionModel,
 ]
   .map(buildResource())
-  .concat(require("../lottery").resources);
+  .concat(/*require("@/lottery").resources*/ []);
 
 // Create router for admin page
 const adminJS = new AdminJS({ resources });

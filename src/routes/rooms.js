@@ -3,8 +3,8 @@ const { query, body } = require("express-validator");
 const router = express.Router();
 
 const roomHandlers = require("@/services/rooms");
-const validator = require("@/middlewares/validator");
-const patterns = require("@/modules/patterns");
+const validator = require("@/middlewares/validator").default;
+const patterns = require("@/modules/patterns").default;
 
 // 조건(이름, 출발지, 도착지, 날짜)에 맞는 방들을 모두 반환한다.
 router.get(
@@ -31,7 +31,7 @@ router.get(
 );
 
 // 이후 API 접근 시 로그인 필요
-router.use(require("../middlewares/auth"));
+router.use(require("@/middlewares/auth").default);
 
 // 특정 id 방 세부사항 보기
 router.get(
