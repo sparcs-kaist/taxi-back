@@ -1,0 +1,7 @@
+node_modules/
+dist/
+package.json
+tsconfig.json
+.prettierrc.json
+.eslintrc.cjs
+nodemon.json

@@ -1,5 +1,5 @@
 const { zodToJsonSchema } = require("zod-to-json-schema");
-const logger = require("../../modules/logger");
+const logger = require("../../modules/logger").default;
 
 const zodToSchemaObject = (zodObejct) => {
   try {

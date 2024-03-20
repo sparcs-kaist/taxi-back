@@ -1,5 +1,5 @@
 const { buildFeature } = require("adminjs");
-const { adminLogModel } = require("./stores/mongo");
+const { adminLogModel } = require("@/modules/stores/mongo");
 
 const createLog = async (req, action, target) => {
   const newLog = new adminLogModel({

@@ -1,6 +1,6 @@
 const nodemailer = require("nodemailer");
-const logger = require("./logger");
-const { nodeEnv } = require("../../loadenv");
+const logger = require("@/modules/logger").default;
+const { nodeEnv } = require("@/loadenv");
 
 /**
  * production 환경에서 메일을 전송하기 위해 사용되는 agent입니다.
