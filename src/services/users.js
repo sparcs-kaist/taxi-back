@@ -1,13 +1,13 @@
 const { userModel } = require("@/modules/stores/mongo");
 const logger = require("@/modules/logger");
 const aws = require("@/modules/stores/aws");
-
-// 이벤트 코드입니다.
-const { contracts } = require("../lottery");
 const {
   generateNickname,
   generateProfileImageUrl,
 } = require("@/modules/modifyProfile");
+
+// 이벤트 코드입니다.
+// const { contracts } = require("../lottery");
 
 const agreeOnTermsOfServiceHandler = async (req, res) => {
   try {
@@ -52,10 +52,10 @@ const editNicknameHandler = async (req, res) => {
 
     if (result) {
       // 이벤트 코드입니다.
-      await contracts?.completeNicknameChangingQuest(
-        req.userOid,
-        req.timestamp
-      );
+      // await contracts?.completeNicknameChangingQuest(
+      //   req.userOid,
+      //   req.timestamp
+      // );
 
       res
         .status(200)
@@ -79,11 +79,11 @@ const editAccountHandler = async (req, res) => {
 
     if (result) {
       // 이벤트 코드입니다.
-      await contracts?.completeAccountChangingQuest(
-        req.userOid,
-        req.timestamp,
-        newAccount
-      );
+      // await contracts?.completeAccountChangingQuest(
+      //   req.userOid,
+      //   req.timestamp,
+      //   newAccount
+      // );
 
       res.status(200).send("Users/editAccount : edit user account successful");
     } else {
