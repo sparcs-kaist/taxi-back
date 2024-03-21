@@ -1,12 +1,11 @@
 const express = require("express");
-const fareSchema = require("./docs/schemas/fareSchema");
-const { validateQuery } = require("../middlewares/ajv");
-const router = express.Router();
-
+const { validateQuery } = require("../middlewares/zod");
+const { fareZod } = require("./docs/schemas/fareSchema");
 const { getTaxiFare, initDatabase } = require("../services/fare");
+const router = express.Router();
 
 router.post("/init", initDatabase);
 
-router.get("/getTaxiFare", validateQuery(fareSchema.getTaxiFare), getTaxiFare);
+router.get("/getTaxiFare", validateQuery(fareZod.getTaxiFare), getTaxiFare);
 
 module.exports = router;
