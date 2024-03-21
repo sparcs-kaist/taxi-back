@@ -15,6 +15,9 @@ class NodemailerTransport {
       host: "smtp-relay.gmail.com",
       secure: false,
       port: 587,
+      tls: {
+        rejectUnauthorized: false,
+      },
     });
   }
 
