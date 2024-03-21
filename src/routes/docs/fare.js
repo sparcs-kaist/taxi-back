@@ -5,33 +5,6 @@ const tag = "fare";
 const apiPrefix = "/fare";
 
 const fareDocs = {};
-fareDocs[`${apiPrefix}/init`] = {
-  post: {
-    tags: [tag],
-    summary: "택시 요금 db 초기화",
-  },
-  response: {
-    200: {
-      description: "TaxiFare Database initialized",
-      content: {
-        "text/plain": {
-          schema: {
-            type: "string",
-            example: "TaxiFare Database initialized",
-          },
-        },
-      },
-    },
-    500: {
-      description: "TaxiFare Database failed",
-      content: {
-        "text/html": {
-          example: "fare/init : TaxiFare Database failed",
-        },
-      },
-    },
-  },
-};
 
 fareDocs[`${apiPrefix}/getTaxiFare`] = {
   get: {

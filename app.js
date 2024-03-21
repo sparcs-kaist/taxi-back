@@ -86,3 +86,6 @@ app.set("io", startSocketServer(serverHttp));
 
 // [Schedule] 스케줄러 시작
 require("./src/schedules")(app);
+
+// [Module] 택시 예상 비용 db 초기화
+require("./src/modules/fare").initDatabase();
