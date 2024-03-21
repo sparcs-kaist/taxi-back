@@ -55,7 +55,6 @@ module.exports = {
       endAt: "2024-03-19T00:00:00+09:00",
     },
   }, // optional
-  // Naver Cloud Platform Maps Directions 5 API Keys
-  naverCloudApiId: process.env.NAVER_MAP_API_ID, //required
-  naverCloudApiKey: process.env.NAVER_MAP_API_KEY, //required
+  naverCloudApiId: process.env.NAVER_MAP_API_ID, // optional
+  naverCloudApiKey: process.env.NAVER_MAP_API_KEY, //optional
 };
