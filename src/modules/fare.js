@@ -3,7 +3,6 @@ const axios = require("axios");
 
 const { naverCloudApiId, naverCloudApiKey } = require("../../loadenv");
 const { taxiFareModel, locationModel } = require("../modules/stores/mongo");
-const { scaledTime } = require("../modules/fare");
 /**
  * 시간을 받아서 30분 단위로 변환해서 반환합니다.
  * 요일 정보도 하나로 관리
