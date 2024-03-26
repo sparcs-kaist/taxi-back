@@ -190,17 +190,17 @@ mongoose.set("strictQuery", true);
 const database = mongoose.connection;
 database.on("error", console.error.bind(console, "mongoose connection error."));
 database.on("open", () => {
-  logger.info("데이터베이스와 연결되었습니다.");
+  logger.info("Connected to database");
 });
 database.on("error", function (err) {
-  logger.error("데이터베이스 연결 에러 발생: " + err);
+  logger.error("Database connection error occurred: " + err);
   mongoose.disconnect();
 });
 
 const connectDatabase = (mongoUrl) => {
   database.on("disconnected", function () {
     // 데이터베이스 연결이 끊어지면 5초 후 재연결을 시도합니다.
-    logger.error("데이터베이스와 연결이 끊어졌습니다!");
+    logger.error("Disconnected from database!");
     setTimeout(() => {
       mongoose.connect(mongoUrl, {
         useNewUrlParser: true,
