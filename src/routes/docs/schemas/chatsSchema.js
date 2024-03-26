@@ -6,7 +6,7 @@ const chatsZod = {
   sendChatHandler: z.object({
     roomId: z.string().regex(objectId),
     type: z.string().regex(chat.chatSendType),
-    content: z.string().regex(chat.chatContent),
+    content: z.string().regex(chat.chatContent).regex(chat.chatContentLength),
   }),
 };
 
