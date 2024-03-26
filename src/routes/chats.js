@@ -1,6 +1,8 @@
 const express = require("express");
 const { body } = require("express-validator");
 const validator = require("../middlewares/validator");
+const { validateBody } = require("../middlewares/zod");
+const { chatsZod } = require("./docs/schemas/chatsSchema");
 const patterns = require("../modules/patterns");
 
 const router = express.Router();
@@ -47,10 +49,7 @@ router.post(
  */
 router.post(
   "/send",
-  body("roomId").isMongoId(),
-  body("type").matches(patterns.chat.chatSendType),
-  body("content").isString(),
-  validator,
+  validateBody(chatsZod.sendChatHandler),
   chatsHandlers.sendChatHandler
 );
 
