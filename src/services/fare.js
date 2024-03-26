@@ -110,7 +110,7 @@ const getTaxiFare = async (req, res) => {
         )
         .clone();
       //만일 cron이 아직 돌지 않은 상태의 시간대의 정보를 필요로하는 비상시의 경우 대비
-      if (taxiFare === undefined) {
+      if (!taxiFare || taxiFare.fare === 0) {
         await axios
           .get(
             `${naverCloudApiCall + from.longitude + "," + from.latitude}&goal=${
@@ -152,45 +152,42 @@ const updateTaxiFare = async (sTime, isMajor) => {
       isMajor: isMajor,
     })
     .clone();
-  prevFares.map(async (item) => {
+  await prevFares.reduce(async (acc, item) => {
     const from = await locationModel.findOne({ _id: item.from }).clone();
     const to = await locationModel.findOne({ _id: item.to }).clone();
 
-    await new Promise(() =>
-      setTimeout(
-        async () =>
-          await axios
-            .get(
-              `${
-                naverCloudApiCall + from.longitude + "," + from.latitude
-              }&goal=${to.longitude + "," + to.latitude}&options=traoptimal`,
-              { headers: naverCloudApi }
-            )
-            .catch((err) => {
-              logger.error(err.message);
-            })
-            .then(async (res) => {
-              await taxiFareModel
-                .updateOne(
-                  { from: item.from, to: item.to, time: sTime },
-                  { fare: res.data.route.traoptimal[0].summary.taxiFare },
-                  function (err, docs) {
-                    if (err)
-                      logger.error(
-                        "Error occured while updating TaxiFare document: " +
-                          err.message
-                      );
-                  }
-                )
-                .clone();
-            })
-            .catch((err) => {
-              logger.error(err.message);
-            }),
-        100
+    await acc.then();
+    await axios
+      .get(
+        `${naverCloudApiCall + from.longitude + "," + from.latitude}&goal=${
+          to.longitude + "," + to.latitude
+        }&options=traoptimal`,
+        { headers: naverCloudApi }
       )
-    );
-  });
+      .catch((err) => {
+        logger.error(err.message);
+      })
+      .then(async (res) => {
+        await taxiFareModel
+          .updateOne(
+            { from: item.from, to: item.to, time: sTime },
+            { fare: res.data.route.traoptimal[0].summary.taxiFare },
+            function (err, docs) {
+              if (err)
+                logger.error(
+                  "Error occured while updating TaxiFare document: " +
+                    err.message
+                );
+            }
+          )
+          .clone();
+      })
+      .catch((err) => {
+        logger.error(err.message);
+      });
+    await new Promise((resolve) => setTimeout(() => resolve, 200));
+    return acc;
+  }, Promise.resolve());
 };
 
 module.exports = {

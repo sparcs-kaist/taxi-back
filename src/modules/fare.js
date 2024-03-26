@@ -3,6 +3,15 @@ const axios = require("axios");
 
 const { naverCloudApiId, naverCloudApiKey } = require("../../loadenv");
 const { taxiFareModel, locationModel } = require("../modules/stores/mongo");
+
+// Naver Cloud Platform Maps Directions 5 API Keys
+const naverCloudApi = {
+  "X-NCP-APIGW-API-KEY-ID": naverCloudApiId,
+  "X-NCP-APIGW-API-KEY": naverCloudApiKey,
+};
+const naverCloudApiCall =
+  "https://naveropenapi.apigw.ntruss.com/map-direction/v1/driving?start=";
+
 /**
  * 시간을 받아서 30분 단위로 변환해서 반환합니다.
  * 요일 정보도 하나로 관리
@@ -14,14 +23,6 @@ const scaledTime = (time) => {
     48 * time.getDay() + time.getHours() * 2 + (time.getMinutes() >= 30 ? 1 : 0)
   );
 };
-
-// Naver Cloud Platform Maps Directions 5 API Keys
-const naverCloudApi = {
-  "X-NCP-APIGW-API-KEY-ID": naverCloudApiId,
-  "X-NCP-APIGW-API-KEY": naverCloudApiKey,
-};
-const naverCloudApiCall =
-  "https://naveropenapi.apigw.ntruss.com/map-direction/v1/driving?start=";
 
 /**  Initialize database
  * 1. Erase all previous data
@@ -45,8 +46,9 @@ const initDatabase = async () => {
 
     const location = await locationModel.find({ isValid: { $eq: true } });
 
-    location.map((from) => {
-      location.map(async (to) => {
+    location.map(async (from) => {
+      await location.reduce(async (acc, to) => {
+        await acc.then();
         if (from._id === to._id) return;
         let tableFare = [];
         // 카이스트 본원 <-> 대전역의 경우 48*7(=336)개의 시간대에 대한 택시 요금을 일괄적으로 설정
@@ -102,47 +104,41 @@ const initDatabase = async () => {
         }
         // 카이스트 본원 <-> 대전역외의 경로(238개)에 대해서는 7개(일주일) 씩 collection 지정 설정
         else {
-          await new Promise(() =>
-            setTimeout(
-              async () =>
-                await axios
-                  .get(
-                    `${
-                      naverCloudApiCall + from.longitude + "," + from.latitude
-                    }&goal=${
-                      to.longitude + "," + to.latitude
-                    }&options=traoptimal`,
-                    { headers: naverCloudApi }
-                  )
-                  .then((res) => {
-                    [...Array(7)].map((_, i) => {
-                      tableFare.push({
-                        from: from,
-                        to: to,
-                        time: i * 48,
-                        fare: res.data.route.traoptimal[0].summary.taxiFare,
-                        isMajor: false,
-                      });
-                    });
-                  })
-                  .catch((err) => {
-                    logger.error(err.message);
-                    [...Array(7)].map((_, i) => {
-                      tableFare.push({
-                        from: from,
-                        to: to,
-                        time: i * 48,
-                        fare: 0,
-                        isMajor: false,
-                      });
-                    });
-                  }),
-              100
+          await axios
+            .get(
+              `${
+                naverCloudApiCall + from.longitude + "," + from.latitude
+              }&goal=${to.longitude + "," + to.latitude}&options=traoptimal`,
+              { headers: naverCloudApi }
             )
-          );
+            .then((res) => {
+              [...Array(7)].map((_, i) => {
+                tableFare.push({
+                  from: from,
+                  to: to,
+                  time: i * 48,
+                  fare: res.data.route.traoptimal[0].summary.taxiFare,
+                  isMajor: false,
+                });
+              });
+            })
+            .catch((err) => {
+              logger.error(err.message);
+              [...Array(7)].map((_, i) => {
+                tableFare.push({
+                  from: from,
+                  to: to,
+                  time: i * 48,
+                  fare: 0,
+                  isMajor: false,
+                });
+              });
+            });
         }
         await taxiFareModel.insertMany(tableFare);
-      });
+        await new Promise((resolve) => setTimeout(resolve, 200));
+        return acc;
+      }, Promise.resolve());
     });
   } catch (err) {
     logger.error("Error occured while initializing database: " + err.message);
