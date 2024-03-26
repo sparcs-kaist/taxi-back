@@ -613,7 +613,7 @@ const commitSettlementHandler = async (req, res) => {
 
     await user.save();
 
-    // 결제 채팅을 보냅니다.
+    // 정산 채팅을 보냅니다.
     await emitChatEvent(req.app.get("io"), {
       roomId,
       type: "settlement",
@@ -691,7 +691,7 @@ const commitPaymentHandler = async (req, res) => {
 
     await user.save();
 
-    // 정산 채팅을 보냅니다.
+    // 송금 채팅을 보냅니다.
     await emitChatEvent(req.app.get("io"), {
       roomId,
       type: "payment",
