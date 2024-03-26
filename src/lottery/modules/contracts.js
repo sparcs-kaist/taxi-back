@@ -127,7 +127,7 @@ const completeFirstLoginQuest = async (userId, timestamp) => {
  * @param {Date} roomObject.time - 출발 시각입니다.
  * @returns {Promise}
  * @description 정산 요청 또는 송금이 이루어질 때마다 호출해 주세요.
- * @usage rooms - commitPaymentHandler, rooms - settlementHandler
+ * @usage rooms - commitPaymentHandler, rooms - commitSettlementHandler
  */
 const completePayingAndSendingQuest = async (userId, timestamp, roomObject) => {
   logger.info(
@@ -167,7 +167,7 @@ const completeFirstRoomCreationQuest = async (userId, timestamp) => {
  * @param {Date} roomObject.time - 출발 시각입니다.
  * @returns {Promise}
  * @description 정산 요청이 이루어질 때마다 호출해 주세요.
- * @usage rooms - commitPaymentHandler
+ * @usage rooms - commitSettlementHandler
  */
 const completePayingQuest = async (userId, timestamp, roomObject) => {
   logger.info(
@@ -195,7 +195,7 @@ const completePayingQuest = async (userId, timestamp, roomObject) => {
  * @param {Date} roomObject.time - 출발 시각입니다.
  * @returns {Promise}
  * @description 송금이 이루어질 때마다 호출해 주세요.
- * @usage rooms - settlementHandler
+ * @usage rooms - paymentHandler
  */
 const completeSendingQuest = async (userId, timestamp, roomObject) => {
   logger.info(

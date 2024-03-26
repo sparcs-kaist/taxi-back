@@ -211,7 +211,7 @@ chatsDocs[`${apiPrefix}/send`] = {
 
     Chat {
       roomId: ObjectId, //방의 objectId
-      type: String, // 메시지 종류 ("text": 일반 메시지, "s3img": S3에 업로드된 이미지, "in": 입장 메시지, "out": 퇴장 메시지, "payment": 결제 메시지, "settlement": 정산 완료 메시지, "account": 계좌 전송 메시지)
+      type: String, // 메시지 종류 ("text": 일반 메시지, "s3img": S3에 업로드된 이미지, "in": 입장 메시지, "out": 퇴장 메시지, "settlement": 정산 메시지, "payment": 송금 메시지, "account": 계좌 전송 메시지)
       authorId: ObejctId, //작성자의 objectId
       content: String, // 메시지 내용 (메시지 종류에 따라 포맷이 상이함)
       time: String(ISO 8601), // ex) 2024-01-08T01:52:00.000Z
