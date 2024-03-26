@@ -195,7 +195,7 @@ const completePayingQuest = async (userId, timestamp, roomObject) => {
  * @param {Date} roomObject.time - 출발 시각입니다.
  * @returns {Promise}
  * @description 송금이 이루어질 때마다 호출해 주세요.
- * @usage rooms - paymentHandler
+ * @usage rooms - commitPaymentHandler
  */
 const completeSendingQuest = async (userId, timestamp, roomObject) => {
   logger.info(
