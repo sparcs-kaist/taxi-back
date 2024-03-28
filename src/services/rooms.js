@@ -559,7 +559,7 @@ const searchByUserHandler = async (req, res) => {
   }
 };
 
-const commitPaymentHandler = async (req, res) => {
+const commitSettlementHandler = async (req, res) => {
   try {
     const user = await userModel.findOne({ id: req.userId });
     const { roomId } = req.body;
@@ -593,7 +593,7 @@ const commitPaymentHandler = async (req, res) => {
 
     if (!roomObject) {
       return res.status(404).json({
-        error: "Rooms/:id/commitPayment : cannot find settlement info",
+        error: "Rooms/:id/commitSettlement : cannot find settlement info",
       });
     }
 
@@ -606,17 +606,17 @@ const commitPaymentHandler = async (req, res) => {
     if (userOngoingRoomIndex === -1) {
       await user.save();
       return res.status(500).json({
-        error: "Rooms/:id/settlement : internal server error",
+        error: "Rooms/:id/commitSettlement : internal server error",
       });
     }
     user.ongoingRoom.splice(userOngoingRoomIndex, 1);
 
     await user.save();
 
-    // 결제 채팅을 보냅니다.
+    // 정산 채팅을 보냅니다.
     await emitChatEvent(req.app.get("io"), {
       roomId,
-      type: "payment",
+      type: "settlement",
       content: user.id,
       authorId: user._id,
     });
@@ -638,12 +638,12 @@ const commitPaymentHandler = async (req, res) => {
   } catch (err) {
     logger.error(err);
     res.status(500).json({
-      error: "Rooms/:id/commitPayment : internal server error",
+      error: "Rooms/:id/commitSettlement : internal server error",
     });
   }
 };
 
-const settlementHandler = async (req, res) => {
+const commitPaymentHandler = async (req, res) => {
   try {
     const { roomId } = req.body;
     const user = await userModel.findOne({ id: req.userId });
@@ -671,7 +671,7 @@ const settlementHandler = async (req, res) => {
 
     if (!roomObject) {
       return res.status(404).json({
-        error: "Rooms/:id/settlement : cannot find settlement info",
+        error: "Rooms/:id/commitPayment : cannot find settlement info",
       });
     }
 
@@ -684,17 +684,17 @@ const settlementHandler = async (req, res) => {
     if (userOngoingRoomIndex === -1) {
       await user.save();
       return res.status(500).json({
-        error: "Rooms/:id/settlement : internal server error",
+        error: "Rooms/:id/commitPayment : internal server error",
       });
     }
     user.ongoingRoom.splice(userOngoingRoomIndex, 1);
 
     await user.save();
 
-    // 정산 채팅을 보냅니다.
+    // 송금 채팅을 보냅니다.
     await emitChatEvent(req.app.get("io"), {
       roomId,
-      type: "settlement",
+      type: "payment",
       content: user.id,
       authorId: user._id,
     });
@@ -716,7 +716,7 @@ const settlementHandler = async (req, res) => {
   } catch (err) {
     logger.error(err);
     res.status(500).json({
-      error: "Rooms/:id/settlement : internal server error",
+      error: "Rooms/:id/commitPayment : internal server error",
     });
   }
 };
@@ -811,6 +811,6 @@ module.exports = {
   searchHandler,
   searchByUserHandler,
   commitPaymentHandler,
-  settlementHandler,
+  commitSettlementHandler,
   // editHandler,
 };

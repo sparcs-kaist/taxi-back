@@ -141,8 +141,8 @@ describe("[rooms] 6.searchByUserHandler", () => {
 });
 
 // 7. 1분이 지난 후, 정산 정보를 불러옴. 예상과 같은 정보를 불러오는지 확인
-describe("[rooms] 7.commitPaymentHandler", () => {
-  it("should return information of room and commit payment", async () => {
+describe("[rooms] 7.commitSettlementHandler", () => {
+  it("should return information of room and commit settlement", async () => {
     const testUser1 = await userModel.findOne({ id: "test1" });
     const testRoom = await roomModel.findOne({ name: "test-room" });
     let req = httpMocks.createRequest({
@@ -152,7 +152,7 @@ describe("[rooms] 7.commitPaymentHandler", () => {
       app,
     });
     let res = httpMocks.createResponse();
-    await roomsHandlers.commitPaymentHandler(req, res);
+    await roomsHandlers.commitSettlementHandler(req, res);
 
     const resData = res._getData();
     expect(resData).to.has.property("name", "test-room");
@@ -161,9 +161,9 @@ describe("[rooms] 7.commitPaymentHandler", () => {
   });
 });
 
-// 8. 도착 정보를 불러옴. 예상과 같은 정보를 불러오는지 확인
-describe("[rooms] 8.settlementHandler", () => {
-  it("should return information of room and set settlement", async () => {
+// 8. 송금 후 정산 정보를 불러옴. 예상과 같은 정보를 불러오는지 확인
+describe("[rooms] 8.commitPaymentHandler", () => {
+  it("should return information of room and commit payment", async () => {
     const testUser2 = await userModel.findOne({ id: "test2" });
     const testRoom = await roomModel.findOne({ name: "test-room" });
     let req = httpMocks.createRequest({
@@ -172,7 +172,7 @@ describe("[rooms] 8.settlementHandler", () => {
       app,
     });
     let res = httpMocks.createResponse();
-    await roomsHandlers.settlementHandler(req, res);
+    await roomsHandlers.commitPaymentHandler(req, res);
 
     const resData = res._getData();
     expect(resData).to.has.property("name", "test-room");

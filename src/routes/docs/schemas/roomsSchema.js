@@ -31,6 +31,14 @@ roomsZod["room"] = z
   })
   .partial({ settlementTotal: true, isOver: true });
 
+roomsZod["commitSettlement"] = z.object({
+  roomId: z.string().regex(objectId),
+});
+
+roomsZod["commitPayment"] = z.object({
+  roomId: z.string().regex(objectId),
+});
+
 const roomsSchema = zodToSchemaObject(roomsZod);
 
 module.exports = { roomsSchema, roomsZod };
