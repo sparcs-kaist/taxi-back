@@ -14,7 +14,6 @@ const chats = db.collection("chats");
 async function run() {
   try {
     for await (const doc of chats.find()) {
-      // 이미 변환이 완료된 경우에는 Pass합니다.
       if (doc.type === "settlement" || doc.type === "payment") {
         await chats.findOneAndUpdate(
           { _id: doc._id },
