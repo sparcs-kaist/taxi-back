@@ -141,7 +141,7 @@ describe("[rooms] 6.searchByUserHandler", () => {
 });
 
 // 7. 1분이 지난 후, 정산 정보를 불러옴. 예상과 같은 정보를 불러오는지 확인
-describe("[rooms] 7.commitsettlementHandler", () => {
+describe("[rooms] 7.commitSettlementHandler", () => {
   it("should return information of room and commit settlement", async () => {
     const testUser1 = await userModel.findOne({ id: "test1" });
     const testRoom = await roomModel.findOne({ name: "test-room" });
