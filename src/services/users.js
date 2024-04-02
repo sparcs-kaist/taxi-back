@@ -2,6 +2,13 @@ const { userModel } = require("../modules/stores/mongo");
 const logger = require("../modules/logger");
 const aws = require("../modules/stores/aws");
 
+// 이벤트 코드입니다.
+const { contracts } = require("../lottery");
+const {
+  generateNickname,
+  generateProfileImageUrl,
+} = require("../modules/modifyProfile");
+
 const agreeOnTermsOfServiceHandler = async (req, res) => {
   try {
     let user = await userModel.findOne({ id: req.userId });
@@ -11,13 +18,13 @@ const agreeOnTermsOfServiceHandler = async (req, res) => {
       res
         .status(200)
         .send(
-          "User/agreeOnTermsOfService : agree on Terms of Service successful"
+          "Users/agreeOnTermsOfService : agree on Terms of Service successful"
         );
     } else {
-      res.status(400).send("User/agreeOnTermsOfService : already agreed");
+      res.status(400).send("Users/agreeOnTermsOfService : already agreed");
     }
   } catch {
-    res.status(500).send("User/agreeOnTermsOfService : internal server error");
+    res.status(500).send("Users/agreeOnTermsOfService : internal server error");
   }
 };
 
@@ -29,48 +36,63 @@ const getAgreeOnTermsOfServiceHandler = async (req, res) => {
     const agreeOnTermsOfService = user.agreeOnTermsOfService === true;
     res.json({ agreeOnTermsOfService });
   } catch {
-    res.status(500).send("/getAgreeOnTermsOfService : internal server error");
+    res
+      .status(500)
+      .send("Users/getAgreeOnTermsOfService : internal server error");
   }
 };
 
 const editNicknameHandler = async (req, res) => {
-  const newNickname = req.body.nickname;
+  try {
+    const newNickname = req.body.nickname;
+    const result = await userModel.findOneAndUpdate(
+      { id: req.userId },
+      { nickname: newNickname }
+    );
 
-  // 닉네임을 갱신하고 결과를 반환
-  await userModel
-    .findOneAndUpdate({ id: req.userId }, { nickname: newNickname })
-    .then((result) => {
-      if (result) {
-        res
-          .status(200)
-          .send("User/editNickname : edit user nickname successful");
-      } else {
-        res.status(400).send("User/editNickname : such user id does not exist");
-      }
-    })
-    .catch((err) => {
-      logger.error(err);
-      res.status(500).send("User/editNickname : internal server error");
-    });
+    if (result) {
+      // 이벤트 코드입니다.
+      await contracts?.completeNicknameChangingQuest(
+        req.userOid,
+        req.timestamp
+      );
+
+      res
+        .status(200)
+        .send("Users/editNickname : edit user nickname successful");
+    } else {
+      res.status(400).send("Users/editNickname : such user id does not exist");
+    }
+  } catch (err) {
+    logger.error(err);
+    res.status(500).send("Users/editNickname : internal server error");
+  }
 };
 
 const editAccountHandler = async (req, res) => {
-  const newAccount = req.body.account;
+  try {
+    const newAccount = req.body.account;
+    const result = await userModel.findOneAndUpdate(
+      { id: req.userId },
+      { account: newAccount }
+    );
 
-  // 계좌번호를 갱신하고 결과를 반환
-  await userModel
-    .findOneAndUpdate({ id: req.userId }, { account: newAccount })
-    .then((result) => {
-      if (result) {
-        res.status(200).send("User/editAccount : edit user account successful");
-      } else {
-        res.status(400).send("User/editAccount : such user id does not exist");
-      }
-    })
-    .catch((err) => {
-      logger.error(err);
-      res.status(500).send("User/editAccount : internal server error");
-    });
+    if (result) {
+      // 이벤트 코드입니다.
+      await contracts?.completeAccountChangingQuest(
+        req.userOid,
+        req.timestamp,
+        newAccount
+      );
+
+      res.status(200).send("Users/editAccount : edit user account successful");
+    } else {
+      res.status(400).send("Users/editAccount : such user id does not exist");
+    }
+  } catch (err) {
+    logger.error(err);
+    res.status(500).send("Users/editAccount : internal server error");
+  }
 };
 
 const editProfileImgGetPUrlHandler = async (req, res) => {
@@ -80,14 +102,14 @@ const editProfileImgGetPUrlHandler = async (req, res) => {
     if (!user) {
       return res
         .status(500)
-        .send("User/editProfileImg/getPUrl : internal server error");
+        .send("Users/editProfileImg/getPUrl : internal server error");
     }
     const key = `profile-img/${user._id}`;
     aws.getUploadPUrlPost(key, type, (err, data) => {
       if (err) {
         return res
           .status(500)
-          .send("User/editProfileImg/getPUrl : internal server error");
+          .send("Users/editProfileImg/getPUrl : internal server error");
       }
       data.fields["Content-Type"] = type;
       data.fields["key"] = key;
@@ -97,7 +119,9 @@ const editProfileImgGetPUrlHandler = async (req, res) => {
       });
     });
   } catch (e) {
-    res.status(500).send("User/editProfileImg/getPUrl : internal server error");
+    res
+      .status(500)
+      .send("Users/editProfileImg/getPUrl : internal server error");
   }
 };
 
@@ -107,7 +131,7 @@ const editProfileImgDoneHandler = async (req, res) => {
     if (!user) {
       return res
         .status(500)
-        .send("User/editProfileImg/done : internal server error");
+        .send("Users/editProfileImg/done : internal server error");
     }
     const key = `profile-img/${user._id}`;
     aws.foundObject(key, async (err) => {
@@ -115,25 +139,64 @@ const editProfileImgDoneHandler = async (req, res) => {
         logger.error(err);
         return res
           .status(500)
-          .send("User/editProfileImg/done : internal server error");
+          .send("Users/editProfileImg/done : internal server error");
       }
       const userAfter = await userModel.findOneAndUpdate(
         { id: req.userId },
-        { profileImageUrl: user._id },
+        { profileImageUrl: aws.getS3Url(`/${key}?token=${req.timestamp}`) },
         { new: true }
       );
       if (!userAfter) {
         return res
           .status(500)
-          .send("User/editProfileImg/done : internal server error");
+          .send("Users/editProfileImg/done : internal server error");
       }
       res.json({
         result: true,
-        profileImageUrl: userAfter._id,
+        profileImageUrl: userAfter.profileImageUrl,
       });
     });
   } catch (e) {
-    res.status(500).send("User/editProfileImg/done : internal server error");
+    res.status(500).send("Users/editProfileImg/done : internal server error");
+  }
+};
+
+const resetNicknameHandler = async (req, res) => {
+  try {
+    const result = await userModel.findOneAndUpdate(
+      { id: req.userId },
+      { nickname: generateNickname(req.body.id) },
+      { new: true }
+    );
+    if (!result)
+      return res
+        .status(400)
+        .send("Users/resetNickname : such user does not exist");
+    res
+      .status(200)
+      .send("Users/resetNickname : reset user nickname successful");
+  } catch (err) {
+    logger.error(err);
+    res.status(500).send("Users/resetNickname : internal server error");
+  }
+};
+
+const resetProfileImgHandler = async (req, res) => {
+  try {
+    const result = await userModel.findOneAndUpdate(
+      { id: req.userId },
+      { profileImageUrl: generateProfileImageUrl() },
+      { new: true }
+    );
+    if (!result)
+      return res
+        .status(400)
+        .send("Users/resetProfileImg : such user does not exist");
+    res
+      .status(200)
+      .send("Users/resetProfileImg : reset user profile image successful");
+  } catch (err) {
+    res.status(500).send("Users/resetProfileImg : internal server error");
   }
 };
 
@@ -144,4 +207,6 @@ module.exports = {
   editAccountHandler,
   editProfileImgGetPUrlHandler,
   editProfileImgDoneHandler,
+  resetNicknameHandler,
+  resetProfileImgHandler,
 };

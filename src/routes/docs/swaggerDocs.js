@@ -1,7 +1,35 @@
-const reportsSchema = require("./reportsSchema");
+const { reportsSchema } = require("./schemas/reportsSchema");
+const { roomsSchema } = require("./schemas/roomsSchema");
 const reportsDocs = require("./reports");
 const logininfoDocs = require("./logininfo");
 const locationsDocs = require("./locations");
+const authDocs = require("./auth");
+const authReplaceDocs = require("./auth.replace");
+const usersDocs = require("./users");
+const roomsDocs = require("./rooms");
+const chatsDocs = require("./chats");
+const { port, nodeEnv } = require("../../../loadenv");
+
+const serverList = [
+  {
+    url: `http://localhost:${port}`,
+    description: "local api server",
+    development: true,
+    production: false,
+  },
+  {
+    url: "https://taxi.sparcs.org/api",
+    description: "taxi main api server",
+    development: true,
+    production: true,
+  },
+  {
+    url: "https://taxi.dev.sparcs.org/api",
+    description: "taxi dev api server",
+    development: true,
+    production: false,
+  },
+];
 
 const swaggerDocs = {
   openapi: "3.0.3",
@@ -10,6 +38,7 @@ const swaggerDocs = {
     version: "1.0.0",
   },
   basePath: "/",
+  servers: serverList.filter((server) => server[nodeEnv]),
   tags: [
     {
       name: "locations",
@@ -23,6 +52,22 @@ const swaggerDocs = {
       name: "reports",
       description: "사용자 신고 및 신고 기록 조회",
     },
+    {
+      name: "auth",
+      description: "사용자 생성, 로그인, 로그아웃 등 사용자 상태 관리 지원",
+    },
+    {
+      name: "users",
+      description: "유저 계정 정보 수정 및 조회",
+    },
+    {
+      name: "rooms",
+      description: "방 생성/수정/삭제/조회 및 관리 지원",
+    },
+    {
+      name: "chats",
+      description: "채팅 시 발생하는 이벤트 정리",
+    },
   ],
   consumes: ["application/json"],
   produces: ["application/json"],
@@ -30,10 +75,16 @@ const swaggerDocs = {
     ...reportsDocs,
     ...logininfoDocs,
     ...locationsDocs,
+    ...usersDocs,
+    ...authDocs,
+    ...authReplaceDocs,
+    ...chatsDocs,
+    ...roomsDocs,
   },
   components: {
     schemas: {
       ...reportsSchema,
+      ...roomsSchema,
     },
   },
 };

@@ -12,38 +12,23 @@ jobs:
     strategy:
       matrix:
         # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
-        node-version: [16.x]
+        node-version: ['18.x']
         mongodb-version: ['5.0']
     steps:
     - name: Start MongoDB  
       run: sudo docker run --name mongodb -d -p 27017:27017 mongo:${{ matrix.mongodb-version }}
-    - name: Use Node.js ${{ matrix.node-version }}
-      uses: actions/checkout@v3
+    - uses: actions/checkout@v3
       with:
         submodules: true
-    - name: Install Node.js
-      uses: actions/setup-node@v3
-      with:
-        node-version: 16
-
-    - uses: pnpm/action-setup@v2
-      name: Install pnpm
+    - name: Install pnpm
+      uses: pnpm/action-setup@v2
       with:
         version: 8
-    - id: submodule-local
-      name: Save local version of submodule
-      run: echo "ver=`cd sampleGenerator && git log --pretty="%h" -1 && cd ..`" >> $GITHUB_OUTPUT
-    - id: submodule-origin
-      name: Save origin version of submodule
-      run: echo "ver=`cd sampleGenerator && git log origin --pretty="%h" -1 && cd ..`" >> $GITHUB_OUTPUT
-    - name: Check submodule version
-      if: ${{ steps.submodule-local.outputs.ver != steps.submodule-origin.outputs.ver }}
-      uses: actions/github-script@v3
+    - name: Install Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v3
       with:
-        script: |
-            core.setFailed('Please update submodule to the latest version by using \"git submodule update --remote\"')
-    - name: Install sampleGenerator dependencies from package-lock.json
-      run: cd sampleGenerator && pnpm i --force --frozen-lockfile && cd ..
+        node-version: ${{ matrix.node-version }}
+        cache: 'pnpm'
     - name: Install taxi-back dependencies from package-lock.json
       run: pnpm i --force --frozen-lockfile
     - name: Run unit tests
@@ -53,6 +38,5 @@ jobs:
         AWS_S3_BUCKET_NAME: ${{ secrets.AWS_S3_BUCKET_NAME }} 
         AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         DB_PATH: ${{ secrets.DB_PATH }}
-        FRONT_URL: ${{ secrets.FRONT_URL }}
         PORT: ${{ secrets.PORT }}
         SESSION_KEY: ${{ secrets.SESSION_KEY }}

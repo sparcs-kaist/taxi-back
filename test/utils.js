@@ -4,8 +4,12 @@ const {
   chatModel,
   locationModel,
   reportModel,
+  connectDatabase,
 } = require("../src/modules/stores/mongo");
 const { generateProfileImageUrl } = require("../src/modules/modifyProfile");
+const { mongo: mongoUrl } = require("../loadenv");
+
+connectDatabase(mongoUrl);
 
 // 테스트를 위한 유저 생성 함수
 const userGenerator = async (username, testData) => {

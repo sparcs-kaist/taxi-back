@@ -1,7 +1,12 @@
 const { chatModel, userModel, roomModel } = require("../modules/stores/mongo");
 const { chatPopulateOption } = require("../modules/populates/chats");
+const { roomPopulateOption } = require("../modules/populates/rooms");
 const aws = require("../modules/stores/aws");
-const { transformChatsForRoom, emitChatEvent } = require("../modules/socket");
+const {
+  transformChatsForRoom,
+  emitChatEvent,
+  emitUpdateEvent,
+} = require("../modules/socket");
 const logger = require("../modules/logger");
 
 const chatCount = 60;
@@ -170,6 +175,51 @@ const sendChatHandler = async (req, res) => {
   }
 };
 
+const readChatHandler = async (req, res) => {
+  try {
+    const io = req.app.get("io");
+    const { userId } = req;
+    const { roomId } = req.body;
+    const user = await userModel.findOne({ id: userId });
+
+    if (!userId || !user) {
+      return res.status(500).send("Chat/read : internal server error");
+    }
+    if (!io) {
+      return res.status(403).send("Chat/read : socket did not connected");
+    }
+
+    const roomObject = await roomModel
+      .findOneAndUpdate(
+        {
+          _id: roomId,
+          part: {
+            $elemMatch: {
+              user: user._id,
+            },
+          },
+        },
+        {
+          $set: { "part.$[updater].readAt": req.timestamp },
+        },
+        {
+          new: true,
+          arrayFilters: [{ "updater.user": { $eq: user._id } }],
+        }
+      )
+      .lean();
+
+    if (!roomObject) {
+      return res.status(404).send("Chat/read : cannot find room info");
+    }
+
+    if (await emitUpdateEvent(io, roomId)) res.json({ result: true });
+    else res.status(500).send("Chat/read : failed to emit socket events");
+  } catch (e) {
+    res.status(500).send("Chat/read : internal server error");
+  }
+};
+
 const uploadChatImgGetPUrlHandler = async (req, res) => {
   try {
     const { type, roomId } = req.body;
@@ -223,7 +273,7 @@ const uploadChatImgDoneHandler = async (req, res) => {
     if (!user) {
       return res
         .status(500)
-        .send("Chat/uploadChatImg/getPUrl : internal server error");
+        .send("Chat/uploadChatImg/done : internal server error");
     }
     if (!chat) {
       return res.status(404).json({
@@ -244,7 +294,7 @@ const uploadChatImgDoneHandler = async (req, res) => {
       if (err) {
         return res
           .status(500)
-          .send("Chat/uploadChatImg/getPUrl : internal server error");
+          .send("Chat/uploadChatImg/done : internal server error");
       }
 
       chat.content = chat._id;
@@ -284,4 +334,5 @@ module.exports = {
   sendChatHandler,
   uploadChatImgGetPUrlHandler,
   uploadChatImgDoneHandler,
+  readChatHandler,
 };

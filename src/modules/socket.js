@@ -4,7 +4,6 @@ const sessionMiddleware = require("../middlewares/session");
 const logger = require("./logger");
 const { getLoginInfo } = require("./auths/login");
 const { roomModel, userModel, chatModel } = require("./stores/mongo");
-const { getS3Url } = require("./stores/aws");
 const { getTokensOfUsers, sendMessageByTokens } = require("./fcm");
 
 const { corsWhiteList } = require("../../loadenv");
@@ -195,8 +194,34 @@ const emitChatEvent = async (io, chat) => {
       type,
       name,
       getMessageBody(type, nickname, content),
-      getS3Url(`/profile-img/${profileImageUrl}`),
+      profileImageUrl,
       `/myroom/${roomId}`
+    );
+
+    return true;
+  } catch (err) {
+    logger.error(err);
+    return false;
+  }
+};
+
+const emitUpdateEvent = async (io, roomId) => {
+  try {
+    // 방의 모든 사용자에게 socket 메세지 업데이트 이벤트를 발생시킵니다.
+    if (!io || !roomId) {
+      throw new IllegalArgumentsException();
+    }
+
+    const { name, part } = await roomModel.findById(roomId, "name part");
+
+    if (!name || !part) {
+      throw new IllegalArgumentsException();
+    }
+
+    part.forEach(({ user }) =>
+      io.in(`user-${user}`).emit("chat_update", {
+        roomId,
+      })
     );
 
     return true;
@@ -209,43 +234,21 @@ const emitChatEvent = async (io, chat) => {
 // https://socket.io/how-to/use-with-express-session 참고
 const startSocketServer = (server) => {
   const io = new Server(server, {
-    allowRequest: (req, callback) => {
-      const fakeRes = {
-        getHeader() {
-          return [];
-        },
-        setHeader(key, values) {
-          req.cookieHolder = values[0];
-        },
-        writeHead() {},
-      };
-      sessionMiddleware(req, fakeRes, () => {
-        if (req.session) {
-          fakeRes.writeHead();
-          req.session.save();
-        }
-        callback(null, true);
-      });
-    },
     cors: {
       origin: corsWhiteList,
       methods: ["GET", "POST"],
       credentials: true,
     },
   });
-
-  io.engine.on("initial_headers", (headers, req) => {
-    if (req.cookieHolder) {
-      headers["set-cookie"] = req.cookieHolder;
-      delete req.cookieHolder;
-    }
-  });
+  io.engine.use(sessionMiddleware);
 
   io.on("connection", (socket) => {
     try {
       const req = socket.request;
       req.session.reload((err) => {
-        if (err) throw err;
+        if (err) {
+          return socket.disconnect();
+        }
 
         const { oid: userOid } = getLoginInfo(req);
         if (!userOid) return;
@@ -266,5 +269,6 @@ const startSocketServer = (server) => {
 module.exports = {
   transformChatsForRoom,
   emitChatEvent,
+  emitUpdateEvent,
   startSocketServer,
 };

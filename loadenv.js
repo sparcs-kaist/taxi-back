@@ -2,9 +2,12 @@
 require("dotenv").config({ path: `./.env.${process.env.NODE_ENV}` });
 
 module.exports = {
-  nodeEnv: process.env.NODE_ENV,
+  nodeEnv: process.env.NODE_ENV, // required ("production" or "development" or "test")
   mongo: process.env.DB_PATH, // required
-  session: process.env.SESSION_KEY || "TAXI_SESSION_KEY", // optional
+  session: {
+    secret: process.env.SESSION_KEY || "TAXI_SESSION_KEY", // optional
+    expiry: 14 * 24 * 3600 * 1000, // 14일, ms 단위입니다.
+  },
   redis: process.env.REDIS_PATH, // optional
   sparcssso: {
     id: process.env.SPARCSSSO_CLIENT_ID || "", // optional
@@ -25,6 +28,8 @@ module.exports = {
     secretKey: process.env.JWT_SECRET_KEY || "TAXI_JWT_KEY",
     option: {
       algorithm: "HS256",
+      // FIXME: remove FRONT_URL from issuer. 단, issuer를 변경하면 이전에 발급했던 모든 JWT가 무효화됩니다.
+      // See https://github.com/sparcs-kaist/taxi-back/issues/415
       issuer: process.env.FRONT_URL || "http://localhost:3000", // optional (default = "http://localhost:3000")
     },
     TOKEN_EXPIRED: -3,
@@ -38,4 +43,5 @@ module.exports = {
   slackWebhookUrl: {
     report: process.env.SLACK_REPORT_WEBHOOK_URL || "", // optional
   },
+  eventConfig: process.env.EVENT_CONFIG && JSON.parse(process.env.EVENT_CONFIG), // optional
 };

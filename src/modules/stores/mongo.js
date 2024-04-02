@@ -1,7 +1,6 @@
 const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 
-const { mongo: mongoUrl } = require("../../../loadenv");
 const logger = require("../logger");
 
 const userSchema = Schema({
@@ -12,6 +11,7 @@ const userSchema = Schema({
   ongoingRoom: [{ type: Schema.Types.ObjectId, ref: "Room" }], // 참여중인 진행중인 방 배열
   doneRoom: [{ type: Schema.Types.ObjectId, ref: "Room" }], // 참여중인 완료된 방 배열
   withdraw: { type: Boolean, default: false },
+  phoneNumber: { type: String }, // 전화번호 (2023FALL 이벤트부터 추가)
   ban: { type: Boolean, default: false }, //계정 정지 여부
   joinat: { type: Date, required: true }, //가입 시각
   agreeOnTermsOfService: { type: Boolean, default: false }, //이용약관 동의 여부
@@ -34,6 +34,7 @@ const participantSchema = Schema({
     enum: ["not-departed", "paid", "send-required", "sent"],
     default: "not-departed",
   },
+  readAt: { type: Date },
 });
 
 const deviceTokenSchema = Schema({
@@ -117,6 +118,7 @@ const locationSchema = Schema({
   latitude: { type: Number }, // 이후 required: true 로 수정 필요
   longitude: { type: Number }, // 이후 required: true 로 수정 필요
 });
+
 const chatSchema = Schema({
   roomId: { type: Schema.Types.ObjectId, ref: "Room", required: true },
   type: {
@@ -170,32 +172,40 @@ const adminLogSchema = Schema({
   }, // 수행 업무
 });
 
+mongoose.set("strictQuery", true);
+
 const database = mongoose.connection;
 database.on("error", console.error.bind(console, "mongoose connection error."));
 database.on("open", () => {
-  logger.info("데이터베이스와 연결되었습니다.");
+  logger.info("Connected to database");
 });
 database.on("error", function (err) {
-  logger.error("데이터베이스 연결 에러 발생: " + err);
+  logger.error("Database connection error occurred: " + err);
   mongoose.disconnect();
 });
-database.on("disconnected", function () {
-  // 데이터베이스 연결이 끊어지면 5초 후 재연결을 시도합니다.
-  logger.error("데이터베이스와 연결이 끊어졌습니다!");
-  setTimeout(() => {
-    mongoose.connect(mongoUrl, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-    });
-  }, 5000);
-});
 
-mongoose.connect(mongoUrl, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-});
+const connectDatabase = (mongoUrl) => {
+  database.on("disconnected", function () {
+    // 데이터베이스 연결이 끊어지면 5초 후 재연결을 시도합니다.
+    logger.error("Disconnected from database!");
+    setTimeout(() => {
+      mongoose.connect(mongoUrl, {
+        useNewUrlParser: true,
+        useUnifiedTopology: true,
+      });
+    }, 5000);
+  });
+
+  mongoose.connect(mongoUrl, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+  });
+
+  return database;
+};
 
 module.exports = {
+  connectDatabase,
   userModel: mongoose.model("User", userSchema),
   deviceTokenModel: mongoose.model("DeviceToken", deviceTokenSchema),
   notificationOptionModel: mongoose.model(

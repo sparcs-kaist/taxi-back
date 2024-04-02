@@ -1,8 +1,14 @@
 // 모듈 require
 const express = require("express");
 const http = require("http");
-const { port: httpPort } = require("./loadenv");
+const {
+  nodeEnv,
+  port: httpPort,
+  eventConfig,
+  mongo: mongoUrl,
+} = require("./loadenv");
 const logger = require("./src/modules/logger");
+const { connectDatabase } = require("./src/modules/stores/mongo");
 const { startSocketServer } = require("./src/modules/socket");
 
 // Firebase Admin 초기설정
@@ -11,9 +17,15 @@ require("./src/modules/fcm").initializeApp();
 // 익스프레스 서버 생성
 const app = express();
 
+// 데이터베이스 연결
+connectDatabase(mongoUrl);
+
 // [Middleware] request body 파싱
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
+
+// reverse proxy가 설정한 헤더를 신뢰합니다.
+if (nodeEnv === "production") app.set("trust proxy", 2);
 
 // [Middleware] CORS 설정
 app.use(require("./src/middlewares/cors"));
@@ -38,6 +50,13 @@ app.use(require("./src/middlewares/limitRate"));
 // [Router] Swagger (API 문서)
 app.use("/docs", require("./src/routes/docs"));
 
+// [Router] 이벤트 전용 라우터입니다.
+eventConfig &&
+  app.use(
+    `/events/${eventConfig.mode}`,
+    require("./src/lottery").lotteryRouter
+  );
+
 // [Middleware] 모든 API 요청에 대하여 origin 검증
 app.use(require("./src/middlewares/originValidator"));
 
@@ -58,7 +77,7 @@ app.use(require("./src/middlewares/errorHandler"));
 const serverHttp = http
   .createServer(app)
   .listen(httpPort, () =>
-    logger.info(`Express 서버가 ${httpPort}번 포트에서 시작됨.`)
+    logger.info(`Express server started from port ${httpPort}`)
   );
 
 // socket.io 서버 시작
