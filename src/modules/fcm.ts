@@ -19,7 +19,7 @@ export const initializeApp = () => {
     });
   } else {
     logger.error(
-      "Firebase 관련 credential이 존재하지 않습니다. FCM 관련 기능을 사용할 수 없습니다."
+      "There is no credential for Firebase. FCM functions are disabled."
     );
   }
 };
@@ -116,7 +116,7 @@ const removeExpiredTokens = async (
         }
         return false;
       } catch (err) {
-        logger.info(err);
+        logger.error(err);
         return false;
       }
     })

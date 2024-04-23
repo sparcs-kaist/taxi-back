@@ -4,7 +4,6 @@ const sessionMiddleware = require("@/middlewares/session").default;
 const logger = require("@/modules/logger").default;
 const { getLoginInfo } = require("@/modules/auths/login");
 const { roomModel, userModel, chatModel } = require("@/modules/stores/mongo");
-const { getS3Url } = require("@/modules/stores/aws");
 const { getTokensOfUsers, sendMessageByTokens } = require("@/modules/fcm");
 
 const { corsWhiteList } = require("@/loadenv");
@@ -195,7 +194,7 @@ const emitChatEvent = async (io, chat) => {
       type,
       name,
       getMessageBody(type, nickname, content),
-      getS3Url(`/profile-img/${profileImageUrl}`),
+      profileImageUrl,
       `/myroom/${roomId}`
     );
 

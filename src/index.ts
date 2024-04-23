@@ -93,7 +93,7 @@ app.use(errorHandler);
 const serverHttp = http
   .createServer(app)
   .listen(httpPort, () =>
-    logger.info(`Express 서버가 ${httpPort}번 포트에서 시작됨.`)
+    logger.info(`Express server started from port ${httpPort}`)
   );
 
 // socket.io 서버 시작
