@@ -33,8 +33,8 @@ const scaledTime = (time) => {
 const initDatabase = async () => {
   try {
     if (
-      naverCloudApi["X-NCP-APIGW-API-KEY"] == "none" ||
-      naverCloudApi["X-NCP-APIGW-API-KEY-ID"] == "none"
+      naverCloudApi["X-NCP-APIGW-API-KEY"] === null ||
+      naverCloudApi["X-NCP-APIGW-API-KEY-ID"] === null
     ) {
       logger.log(
         "Naver Cloud API가 존재하지 않습니다.택시 비용 관련 기능을 사용할 수 없습니다."
