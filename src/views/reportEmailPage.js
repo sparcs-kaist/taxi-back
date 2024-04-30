@@ -1,4 +1,4 @@
-const emailPage = require("./emailPage");
+const emailPage = require("./emailPage").default;
 
 const reportEmailPage = {};
 
