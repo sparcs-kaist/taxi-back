@@ -200,6 +200,9 @@ const sendMessageByTokens = async (tokens, type, title, body, icon, link) => {
         click_action: "FLUTTER_NOTIFICATION_CLICK",
       },
       apns: { payload: { aps: { alert: { title, body } } } },
+      android: {
+        ttl: 0,
+      },
     };
     const { responses, failureCount } = await getMessaging().sendMulticast(
       message
