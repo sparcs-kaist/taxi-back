@@ -15,7 +15,9 @@
     "serve": "cross-env TZ='Asia/Seoul' NODE_ENV=production node dist/index.js",
     "lint": "pnpm eslint .",
     "runscript": "cross-env TZ='Asia/Seoul' NODE_ENV=production node",
-    "sample": "cd src/sampleGenerator && npm start && cd .."
+    "sample": "npx tsc && tsc-alias && cross-env NODE_ENV=test node dist/sampleGenerator/index.js",
+    "dumpDB": "npx tsc && tsc-alias && cross-env NODE_ENV=test node dist/sampleGenerator/tools/dump.js",
+    "restoreDB": "node src/sampleGenerator/tools/restore.js"
   },
   "engines": {
     "node": ">=18.0.0",
