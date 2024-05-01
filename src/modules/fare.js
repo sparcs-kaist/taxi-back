@@ -1,16 +1,19 @@
 const logger = require("./logger");
 const axios = require("axios");
 
-const { naverCloudApiId, naverCloudApiKey } = require("../../loadenv");
+const { naverMapApiId, naverMapApiKey } = require("../../loadenv");
 const { taxiFareModel, locationModel } = require("../modules/stores/mongo");
 
 // Naver Cloud Platform Maps Directions 5 API Keys
-const naverCloudApi = {
-  "X-NCP-APIGW-API-KEY-ID": naverCloudApiId,
-  "X-NCP-APIGW-API-KEY": naverCloudApiKey,
+const naverMapApi = {
+  "X-NCP-APIGW-API-KEY-ID": naverMapApiId,
+  "X-NCP-APIGW-API-KEY": naverMapApiKey,
 };
-const naverCloudApiCall =
+const naverMapApiCall =
   "https://naveropenapi.apigw.ntruss.com/map-direction/v1/driving?start=";
+
+// scaledTime에 사용하는 상수입니다. 0 ~ 47 (0:00 ~ 23:30)
+const timeConstants = 48;
 
 /**
  * 시간을 받아서 30분 단위로 변환해서 반환합니다.
@@ -20,7 +23,9 @@ const naverCloudApiCall =
  */
 const scaledTime = (time) => {
   return (
-    48 * time.getDay() + time.getHours() * 2 + (time.getMinutes() >= 30 ? 1 : 0)
+    timeConstants * time.getDay() +
+    time.getHours() * 2 +
+    (time.getMinutes() >= 30 ? 1 : 0)
   );
 };
 
@@ -33,8 +38,8 @@ const scaledTime = (time) => {
 const initDatabase = async () => {
   try {
     if (
-      naverCloudApi["X-NCP-APIGW-API-KEY"] === null ||
-      naverCloudApi["X-NCP-APIGW-API-KEY-ID"] === null
+      !naverMapApi["X-NCP-APIGW-API-KEY"] ||
+      !naverMapApi["X-NCP-APIGW-API-KEY-ID"]
     ) {
       logger.log(
         "Naver Cloud API가 존재하지 않습니다.택시 비용 관련 기능을 사용할 수 없습니다."
@@ -55,13 +60,13 @@ const initDatabase = async () => {
         if (from.koName === "카이스트 본원" && to.koName === "대전역") {
           const fare = (
             await axios.get(
-              `${
-                naverCloudApiCall + from.longitude + "," + from.latitude
-              }&goal=${to.longitude + "," + to.latitude}&options=traoptimal`,
-              { headers: naverCloudApi }
+              `${naverMapApiCall + from.longitude + "," + from.latitude}&goal=${
+                to.longitude + "," + to.latitude
+              }&options=traoptimal`,
+              { headers: naverMapApi }
             )
           ).data.route.traoptimal[0].summary.taxiFare;
-          [...Array(48 * 7)].map((_, i) => {
+          [...Array(timeConstants * 7)].map((_, i) => {
             tableFare.push({
               from: from._id,
               to: to._id,
@@ -73,13 +78,13 @@ const initDatabase = async () => {
         } else if (from.koName === "대전역" && to.koName === "카이스트 본원") {
           await axios
             .get(
-              `${
-                naverCloudApiCall + from.longitude + "," + from.latitude
-              }&goal=${to.longitude + "," + to.latitude}&options=traoptimal`,
-              { headers: naverCloudApi }
+              `${naverMapApiCall + from.longitude + "," + from.latitude}&goal=${
+                to.longitude + "," + to.latitude
+              }&options=traoptimal`,
+              { headers: naverMapApi }
             )
             .then((res) => {
-              [...Array(48 * 7)].map((_, i) => {
+              [...Array(timeConstants * 7)].map((_, i) => {
                 tableFare.push({
                   from: from._id,
                   to: to._id,
@@ -91,7 +96,7 @@ const initDatabase = async () => {
             })
             .catch((err) => {
               logger.error(err.message);
-              [...Array(48 * 7)].map((_, i) => {
+              [...Array(timeConstants * 7)].map((_, i) => {
                 tableFare.push({
                   from: from._id,
                   to: to._id,
@@ -106,17 +111,17 @@ const initDatabase = async () => {
         else {
           await axios
             .get(
-              `${
-                naverCloudApiCall + from.longitude + "," + from.latitude
-              }&goal=${to.longitude + "," + to.latitude}&options=traoptimal`,
-              { headers: naverCloudApi }
+              `${naverMapApiCall + from.longitude + "," + from.latitude}&goal=${
+                to.longitude + "," + to.latitude
+              }&options=traoptimal`,
+              { headers: naverMapApi }
             )
             .then((res) => {
               [...Array(7)].map((_, i) => {
                 tableFare.push({
                   from: from,
                   to: to,
-                  time: i * 48,
+                  time: i * timeConstants,
                   fare: res.data.route.traoptimal[0].summary.taxiFare,
                   isMajor: false,
                 });
@@ -128,7 +133,7 @@ const initDatabase = async () => {
                 tableFare.push({
                   from: from,
                   to: to,
-                  time: i * 48,
+                  time: i * timeConstants,
                   fare: 0,
                   isMajor: false,
                 });
@@ -138,7 +143,7 @@ const initDatabase = async () => {
         await taxiFareModel.insertMany(tableFare);
         await new Promise((resolve) => setTimeout(resolve, 200));
         return acc;
-      }, Promise.resolve());
+      });
     });
   } catch (err) {
     logger.error("Error occured while initializing database: " + err.message);
