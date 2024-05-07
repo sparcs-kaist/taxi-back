@@ -42,7 +42,7 @@ const initDatabase = async () => {
       !naverMapApi["X-NCP-APIGW-API-KEY-ID"]
     ) {
       logger.log(
-        "Naver Cloud API가 존재하지 않습니다.택시 비용 관련 기능을 사용할 수 없습니다."
+        "There is no credential for Naver Map. Taxi Fare functions are disabled."
       );
       return;
     }
@@ -52,8 +52,9 @@ const initDatabase = async () => {
     const location = await locationModel.find({ isValid: { $eq: true } });
 
     location.map(async (from) => {
-      await location.reduce(async (acc, to) => {
-        await acc.then();
+      location.reduce(async (acc, to) => {
+        logger.info(`Initializing fare from ${from.koName} to ${to.koName}`);
+        await acc;
         if (from._id === to._id) return;
         let tableFare = [];
         // 카이스트 본원 <-> 대전역의 경우 48*7(=336)개의 시간대에 대한 택시 요금을 일괄적으로 설정
@@ -76,36 +77,23 @@ const initDatabase = async () => {
             });
           });
         } else if (from.koName === "대전역" && to.koName === "카이스트 본원") {
-          await axios
-            .get(
+          const fare = (
+            await axios.get(
               `${naverMapApiCall + from.longitude + "," + from.latitude}&goal=${
                 to.longitude + "," + to.latitude
               }&options=traoptimal`,
               { headers: naverMapApi }
             )
-            .then((res) => {
-              [...Array(timeConstants * 7)].map((_, i) => {
-                tableFare.push({
-                  from: from._id,
-                  to: to._id,
-                  time: i,
-                  fare: res.data.route.traoptimal[0].summary.taxiFare,
-                  isMajor: true,
-                });
-              });
-            })
-            .catch((err) => {
-              logger.error(err.message);
-              [...Array(timeConstants * 7)].map((_, i) => {
-                tableFare.push({
-                  from: from._id,
-                  to: to._id,
-                  time: i,
-                  fare: 0,
-                  isMajor: true,
-                });
-              });
+          ).data.route.traoptimal[0].summary.taxiFare;
+          [...Array(timeConstants * 7)].map((_, i) => {
+            tableFare.push({
+              from: from._id,
+              to: to._id,
+              time: i,
+              fare: fare,
+              isMajor: true,
             });
+          });
         }
         // 카이스트 본원 <-> 대전역외의 경로(238개)에 대해서는 7개(일주일) 씩 collection 지정 설정
         else {
@@ -143,7 +131,7 @@ const initDatabase = async () => {
         await taxiFareModel.insertMany(tableFare);
         await new Promise((resolve) => setTimeout(resolve, 200));
         return acc;
-      });
+      }, Promise.resolve());
     });
   } catch (err) {
     logger.error("Error occured while initializing database: " + err.message);

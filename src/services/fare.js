@@ -164,7 +164,7 @@ const updateTaxiFare = async (sTime, isMajor) => {
     const from = await locationModel.findOne({ _id: item.from }).clone();
     const to = await locationModel.findOne({ _id: item.to }).clone();
 
-    await acc.then();
+    await acc;
     await axios
       .get(
         `${naverMapApiCall + from.longitude + "," + from.latitude}&goal=${
@@ -195,7 +195,7 @@ const updateTaxiFare = async (sTime, isMajor) => {
       });
     await new Promise((resolve) => setTimeout(() => resolve, 200));
     return acc;
-  });
+  }, Promise.resolve());
 };
 
 module.exports = {
