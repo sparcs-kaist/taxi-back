@@ -82,7 +82,7 @@ const getTaxiFare = async (req, res) => {
         )
         .clone();
       //만일 cron이 아직 돌지 않은 상태의 시간대의 정보를 필요로하는 비상시의 경우 대비
-      if (!taxiFare || taxiFare.fare === 0) {
+      if (!taxiFare || taxiFare.fare <= 0) {
         await axios
           .get(
             `${naverMapApiCall + from.longitude + "," + from.latitude}&goal=${
@@ -118,7 +118,7 @@ const getTaxiFare = async (req, res) => {
         )
         .clone();
       //만일 cron이 아직 돌지 않은 상태의 시간대의 정보를 필요로하는 비상시의 경우 대비
-      if (!taxiFare || taxiFare.fare === 0) {
+      if (!taxiFare || taxiFare.fare <= 0) {
         await axios
           .get(
             `${naverMapApiCall + from.longitude + "," + from.latitude}&goal=${
