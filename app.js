@@ -88,4 +88,4 @@ app.set("io", startSocketServer(serverHttp));
 require("./src/schedules")(app);
 
 // [Module] 택시 예상 비용 db 초기화
-// require("./src/modules/fare").initDatabase();
+require("./src/modules/fare").initDatabase();
