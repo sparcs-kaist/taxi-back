@@ -58,7 +58,7 @@ const joinus = async (req, userData) => {
 };
 
 const update = async (userData) => {
-  const updateInfo = { name: userData.name };
+  const updateInfo = { name: userData.name, email: userData.email };
   await userModel.updateOne({ id: userData.id }, updateInfo);
 };
 
@@ -72,7 +72,7 @@ const tryLogin = async (req, res, userData, redirectOrigin, redirectPath) => {
       await joinus(req, userData);
       return tryLogin(req, res, userData, redirectOrigin, redirectPath);
     }
-    if (user.name != userData.name) {
+    if (user.name != userData.name || user.email != userData.email) {
       await update(userData);
       return tryLogin(req, res, userData, redirectOrigin, redirectPath);
     }
