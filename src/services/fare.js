@@ -195,7 +195,7 @@ const updateTaxiFare = async (sTime, isMajor) => {
       });
     await new Promise((resolve) => setTimeout(() => resolve, 200));
     return acc;
-  }, Promise.resolve());
+  }, Promise.resolve()); // 초기값 설정 안 하면, 처음에 acc가 undefined로 들어가서 첫 인덱스를 to에서 못 쓰게 됨
 };
 
 module.exports = {
