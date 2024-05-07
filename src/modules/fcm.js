@@ -242,6 +242,9 @@ const sendMessageByTopic = async (topic, type, title, body, icon, link) => {
         icon: icon || "/icons-512.png",
         click_action: "FLUTTER_NOTIFICATION_CLICK",
       },
+      android: {
+        ttl: 0,
+      },
     };
     await getMessaging().send(message);
     logger.info(`Notification sent to token ${topic}`);
