@@ -8,7 +8,7 @@
   "scripts": {
     "preinstall": "npx only-allow pnpm",
     "start": "npx tsc && tsc-alias && npx nodemon",
-    "mocha": "cross-env TZ='Asia/Seoul' NODE_ENV=test mocha --recursive --reporter spec --exit",
+    "mocha": "cross-env TZ='Asia/Seoul' NODE_ENV=test mocha --require ts-node/register --require tsconfig-paths/register --recursive --reporter spec --exit",
     "test": "npm run sample && cross-env TZ='Asia/Seoul' npm run mocha",
     "build": "tsc && tsc-alias",
     "clean": "rimraf dist/",
