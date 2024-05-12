@@ -17,7 +17,7 @@
     "runscript": "cross-env TZ='Asia/Seoul' NODE_ENV=production node",
     "sample": "npx tsc && tsc-alias && cross-env NODE_ENV=test node dist/sampleGenerator/index.js",
     "dumpDB": "npx tsc && tsc-alias && cross-env NODE_ENV=test node dist/sampleGenerator/tools/dump.js",
-    "restoreDB": "node src/sampleGenerator/tools/restore.js"
+    "restoreDB": "npx tsc && tsc-alias && cross-env NODE_ENV=test node dist/sampleGenerator/tools/restore.js"
   },
   "engines": {
     "node": ">=18.0.0",
