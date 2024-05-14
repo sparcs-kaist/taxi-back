@@ -1,6 +1,6 @@
 const { userModel } = require("@/modules/stores/mongo");
 const logger = require("@/modules/logger").default;
-const aws = require("@/modules/stores/aws").default;
+const aws = require("@/modules/stores/aws");
 const {
   generateNickname,
   generateProfileImageUrl,
