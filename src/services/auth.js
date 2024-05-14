@@ -61,7 +61,7 @@ const update = async (userData) => {
   const updateInfo = {
     name: userData.name,
     email: userData.email,
-    subinfo: { kaist: userData.kaist },
+    "subinfo.kaist": userData.kaist,
   };
   await userModel.updateOne({ id: userData.id }, updateInfo);
   logger.info(`Update user info: ${userData.id}`);
@@ -71,7 +71,7 @@ const tryLogin = async (req, res, userData, redirectOrigin, redirectPath) => {
   try {
     const user = await userModel.findOne(
       { id: userData.id },
-      "_id name id withdraw ban"
+      "_id name email subinfo id withdraw ban"
     );
     if (!user) {
       await joinus(req, userData);
