@@ -1,16 +1,16 @@
 const axios = require("axios");
 
-const { naverCloudApiId, naverCloudApiKey } = require("../../loadenv");
+const { naverMapApiId, naverMapApiKey } = require("../../loadenv");
 const { taxiFareModel, locationModel } = require("../modules/stores/mongo");
 const { scaledTime } = require("../modules/fare");
 const logger = require("../modules/logger");
 
 // Naver Cloud Platform Maps Directions 5 API Keys
-const naverCloudApi = {
-  "X-NCP-APIGW-API-KEY-ID": naverCloudApiId,
-  "X-NCP-APIGW-API-KEY": naverCloudApiKey,
+const naverMapApi = {
+  "X-NCP-APIGW-API-KEY-ID": naverMapApiId,
+  "X-NCP-APIGW-API-KEY": naverMapApiKey,
 };
-const naverCloudApiCall =
+const naverMapApiCall =
   "https://naveropenapi.apigw.ntruss.com/map-direction/v1/driving?start=";
 
 /**
@@ -25,11 +25,11 @@ const naverCloudApiCall =
 const getTaxiFare = async (req, res) => {
   try {
     if (
-      naverCloudApi["X-NCP-APIGW-API-KEY"] === null ||
-      naverCloudApi["X-NCP-APIGW-API-KEY-ID"] === null
+      !naverMapApi["X-NCP-APIGW-API-KEY"] ||
+      !naverMapApi["X-NCP-APIGW-API-KEY-ID"]
     ) {
       logger.log(
-        "Naver Cloud API가 존재하지 않습니다.택시 비용 관련 기능을 사용할 수 없습니다."
+        "There is no credential for Naver Map. Taxi Fare functions are disabled."
       );
       res
         .status(503)
@@ -50,12 +50,22 @@ const getTaxiFare = async (req, res) => {
       res.status(400).json({ error: "fare/getTaxiFare: Wrong location" });
       return;
     }
-
-    // 카이스트 본원 <-> 대전역
-    if (
-      (from.koName === "카이스트 본원" && to.koName === "대전역") ||
-      (from.koName === "대전역" && to.koName === "카이스트 본원")
-    ) {
+    const isMajor = (
+      await taxiFareModel
+        .findOne(
+          { from: from._id, to: to._id, time: 0 },
+          { isMajor: true },
+          (err, docs) => {
+            if (err)
+              logger.error(
+                "Error occured while finding TaxiFare documents: " + err.message
+              );
+          }
+        )
+        .clone()
+    ).isMajor;
+    // 시간대별 정보 관리 (현재: 카이스트 본원 <-> 대전역)
+    if (isMajor) {
       const taxiFare = await taxiFareModel
         .findOne(
           {
@@ -63,7 +73,7 @@ const getTaxiFare = async (req, res) => {
             to: to._id,
             time: sTime,
           },
-          function (err, docs) {
+          (err, docs) => {
             if (err)
               logger.error(
                 "Error occured while finding TaxiFare documents: " + err.message
@@ -72,13 +82,13 @@ const getTaxiFare = async (req, res) => {
         )
         .clone();
       //만일 cron이 아직 돌지 않은 상태의 시간대의 정보를 필요로하는 비상시의 경우 대비
-      if (!taxiFare || taxiFare.fare === 0) {
+      if (!taxiFare || taxiFare.fare <= 0) {
         await axios
           .get(
-            `${naverCloudApiCall + from.longitude + "," + from.latitude}&goal=${
+            `${naverMapApiCall + from.longitude + "," + from.latitude}&goal=${
               to.longitude + "," + to.latitude
             }&options=traoptimal`,
-            { headers: naverCloudApi }
+            { headers: naverMapApi }
           )
           .then((text) => {
             res
@@ -91,9 +101,7 @@ const getTaxiFare = async (req, res) => {
       } else {
         res.status(200).json({ fare: taxiFare.fare });
       }
-    }
-    // 카이스트 본원 <-> 대전역이 아닌 경우
-    else {
+    } else {
       const taxiFare = await taxiFareModel
         .findOne(
           {
@@ -101,7 +109,7 @@ const getTaxiFare = async (req, res) => {
             to: to._id,
             time: 0,
           },
-          function (err, docs) {
+          (err, docs) => {
             if (err)
               logger.error(
                 "Error occured while finding TaxiFare documents: " + err.message
@@ -110,13 +118,13 @@ const getTaxiFare = async (req, res) => {
         )
         .clone();
       //만일 cron이 아직 돌지 않은 상태의 시간대의 정보를 필요로하는 비상시의 경우 대비
-      if (!taxiFare || taxiFare.fare === 0) {
+      if (!taxiFare || taxiFare.fare <= 0) {
         await axios
           .get(
-            `${naverCloudApiCall + from.longitude + "," + from.latitude}&goal=${
+            `${naverMapApiCall + from.longitude + "," + from.latitude}&goal=${
               to.longitude + "," + to.latitude
             }&options=traoptimal`,
-            { headers: naverCloudApi }
+            { headers: naverMapApi }
           )
           .then((text) => {
             res
@@ -156,13 +164,13 @@ const updateTaxiFare = async (sTime, isMajor) => {
     const from = await locationModel.findOne({ _id: item.from }).clone();
     const to = await locationModel.findOne({ _id: item.to }).clone();
 
-    await acc.then();
+    await acc;
     await axios
       .get(
-        `${naverCloudApiCall + from.longitude + "," + from.latitude}&goal=${
+        `${naverMapApiCall + from.longitude + "," + from.latitude}&goal=${
           to.longitude + "," + to.latitude
         }&options=traoptimal`,
-        { headers: naverCloudApi }
+        { headers: naverMapApi }
       )
       .catch((err) => {
         logger.error(err.message);
@@ -172,7 +180,7 @@ const updateTaxiFare = async (sTime, isMajor) => {
           .updateOne(
             { from: item.from, to: item.to, time: sTime },
             { fare: res.data.route.traoptimal[0].summary.taxiFare },
-            function (err, docs) {
+            (err, docs) => {
               if (err)
                 logger.error(
                   "Error occured while updating TaxiFare document: " +
@@ -187,7 +195,7 @@ const updateTaxiFare = async (sTime, isMajor) => {
       });
     await new Promise((resolve) => setTimeout(() => resolve, 200));
     return acc;
-  }, Promise.resolve());
+  }, Promise.resolve()); // 초기값 설정 안 하면, 처음에 acc가 undefined로 들어가서 첫 인덱스를 to에서 못 쓰게 됨
 };
 
 module.exports = {

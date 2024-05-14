@@ -1,16 +1,19 @@
 const logger = require("./logger");
 const axios = require("axios");
 
-const { naverCloudApiId, naverCloudApiKey } = require("../../loadenv");
+const { naverMapApiId, naverMapApiKey } = require("../../loadenv");
 const { taxiFareModel, locationModel } = require("../modules/stores/mongo");
 
 // Naver Cloud Platform Maps Directions 5 API Keys
-const naverCloudApi = {
-  "X-NCP-APIGW-API-KEY-ID": naverCloudApiId,
-  "X-NCP-APIGW-API-KEY": naverCloudApiKey,
+const naverMapApi = {
+  "X-NCP-APIGW-API-KEY-ID": naverMapApiId,
+  "X-NCP-APIGW-API-KEY": naverMapApiKey,
 };
-const naverCloudApiCall =
+const naverMapApiCall =
   "https://naveropenapi.apigw.ntruss.com/map-direction/v1/driving?start=";
+
+// scaledTime에 사용하는 상수입니다. 0 ~ 47 (0:00 ~ 23:30)
+const timeConstants = 48;
 
 /**
  * 시간을 받아서 30분 단위로 변환해서 반환합니다.
@@ -20,7 +23,9 @@ const naverCloudApiCall =
  */
 const scaledTime = (time) => {
   return (
-    48 * time.getDay() + time.getHours() * 2 + (time.getMinutes() >= 30 ? 1 : 0)
+    timeConstants * time.getDay() +
+    time.getHours() * 2 +
+    (time.getMinutes() >= 30 ? 1 : 0)
   );
 };
 
@@ -33,11 +38,11 @@ const scaledTime = (time) => {
 const initDatabase = async () => {
   try {
     if (
-      naverCloudApi["X-NCP-APIGW-API-KEY"] === null ||
-      naverCloudApi["X-NCP-APIGW-API-KEY-ID"] === null
+      !naverMapApi["X-NCP-APIGW-API-KEY"] ||
+      !naverMapApi["X-NCP-APIGW-API-KEY-ID"]
     ) {
       logger.log(
-        "Naver Cloud API가 존재하지 않습니다.택시 비용 관련 기능을 사용할 수 없습니다."
+        "There is no credential for Naver Map. Taxi Fare functions are disabled."
       );
       return;
     }
@@ -47,21 +52,22 @@ const initDatabase = async () => {
     const location = await locationModel.find({ isValid: { $eq: true } });
 
     location.map(async (from) => {
-      await location.reduce(async (acc, to) => {
-        await acc.then();
+      location.reduce(async (acc, to) => {
+        logger.info(`Initializing fare from ${from.koName} to ${to.koName}`);
+        await acc;
         if (from._id === to._id) return;
         let tableFare = [];
         // 카이스트 본원 <-> 대전역의 경우 48*7(=336)개의 시간대에 대한 택시 요금을 일괄적으로 설정
         if (from.koName === "카이스트 본원" && to.koName === "대전역") {
           const fare = (
             await axios.get(
-              `${
-                naverCloudApiCall + from.longitude + "," + from.latitude
-              }&goal=${to.longitude + "," + to.latitude}&options=traoptimal`,
-              { headers: naverCloudApi }
+              `${naverMapApiCall + from.longitude + "," + from.latitude}&goal=${
+                to.longitude + "," + to.latitude
+              }&options=traoptimal`,
+              { headers: naverMapApi }
             )
           ).data.route.traoptimal[0].summary.taxiFare;
-          [...Array(48 * 7)].map((_, i) => {
+          [...Array(timeConstants * 7)].map((_, i) => {
             tableFare.push({
               from: from._id,
               to: to._id,
@@ -71,52 +77,39 @@ const initDatabase = async () => {
             });
           });
         } else if (from.koName === "대전역" && to.koName === "카이스트 본원") {
-          await axios
-            .get(
-              `${
-                naverCloudApiCall + from.longitude + "," + from.latitude
-              }&goal=${to.longitude + "," + to.latitude}&options=traoptimal`,
-              { headers: naverCloudApi }
+          const fare = (
+            await axios.get(
+              `${naverMapApiCall + from.longitude + "," + from.latitude}&goal=${
+                to.longitude + "," + to.latitude
+              }&options=traoptimal`,
+              { headers: naverMapApi }
             )
-            .then((res) => {
-              [...Array(48 * 7)].map((_, i) => {
-                tableFare.push({
-                  from: from._id,
-                  to: to._id,
-                  time: i,
-                  fare: res.data.route.traoptimal[0].summary.taxiFare,
-                  isMajor: true,
-                });
-              });
-            })
-            .catch((err) => {
-              logger.error(err.message);
-              [...Array(48 * 7)].map((_, i) => {
-                tableFare.push({
-                  from: from._id,
-                  to: to._id,
-                  time: i,
-                  fare: 0,
-                  isMajor: true,
-                });
-              });
+          ).data.route.traoptimal[0].summary.taxiFare;
+          [...Array(timeConstants * 7)].map((_, i) => {
+            tableFare.push({
+              from: from._id,
+              to: to._id,
+              time: i,
+              fare: fare,
+              isMajor: true,
             });
+          });
         }
         // 카이스트 본원 <-> 대전역외의 경로(238개)에 대해서는 7개(일주일) 씩 collection 지정 설정
         else {
           await axios
             .get(
-              `${
-                naverCloudApiCall + from.longitude + "," + from.latitude
-              }&goal=${to.longitude + "," + to.latitude}&options=traoptimal`,
-              { headers: naverCloudApi }
+              `${naverMapApiCall + from.longitude + "," + from.latitude}&goal=${
+                to.longitude + "," + to.latitude
+              }&options=traoptimal`,
+              { headers: naverMapApi }
             )
             .then((res) => {
               [...Array(7)].map((_, i) => {
                 tableFare.push({
                   from: from,
                   to: to,
-                  time: i * 48,
+                  time: i * timeConstants,
                   fare: res.data.route.traoptimal[0].summary.taxiFare,
                   isMajor: false,
                 });
@@ -128,7 +121,7 @@ const initDatabase = async () => {
                 tableFare.push({
                   from: from,
                   to: to,
-                  time: i * 48,
+                  time: i * timeConstants,
                   fare: 0,
                   isMajor: false,
                 });
@@ -138,7 +131,7 @@ const initDatabase = async () => {
         await taxiFareModel.insertMany(tableFare);
         await new Promise((resolve) => setTimeout(resolve, 200));
         return acc;
-      }, Promise.resolve());
+      }, Promise.resolve()); // 초기값 설정 안 하면, 처음에 acc가 undefined로 들어가서 첫 인덱스를 to에서 못 쓰게 됨
     });
   } catch (err) {
     logger.error("Error occured while initializing database: " + err.message);
