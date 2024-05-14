@@ -1,4 +1,3 @@
-const { response } = require("express");
 const { objectIdPattern } = require("./utils");
 
 const tag = "fare";
@@ -30,10 +29,12 @@ fareDocs[`${apiPrefix}/getTaxiFare`] = {
       200: {
         description: "예상 택시 요금 반환 성공",
         content: {
-          "text/plain": {
+          "application/json": {
             schema: {
-              type: "number",
-              example: 10000,
+              type: "object",
+              properties: {
+                fare: { type: "number", example: 10000 },
+              },
             },
           },
         },
@@ -49,3 +50,5 @@ fareDocs[`${apiPrefix}/getTaxiFare`] = {
     },
   },
 };
+
+module.exports = fareDocs;
