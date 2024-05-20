@@ -742,7 +742,7 @@ const checkIsAbusing = (
  * @param {Object} userObject - userObject입니다. ongoingRoom 정보를 포함한 형태의 object여야 합니다.
  * @return {Boolean} 송금해야 하는 방이 있는지 여부를 반환합니다.
  */
-const checkIsSendRequired = async (userObject) => {
+const checkIsSendRequired = (userObject) => {
   // user의 참여중인 방의 part 정보만 가져오기
   const ongoingRoomParts = userObject.ongoingRoom.map((room) => room.part);
   // part에서 자신의 id에 해당하는 part만 가져오기
