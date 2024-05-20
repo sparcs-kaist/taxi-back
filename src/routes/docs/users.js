@@ -330,7 +330,7 @@ usersDocs[`${apiPrefix}/resetProfileImg`] = {
 };
 
 usersDocs[`${apiPrefix}/isBanned`] = {
-  post: {
+  get: {
     tags: [tag],
     summary: "본인의 현재 정지 기록을 가져움",
     description:
@@ -399,7 +399,7 @@ usersDocs[`${apiPrefix}/isBanned`] = {
 };
 
 usersDocs[`${apiPrefix}/getBanRecord`] = {
-  post: {
+  get: {
     tags: [tag],
     summary: "본인의 모든 정지 기록을 가져움",
     description:
