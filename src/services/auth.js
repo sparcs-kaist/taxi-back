@@ -64,7 +64,9 @@ const update = async (userData) => {
     "subinfo.kaist": userData.kaist,
   };
   await userModel.updateOne({ id: userData.id }, updateInfo);
-  logger.info(`Update user info: ${userData.id}`);
+  logger.info(
+    `Update user info: ${userData.id} ${userData.name} ${userData.email} ${userData.kaist}`
+  );
 };
 
 const tryLogin = async (req, res, userData, redirectOrigin, redirectPath) => {
@@ -83,6 +85,9 @@ const tryLogin = async (req, res, userData, redirectOrigin, redirectPath) => {
       user.subinfo.kaist !== userData.kaist
     ) {
       await update(userData);
+      logger.info(
+        `Past user info: ${user.id} ${user.name} ${user.email} ${user.subinfo.kaist}`
+      );
       return tryLogin(req, res, userData, redirectOrigin, redirectPath);
     }
 
