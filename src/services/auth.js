@@ -58,22 +58,36 @@ const joinus = async (req, userData) => {
 };
 
 const update = async (userData) => {
-  const updateInfo = { name: userData.name };
+  const updateInfo = {
+    name: userData.name,
+    email: userData.email,
+    "subinfo.kaist": userData.kaist,
+  };
   await userModel.updateOne({ id: userData.id }, updateInfo);
+  logger.info(
+    `Update user info: ${userData.id} ${userData.name} ${userData.email} ${userData.kaist}`
+  );
 };
 
 const tryLogin = async (req, res, userData, redirectOrigin, redirectPath) => {
   try {
     const user = await userModel.findOne(
       { id: userData.id },
-      "_id name id withdraw ban"
+      "_id name email subinfo id withdraw ban"
     );
     if (!user) {
       await joinus(req, userData);
       return tryLogin(req, res, userData, redirectOrigin, redirectPath);
     }
-    if (user.name != userData.name) {
+    if (
+      user.name !== userData.name ||
+      user.email !== userData.email ||
+      user.subinfo.kaist !== userData.kaist
+    ) {
       await update(userData);
+      logger.info(
+        `Past user info: ${user.id} ${user.name} ${user.email} ${user.subinfo.kaist}`
+      );
       return tryLogin(req, res, userData, redirectOrigin, redirectPath);
     }
 
