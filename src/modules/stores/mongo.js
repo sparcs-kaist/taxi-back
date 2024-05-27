@@ -32,18 +32,15 @@ const banSchema = Schema({
   // 정지 사유
   reason: {
     type: String,
-    default: null,
     required: true,
   },
   bannedAt: {
     type: Date, // 정지 당한 시각
     required: true,
-    default: null,
   },
   expireAt: {
     type: Date, // 정지 만료 시각
     required: true,
-    default: null,
   },
   services: [
     {
@@ -57,7 +54,6 @@ const banSchema = Schema({
           "service", // service -> 방 생성/참여 제한
           "2023-fall-event", // event -> 특정 이벤트 참여 제한
         ],
-        default: null,
       },
     },
   ],
