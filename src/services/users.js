@@ -200,27 +200,25 @@ const resetProfileImgHandler = async (req, res) => {
   }
 };
 
-const isBanned = async (req, res) => {
+const isBannedHandler = async (req, res) => {
   try {
     // 현재 시각이 expireAt 보다 작고 본인인 경우(ban의 userId가 userOid랑 같은 경우)의 record를 모두 가져옴
-    const now = Date.now();
     const result = await banModel.find({
       userId: req.userOid,
       expireAt: {
-        $gte: now,
+        $gte: req.timestamp,
       },
     });
     if (!result) {
       return res.status(400).json("Users/isBanned : there is no ban record");
     }
-    console.log(result);
     res.status(200).json({ result });
   } catch (err) {
     res.status(500).send("Users/isBanned : internal server error");
   }
 };
 
-const getBanRecord = async (req, res) => {
+const getBanRecordHandler = async (req, res) => {
   try {
     // 본인인 경우(ban의 userId가 userOid랑 같은 경우)의 record를 모두 가져옴
     const result = await banModel.find({ userId: req.userOid });
@@ -229,7 +227,6 @@ const getBanRecord = async (req, res) => {
         .status(400)
         .json("Users/getBanRecord : there is no ban record");
     }
-    console.log(result);
     res.status(200).json({ result });
   } catch (err) {
     res.status(500).send("Users/getBanRecord : internal server error");
@@ -245,6 +242,6 @@ module.exports = {
   editProfileImgDoneHandler,
   resetNicknameHandler,
   resetProfileImgHandler,
-  isBanned,
-  getBanRecord,
+  isBannedHandler,
+  getBanRecordHandler,
 };

@@ -57,9 +57,9 @@ router.get("/editProfileImg/done", userHandlers.editProfileImgDoneHandler);
 router.get("/resetProfileImg", userHandlers.resetProfileImgHandler);
 
 // 유저의 서비스 정지 여부를 반환합니다.
-router.get("/isBanned", userHandlers.isBanned);
+router.get("/isBanned", userHandlers.isBannedHandler);
 
 // 유저의 서비스 정지 여부를 반환합니다.
-router.get("/getBanRecord", userHandlers.getBanRecord);
+router.get("/getBanRecord", userHandlers.getBanRecordHandler);
 
 module.exports = router;

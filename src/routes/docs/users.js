@@ -1,5 +1,6 @@
 const tag = "users";
 const apiPrefix = "/users";
+const { objectId } = require("../../modules/patterns");
 
 const usersDocs = {};
 usersDocs[`${apiPrefix}/agreeOnTermsOfService`] = {
@@ -346,7 +347,7 @@ usersDocs[`${apiPrefix}/isBanned`] = {
                   userId: {
                     type: "string",
                     description: "사용자의 UUID",
-                    example: "664b5c1bfd906295bc0639a9",
+                    pattern: objectId.source,
                   },
                   reason: {
                     type: "string",
@@ -415,7 +416,7 @@ usersDocs[`${apiPrefix}/getBanRecord`] = {
                   userId: {
                     type: "string",
                     description: "사용자의 UUID",
-                    example: "664b5c1bfd906295bc0639a9",
+                    pattern: objectId.source,
                   },
                   reason: {
                     type: "string",

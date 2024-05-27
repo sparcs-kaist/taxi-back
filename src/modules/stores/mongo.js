@@ -33,6 +33,7 @@ const banSchema = Schema({
   reason: {
     type: String,
     default: null,
+    required: true,
   },
   bannedAt: {
     type: Date, // 정지 당한 시각
