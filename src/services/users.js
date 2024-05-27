@@ -209,10 +209,9 @@ const isBannedHandler = async (req, res) => {
         $gte: req.timestamp,
       },
     });
-    if (!result) {
-      return res.status(400).json("Users/isBanned : there is no ban record");
-    }
-    res.status(200).json({ result });
+    if (!result)
+      return res.status(500).send("Users/getBanRecord : internal server error");
+    res.status(200).json(result);
   } catch (err) {
     res.status(500).send("Users/isBanned : internal server error");
   }
@@ -222,12 +221,9 @@ const getBanRecordHandler = async (req, res) => {
   try {
     // 본인인 경우(ban의 userId가 userOid랑 같은 경우)의 record를 모두 가져옴
     const result = await banModel.find({ userId: req.userOid });
-    if (!result) {
-      return res
-        .status(400)
-        .json("Users/getBanRecord : there is no ban record");
-    }
-    res.status(200).json({ result });
+    if (!result)
+      return res.status(500).send("Users/getBanRecord : internal server error");
+    res.status(200).json(result);
   } catch (err) {
     res.status(500).send("Users/getBanRecord : internal server error");
   }
