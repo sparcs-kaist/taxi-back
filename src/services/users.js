@@ -210,7 +210,7 @@ const isBannedHandler = async (req, res) => {
       },
     });
     if (!result)
-      return res.status(500).send("Users/getBanRecord : internal server error");
+      return res.status(500).send("Users/isBanned : internal server error");
     res.status(200).json(result);
   } catch (err) {
     res.status(500).send("Users/isBanned : internal server error");
