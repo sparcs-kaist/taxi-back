@@ -33,7 +33,7 @@ const transUserData = (userData) => {
     twitter: userData.twitter_id || "",
     kaist: kaistInfo?.ku_std_no || "",
     sparcs: userData.sparcs_id || "",
-    email: userData.email,
+    email: kaistInfo?.mail || userData.email,
     isEligible: userPattern.allowedEmployeeTypes.test(kaistInfo?.employeeType),
   };
   return info;
