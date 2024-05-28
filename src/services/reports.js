@@ -8,6 +8,7 @@ const { sendReportEmail } = require("../modules/email");
 const logger = require("../modules/logger");
 const reportEmailPage = require("../views/reportEmailPage");
 const { notifyReportToReportChannel } = require("../modules/slackNotification");
+const { getTokensOfUsers, sendMessageByTokens } = require("../modules/fcm");
 
 const createHandler = async (req, res) => {
   try {
@@ -54,6 +55,13 @@ const createHandler = async (req, res) => {
         emailRoomId
       );
       sendReportEmail(reported.email, report, emailHtml);
+      await sendMessageByTokens(
+        await getTokensOfUsers([req.userId]),
+        "신고가 접수되었습니다.",
+        "신고 내용을 확인해주세요.",
+        "",
+        "/mypage?report=true",
+      );
     }
 
     res.status(200).send("User/report : report successful");
