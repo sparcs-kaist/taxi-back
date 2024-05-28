@@ -1,5 +1,6 @@
 const { reportsSchema } = require("./schemas/reportsSchema");
 const { roomsSchema } = require("./schemas/roomsSchema");
+const { chatsSchema } = require("./schemas/chatsSchema");
 const reportsDocs = require("./reports");
 const logininfoDocs = require("./logininfo");
 const locationsDocs = require("./locations");
@@ -85,6 +86,7 @@ const swaggerDocs = {
     schemas: {
       ...reportsSchema,
       ...roomsSchema,
+      ...chatsSchema,
     },
   },
 };
