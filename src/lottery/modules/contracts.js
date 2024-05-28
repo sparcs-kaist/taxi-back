@@ -127,7 +127,7 @@ const completeFirstLoginQuest = async (userId, timestamp) => {
  * @param {Date} roomObject.time - 출발 시각입니다.
  * @returns {Promise}
  * @description 정산 요청 또는 송금이 이루어질 때마다 호출해 주세요.
- * @usage rooms - commitPaymentHandler, rooms - commitSettlementHandler
+ * @usage rooms - commitSettlementHandler, rooms - commitPaymentHandler
  */
 const completePayingAndSendingQuest = async (userId, timestamp, roomObject) => {
   logger.info(

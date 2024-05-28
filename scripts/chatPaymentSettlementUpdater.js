@@ -5,8 +5,6 @@
 const { MongoClient } = require("mongodb");
 const { mongo: mongoUrl } = require("../loadenv");
 
-const time = Date.now();
-
 const client = new MongoClient(mongoUrl);
 const db = client.db("taxi");
 const chats = db.collection("chats");
