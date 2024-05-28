@@ -15,6 +15,9 @@ class NodemailerTransport {
       host: "smtp-relay.gmail.com",
       secure: false,
       port: 587,
+      tls: {
+        rejectUnauthorized: false,
+      },
     });
   }
 
@@ -28,7 +31,7 @@ class NodemailerTransport {
       await this.#transporter.sendMail(mailOptions);
       return true;
     } catch (err) {
-      logger.error(err);
+      logger.error(`Failed to send email: ${err}`);
       return false;
     }
   }
@@ -72,7 +75,7 @@ class MockNodemailerTransport {
         .catch((err) => {
           // 네트워크 오류 등으로 mock 메일 전송을 위한 agent 객체 생성에 실패했을 때 에러를 반환합니다.
           // sendMail 메서드가 다시 호출될 때 새로운 transporterPromise를 생성하기 위해 null로 초기화합니다.
-          logger.error("mock 메일 전송을 위한 agent 객체 생성에 실패했습니다.");
+          logger.error("Failed to create agent object for sending mock mail.");
           this.#transporterPromise = null;
           throw err;
         });
@@ -93,14 +96,13 @@ class MockNodemailerTransport {
       const transporter = await this.getTransporter();
       const response = await transporter.sendMail(mailOptions);
       logger.info(
-        `mock 메일이 전송되었습니다. 미리보기 url: ${nodemailer.getTestMessageUrl(
+        `Mock mail sent successfully. Preview url: ${nodemailer.getTestMessageUrl(
           response
         )}`
       );
       return true;
     } catch (err) {
-      logger.error("메일 전송이 아래와 같은 사유로 실패했습니다: ");
-      logger.error(err);
+      logger.error(`Failed to send email: ${err}`);
       return false;
     }
   }

@@ -18,7 +18,7 @@ const initializeApp = () => {
     });
   } else {
     logger.error(
-      "Firebase 관련 credential이 존재하지 않습니다. FCM 관련 기능을 사용할 수 없습니다."
+      "There is no credential for Firebase. FCM functions are disabled."
     );
   }
 };
@@ -111,7 +111,7 @@ const removeExpiredTokens = async (deviceTokens, fcmResponses) => {
         }
         return false;
       } catch (err) {
-        logger.info(err);
+        logger.error(err);
         return false;
       }
     })
@@ -200,6 +200,9 @@ const sendMessageByTokens = async (tokens, type, title, body, icon, link) => {
         click_action: "FLUTTER_NOTIFICATION_CLICK",
       },
       apns: { payload: { aps: { alert: { title, body } } } },
+      android: {
+        ttl: 0,
+      },
     };
     const { responses, failureCount } = await getMessaging().sendMulticast(
       message
@@ -238,6 +241,9 @@ const sendMessageByTopic = async (topic, type, title, body, icon, link) => {
         url: link || "/",
         icon: icon || "/icons-512.png",
         click_action: "FLUTTER_NOTIFICATION_CLICK",
+      },
+      android: {
+        ttl: 0,
       },
     };
     await getMessaging().send(message);

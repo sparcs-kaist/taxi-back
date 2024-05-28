@@ -4,6 +4,7 @@ const AdminJSExpress = require("@adminjs/express");
 const AdminJSMongoose = require("@adminjs/mongoose");
 const {
   userModel,
+  banModel,
   roomModel,
   locationModel,
   chatModel,
@@ -26,6 +27,7 @@ AdminJS.registerAdapter(AdminJSMongoose);
 
 const resources = [
   userModel,
+  banModel,
   roomModel,
   locationModel,
   chatModel,

@@ -26,6 +26,39 @@ const userSchema = Schema({
   account: { type: String, default: "" }, //계좌번호 정보
 });
 
+const banSchema = Schema({
+  // 정지 시킬 사용자를 기제함.
+  userId: { type: mongoose.Types.ObjectId, ref: "User", required: true },
+  // 정지 사유
+  reason: {
+    type: String,
+    required: true,
+  },
+  bannedAt: {
+    type: Date, // 정지 당한 시각
+    required: true,
+  },
+  expireAt: {
+    type: Date, // 정지 만료 시각
+    required: true,
+  },
+  services: [
+    {
+      // 정지를 당한 서비스를 기제함
+      serviceName: {
+        type: String,
+        required: true,
+        // 필요시 이곳에 정지를 시킬 서비스를 추가함.
+        enum: [
+          "all", // all -> 과거/미래 모든 서비스 및 이벤트 이용 제한
+          "service", // service -> 방 생성/참여 제한
+          "2023-fall-event", // event -> 특정 이벤트 참여 제한
+        ],
+      },
+    },
+  ],
+});
+
 const participantSchema = Schema({
   user: { type: Schema.Types.ObjectId, ref: "User", required: true },
   settlementStatus: {
@@ -177,17 +210,17 @@ mongoose.set("strictQuery", true);
 const database = mongoose.connection;
 database.on("error", console.error.bind(console, "mongoose connection error."));
 database.on("open", () => {
-  logger.info("데이터베이스와 연결되었습니다.");
+  logger.info("Connected to database");
 });
 database.on("error", function (err) {
-  logger.error("데이터베이스 연결 에러 발생: " + err);
+  logger.error("Database connection error occurred: " + err);
   mongoose.disconnect();
 });
 
 const connectDatabase = (mongoUrl) => {
   database.on("disconnected", function () {
     // 데이터베이스 연결이 끊어지면 5초 후 재연결을 시도합니다.
-    logger.error("데이터베이스와 연결이 끊어졌습니다!");
+    logger.error("Disconnected from database!");
     setTimeout(() => {
       mongoose.connect(mongoUrl, {
         useNewUrlParser: true,
@@ -207,6 +240,7 @@ const connectDatabase = (mongoUrl) => {
 module.exports = {
   connectDatabase,
   userModel: mongoose.model("User", userSchema),
+  banModel: mongoose.model("Ban", banSchema),
   deviceTokenModel: mongoose.model("DeviceToken", deviceTokenSchema),
   notificationOptionModel: mongoose.model(
     "NotificationOption",

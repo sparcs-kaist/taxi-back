@@ -6,7 +6,7 @@ const {
 const { reportPopulateOption } = require("../modules/populates/reports");
 const { sendReportEmail } = require("../modules/email");
 const logger = require("../modules/logger");
-const emailPage = require("../views/emailNoSettlementPage");
+const reportEmailPage = require("../views/reportEmailPage");
 const { notifyReportToReportChannel } = require("../modules/slackNotification");
 
 const createHandler = async (req, res) => {
@@ -42,10 +42,10 @@ const createHandler = async (req, res) => {
 
     notifyReportToReportChannel(user.nickname, report);
 
-    if (report.type === "no-settlement") {
+    if (report.type === "no-settlement" || report.type === "no-show") {
       const emailRoomName = room ? room.name : "";
       const emailRoomId = room ? room._id : "";
-      const emailHtml = emailPage(
+      const emailHtml = reportEmailPage[report.type](
         req.origin,
         reported.name,
         reported.nickname,
