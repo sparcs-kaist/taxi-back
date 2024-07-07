@@ -1,14 +1,15 @@
-const axios = require("axios");
+import axios, { AxiosRequestHeaders } from "axios";
+import { Request, Response } from "express";
+import logger from "../modules/logger";
 
-const { naverMapApiId, naverMapApiKey } = require("../../loadenv");
-const { taxiFareModel, locationModel } = require("../modules/stores/mongo");
-const { scaledTime } = require("../modules/fare");
-const logger = require("../modules/logger");
+import { naverMapApiId, naverMapApiKey } from "../../loadenv";
+import { taxiFareModel, locationModel } from "../modules/stores/mongo";
+import { scaledTime } from "../modules/fare";
 
 // Naver Cloud Platform Maps Directions 5 API Keys
-const naverMapApi = {
-  "X-NCP-APIGW-API-KEY-ID": naverMapApiId,
-  "X-NCP-APIGW-API-KEY": naverMapApiKey,
+const naverMapApi: AxiosRequestHeaders = {
+  "X-NCP-APIGW-API-KEY-ID": naverMapApiId || "",
+  "X-NCP-APIGW-API-KEY": naverMapApiKey || "",
 };
 const naverMapApiCall =
   "https://naveropenapi.apigw.ntruss.com/map-direction/v1/driving?start=";
@@ -22,13 +23,13 @@ const naverMapApiCall =
  *  - @param {mongoose.Schema.Types.ObjectId} to - 도착지
  *  - @param {Date} time - 출발 시간 (ISO 8601)
  */
-const getTaxiFare = async (req, res) => {
+const getTaxiFare = async (req: Request, res: Response): Promise<void> => {
   try {
     if (
-      !naverMapApi["X-NCP-APIGW-API-KEY"] ||
-      !naverMapApi["X-NCP-APIGW-API-KEY-ID"]
+      naverMapApi["X-NCP-APIGW-API-KEY"] == "" ||
+      naverMapApi["X-NCP-APIGW-API-KEY-ID"] == ""
     ) {
-      logger.log(
+      logger.info(
         "There is no credential for Naver Map. Taxi Fare functions are disabled."
       );
       res
@@ -44,7 +45,7 @@ const getTaxiFare = async (req, res) => {
     const to = await locationModel
       .findOne({ _id: { $eq: req.query.to } })
       .clone();
-    const sTime = scaledTime(new Date(req.query.time));
+    const sTime = scaledTime(new Date(req.query.time as string));
 
     if (!from || !to) {
       res.status(400).json({ error: "fare/getTaxiFare: Wrong location" });
@@ -55,7 +56,7 @@ const getTaxiFare = async (req, res) => {
         .findOne(
           { from: from._id, to: to._id, time: 0 },
           { isMajor: true },
-          (err, docs) => {
+          (err: Error, docs: any) => {
             if (err)
               logger.error(
                 "Error occured while finding TaxiFare documents: " + err.message
@@ -73,7 +74,7 @@ const getTaxiFare = async (req, res) => {
             to: to._id,
             time: sTime,
           },
-          (err, docs) => {
+          (err: Error, docs: any) => {
             if (err)
               logger.error(
                 "Error occured while finding TaxiFare documents: " + err.message
@@ -109,7 +110,7 @@ const getTaxiFare = async (req, res) => {
             to: to._id,
             time: 0,
           },
-          (err, docs) => {
+          (err: Error, docs: any) => {
             if (err)
               logger.error(
                 "Error occured while finding TaxiFare documents: " + err.message
@@ -150,10 +151,22 @@ const getTaxiFare = async (req, res) => {
  * 주어진 from, to, sTime에 대한 단일 택시 요금을 업데이트합니다.
  * @summary 카이스트 본원 <-> 대전역의 경로를 제외한 다른 경로의 경우, cron에 의해 매일 18:00시의 택시 요금을 업데이트 하게 됩니다.
  * @summary 카이스트 본원 <-> 대전역의 경우, 미리 캐싱해놓은 데이터를 기반으로 주어진 시간(30분 간격)에 대한 택시 요금을 반환합니다.
- * @param {Date} sTime - 출발 시간 (scaledTime에 의해 변경된 시간, 0 ~ 6 (Sunday~Saturday) * 48 + 0 ~ 47 (0:00 ~ 23:30))
+ * @param {number} sTime - 출발 시간 (scaledTime에 의해 변경된 시간, 0 ~ 6 (Sunday~Saturday) * 48 + 0 ~ 47 (0:00 ~ 23:30))
  * @param {Boolean} isMajor - 카이스트 본원 <-> 대전역 여부
  */
-const updateTaxiFare = async (sTime, isMajor) => {
+const updateTaxiFare = async (
+  sTime: number,
+  isMajor: boolean
+): Promise<void> => {
+  if (
+    naverMapApi["X-NCP-APIGW-API-KEY"] == "" ||
+    naverMapApi["X-NCP-APIGW-API-KEY-ID"] == ""
+  ) {
+    logger.info(
+      "There is no credential for Naver Map. Taxi Fare functions are disabled."
+    );
+    return;
+  }
   const prevFares = await taxiFareModel
     .find({
       time: sTime,
@@ -176,19 +189,21 @@ const updateTaxiFare = async (sTime, isMajor) => {
         logger.error(err.message);
       })
       .then(async (res) => {
-        await taxiFareModel
-          .updateOne(
-            { from: item.from, to: item.to, time: sTime },
-            { fare: res.data.route.traoptimal[0].summary.taxiFare },
-            (err, docs) => {
-              if (err)
-                logger.error(
-                  "Error occured while updating TaxiFare document: " +
-                    err.message
-                );
-            }
-          )
-          .clone();
+        if (res && res.data) {
+          await taxiFareModel
+            .updateOne(
+              { from: item.from, to: item.to, time: sTime },
+              { fare: res.data.route.traoptimal[0].summary.taxiFare },
+              (err: Error, docs: any) => {
+                if (err)
+                  logger.error(
+                    "Error occured while updating TaxiFare document: " +
+                      err.message
+                  );
+              }
+            )
+            .clone();
+        }
       })
       .catch((err) => {
         logger.error(err.message);
@@ -198,7 +213,4 @@ const updateTaxiFare = async (sTime, isMajor) => {
   }, Promise.resolve()); // 초기값 설정 안 하면, 처음에 acc가 undefined로 들어가서 첫 인덱스를 to에서 못 쓰게 됨
 };
 
-module.exports = {
-  getTaxiFare,
-  updateTaxiFare,
-};
+export { getTaxiFare, updateTaxiFare };
