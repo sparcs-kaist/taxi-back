@@ -26,6 +26,39 @@ const userSchema = Schema({
   account: { type: String, default: "" }, //계좌번호 정보
 });
 
+const banSchema = Schema({
+  // 정지 시킬 사용자를 기제함.
+  userId: { type: mongoose.Types.ObjectId, ref: "User", required: true },
+  // 정지 사유
+  reason: {
+    type: String,
+    required: true,
+  },
+  bannedAt: {
+    type: Date, // 정지 당한 시각
+    required: true,
+  },
+  expireAt: {
+    type: Date, // 정지 만료 시각
+    required: true,
+  },
+  services: [
+    {
+      // 정지를 당한 서비스를 기제함
+      serviceName: {
+        type: String,
+        required: true,
+        // 필요시 이곳에 정지를 시킬 서비스를 추가함.
+        enum: [
+          "all", // all -> 과거/미래 모든 서비스 및 이벤트 이용 제한
+          "service", // service -> 방 생성/참여 제한
+          "2023-fall-event", // event -> 특정 이벤트 참여 제한
+        ],
+      },
+    },
+  ],
+});
+
 const participantSchema = Schema({
   user: { type: Schema.Types.ObjectId, ref: "User", required: true },
   settlementStatus: {
@@ -220,6 +253,7 @@ const connectDatabase = (mongoUrl) => {
 module.exports = {
   connectDatabase,
   userModel: mongoose.model("User", userSchema),
+  banModel: mongoose.model("Ban", banSchema),
   deviceTokenModel: mongoose.model("DeviceToken", deviceTokenSchema),
   notificationOptionModel: mongoose.model(
     "NotificationOption",
