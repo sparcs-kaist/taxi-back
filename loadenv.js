@@ -44,6 +44,8 @@ module.exports = {
     report: process.env.SLACK_REPORT_WEBHOOK_URL || "", // optional
   },
   eventConfig: process.env.EVENT_CONFIG && JSON.parse(process.env.EVENT_CONFIG), // optional
-  naverMapApiId: process.env.NAVER_MAP_API_ID, // optional
-  naverMapApiKey: process.env.NAVER_MAP_API_KEY, //optional
+  naverMap: {
+    naverMapApiId: process.env.NAVER_MAP_API_ID || false, // optional
+    naverMapApiKey: process.env.NAVER_MAP_API_KEY || false, //optional
+  },
 };
