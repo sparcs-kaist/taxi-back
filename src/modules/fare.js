@@ -32,82 +32,80 @@ const initDatabase = async () => {
       );
       return;
     }
-    await taxiFareModel.deleteMany({});
     const location = await locationModel.find({ isValid: { $eq: true } });
     location.map(async (from) => {
       location.reduce(async (acc, to) => {
         await acc;
         if (from._id === to._id) return;
         let tableFare = [];
-        if (from.koName === "카이스트 본원" && to.koName === "대전역") {
-          const fare = (
-            await axios.get(
-              `${naverMapApiCall + from.longitude + "," + from.latitude}&goal=${
-                to.longitude + "," + to.latitude
-              }&options=traoptimal`,
-              { headers: naverMapApi }
-            )
-          ).data.route.traoptimal[0].summary.taxiFare;
-          [...Array(timeConstants * 7)].map((_, i) => {
-            tableFare.push({
+        const prevTaxiFare = await taxiFareModel
+          .findOne(
+            {
               from: from._id,
               to: to._id,
-              time: i,
-              fare: fare,
-              isMajor: true,
+            },
+            { fare: true }
+          )
+          .clone().fare;
+        const fare = prevTaxiFare
+          ? prevTaxiFare
+          : (
+              await axios.get(
+                `${
+                  naverMapApiCall + from.longitude + "," + from.latitude
+                }&goal=${to.longitude + "," + to.latitude}&options=traoptimal`,
+                { headers: naverMapApi }
+              )
+            ).data.route.traoptimal[0].summary.taxiFare;
+        if (from.koName === "카이스트 본원" && to.koName === "대전역") {
+          [...Array(timeConstants * 7)].map((_, i) => {
+            tableFare.push({
+              updateOne: {
+                filter: { from: from._id, to: to._id, time: i, isMajor: true },
+                update: {
+                  $setOnInsert: {
+                    fare: fare,
+                  },
+                },
+                upsert: true,
+              },
             });
           });
         } else if (from.koName === "대전역" && to.koName === "카이스트 본원") {
-          const fare = (
-            await axios.get(
-              `${naverMapApiCall + from.longitude + "," + from.latitude}&goal=${
-                to.longitude + "," + to.latitude
-              }&options=traoptimal`,
-              { headers: naverMapApi }
-            )
-          ).data.route.traoptimal[0].summary.taxiFare;
           [...Array(timeConstants * 7)].map((_, i) => {
             tableFare.push({
-              from: from._id,
-              to: to._id,
-              time: i,
-              fare: fare,
-              isMajor: true,
+              updateOne: {
+                filter: { from: from._id, to: to._id, time: i, isMajor: true },
+                update: {
+                  $setOnInsert: {
+                    fare: fare,
+                  },
+                },
+                upsert: true,
+              },
             });
           });
         } else {
-          await axios
-            .get(
-              `${naverMapApiCall + from.longitude + "," + from.latitude}&goal=${
-                to.longitude + "," + to.latitude
-              }&options=traoptimal`,
-              { headers: naverMapApi }
-            )
-            .then((res) => {
-              [...Array(7)].map((_, i) => {
-                tableFare.push({
-                  from: from,
-                  to: to,
+          [...Array(7)].map((_, i) => {
+            tableFare.push({
+              updateOne: {
+                filter: {
+                  from: from._id,
+                  to: to._id,
                   time: i * timeConstants,
-                  fare: res.data.route.traoptimal[0].summary.taxiFare,
                   isMajor: false,
-                });
-              });
-            })
-            .catch((err) => {
-              logger.error(err.message);
-              [...Array(7)].map((_, i) => {
-                tableFare.push({
-                  from: from,
-                  to: to,
-                  time: i * timeConstants,
-                  fare: 0,
-                  isMajor: false,
-                });
-              });
+                },
+                update: {
+                  $setOnInsert: {
+                    fare: fare,
+                  },
+                },
+                upsert: true,
+              },
             });
+          });
         }
-        await taxiFareModel.insertMany(tableFare);
+        await taxiFareModel.bulkWrite(tableFare);
         await new Promise((resolve) => setTimeout(resolve, 200));
         return acc;
       }, Promise.resolve());
