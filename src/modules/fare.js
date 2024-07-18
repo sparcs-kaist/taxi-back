@@ -38,15 +38,17 @@ const initDatabase = async () => {
         await acc;
         if (from._id === to._id) return;
         let tableFare = [];
-        const prevTaxiFare = await taxiFareModel
-          .findOne(
-            {
-              from: from._id,
-              to: to._id,
-            },
-            { fare: true }
-          )
-          .clone().fare;
+        const prevTaxiFare = (
+          await taxiFareModel
+            .findOne(
+              {
+                from: from._id,
+                to: to._id,
+              },
+              { fare: true }
+            )
+            .clone()
+        ).fare;
         const fare = prevTaxiFare
           ? prevTaxiFare
           : (
