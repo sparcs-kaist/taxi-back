@@ -69,7 +69,7 @@ app.use("/chats", require("./src/routes/chats"));
 app.use("/locations", require("./src/routes/locations"));
 app.use("/reports", require("./src/routes/reports"));
 app.use("/notifications", require("./src/routes/notifications"));
-app.use("/fare", require("./src/routes/fare.ts"));
+app.use("/fare", require("./src/routes/fare"));
 
 // [Middleware] 전역 에러 핸들러. 에러 핸들러는 router들보다 아래에 등록되어야 합니다.
 app.use(require("./src/middlewares/errorHandler"));

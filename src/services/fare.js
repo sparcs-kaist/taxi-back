@@ -1,13 +1,12 @@
-import axios, { AxiosRequestHeaders } from "axios";
-import { Request, Response } from "express";
-import logger from "../modules/logger";
+const axios = require("axios");
+const logger = require("../modules/logger");
 
-import { naverMap } from "../../loadenv";
-import { taxiFareModel, locationModel } from "../modules/stores/mongo";
-import { scaledTime } from "../modules/fare";
+const { naverMap } = require("../../loadenv");
+const { taxiFareModel, locationModel } = require("../modules/stores/mongo");
+const { scaledTime } = require("../modules/fare");
 
 // Naver Cloud Platform Maps Directions 5 API Keys
-const naverMapApi: AxiosRequestHeaders = {
+const naverMapApi = {
   "X-NCP-APIGW-API-KEY-ID": naverMap.naverMapApiId,
   "X-NCP-APIGW-API-KEY": naverMap.naverMapApiKey,
 };
@@ -23,15 +22,15 @@ const naverMapApiCall =
  *  - @param {mongoose.Schema.Types.ObjectId} to - 도착지
  *  - @param {Date} time - 출발 시간 (ISO 8601)
  */
-const getTaxiFare = async (req: Request, res: Response): Promise<void> => {
+const getTaxiFare = async (req, res) => {
   try {
     if (
       naverMapApi["X-NCP-APIGW-API-KEY"] === false ||
       naverMapApi["X-NCP-APIGW-API-KEY-ID"] === false
     ) {
-      res
-        .status(503)
-        .json({ error: "fare/getTaxiFare: Naver Map API credential not found" });
+      res.status(503).json({
+        error: "fare/getTaxiFare: Naver Map API credential not found",
+      });
       return;
     }
     const from = await locationModel
@@ -42,7 +41,7 @@ const getTaxiFare = async (req: Request, res: Response): Promise<void> => {
     const to = await locationModel
       .findOne({ _id: { $eq: req.query.to } })
       .clone();
-    const sTime = scaledTime(new Date(req.query.time as string));
+    const sTime = scaledTime(new Date(req.query.time));
 
     if (!from || !to) {
       res.status(400).json({ error: "fare/getTaxiFare: Wrong location" });
@@ -53,10 +52,11 @@ const getTaxiFare = async (req: Request, res: Response): Promise<void> => {
         .findOne(
           { from: from._id, to: to._id, time: 0 },
           { isMajor: true },
-          (err: Error, docs: any) => {
+          (err, docs) => {
             if (err)
               logger.error(
-                "Error occured while finding Taxi Fare documents: " + err.message
+                "Error occured while finding Taxi Fare documents: " +
+                  err.message
               );
           }
         )
@@ -71,10 +71,11 @@ const getTaxiFare = async (req: Request, res: Response): Promise<void> => {
             to: to._id,
             time: sTime,
           },
-          (err: Error, docs: any) => {
+          (err, docs) => {
             if (err)
               logger.error(
-                "Error occured while finding Taxi Fare documents: " + err.message
+                "Error occured while finding Taxi Fare documents: " +
+                  err.message
               );
           }
         )
@@ -107,10 +108,11 @@ const getTaxiFare = async (req: Request, res: Response): Promise<void> => {
             to: to._id,
             time: 0,
           },
-          (err: Error, docs: any) => {
+          (err, docs) => {
             if (err)
               logger.error(
-                "Error occured while finding Taxi Fare documents: " + err.message
+                "Error occured while finding Taxi Fare documents: " +
+                  err.message
               );
           }
         )
@@ -151,10 +153,7 @@ const getTaxiFare = async (req: Request, res: Response): Promise<void> => {
  * @param {number} sTime - 출발 시간 (scaledTime에 의해 변경된 시간, 0 ~ 6 (Sunday~Saturday) * 48 + 0 ~ 47 (0:00 ~ 23:30))
  * @param {Boolean} isMajor - 카이스트 본원 <-> 대전역 경로 / 이외 경로
  */
-const updateTaxiFare = async (
-  sTime: number,
-  isMajor: boolean
-): Promise<void> => {
+const updateTaxiFare = async (sTime, isMajor) => {
   if (
     naverMapApi["X-NCP-APIGW-API-KEY"] === false ||
     naverMapApi["X-NCP-APIGW-API-KEY-ID"] === false
@@ -164,50 +163,50 @@ const updateTaxiFare = async (
     );
     return;
   }
-    const prevFares = await taxiFareModel
-      .find({
-        time: sTime,
-        isMajor: isMajor,
+  const prevFares = await taxiFareModel
+    .find({
+      time: sTime,
+      isMajor: isMajor,
+    })
+    .clone();
+  await prevFares.reduce(async (acc, item) => {
+    const from = await locationModel.findOne({ _id: item.from }).clone();
+    const to = await locationModel.findOne({ _id: item.to }).clone();
+
+    await acc;
+    await axios
+      .get(
+        `${naverMapApiCall + from.longitude + "," + from.latitude}&goal=${
+          to.longitude + "," + to.latitude
+        }&options=traoptimal`,
+        { headers: naverMapApi }
+      )
+      .catch((err) => {
+        logger.error(err.message);
       })
-      .clone();
-    await prevFares.reduce(async (acc, item) => {
-      const from = await locationModel.findOne({ _id: item.from }).clone();
-      const to = await locationModel.findOne({ _id: item.to }).clone();
-  
-      await acc;
-      await axios
-        .get(
-          `${naverMapApiCall + from.longitude + "," + from.latitude}&goal=${
-            to.longitude + "," + to.latitude
-          }&options=traoptimal`,
-          { headers: naverMapApi }
-        )
-        .catch((err) => {
-          logger.error(err.message);
-        })
-        .then(async (res) => {
-          if (res && res.data) {
-            await taxiFareModel
-              .updateOne(
-                { from: item.from, to: item.to, time: sTime },
-                { fare: res.data.route.traoptimal[0].summary.taxiFare },
-                (err: Error, docs: any) => {
-                  if (err)
-                    logger.error(
-                      "Error occured while updating Taxi Fare document: " +
-                        err.message
-                    );
-                }
-              )
-              .clone();
-          }
-        })
-        .catch((err) => {
-          logger.error(err.message);
-        });
-      await new Promise((resolve) => setTimeout(() => resolve, 200));
-      return acc;
-    }, Promise.resolve()); // 초기값 설정 안 하면, 처음에 acc가 undefined로 들어가서 첫 인덱스를 to에서 못 쓰게 됨
+      .then(async (res) => {
+        if (res && res.data) {
+          await taxiFareModel
+            .updateOne(
+              { from: item.from, to: item.to, time: sTime },
+              { fare: res.data.route.traoptimal[0].summary.taxiFare },
+              (err, docs) => {
+                if (err)
+                  logger.error(
+                    "Error occured while updating Taxi Fare document: " +
+                      err.message
+                  );
+              }
+            )
+            .clone();
+        }
+      })
+      .catch((err) => {
+        logger.error(err.message);
+      });
+    await new Promise((resolve) => setTimeout(() => resolve, 200));
+    return acc;
+  }, Promise.resolve()); // 초기값 설정 안 하면, 처음에 acc가 undefined로 들어가서 첫 인덱스를 to에서 못 쓰게 됨
 };
 
-export { getTaxiFare, updateTaxiFare };
+module.exports = { getTaxiFare, updateTaxiFare };

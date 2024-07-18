@@ -1,18 +1,10 @@
-import axios, { AxiosRequestHeaders } from "axios";
-import logger from "../modules/logger";
+const axios = require("axios");
+const logger = require("./logger");
 
-import { naverMap } from "../../loadenv";
-import { taxiFareModel, locationModel } from "./stores/mongo";
+const { naverMap } = require("../../loadenv");
+const { taxiFareModel, locationModel } = require("./stores/mongo");
 
-interface TaxiFareInfo {
-  from: string;
-  to: string;
-  time: number;
-  fare: number;
-  isMajor: boolean;
-}
-
-const naverMapApi: AxiosRequestHeaders = {
+const naverMapApi = {
   "X-NCP-APIGW-API-KEY-ID": naverMap.naverMapApiId,
   "X-NCP-APIGW-API-KEY": naverMap.naverMapApiKey,
 };
@@ -21,7 +13,7 @@ const naverMapApiCall =
 
 const timeConstants = 48;
 
-const scaledTime = (time: Date): number => {
+const scaledTime = (time) => {
   return (
     timeConstants * time.getDay() +
     time.getHours() * 2 +
@@ -29,7 +21,7 @@ const scaledTime = (time: Date): number => {
   );
 };
 
-const initDatabase = async (): Promise<void> => {
+const initDatabase = async () => {
   try {
     if (
       naverMapApi["X-NCP-APIGW-API-KEY"] === false ||
@@ -46,7 +38,7 @@ const initDatabase = async (): Promise<void> => {
       location.reduce(async (acc, to) => {
         await acc;
         if (from._id === to._id) return;
-        let tableFare: TaxiFareInfo[] = [];
+        let tableFare = [];
         if (from.koName === "카이스트 본원" && to.koName === "대전역") {
           const fare = (
             await axios.get(
@@ -125,4 +117,4 @@ const initDatabase = async (): Promise<void> => {
   }
 };
 
-export { scaledTime, initDatabase };
+module.exports = { scaledTime, initDatabase };
