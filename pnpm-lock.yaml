@@ -11,9 +11,6 @@ dependencies:
   '@adminjs/mongoose':
     specifier: ^3.0.3
     version: 3.0.3(adminjs@6.8.7)(mongoose@6.12.0)
-  '@types/express':
-    specifier: ^4.17.21
-    version: 4.17.21
   adminjs:
     specifier: ^6.8.7
     version: 6.8.7
