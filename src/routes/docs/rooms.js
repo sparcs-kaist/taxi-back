@@ -98,6 +98,11 @@ roomsDocs[`${apiPrefix}/create`] = {
                   error: "Rooms/create : participating in too many rooms",
                 },
               },
+              "사용자가 아직 송금하지 않은 방이 존재": {
+                value: {
+                  error: "Rooms/create : user has send-required rooms",
+                },
+              },
             },
           },
         },
@@ -307,6 +312,11 @@ roomsDocs[`${apiPrefix}/join`] = {
               "사용자가 참여하는 진행 중 방이 5개 이상": {
                 value: {
                   error: "Rooms/join : participating in too many rooms",
+                },
+              },
+              "사용자가 아직 송금하지 않은 방이 존재": {
+                value: {
+                  error: "Rooms/join : user has send-required rooms",
                 },
               },
               "입력한 시간의 방이 이미 출발함": {
