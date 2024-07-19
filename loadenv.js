@@ -45,7 +45,7 @@ module.exports = {
   },
   eventConfig: process.env.EVENT_CONFIG && JSON.parse(process.env.EVENT_CONFIG), // optional
   naverMap: {
-    naverMapApiId: process.env.NAVER_MAP_API_ID || false, // optional
-    naverMapApiKey: process.env.NAVER_MAP_API_KEY || false, //optional
+    apiId: process.env.NAVER_MAP_API_ID, // optional
+    apiKey: process.env.NAVER_MAP_API_KEY, //optional
   },
 };
