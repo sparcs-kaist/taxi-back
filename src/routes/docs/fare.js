@@ -40,10 +40,10 @@ fareDocs[`${apiPrefix}/getTaxiFare`] = {
         },
       },
       500: {
-        description: "fare/getTaxiFare: Failed to load taxi fare",
+        description: "fare/getTaxiFareHandler: Failed to load taxi fare",
         content: {
           "text/html": {
-            example: "fare/getTaxiFare: Failed to load taxi fare",
+            example: "fare/getTaxiFareHandler: Failed to load taxi fare",
           },
         },
       },

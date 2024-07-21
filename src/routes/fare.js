@@ -8,7 +8,7 @@ const router = express.Router();
 
 router.get(
   "/getTaxiFare",
-  validateQuery(fareZod.getTaxiFare),
+  validateQuery(fareZod.getTaxiFareHandler),
   getTaxiFareHandler
 );
 

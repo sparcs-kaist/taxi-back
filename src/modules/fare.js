@@ -59,7 +59,7 @@ const initializeDatabase = async () => {
                   },
                   { fare: true }
                 )
-                .clone()
+                .lean()
             ).fare;
             const fare = prevTaxiFare
               ? prevTaxiFare
@@ -139,7 +139,7 @@ const updateTaxiFare = async (sTime, isMajor) => {
       time: sTime,
       isMajor: isMajor,
     })
-    .clone();
+    .lean();
   await prevFares.reduce(async (acc, item) => {
     const from = await locationModel.findOne({ _id: item.from });
     const to = await locationModel.findOne({ _id: item.to });

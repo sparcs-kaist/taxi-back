@@ -3,7 +3,7 @@ const { zodToSchemaObject } = require("../utils");
 const { objectId } = require("../../../modules/patterns");
 
 const fareZod = {
-  getTaxiFare: z.object({
+  getTaxiFareHandler: z.object({
     from: z.string().regex(objectId),
     to: z.string().regex(objectId),
     time: z.string().datetime(),

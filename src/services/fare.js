@@ -29,10 +29,14 @@ const getTaxiFareHandler = async (req, res) => {
       });
       return;
     }
-    const from = await locationModel.findOne({
-      _id: { $eq: req.query.from },
-    });
-    const to = await locationModel.findOne({ _id: { $eq: req.query.to } });
+    const from = await locationModel
+      .findOne({
+        _id: { $eq: req.query.from },
+      })
+      .lean();
+    const to = await locationModel
+      .findOne({ _id: { $eq: req.query.to } })
+      .lean();
     const sTime = scaledTime(new Date(req.query.time));
 
     if (!from || !to) {
@@ -54,7 +58,7 @@ const getTaxiFareHandler = async (req, res) => {
               );
           }
         )
-        .clone()
+        .lean()
     ).isMajor;
     // 시간대별 정보 관리 (현재: 카이스트 본원 <-> 대전역)
     if (isMajor) {
@@ -73,8 +77,8 @@ const getTaxiFareHandler = async (req, res) => {
               );
           }
         )
-        .clone();
-      //만일 cron이 아직 돌지 않은 상태의 시간대의 정보를 필요로하는 비상시의 경우 대비
+        .lean();
+      //만일 초기화 되지 않은 시간대의 정보를 필요로하는 비상시의 경우 대비
       if (!taxiFare || taxiFare.fare <= 0) {
         await callTaxiFare(from, to)
           .then((fare) => {
@@ -102,8 +106,8 @@ const getTaxiFareHandler = async (req, res) => {
               );
           }
         )
-        .clone();
-      //만일 cron이 아직 돌지 않은 상태의 시간대의 정보를 필요로하는 비상시의 경우 대비
+        .lean();
+      //만일 초기화 되지 않은 시간대의 정보를 필요로하는 비상시의 경우 대비
       if (!taxiFare || taxiFare.fare <= 0) {
         await callTaxiFare(from, to)
           .then((fare) => {
