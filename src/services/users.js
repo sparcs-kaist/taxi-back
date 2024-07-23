@@ -229,6 +229,26 @@ const getBanRecordHandler = async (req, res) => {
   }
 };
 
+const deleteUserHandler = async (req, res) => {
+  try {
+    const user = await userModel.findOne({ id: req.userId });
+    if (!user) {
+      return res.status(500).send("Users/delete : internal server error");
+    } else if (user.deleteAt) {
+      return res.status(400).send("Users/delete : already deleted");
+    } else if (user.ongoingRoom.length !== 0) {
+      return res.status(400).send("Users/delete : ongoing room exists");
+    }
+
+    user.deleteAt = req.timestamp;
+    await user.save();
+
+    res.status(200).send("Users/delete : delete user successful");
+  } catch (err) {
+    res.status(500).send("Users/delete : internal server error");
+  }
+};
+
 module.exports = {
   agreeOnTermsOfServiceHandler,
   getAgreeOnTermsOfServiceHandler,
@@ -240,4 +260,5 @@ module.exports = {
   resetProfileImgHandler,
   isBannedHandler,
   getBanRecordHandler,
+  deleteUserHandler,
 };

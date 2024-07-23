@@ -62,4 +62,7 @@ router.get("/isBanned", userHandlers.isBannedHandler);
 // 유저의 서비스 정지 기록들을 모두 반환합니다.
 router.get("/getBanRecord", userHandlers.getBanRecordHandler);
 
+// 회원 탈퇴를 요청합니다.
+router.delete("/delete", userHandlers.deleteUserHandler);
+
 module.exports = router;
