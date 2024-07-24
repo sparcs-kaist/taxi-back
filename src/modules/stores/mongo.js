@@ -205,6 +205,19 @@ const adminLogSchema = Schema({
   }, // 수행 업무
 });
 
+const taxiFareSchema = Schema(
+  {
+    from: { type: Schema.Types.ObjectId, ref: "Location", required: true }, // 출발지
+    to: { type: Schema.Types.ObjectId, ref: "Location", required: true }, // 도착지
+    isMajor: { type: Boolean, default: false }, // 카이스트 본원 <-> 대전역 경로 여부
+    time: { type: Number, required: true }, // 출발 시간 (24h를 30분 단위로 분리 & 요일 정보도 하나로 관리, 0 ~ 6 (Sunday~Saturday) * 48 + 0 ~ 47 (0:00 ~ 23:30))
+    fare: { type: Number, default: false }, // 예상 택시 요금
+  },
+  {
+    timestamps: true, // 최근 업데이트 시간 기록용
+  }
+);
+
 mongoose.set("strictQuery", true);
 
 const database = mongoose.connection;
@@ -259,4 +272,5 @@ module.exports = {
     adminIPWhitelistSchema
   ),
   adminLogModel: mongoose.model("AdminLog", adminLogSchema),
+  taxiFareModel: mongoose.model("TaxiFare", taxiFareSchema),
 };
