@@ -6,9 +6,8 @@ module.exports = async () => {
     // 탈퇴일로부터 1년 이상 경과한 사용자의 개인정보 삭제
     await userModel.updateMany(
       {
-        withdrawAt: {
-          $lte: new Date(Date.now() - /*365 * 24 * 60 */ 60 * 1000),
-        },
+        withdraw: true,
+        withdrawAt: { $lte: new Date(Date.now() - 365 * 24 * 60 * 60 * 1000) },
         name: { $ne: "" },
       },
       {

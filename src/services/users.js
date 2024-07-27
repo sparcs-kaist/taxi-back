@@ -234,13 +234,15 @@ const withdrawHandler = async (req, res) => {
     const user = await userModel.findOne({ id: req.userId });
     if (!user) {
       return res.status(500).send("Users/withdraw : internal server error");
-    } else if (user.withdrawAt) {
+    } else if (user.withdraw) {
       return res.status(400).send("Users/withdraw : already withdrawn");
     } else if (user.ongoingRoom.length !== 0) {
       return res.status(400).send("Users/withdraw : ongoing room exists");
     }
 
+    user.withdraw = true;
     user.withdrawAt = req.timestamp;
+
     await user.save();
 
     res.status(200).send("Users/withdraw : withdraw successful");
