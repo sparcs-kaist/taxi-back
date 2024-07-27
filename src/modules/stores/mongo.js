@@ -10,7 +10,7 @@ const userSchema = Schema({
   profileImageUrl: { type: String, required: true }, //백엔드에서의 프로필 이미지 경로
   ongoingRoom: [{ type: Schema.Types.ObjectId, ref: "Room" }], // 참여중인 진행중인 방 배열
   doneRoom: [{ type: Schema.Types.ObjectId, ref: "Room" }], // 참여중인 완료된 방 배열
-  withdraw: { type: Boolean, default: false },
+  withdrawAt: { type: Date, default: null }, //탈퇴 시각 (null이면 탈퇴하지 않은 상태)
   phoneNumber: { type: String }, // 전화번호 (2023FALL 이벤트부터 추가)
   ban: { type: Boolean, default: false }, //계정 정지 여부
   joinat: { type: Date, required: true }, //가입 시각
@@ -24,7 +24,6 @@ const userSchema = Schema({
   email: { type: String, required: true },
   isAdmin: { type: Boolean, default: false }, //관리자 여부
   account: { type: String, default: "" }, //계좌번호 정보
-  deleteAt: { type: Date, required: false }, //탈퇴 시각
 });
 
 const banSchema = Schema({

@@ -63,6 +63,6 @@ router.get("/isBanned", userHandlers.isBannedHandler);
 router.get("/getBanRecord", userHandlers.getBanRecordHandler);
 
 // 회원 탈퇴를 요청합니다.
-router.delete("/delete", userHandlers.deleteUserHandler);
+router.post("/withdraw", userHandlers.withdrawHandler);
 
 module.exports = router;
