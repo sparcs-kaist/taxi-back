@@ -43,9 +43,9 @@ const transformChatsForRoom = async (chats) => {
     chatsToSend.push({
       roomId: chat.roomId,
       type: chat.type,
-      authorId: chat.authorId?._id,
-      authorName: chat.authorId?.nickname,
-      authorProfileUrl: chat.authorId?.profileImageUrl,
+      authorId: chat.authorId?._id ?? null,
+      authorName: chat.authorId?.nickname ?? null,
+      authorProfileUrl: chat.authorId?.profileImageUrl ?? null,
       content: chat.content,
       time: chat.time,
       isValid: chat.isValid,
@@ -162,9 +162,6 @@ const emitChatEvent = async (io, chat) => {
       )
       .lean()
       .populate(chatPopulateOption);
-
-    chatDocument.authorName = nickname;
-    chatDocument.authorProfileUrl = profileImageUrl;
 
     const userIds = part.map((participant) => participant.user);
     const userIdsExceptAuthor = authorId

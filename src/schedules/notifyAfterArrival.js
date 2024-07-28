@@ -1,5 +1,4 @@
 const { roomModel, chatModel } = require("../modules/stores/mongo");
-// const { roomPopulateOption } = require("../modules/populates/rooms");
 const { emitChatEvent } = require("../modules/socket");
 const logger = require("../modules/logger");
 
