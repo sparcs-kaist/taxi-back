@@ -19,7 +19,10 @@ const registerDeviceTokenHandler = async (req, res) => {
     }
 
     // 데이터베이스에 deviceToken 레코드를 추가합니다.
-    const user = await userModel.findOne({ id: req.userId }, "_id");
+    const user = await userModel.findOne(
+      { _id: req.userOid, withdraw: false },
+      "_id"
+    );
     const newDeviceToken = await registerDeviceToken(user._id, deviceToken);
 
     // 세션에 현재 사용자 기기의 deviceToken을 저장합니다.

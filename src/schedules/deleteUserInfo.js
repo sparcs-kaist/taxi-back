@@ -14,7 +14,7 @@ module.exports = async () => {
         $set: {
           name: "",
           nickname: "",
-          // id
+          id: "",
           profileImageUrl: "",
           // ongoingRoom
           // doneRoom

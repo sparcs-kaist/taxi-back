@@ -15,7 +15,10 @@ const searchInviterHandler = async (req, res) => {
     )
       return res.status(400).json({ error: "Invite/Search : invalid inviter" });
 
-    const inviterInfo = await userModel.findOne({ _id: inviterStatus.userId });
+    const inviterInfo = await userModel.findOne({
+      _id: inviterStatus.userId,
+      withdraw: false,
+    });
     if (!inviterInfo)
       return res
         .status(500)

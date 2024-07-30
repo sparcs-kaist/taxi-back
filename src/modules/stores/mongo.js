@@ -6,7 +6,7 @@ const logger = require("../logger");
 const userSchema = Schema({
   name: { type: String, required: true }, //실명
   nickname: { type: String, required: true }, //닉네임
-  id: { type: String, required: true, unique: true }, //택시 서비스에서만 사용되는 id
+  id: { type: String, required: true }, //택시 서비스에서만 사용되는 id
   profileImageUrl: { type: String, required: true }, //백엔드에서의 프로필 이미지 경로
   ongoingRoom: [{ type: Schema.Types.ObjectId, ref: "Room" }], // 참여중인 진행중인 방 배열
   doneRoom: [{ type: Schema.Types.ObjectId, ref: "Room" }], // 참여중인 완료된 방 배열

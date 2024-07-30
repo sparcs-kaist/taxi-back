@@ -11,7 +11,7 @@ const {
 
 const agreeOnTermsOfServiceHandler = async (req, res) => {
   try {
-    let user = await userModel.findOne({ id: req.userId });
+    let user = await userModel.findOne({ _id: req.userOid, withdraw: false });
     if (user.agreeOnTermsOfService !== true) {
       user.agreeOnTermsOfService = true;
       await user.save();
@@ -31,7 +31,7 @@ const agreeOnTermsOfServiceHandler = async (req, res) => {
 const getAgreeOnTermsOfServiceHandler = async (req, res) => {
   try {
     const user = await userModel
-      .findOne({ id: req.userId }, "agreeOnTermsOfService")
+      .findOne({ _id: req.userOid, withdraw: false }, "agreeOnTermsOfService")
       .lean();
     const agreeOnTermsOfService = user.agreeOnTermsOfService === true;
     res.json({ agreeOnTermsOfService });
@@ -46,7 +46,7 @@ const editNicknameHandler = async (req, res) => {
   try {
     const newNickname = req.body.nickname;
     const result = await userModel.findOneAndUpdate(
-      { id: req.userId },
+      { _id: req.userOid, withdraw: false },
       { nickname: newNickname }
     );
 
@@ -73,7 +73,7 @@ const editAccountHandler = async (req, res) => {
   try {
     const newAccount = req.body.account;
     const result = await userModel.findOneAndUpdate(
-      { id: req.userId },
+      { _id: req.userOid, withdraw: false },
       { account: newAccount }
     );
 
@@ -98,7 +98,10 @@ const editAccountHandler = async (req, res) => {
 const editProfileImgGetPUrlHandler = async (req, res) => {
   try {
     const type = req.body.type;
-    const user = await userModel.findOne({ id: req.userId }, "_id");
+    const user = await userModel.findOne(
+      { _id: req.userOid, withdraw: false },
+      "_id"
+    );
     if (!user) {
       return res
         .status(500)
@@ -127,7 +130,10 @@ const editProfileImgGetPUrlHandler = async (req, res) => {
 
 const editProfileImgDoneHandler = async (req, res) => {
   try {
-    const user = await userModel.findOne({ id: req.userId }, "_id");
+    const user = await userModel.findOne(
+      { _id: req.userOid, withdraw: false },
+      "_id"
+    );
     if (!user) {
       return res
         .status(500)
@@ -142,7 +148,7 @@ const editProfileImgDoneHandler = async (req, res) => {
           .send("Users/editProfileImg/done : internal server error");
       }
       const userAfter = await userModel.findOneAndUpdate(
-        { id: req.userId },
+        { _id: req.userOid, withdraw: false },
         { profileImageUrl: aws.getS3Url(`/${key}?token=${req.timestamp}`) },
         { new: true }
       );
@@ -164,7 +170,7 @@ const editProfileImgDoneHandler = async (req, res) => {
 const resetNicknameHandler = async (req, res) => {
   try {
     const result = await userModel.findOneAndUpdate(
-      { id: req.userId },
+      { _id: req.userOid, withdraw: false },
       { nickname: generateNickname(req.body.id) },
       { new: true }
     );
@@ -184,7 +190,7 @@ const resetNicknameHandler = async (req, res) => {
 const resetProfileImgHandler = async (req, res) => {
   try {
     const result = await userModel.findOneAndUpdate(
-      { id: req.userId },
+      { _id: req.userOid, withdraw: false },
       { profileImageUrl: generateProfileImageUrl() },
       { new: true }
     );
@@ -231,7 +237,7 @@ const getBanRecordHandler = async (req, res) => {
 
 const withdrawHandler = async (req, res) => {
   try {
-    const user = await userModel.findOne({ id: req.userId });
+    const user = await userModel.findOne({ _id: req.userOid, withdraw: false });
     if (!user) {
       return res.status(500).send("Users/withdraw : internal server error");
     } else if (user.withdraw) {

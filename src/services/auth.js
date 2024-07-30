@@ -63,7 +63,7 @@ const update = async (userData) => {
     email: userData.email,
     "subinfo.kaist": userData.kaist,
   };
-  await userModel.updateOne({ id: userData.id }, updateInfo);
+  await userModel.updateOne({ id: userData.id, withdraw: false }, updateInfo); // NOTE: SSO uid 쓰는 곳
   logger.info(
     `Update user info: ${userData.id} ${userData.name} ${userData.email} ${userData.kaist}`
   );
@@ -72,7 +72,7 @@ const update = async (userData) => {
 const tryLogin = async (req, res, userData, redirectOrigin, redirectPath) => {
   try {
     const user = await userModel.findOne(
-      { id: userData.id },
+      { id: userData.id, withdraw: false }, // NOTE: SSO uid 쓰는 곳
       "_id name email subinfo id withdraw ban"
     );
     if (!user) {

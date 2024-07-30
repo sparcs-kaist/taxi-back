@@ -35,7 +35,10 @@ const transformChatsForRoom = async (chats) => {
       const inOutUserIds = chat.content.split("|");
       chat.inOutNames = await Promise.all(
         inOutUserIds.map(async (userId) => {
-          const user = await userModel.findOne({ id: userId }, "nickname");
+          const user = await userModel.findOne(
+            { id: userId, withdraw: false }, // NOTE: SSO uid 쓰는 곳
+            "nickname"
+          );
           return user.nickname;
         })
       );
@@ -136,7 +139,10 @@ const emitChatEvent = async (io, chat) => {
 
     // chat optionally contains authorId
     const { nickname, profileImageUrl } = authorId
-      ? await userModel.findById(authorId, "nickname profileImageUrl")
+      ? await userModel.findOne(
+          { _id: authorId, withdraw: false },
+          "nickname profileImageUrl"
+        )
       : {};
     if (authorId && (!nickname || !profileImageUrl)) {
       throw new IllegalArgumentsException();

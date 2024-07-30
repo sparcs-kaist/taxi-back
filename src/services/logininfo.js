@@ -5,10 +5,10 @@ const logger = require("../modules/logger");
 const logininfoHandler = async (req, res) => {
   try {
     const user = getLoginInfo(req);
-    if (!user.id) return res.json({ id: undefined });
+    if (!user.oid) return res.json({ id: undefined });
 
     const userDetail = await userModel.findOne(
-      { id: user.id },
+      { _id: user.oid, withdraw: false },
       "_id name nickname id withdraw phoneNumber ban joinat agreeOnTermsOfService subinfo email profileImageUrl account"
     );
 

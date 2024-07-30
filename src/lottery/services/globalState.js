@@ -20,7 +20,9 @@ const checkIsUserEligible = (user) => {
 const getUserGlobalStateHandler = async (req, res) => {
   try {
     const userId = isLogin(req) ? getLoginInfo(req).oid : null;
-    const user = userId && (await userModel.findOne({ _id: userId }).lean());
+    const user =
+      userId &&
+      (await userModel.findOne({ _id: userId, withdraw: false }).lean());
 
     const eventStatus =
       userId &&
@@ -99,7 +101,7 @@ const createUserGlobalStateHandler = async (req, res) => {
         error: "GlobalState/Create : inviter did not participate in the event",
       });
 
-    const user = await userModel.findOne({ _id: req.userOid });
+    const user = await userModel.findOne({ _id: req.userOid, withdraw: false });
     if (!user)
       return res
         .status(500)
