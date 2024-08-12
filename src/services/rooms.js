@@ -2,6 +2,7 @@ const {
   roomModel,
   locationModel,
   userModel,
+  banModel,
 } = require("../modules/stores/mongo");
 const { emitChatEvent } = require("../modules/socket");
 const logger = require("../modules/logger");
@@ -21,11 +22,24 @@ const eventPeriod = eventConfig && {
   endAt: new Date(eventConfig.period.endAt),
 };
 const { contracts } = require("../lottery");
+const { getMaxValidServiceBanRecord } = require("../modules/ban");
 
 const createHandler = async (req, res) => {
   const { name, from, to, time, maxPartLength } = req.body;
 
   try {
+    // 사용자가 방 생성 기능에 대하여 이용 정지 상태인지 확인합니다.
+    const banRecord = await getMaxValidServiceBanRecord(req);
+    if (banRecord != undefined) {
+      const formattedExpireAt = banRecord.expireAt
+        .toISOString()
+        .replace("T", " ")
+        .split(".")[0];
+      return res.status(400).json({
+        error: `Rooms/create : user ${req.userId} is temporarily restricted from creating rooms until ${formattedExpireAt}.`,
+      });
+    }
+
     if (from === to) {
       return res.status(400).json({
         error: "Rooms/create : locations are same",
@@ -236,6 +250,18 @@ const joinHandler = async (req, res) => {
     const user = await userModel
       .findOne({ id: req.userId })
       .populate("ongoingRoom");
+
+    // 사용자가 방 참여 기능에 대하여 이용 정지 상태인지 확인합니다.
+    const banRecord = await getMaxValidServiceBanRecord(req);
+    if (banRecord != undefined) {
+      const formattedExpireAt = banRecord.expireAt
+        .toISOString()
+        .replace("T", " ")
+        .split(".")[0];
+      return res.status(400).json({
+        error: `Rooms/join : user ${req.userId} is temporarily restricted from joining rooms until ${formattedExpireAt}.`,
+      });
+    }
 
     // 사용자의 참여중인 진행중인 방이 5개 이상이면 오류를 반환합니다.
     if (user.ongoingRoom.length >= 5) {
