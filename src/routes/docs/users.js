@@ -364,16 +364,10 @@ usersDocs[`${apiPrefix}/isBanned`] = {
                     description: "정지 만료 시각",
                     example: "2024-05-21 12:00",
                   },
-                  services: {
-                    type: "array",
-                    items: {
-                      properties: {
-                        serviceName: {
-                          type: "string",
-                          description: "정지를 당한 서비스 또는 이벤트 이름",
-                        },
-                      },
-                    },
+                  serviceName: {
+                    type: "string",
+                    description: "정지를 당한 서비스 또는 이벤트 이름",
+                    example: "2023-fall-event",
                   },
                 },
               },
@@ -433,16 +427,10 @@ usersDocs[`${apiPrefix}/getBanRecord`] = {
                     description: "정지 만료 시각",
                     example: "2024-05-21 12:00",
                   },
-                  services: {
-                    type: "array",
-                    items: {
-                      properties: {
-                        serviceName: {
-                          type: "string",
-                          description: "정지를 당한 서비스 또는 이벤트 이름",
-                        },
-                      },
-                    },
+                  serviceName: {
+                    type: "string",
+                    description: "정지를 당한 서비스 또는 이벤트 이름",
+                    example: "2023-fall-event",
                   },
                 },
               },

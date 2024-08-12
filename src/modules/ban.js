@@ -9,7 +9,7 @@ const getMaxValidServiceBanRecord = async (req) => {
       expireAt: {
         $gte: req.timestamp,
       },
-      "services.serviceName": "service",
+      serviceName: "service",
     });
     if (bans.length > 0) {
       // 가장 expireAt이 큰 정지 기록만 반환함.
