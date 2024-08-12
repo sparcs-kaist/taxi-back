@@ -2,7 +2,6 @@ const {
   roomModel,
   locationModel,
   userModel,
-  banModel,
 } = require("../modules/stores/mongo");
 const { emitChatEvent } = require("../modules/socket");
 const logger = require("../modules/logger");
