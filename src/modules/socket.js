@@ -39,7 +39,7 @@ const transformChatsForRoom = async (chats) => {
             { id: userId, withdraw: false }, // NOTE: SSO uid 쓰는 곳
             "nickname"
           );
-          return user.nickname;
+          return user?.nickname;
         })
       );
     }

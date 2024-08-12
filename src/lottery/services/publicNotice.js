@@ -41,7 +41,7 @@ const getRecentPurchaceItemListHandler = async (req, res) => {
         .find({ type: "use", itemType: 0 })
         .sort({ createAt: -1 })
         .limit(1000)
-        .populate(publicNoticePopulateOption)
+        .populate(publicNoticePopulateOption) // TODO: 회원 탈퇴 핸들링
         .lean()
     )
       .sort(

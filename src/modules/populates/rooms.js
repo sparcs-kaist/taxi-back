@@ -8,7 +8,11 @@ const roomPopulateOption = [
   {
     path: "part",
     select: "-_id user settlementStatus readAt",
-    populate: { path: "user", select: "_id id name nickname profileImageUrl" },
+    populate: {
+      path: "user",
+      select: "_id id name nickname profileImageUrl",
+      match: { withdraw: false },
+    },
   },
 ];
 
@@ -27,6 +31,8 @@ const formatSettlement = (
   { includeSettlement = true, isOver = false, timestamp = Date.now() } = {}
 ) => {
   roomObject.part = roomObject.part.map((participantSubDocument) => {
+    if (!participantSubDocument.user) return null;
+
     const { _id, name, nickname, profileImageUrl } =
       participantSubDocument.user;
     const { settlementStatus, readAt } = participantSubDocument;
