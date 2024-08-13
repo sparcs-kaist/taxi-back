@@ -47,13 +47,7 @@ const getTaxiFareHandler = async (req, res) => {
     }
 
     const fare = await taxiFareModel
-      .findOne({ from: from._id, to: to._id, time: sTime }, (err, docs) => {
-        if (err)
-          logger.error(
-            "Error occured while finding Taxi Fare documents: " + err.message
-          );
-      })
-      .clone()
+      .findOne({ from: from._id, to: to._id, time: sTime })
       .lean();
     // 해당 sTime 대로 값이 존재하는 경우 (현재: 카이스트 본원 <-> 대전역)
     if (fare) {
@@ -71,21 +65,11 @@ const getTaxiFareHandler = async (req, res) => {
       }
     } else {
       const minorTaxiFare = await taxiFareModel
-        .findOne(
-          {
-            from: from._id,
-            to: to._id,
-            time: 48 * new Date(req.query.time).getDay() + 0,
-          },
-          (err, docs) => {
-            if (err)
-              logger.error(
-                "Error occured while finding Taxi Fare documents: " +
-                  err.message
-              );
-          }
-        )
-        .clone()
+        .findOne({
+          from: from._id,
+          to: to._id,
+          time: 48 * new Date(req.query.time).getDay() + 0,
+        })
         .lean();
 
       //만일 초기화 되지 않은 시간대의 정보를 필요로하는 비상시의 경우 대비

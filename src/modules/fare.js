@@ -153,18 +153,10 @@ const updateTaxiFare = async (sTime, isMajor) => {
         if (fare) {
           await taxiFareModel.updateOne(
             { from: item.from, to: item.to, time: sTime },
-            { fare: fare },
-            (err, docs) => {
-              if (err)
-                logger.error(
-                  "Error occured while updating Taxi Fare document: " +
-                    err.message
-                );
-            }
+            { fare: fare }
           );
         }
       })
-      .clone()
       .catch((err) => {
         logger.error(err.message);
       });
