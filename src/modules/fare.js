@@ -156,9 +156,6 @@ const updateTaxiFare = async (sTime, isMajor) => {
             { fare: fare }
           );
         }
-      })
-      .catch((err) => {
-        logger.error(err.message);
       });
     await new Promise((resolve) => setTimeout(() => resolve, 200));
     return acc;
