@@ -145,7 +145,7 @@ const updateTaxiFare = async (sTime, isMajor) => {
     const to = await locationModel.findOne({ _id: item.to });
 
     await acc;
-    await callTaxiFare
+    await callTaxiFare(from, to)
       .catch((err) => {
         logger.error(err.message);
       })
@@ -164,6 +164,7 @@ const updateTaxiFare = async (sTime, isMajor) => {
           );
         }
       })
+      .clone()
       .catch((err) => {
         logger.error(err.message);
       });
@@ -189,12 +190,7 @@ const callTaxiFare = async (from, to) => {
   }
   return (
     await axios.get(
-      `${
-        "https://naveropenapi.apigw.ntruss.com/map-direction/v1/driving?start=" +
-        from.longitude +
-        "," +
-        from.latitude
-      }&goal=${to.longitude + "," + to.latitude}&options=traoptimal`,
+      `https://naveropenapi.apigw.ntruss.com/map-direction/v1/driving?start=${from.longitude},${from.latitude}}&goal=${to.longitude},${to.latitude}&options=traoptimal`,
       { headers: naverMapApi }
     )
   ).data.route.traoptimal[0].summary.taxiFare;

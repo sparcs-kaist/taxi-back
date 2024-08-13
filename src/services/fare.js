@@ -45,41 +45,20 @@ const getTaxiFareHandler = async (req, res) => {
         .json({ error: "fare/getTaxiFareHandler: Wrong location" });
       return;
     }
-    const isMajor = (
-      await taxiFareModel
-        .findOne(
-          { from: from._id, to: to._id, time: 0 },
-          { isMajor: true },
-          (err, docs) => {
-            if (err)
-              logger.error(
-                "Error occured while finding Taxi Fare documents: " +
-                  err.message
-              );
-          }
-        )
-        .lean()
-    ).isMajor;
-    // 시간대별 정보 관리 (현재: 카이스트 본원 <-> 대전역)
-    if (isMajor) {
-      const taxiFare = await taxiFareModel
-        .findOne(
-          {
-            from: from._id,
-            to: to._id,
-            time: sTime,
-          },
-          (err, docs) => {
-            if (err)
-              logger.error(
-                "Error occured while finding Taxi Fare documents: " +
-                  err.message
-              );
-          }
-        )
-        .lean();
+
+    const fare = await taxiFareModel
+      .findOne({ from: from._id, to: to._id, time: sTime }, (err, docs) => {
+        if (err)
+          logger.error(
+            "Error occured while finding Taxi Fare documents: " + err.message
+          );
+      })
+      .clone()
+      .lean();
+    // 해당 sTime 대로 값이 존재하는 경우 (현재: 카이스트 본원 <-> 대전역)
+    if (fare) {
       //만일 초기화 되지 않은 시간대의 정보를 필요로하는 비상시의 경우 대비
-      if (!taxiFare || taxiFare.fare <= 0) {
+      if (fare.fare <= 0) {
         await callTaxiFare(from, to)
           .then((fare) => {
             res.status(200).json({ fare: fare });
@@ -88,15 +67,15 @@ const getTaxiFareHandler = async (req, res) => {
             logger.error(err.message);
           });
       } else {
-        res.status(200).json({ fare: taxiFare.fare });
+        res.status(200).json({ fare: fare.fare });
       }
     } else {
-      const taxiFare = await taxiFareModel
+      const minorTaxiFare = await taxiFareModel
         .findOne(
           {
             from: from._id,
             to: to._id,
-            time: 0,
+            time: 48 * new Date(req.query.time).getDay() + 0,
           },
           (err, docs) => {
             if (err)
@@ -106,9 +85,11 @@ const getTaxiFareHandler = async (req, res) => {
               );
           }
         )
+        .clone()
         .lean();
+
       //만일 초기화 되지 않은 시간대의 정보를 필요로하는 비상시의 경우 대비
-      if (!taxiFare || taxiFare.fare <= 0) {
+      if (!minorTaxiFare || minorTaxiFare.fare <= 0) {
         await callTaxiFare(from, to)
           .then((fare) => {
             res.status(200).json({ fare: fare });
@@ -117,7 +98,7 @@ const getTaxiFareHandler = async (req, res) => {
             logger.error(err.message);
           });
       } else {
-        res.status(200).json({ fare: taxiFare.fare });
+        res.status(200).json({ fare: minorTaxiFare.fare });
       }
     }
   } catch (err) {
