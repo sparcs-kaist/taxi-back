@@ -60,7 +60,7 @@ const initializeDatabase = async () => {
                   { fare: true }
                 )
                 .lean()
-            ).fare;
+            )?.fare;
             const fare = prevTaxiFare
               ? prevTaxiFare
               : await callTaxiFare(from, to);
