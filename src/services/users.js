@@ -1,4 +1,5 @@
 const { userModel, banModel } = require("../modules/stores/mongo");
+const { unregisterAllDeviceTokens } = require("../modules/fcm");
 const logger = require("../modules/logger");
 const aws = require("../modules/stores/aws");
 
@@ -240,12 +241,19 @@ const withdrawHandler = async (req, res) => {
     const user = await userModel.findOne({ _id: req.userOid, withdraw: false });
     if (!user) {
       return res.status(500).send("Users/withdraw : internal server error");
-    } else if (user.withdraw) {
+    }
+
+    // 회원 탈퇴가 가능한 조건인지 확인
+    if (user.withdraw) {
       return res.status(400).send("Users/withdraw : already withdrawn");
     } else if (user.ongoingRoom.length !== 0) {
       return res.status(400).send("Users/withdraw : ongoing room exists");
     }
 
+    // 등록된 모든 디바이스 토큰 삭제
+    await unregisterAllDeviceTokens(req.userOid);
+
+    // 회원 탈퇴 처리 (Soft Delete)
     user.withdraw = true;
     user.withdrawAt = req.timestamp;
 

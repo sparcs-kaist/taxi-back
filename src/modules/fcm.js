@@ -92,6 +92,28 @@ const unregisterDeviceToken = async (deviceToken) => {
 };
 
 /**
+ * 사용자의 ObjectId가 주어졌을 때, 해당 사용자의 모든 deviceToken을 DB에서 삭제합니다.
+ * @param {string} userId - 사용자의 ObjectId입니다.
+ * @return {Promise<boolean>} 해당 사용자로부터 deviceToken을 삭제하는 데 성공하면 true, 실패하면 false를 반환합니다. 삭제할 deviceToken이 존재하지 않는 경우에는 true를 반환합니다.
+ */
+const unregisterAllDeviceTokens = async (userId) => {
+  try {
+    // 사용자의 디바이스 토큰을 DB에서 가져옵니다.
+    // getTokensOfUsers 함수의 정의는 아래에 있습니다. (호이스팅)
+    const tokens = await getTokensOfUsers([userId]);
+
+    // 디바이스 토큰과 관련 설정을 DB에서 삭제합니다.
+    await deviceTokenModel.deleteMany({ userId });
+    await notificationOptionModel.deleteMany({ deviceToken: { $in: tokens } });
+
+    return true;
+  } catch (error) {
+    logger.error(error);
+    return false;
+  }
+};
+
+/**
  * 메시지 전송에 실패한 deviceToken을 DB에서 삭제합니다.
  * @param {Array<string>} deviceTokens - 사용자의 ObjectId입니다.
  * @param {Array<SendResponse>} fcmResponses - 등록하려는 FCM device token입니다.
@@ -351,6 +373,7 @@ module.exports = {
   initializeApp,
   registerDeviceToken,
   unregisterDeviceToken,
+  unregisterAllDeviceTokens,
   validateDeviceToken,
   getTokensOfUsers,
   sendMessageByTokens,
