@@ -29,10 +29,6 @@ const getTaxiFareHandler = async (req, res) => {
       });
     }
 
-    if (req.query.from === req.query.to) {
-      return res.status(200).json({ fare: 0 });
-    }
-
     const from = await locationModel
       .findOne({
         _id: { $eq: req.query.from },
@@ -47,6 +43,9 @@ const getTaxiFareHandler = async (req, res) => {
       return res
         .status(400)
         .json({ error: "fare/getTaxiFareHandler: Wrong location" });
+    } else if (req.query.from === req.query.to) {
+      // 프론트엔드에서 예상 택시비를 숨기기 위해 0원을 반환
+      return res.status(200).json({ fare: 0 });
     }
 
     const fare = await taxiFareModel

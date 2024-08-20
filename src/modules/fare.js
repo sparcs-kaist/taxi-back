@@ -146,9 +146,6 @@ const updateTaxiFare = async (sTime, isMajor) => {
 
     await acc;
     await callTaxiFare(from, to)
-      .catch((err) => {
-        logger.error(err.message);
-      })
       .then(async (fare) => {
         if (fare) {
           await taxiFareModel.updateOne(
@@ -156,6 +153,9 @@ const updateTaxiFare = async (sTime, isMajor) => {
             { fare: fare }
           );
         }
+      })
+      .catch((err) => {
+        logger.error(err.message);
       });
     await new Promise((resolve) => setTimeout(() => resolve, 200));
     return acc;
