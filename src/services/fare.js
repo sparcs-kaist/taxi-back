@@ -24,11 +24,15 @@ const getTaxiFareHandler = async (req, res) => {
       naverMapApi["X-NCP-APIGW-API-KEY"] === false ||
       naverMapApi["X-NCP-APIGW-API-KEY-ID"] === false
     ) {
-      res.status(503).json({
+      return res.status(503).json({
         error: "fare/getTaxiFareHandler: Naver Map API credential not found",
       });
-      return;
     }
+
+    if (req.query.from === req.query.to) {
+      return res.status(200).json({ fare: 0 });
+    }
+
     const from = await locationModel
       .findOne({
         _id: { $eq: req.query.from },
@@ -40,10 +44,9 @@ const getTaxiFareHandler = async (req, res) => {
     const sTime = scaledTime(new Date(req.query.time));
 
     if (!from || !to) {
-      res
+      return res
         .status(400)
         .json({ error: "fare/getTaxiFareHandler: Wrong location" });
-      return;
     }
 
     const fare = await taxiFareModel
