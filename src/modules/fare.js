@@ -60,7 +60,7 @@ const initializeDatabase = async () => {
                   { fare: true }
                 )
                 .lean()
-            ).fare;
+            )?.fare;
             const fare = prevTaxiFare
               ? prevTaxiFare
               : await callTaxiFare(from, to);
@@ -145,22 +145,12 @@ const updateTaxiFare = async (sTime, isMajor) => {
     const to = await locationModel.findOne({ _id: item.to });
 
     await acc;
-    await callTaxiFare
-      .catch((err) => {
-        logger.error(err.message);
-      })
+    await callTaxiFare(from, to)
       .then(async (fare) => {
         if (fare) {
           await taxiFareModel.updateOne(
             { from: item.from, to: item.to, time: sTime },
-            { fare: fare },
-            (err, docs) => {
-              if (err)
-                logger.error(
-                  "Error occured while updating Taxi Fare document: " +
-                    err.message
-                );
-            }
+            { fare: fare }
           );
         }
       })
@@ -189,12 +179,7 @@ const callTaxiFare = async (from, to) => {
   }
   return (
     await axios.get(
-      `${
-        "https://naveropenapi.apigw.ntruss.com/map-direction/v1/driving?start=" +
-        from.longitude +
-        "," +
-        from.latitude
-      }&goal=${to.longitude + "," + to.latitude}&options=traoptimal`,
+      `https://naveropenapi.apigw.ntruss.com/map-direction/v1/driving?start=${from.longitude},${from.latitude}}&goal=${to.longitude},${to.latitude}&options=traoptimal`,
       { headers: naverMapApi }
     )
   ).data.route.traoptimal[0].summary.taxiFare;
