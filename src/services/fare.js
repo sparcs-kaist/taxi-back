@@ -21,8 +21,8 @@ const naverMapApi = {
 const getTaxiFareHandler = async (req, res) => {
   try {
     if (
-      naverMapApi["X-NCP-APIGW-API-KEY"] === false ||
-      naverMapApi["X-NCP-APIGW-API-KEY-ID"] === false
+      !naverMapApi["X-NCP-APIGW-API-KEY"] ||
+      !naverMapApi["X-NCP-APIGW-API-KEY-ID"]
     ) {
       return res.status(503).json({
         error: "fare/getTaxiFareHandler: Naver Map API credential not found",
