@@ -32,8 +32,8 @@ const scaledTime = (time) => {
 const initializeDatabase = async () => {
   try {
     if (
-      naverMapApi["X-NCP-APIGW-API-KEY"] === undefined ||
-      naverMapApi["X-NCP-APIGW-API-KEY-ID"] === undefined
+      !naverMapApi["X-NCP-APIGW-API-KEY"] ||
+      !naverMapApi["X-NCP-APIGW-API-KEY-ID"]
     ) {
       logger.error(
         "There is no credential for Naver Map. Taxi Fare functions are disabled."
@@ -126,8 +126,8 @@ const initializeDatabase = async () => {
  */
 const updateTaxiFare = async (sTime, isMajor) => {
   if (
-    naverMapApi["X-NCP-APIGW-API-KEY"] === undefined ||
-    naverMapApi["X-NCP-APIGW-API-KEY-ID"] === undefined
+    !naverMapApi["X-NCP-APIGW-API-KEY"] ||
+    !naverMapApi["X-NCP-APIGW-API-KEY-ID"]
   ) {
     logger.error(
       "There is no credential for Naver Map. Taxi Fare functions are disabled."
@@ -169,8 +169,8 @@ const updateTaxiFare = async (sTime, isMajor) => {
  */
 const callTaxiFare = async (from, to) => {
   if (
-    naverMapApi["X-NCP-APIGW-API-KEY"] === undefined ||
-    naverMapApi["X-NCP-APIGW-API-KEY-ID"] === undefined
+    !naverMapApi["X-NCP-APIGW-API-KEY"] ||
+    !naverMapApi["X-NCP-APIGW-API-KEY-ID"]
   ) {
     logger.error(
       "There is no credential for Naver Map. Taxi Fare functions are disabled."
