@@ -468,4 +468,35 @@ usersDocs[`${apiPrefix}/getBanRecord`] = {
   },
 };
 
+usersDocs[`${apiPrefix}/withdraw`] = {
+  post: {
+    tags: [tag],
+    summary: "회원 탈퇴",
+    description: "회원 탈퇴를 요청합니다.",
+    responses: {
+      200: {
+        content: {
+          "text/html": {
+            example: "Users/withdraw : withdraw successful",
+          },
+        },
+      },
+      400: {
+        content: {
+          "text/html": {
+            example: "Users/withdraw : ongoing room exists",
+          },
+        },
+      },
+      500: {
+        content: {
+          "text/html": {
+            example: "Users/withdraw : internal server error",
+          },
+        },
+      },
+    },
+  },
+};
+
 module.exports = usersDocs;
