@@ -14,6 +14,7 @@ const eventPeriod = eventConfig && {
 };
 
 const requiredQuestFields = ["name", "description", "imageUrl", "reward"];
+
 const buildQuests = (quests) => {
   for (const [id, quest] of Object.entries(quests)) {
     // quest에 필수 필드가 모두 포함되어 있는지 확인합니다.
@@ -61,7 +62,7 @@ const buildQuests = (quests) => {
  * @param {number} quest.reward.credit - 퀘스트의 완료 보상 중 재화의 양입니다.
  * @param {number} quest.reward.ticket1 - 퀘스트의 완료 보상 중 일반 티켓의 개수입니다.
  * @param {number} quest.maxCount - 퀘스트의 최대 완료 가능 횟수입니다.
- * @returns {Object|null} 성공한 경우 Object를, 실패한 경우 null을 반환합니다. 이미 최대 완료 횟수에 도달했거나, 퀘스트가 원격으로 비활성화 된 경우에도 실패로 처리됩니다.
+ * @returns {Object|null} 성공한 경우 Object를, 실패한 경우 null을 반환합니다. 이미 최대 완료 횟수에 도달했거나, 퀘스트가 원격으로 비활성화된 경우에도 실패로 처리됩니다.
  */
 const completeQuest = async (userId, timestamp, quest) => {
   try {
@@ -118,7 +119,10 @@ const completeQuest = async (userId, timestamp, quest) => {
           ticket1Amount: quest.reward.ticket1,
         },
         $push: {
-          completedQuests: quest.id,
+          completedQuests: {
+            id: quest.id,
+            completedAt: timestamp,
+          },
         },
       }
     );
