@@ -158,7 +158,7 @@ const transactionSchema = Schema({
   },
 });
 transactionSchema.set("timestamps", {
-  createdAt: "createAt",
+  createdAt: "createdAt",
   updatedAt: false,
 });
 
