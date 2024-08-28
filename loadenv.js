@@ -47,7 +47,7 @@ module.exports = {
     JSON.parse(process.env.EVENT_CONFIG)) || {
     mode: "2024fall",
     credit: {
-      name: "송편",
+      name: "송편코인",
       initialAmount: 0,
     },
     period: {
