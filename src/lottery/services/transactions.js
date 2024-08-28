@@ -1,22 +1,28 @@
 const { transactionModel } = require("../modules/stores/mongo");
+const {
+  transactionPopulateOption,
+} = require("../modules/populates/transactions");
 const logger = require("../../modules/logger");
 
-const hideItemStock = (transaction) => {
-  if (transaction.item) {
-    transaction.item.stock = transaction.item.stock > 0 ? 1 : 0;
+const formatTransaction = (transaction) => {
+  if (transaction.itemId) {
+    transaction.item = transaction.itemId;
+    delete transaction.itemId;
   }
-  return transaction;
 };
 
 const getUserTransactionsHandler = async (req, res) => {
   try {
-    // userId는 이미 Frontend에서 알고 있고, 중복되는 값이므로 제외합니다.
     const transactions = await transactionModel
-      .find({ userId: req.userOid }, "_id type amount questId comment createAt")
+      .find(
+        { userId: req.userOid },
+        "type amount questId itemId comment createdAt"
+      )
+      .populate(transactionPopulateOption)
       .lean();
     if (transactions)
       res.json({
-        transactions,
+        transactions: transactions.map(formatTransaction),
       });
     else
       res.status(500).json({ error: "Transactions/ : internal server error" });

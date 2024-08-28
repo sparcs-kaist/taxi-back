@@ -92,8 +92,7 @@ const getRandomItem = async (req, depth) => {
       type: "use",
       amount: 0,
       userId: req.userOid,
-      item: randomItem._id,
-      itemType: randomItem.itemType,
+      itemId: randomItem._id,
       comment: `랜덤박스에서 "${randomItem.name}" 1개를 획득했습니다.`,
     });
     await transaction.save();
@@ -169,8 +168,7 @@ const purchaseHandler = async (req, res) => {
       type: "use",
       amount: item.price,
       userId: req.userOid,
-      item: item._id,
-      itemType: item.itemType,
+      itemId: item._id,
       comment: `${eventConfig?.credit.name} ${item.price}개를 사용해 "${item.name}" 1개를 획득했습니다.`,
     });
     await transaction.save();

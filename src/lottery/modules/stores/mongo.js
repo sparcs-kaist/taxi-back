@@ -144,13 +144,9 @@ const transactionSchema = Schema({
   questId: {
     type: String,
   },
-  item: {
+  itemId: {
     type: Schema.Types.ObjectId,
     ref: `${modelNamePrefix}Item`,
-  },
-  itemType: {
-    type: Number,
-    enum: [0, 1, 2, 3],
   },
   comment: {
     type: String,

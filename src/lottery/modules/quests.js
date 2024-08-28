@@ -147,7 +147,7 @@ const completeQuest = async (userId, timestamp, quest) => {
         amount: 0,
         userId,
         questId: quest.id,
-        item: ticket1._id,
+        itemId: ticket1._id,
         comment: `"${quest.name}" 퀘스트를 완료해 "${ticket1.name}" ${quest.reward.ticket1}개를 획득했습니다.`,
       });
       await transaction.save();
