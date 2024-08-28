@@ -10,6 +10,17 @@ const integerValidator = {
   message: "{VALUE} is not an integer value",
 };
 
+const completedQuestSchema = Schema({
+  questId: {
+    type: String,
+    required: true,
+  },
+  completedAt: {
+    type: Date,
+    required: true,
+  },
+});
+
 const eventStatusSchema = Schema({
   userId: {
     type: Schema.Types.ObjectId,
@@ -17,7 +28,7 @@ const eventStatusSchema = Schema({
     required: true,
   },
   completedQuests: {
-    type: [String],
+    type: [completedQuestSchema],
     default: [],
   },
   creditAmount: {
@@ -42,17 +53,11 @@ const eventStatusSchema = Schema({
     type: Boolean,
     default: false,
   },
-  group: {
-    type: Number,
-    required: true,
-    min: 1,
-    validate: integerValidator,
-  }, // 소속된 새터반
   inviter: {
     type: Schema.Types.ObjectId,
     ref: "User",
   }, // 이 사용자를 초대한 사용자
-  isEnabledInviteUrl: {
+  isInvitationUrlEnabled: {
     type: Boolean,
     default: false,
   }, // 초대 링크 활성화 여부
