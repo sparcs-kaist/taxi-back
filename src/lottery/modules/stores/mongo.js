@@ -57,7 +57,7 @@ const eventStatusSchema = Schema({
     type: Schema.Types.ObjectId,
     ref: "User",
   }, // 이 사용자를 초대한 사용자
-  isInvitationUrlEnabled: {
+  isInviteUrlEnabled: {
     type: Boolean,
     default: false,
   }, // 초대 링크 활성화 여부

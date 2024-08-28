@@ -82,12 +82,14 @@ const createUserGlobalStateHandler = async (req, res) => {
        2. 해당되는 유저의 이벤트 참여가 제한된 상태이거나,
        3. 해당되는 유저의 초대 링크가 활성화되지 않았으면,
        에러를 발생시킵니다. 개인정보 보호를 위해 오류 메세지는 하나로 통일하였습니다. */
-    const inviter =
+    const inviterStatus =
       req.body.inviter &&
       (await eventStatusModel.findById(req.body.inviter).lean());
     if (
       req.body.inviter &&
-      (!inviter || inviter.isBanned || !inviter.isInvitationUrlEnabled)
+      (!inviterStatus ||
+        inviterStatus.isBanned ||
+        !inviterStatus.isInviteUrlEnabled)
     )
       return res.status(400).json({
         error: "GlobalState/create : invalid inviter",
@@ -120,17 +122,20 @@ const createUserGlobalStateHandler = async (req, res) => {
     // EventStatus Document를 생성합니다.
     eventStatus = new eventStatusModel({
       userId: req.userOid,
-      creditAmount: eventConfig.credit.initialAmount ?? 0,
-      inviter: inviter?._id ?? undefined,
+      creditAmount: eventConfig?.credit.initialAmount ?? 0,
+      inviter: inviterStatus?._id ?? undefined,
     });
     await eventStatus.save();
 
     // 퀘스트를 완료 처리합니다.
     await contracts.completeFirstLoginQuest(req.userOid, req.timestamp);
 
-    if (inviter) {
+    if (inviterStatus) {
       await contracts.completeEventSharingQuest(req.userOid, req.timestamp);
-      await contracts.completeEventSharingQuest(inviter.userId, req.timestamp);
+      await contracts.completeEventSharingQuest(
+        inviterStatus.userId,
+        req.timestamp
+      );
     }
 
     return res.json({ result: true });

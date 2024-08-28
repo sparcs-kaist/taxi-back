@@ -1,12 +1,12 @@
 const globalStateDocs = require("./globalState");
-const inviteDocs = require("./invite");
+const invitesDocs = require("./invites");
 const itemsDocs = require("./items");
 const publicNoticeDocs = require("./publicNotice");
 const questsDocs = require("./quests");
 const transactionsDocs = require("./transactions");
 
 const { globalStateSchema } = require("./schemas/globalStateSchema");
-const { inviteSchema } = require("./schemas/inviteSchema");
+const { invitesSchema } = require("./schemas/invitesSchema");
 const itemsSchema = require("./schemas/itemsSchema");
 const { questsSchema } = require("./schemas/questsSchema");
 
@@ -20,7 +20,7 @@ const eventSwaggerDocs = {
       description: "이벤트 - Global State 관련 API",
     },
     {
-      name: `${apiPrefix}/invite`,
+      name: `${apiPrefix}/invites`,
       description: "이벤트 - 초대 링크 관련 API",
     },
     // 이 태그는 2024 봄학기 이벤트에서 사용되지 않습니다.
@@ -44,7 +44,7 @@ const eventSwaggerDocs = {
   ],
   paths: {
     ...globalStateDocs,
-    ...inviteDocs,
+    ...invitesDocs,
     //...itemsDocs,
     ...publicNoticeDocs,
     ...questsDocs,
@@ -53,7 +53,7 @@ const eventSwaggerDocs = {
   components: {
     schemas: {
       ...globalStateSchema,
-      ...inviteSchema,
+      ...invitesSchema,
       //...itemsSchema,
       ...questsSchema,
     },
