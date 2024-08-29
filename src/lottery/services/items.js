@@ -3,9 +3,121 @@ const {
   itemModel,
   transactionModel,
 } = require("../modules/stores/mongo");
+const { userModel } = require("../../modules/stores/mongo");
+const { isLogin, getLoginInfo } = require("../../modules/auths/login");
 const logger = require("../../modules/logger");
 
 const { eventConfig } = require("../../../loadenv");
+
+const getItemsHandler = async (req, res) => {
+  try {
+    const items = await itemModel
+      .find(
+        {},
+        "_id name description imageUrl instagramStoryStickerImageUrl price isDisabled itemType"
+      )
+      .lean();
+    res.json({ items });
+  } catch (err) {
+    logger.error(err);
+    res.status(500).json({ error: "Items/ : internal server error" });
+  }
+};
+
+// 유도 과정은 services/publicNotice.js 파일에 정의된 calculateProbabilityV2 함수의 주석 참조
+const calculateWinProbability = (stock, users, amount, totalAmount) => {
+  if (users.length <= stock) return 1;
+
+  const base = Math.pow(1 - stock / users.length, users.length / totalAmount);
+  return 1 - Math.pow(base, amount);
+};
+
+const getItemLeaderboardHandler = async (req, res) => {
+  try {
+    // 상품 정보를 가져옵니다.
+    const { itemId } = req.params;
+    const item = await itemModel.findOne({ _id: itemId, itemType: 0 }).lean();
+    if (!item)
+      return res
+        .status(400)
+        .json({ error: "Items/leaderboard : invalid item" });
+
+    // 해당 상품을 구매한 유저들의 목록을 가져옵니다.
+    const users = await transactionModel.aggregate([
+      {
+        $match: {
+          type: "use",
+          itemId: item._id,
+        },
+      },
+      {
+        $group: {
+          _id: "$userId",
+          amount: { $sum: 1 },
+        },
+      },
+      {
+        $sort: { amount: -1 },
+      },
+    ]);
+
+    // 리더보드 생성을 위해 필요한 정보를 계산합니다.
+    const totalAmount = users.reduce((acc, user) => acc + user.amount, 0);
+    const rankMap = new Map(
+      users
+        .map((user) => user.amount)
+        .reduce((acc, amount, index) => {
+          if (acc.length === 0 || acc[acc.length - 1][0] !== amount) {
+            acc.push([amount, index + 1]);
+          }
+          return acc;
+        }, [])
+    );
+
+    // 리더보드를 생성합니다.
+    const leaderboardBase = users.map((user) => ({
+      userId: user._id,
+      amount: user.amount,
+      probability: calculateWinProbability(
+        item.stock,
+        users,
+        user.amount,
+        totalAmount
+      ),
+      rank: rankMap.get(user.amount),
+    }));
+    const leaderboard = await Promise.all(
+      leaderboardBase
+        .filter((user) => user.rank <= 20)
+        .map(async (user) => {
+          const userInfo = await userModel.findById(user.userId).lean();
+          return {
+            nickname: userInfo.nickname,
+            profileImageUrl: userInfo.profileImageUrl,
+            amount: user.amount,
+            probability: user.probability,
+          };
+        })
+    );
+
+    const userId = isLogin(req) ? getLoginInfo(req).oid : null;
+    const user = leaderboardBase.find(
+      (user) => user.userId.toString() === userId
+    );
+
+    return res.json({
+      leaderboard,
+      amount: user?.amount,
+      probability: user?.probability,
+      rank: user?.rank,
+    });
+  } catch (err) {
+    logger.error(err);
+    res
+      .status(500)
+      .json({ error: "Items/leaderboard : internal server error" });
+  }
+};
 
 const updateEventStatus = async (
   userId,
@@ -108,22 +220,7 @@ const getRandomItem = async (req, depth) => {
   }
 };
 
-const listHandler = async (_, res) => {
-  try {
-    const items = await itemModel
-      .find(
-        {},
-        "name imageUrl instagramStoryStickerImageUrl price description isDisabled stock itemType"
-      )
-      .lean();
-    res.json({ items: items.map(hideItemStock) });
-  } catch (err) {
-    logger.error(err);
-    res.status(500).json({ error: "Items/List : internal server error" });
-  }
-};
-
-const purchaseHandler = async (req, res) => {
+const purchaseItemHandler = async (req, res) => {
   try {
     const { itemId } = req.params;
     const item = await itemModel.findOne({ _id: itemId }).lean();
@@ -213,6 +310,7 @@ const purchaseHandler = async (req, res) => {
 };
 
 module.exports = {
-  listHandler,
-  purchaseHandler,
+  getItemsHandler,
+  getItemLeaderboardHandler,
+  purchaseItemHandler,
 };

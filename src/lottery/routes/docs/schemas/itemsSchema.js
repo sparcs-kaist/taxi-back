@@ -1,3 +1,20 @@
+const { z } = require("zod");
+const { zodToSchemaObject } = require("../../../../routes/docs/utils");
+const { objectId } = require("../../../../modules/patterns");
+
+const itemsZod = {
+  getItemLeaderboardHandler: z.object({
+    itemId: z.string().regex(objectId),
+  }),
+  purchaseItemHandler: z.object({
+    itemId: z.string().regex(objectId),
+  }),
+};
+
+const itemsSchema = zodToSchemaObject(itemsZod);
+
+module.exports = { itemsZod, itemsSchema };
+
 /* Item에 대한 기본적인 프로퍼티를 갖고 있는 스키마입니다.
  * TODO: 추후 코드 재사용시 상황에 맞춰 zod로 이전이 필요합니다.
  */
@@ -71,28 +88,28 @@ const itemWithType = {
   },
 };
 
-const itemsSchema = {
-  item: itemWithType,
-  relatedItem: {
-    ...itemWithType,
-    description:
-      "Transaction과 관련된 아이템의 Object. 아이템과 관련된 Transaction인 경우에만 포함됩니다.",
-  },
-  rewardItem: {
-    ...itemBase,
-    description: "랜덤박스를 구입한 경우에만 포함됩니다.",
-  },
-  purchaseHandler: {
-    type: "object",
-    required: ["itemId"],
-    properties: {
-      itemId: {
-        type: "string",
-        pattern: "^[a-fA-F\\d]{24}$",
-      },
-    },
-    errorMessage: "validation: bad request",
-  },
-};
+// const itemsSchema = {
+//   item: itemWithType,
+//   relatedItem: {
+//     ...itemWithType,
+//     description:
+//       "Transaction과 관련된 아이템의 Object. 아이템과 관련된 Transaction인 경우에만 포함됩니다.",
+//   },
+//   rewardItem: {
+//     ...itemBase,
+//     description: "랜덤박스를 구입한 경우에만 포함됩니다.",
+//   },
+//   purchaseHandler: {
+//     type: "object",
+//     required: ["itemId"],
+//     properties: {
+//       itemId: {
+//         type: "string",
+//         pattern: "^[a-fA-F\\d]{24}$",
+//       },
+//     },
+//     errorMessage: "validation: bad request",
+//   },
+// };
 
-module.exports = itemsSchema;
+// module.exports = itemsSchema;

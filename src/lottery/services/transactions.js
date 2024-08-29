@@ -9,6 +9,7 @@ const formatTransaction = (transaction) => {
     transaction.item = transaction.itemId;
     delete transaction.itemId;
   }
+  return transaction;
 };
 
 const getUserTransactionsHandler = async (req, res) => {
