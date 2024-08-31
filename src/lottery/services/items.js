@@ -57,6 +57,19 @@ const getItemLeaderboardHandler = async (req, res) => {
         },
       },
       {
+        $lookup: {
+          from: eventStatusModel.collection.name,
+          localField: "_id",
+          foreignField: "userId",
+          as: "eventStatus",
+        },
+      },
+      {
+        $match: {
+          "eventStatus.0.isBanned": false,
+        },
+      },
+      {
         $sort: { amount: -1 },
       },
     ]);
