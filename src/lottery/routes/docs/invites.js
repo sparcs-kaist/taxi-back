@@ -7,15 +7,15 @@ invitesDocs[`${apiPrefix}/search/{inviter}`] = {
     tags: [`${apiPrefix}`],
     summary: "초대한 유저의 정보 반환",
     description: "초대한 유저의 정보를 가져옵니다.",
-    requestBody: {
-      content: {
-        "application/json": {
-          schema: {
-            $ref: "#/components/schemas/searchInviterHandler",
-          },
-        },
+    parameters: [
+      {
+        in: "path",
+        name: "inviter",
+        required: true,
+        description: "초대한 유저의 eventStatus ObjectId",
+        example: "INVITER ID",
       },
-    },
+    ],
     responses: {
       200: {
         content: {

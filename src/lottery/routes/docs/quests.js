@@ -7,15 +7,15 @@ questsDocs[`${apiPrefix}/complete/{questId}`] = {
     tags: [`${apiPrefix}`],
     summary: "퀘스트 완료 요청",
     description: "퀘스트의 완료를 요청합니다.",
-    requestBody: {
-      content: {
-        "application/json": {
-          schema: {
-            $ref: "#/components/schemas/completeQuestHandler",
-          },
-        },
+    parameters: [
+      {
+        in: "path",
+        name: "questId",
+        required: true,
+        description: "완료를 요청할 퀘스트의 ID",
+        example: "QUEST ID",
       },
-    },
+    ],
     responses: {
       200: {
         content: {
