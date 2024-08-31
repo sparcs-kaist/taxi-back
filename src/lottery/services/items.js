@@ -53,7 +53,7 @@ const getItemLeaderboardHandler = async (req, res) => {
       {
         $group: {
           _id: "$userId",
-          amount: { $sum: 1 },
+          amount: { $sum: "$itemAmount" },
         },
       },
       {
@@ -147,178 +147,205 @@ const updateEventStatus = async (
     }
   );
 
-const hideItemStock = (item) => {
-  item.stock = item.stock > 0 ? 1 : 0;
-  return item;
-};
+// 아래의 함수는 2024 추석 이벤트에서 사용되지 않습니다.
+//
+// const getRandomItem = async (req, depth) => {
+//   if (depth >= 10) {
+//     logger.error(`User ${req.userOid} failed to open random box`);
+//     return null;
+//   }
 
-const getRandomItem = async (req, depth) => {
-  if (depth >= 10) {
-    logger.error(`User ${req.userOid} failed to open random box`);
-    return null;
-  }
+//   const items = await itemModel
+//     .find({
+//       isRandomItem: true,
+//       stock: { $gt: 0 },
+//       isDisabled: false,
+//     })
+//     .lean();
+//   const randomItems = items
+//     .map((item) => Array(item.randomWeight).fill(item))
+//     .reduce((a, b) => a.concat(b), []);
+//   const dumpRandomItems = randomItems
+//     .map((item) => item._id.toString())
+//     .join(",");
 
-  const items = await itemModel
-    .find({
-      isRandomItem: true,
-      stock: { $gt: 0 },
-      isDisabled: false,
-    })
-    .lean();
-  const randomItems = items
-    .map((item) => Array(item.randomWeight).fill(item))
-    .reduce((a, b) => a.concat(b), []);
-  const dumpRandomItems = randomItems
-    .map((item) => item._id.toString())
-    .join(",");
+//   logger.info(
+//     `User ${req.userOid}'s ${
+//       depth + 1
+//     }th random box probability is: [${dumpRandomItems}]`
+//   );
 
-  logger.info(
-    `User ${req.userOid}'s ${
-      depth + 1
-    }th random box probability is: [${dumpRandomItems}]`
-  );
+//   if (randomItems.length === 0) return null;
 
-  if (randomItems.length === 0) return null;
+//   const randomItem =
+//     randomItems[Math.floor(Math.random() * randomItems.length)];
+//   try {
+//     // 1단계: 재고를 차감합니다.
+//     const newRandomItem = await itemModel
+//       .findOneAndUpdate(
+//         { _id: randomItem._id, stock: { $gt: 0 } },
+//         {
+//           $inc: {
+//             stock: -1,
+//           },
+//         },
+//         {
+//           new: true,
+//           fields: {
+//             itemType: 0,
+//             isRandomItem: 0,
+//             randomWeight: 0,
+//           },
+//         }
+//       )
+//       .lean();
+//     if (!newRandomItem) {
+//       throw new Error(`Item ${randomItem._id.toString()} was already sold out`);
+//     }
 
-  const randomItem =
-    randomItems[Math.floor(Math.random() * randomItems.length)];
-  try {
-    // 1단계: 재고를 차감합니다.
-    const newRandomItem = await itemModel
-      .findOneAndUpdate(
-        { _id: randomItem._id, stock: { $gt: 0 } },
-        {
-          $inc: {
-            stock: -1,
-          },
-        },
-        {
-          new: true,
-          fields: {
-            itemType: 0,
-            isRandomItem: 0,
-            randomWeight: 0,
-          },
-        }
-      )
-      .lean();
-    if (!newRandomItem) {
-      throw new Error(`Item ${randomItem._id.toString()} was already sold out`);
-    }
+//     // 2단계: 유저 정보를 업데이트합니다.
+//     await updateEventStatus(req.userOid, {
+//       ticket1Delta: randomItem.itemType === 1 ? 1 : 0,
+//       ticket2Delta: randomItem.itemType === 2 ? 1 : 0,
+//     });
 
-    // 2단계: 유저 정보를 업데이트합니다.
-    await updateEventStatus(req.userOid, {
-      ticket1Delta: randomItem.itemType === 1 ? 1 : 0,
-      ticket2Delta: randomItem.itemType === 2 ? 1 : 0,
-    });
+//     // 3단계: Transaction을 추가합니다.
+//     const transaction = new transactionModel({
+//       type: "use",
+//       amount: 0,
+//       userId: req.userOid,
+//       itemId: randomItem._id,
+//       comment: `랜덤박스에서 "${randomItem.name}" 1개를 획득했습니다.`,
+//     });
+//     await transaction.save();
 
-    // 3단계: Transaction을 추가합니다.
-    const transaction = new transactionModel({
-      type: "use",
-      amount: 0,
-      userId: req.userOid,
-      itemId: randomItem._id,
-      comment: `랜덤박스에서 "${randomItem.name}" 1개를 획득했습니다.`,
-    });
-    await transaction.save();
+//     return newRandomItem;
+//   } catch (err) {
+//     logger.error(err);
+//     logger.warn(
+//       `User ${req.userOid}'s ${depth + 1}th random box failed due to exception`
+//     );
 
-    return newRandomItem;
-  } catch (err) {
-    logger.error(err);
-    logger.warn(
-      `User ${req.userOid}'s ${depth + 1}th random box failed due to exception`
-    );
-
-    return await getRandomItem(req, depth + 1);
-  }
-};
+//     return await getRandomItem(req, depth + 1);
+//   }
+// };
 
 const purchaseItemHandler = async (req, res) => {
   try {
     const { itemId } = req.params;
-    const item = await itemModel.findOne({ _id: itemId }).lean();
+    const item = await itemModel.findById(itemId).lean();
     if (!item)
-      return res.status(400).json({ error: "Items/Purchase : invalid Item" });
+      return res.status(400).json({ error: "Items/purchase : invalid Item" });
 
-    // 구매 가능 조건: 크레딧이 충분하며, 재고가 남아있으며, 판매 중인 아이템이어야 합니다.
+    const { amount } = req.body;
+    const totalPrice = item.price * amount;
+
+    // 구매 가능 조건: 재화가 충분하며, 재고가 남아있으며, 판매 중인 상품이어야 합니다.
     if (item.isDisabled)
-      return res.status(400).json({ error: "Items/Purchase : disabled item" });
-    if (req.eventStatus.creditAmount < item.price)
+      return res.status(400).json({ error: "Items/purchase : disabled item" });
+    if (req.eventStatus.creditAmount < totalPrice)
       return res
         .status(400)
-        .json({ error: "Items/Purchase : not enough credit" });
-    if (item.stock <= 0)
+        .json({ error: "Items/purchase : not enough credit" });
+    if (item.stock < amount)
       return res
         .status(400)
-        .json({ error: "Items/Purchase : item out of stock" });
+        .json({ error: "Items/purchase : item out of stock" });
 
     // 1단계: 재고를 차감합니다.
     const { modifiedCount } = await itemModel.updateOne(
-      { _id: item._id, stock: { $gt: 0 } },
-      {
-        $inc: {
-          stock: -1,
-        },
-      }
+      { _id: item._id, stock: { $gte: amount } },
+      { $inc: { stock: -amount } }
     );
     if (modifiedCount === 0)
       return res
         .status(400)
-        .json({ error: "Items/Purchase : item out of stock" });
+        .json({ error: "Items/purchase : item out of stock" });
 
-    // 2단계: 유저 정보를 업데이트합니다.
-    await updateEventStatus(req.userOid, {
-      creditDelta: -item.price,
-      ticket1Delta: item.itemType === 1 ? 1 : 0,
-      ticket2Delta: item.itemType === 2 ? 1 : 0,
-    });
-
-    // 3단계: Transaction을 추가합니다.
-    const transaction = new transactionModel({
-      type: "use",
-      amount: item.price,
-      userId: req.userOid,
-      itemId: item._id,
-      comment: `${eventConfig?.credit.name} ${item.price}개를 사용해 "${item.name}" 1개를 획득했습니다.`,
-    });
-    await transaction.save();
-
-    // 4단계: 랜덤박스인 경우 아이템을 추첨합니다.
-    if (item.itemType !== 3) return res.json({ result: true });
-
-    const randomItem = await getRandomItem(req, 0);
-    if (!randomItem) {
-      // 랜덤박스가 실패한 경우, 상태를 구매 이전으로 되돌립니다.
-      // TODO: Transactions 도입 후 이 코드는 삭제합니다.
-      logger.info(`User ${req.userOid}'s status will be restored`);
-
-      await transactionModel.deleteOne({ _id: transaction._id });
+    if (item.itemType !== 3) {
+      // 랜덤박스가 아닌 상품을 구입한 경우
+      // 2단계: 유저 정보를 업데이트합니다.
       await updateEventStatus(req.userOid, {
-        creditDelta: item.price,
+        creditDelta: -totalPrice,
+        ticket1Delta: item.itemType === 1 ? amount : 0,
+        ticket2Delta: item.itemType === 2 ? amount : 0,
       });
-      await itemModel.updateOne(
-        { _id: item._id },
-        {
-          $inc: {
-            stock: 1,
-          },
-        }
-      );
 
-      logger.info(`User ${req.userOid}'s status was successfully restored`);
+      // 3단계: 출금 내역을 추가합니다.
+      const transaction = new transactionModel({
+        type: "use",
+        amount: totalPrice,
+        userId: req.userOid,
+        itemId: item._id,
+        itemAmount: amount,
+        comment: `${eventConfig?.credit.name} ${totalPrice}개를 사용해 "${item.name}" ${amount}개를 획득했습니다.`,
+      });
+      await transaction.save();
 
-      return res
-        .status(500)
-        .json({ error: "Items/Purchase : random box error" });
+      return res.json({ result: true });
+    } else {
+      // 랜덤박스를 구입한 경우
+      // 2단계: 대박(40%)인지 쪽박(60%)인지 결정합니다.
+      const isJackpot = Math.random() < 0.4;
+      const creditDelta = isJackpot ? totalPrice : -totalPrice;
+
+      // 3단계: 유저 정보를 업데이트합니다.
+      await updateEventStatus(req.userOid, { creditDelta });
+
+      // 4단계: 입출금 내역을 추가합니다.
+      if (isJackpot) {
+        const transaction = new transactionModel({
+          type: "get",
+          amount: creditDelta,
+          userId: req.userOid,
+          itemId: item._id,
+          itemAmount: amount,
+          comment: `${eventConfig?.credit.name} ${totalPrice}개를 "${item.name}"에 사용해 대박을 터뜨렸습니다.`,
+        });
+        await transaction.save();
+      } else {
+        const transaction = new transactionModel({
+          type: "use",
+          amount: creditDelta,
+          userId: req.userOid,
+          itemId: item._id,
+          itemAmount: amount,
+          comment: `${eventConfig?.credit.name} ${totalPrice}개를 "${item.name}"에 사용했지만 쪽박을 맞았습니다.`,
+        });
+        await transaction.save();
+      }
+
+      return res.json({ result: true, isJackpot });
     }
 
-    res.json({
-      result: true,
-      reward: hideItemStock(randomItem),
-    });
+    // const randomItem = await getRandomItem(req, 0);
+    // if (!randomItem) {
+    //   // 랜덤박스가 실패한 경우, 상태를 구매 이전으로 되돌립니다.
+    //   // TODO: Transactions 도입 후 이 코드는 삭제합니다.
+    //   logger.info(`User ${req.userOid}'s status will be restored`);
+
+    //   await transactionModel.deleteOne({ _id: transaction._id });
+    //   await updateEventStatus(req.userOid, {
+    //     creditDelta: item.price,
+    //   });
+    //   await itemModel.updateOne(
+    //     { _id: item._id },
+    //     {
+    //       $inc: {
+    //         stock: 1,
+    //       },
+    //     }
+    //   );
+
+    //   logger.info(`User ${req.userOid}'s status was successfully restored`);
+
+    //   return res
+    //     .status(500)
+    //     .json({ error: "Items/purchase : random box error" });
+    // }
   } catch (err) {
     logger.error(err);
-    res.status(500).json({ error: "Items/Purchase : internal server error" });
+    res.status(500).json({ error: "Items/purchase : internal server error" });
   }
 };
 

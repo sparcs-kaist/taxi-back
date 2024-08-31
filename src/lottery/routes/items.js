@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 
-const { validateParams } = require("../../middlewares/zod");
+const { validateBody, validateParams } = require("../../middlewares/zod");
 const { itemsZod } = require("./docs/schemas/itemsSchema");
 const itemsHandlers = require("../services/items");
 
@@ -19,7 +19,8 @@ router.use(require("../middlewares/timestampValidator"));
 
 router.post(
   "/purchase/:itemId",
-  validateParams(itemsZod.purchaseItemHandler),
+  validateParams(itemsZod.purchaseItemHandlerParams),
+  validateBody(itemsZod.purchaseItemHandlerBody),
   itemsHandlers.purchaseItemHandler
 );
 

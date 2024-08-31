@@ -21,12 +21,14 @@ const getUserTransactionsHandler = async (req, res) => {
       )
       .populate(transactionPopulateOption)
       .lean();
-    if (transactions)
-      res.json({
-        transactions: transactions.map(formatTransaction),
-      });
-    else
-      res.status(500).json({ error: "Transactions/ : internal server error" });
+    if (!transactions)
+      return res
+        .status(500)
+        .json({ error: "Transactions/ : internal server error" });
+
+    res.json({
+      transactions: transactions.map(formatTransaction),
+    });
   } catch (err) {
     logger.error(err);
     res.status(500).json({ error: "Transactions/ : internal server error" });

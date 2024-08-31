@@ -6,8 +6,11 @@ const itemsZod = {
   getItemLeaderboardHandler: z.object({
     itemId: z.string().regex(objectId),
   }),
-  purchaseItemHandler: z.object({
+  purchaseItemHandlerParams: z.object({
     itemId: z.string().regex(objectId),
+  }),
+  purchaseItemHandlerBody: z.object({
+    amount: z.number().int().positive(),
   }),
 };
 

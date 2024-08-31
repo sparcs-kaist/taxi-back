@@ -129,13 +129,13 @@ const transactionSchema = Schema({
     type: String,
     enum: ["get", "use"],
     required: true,
-  },
+  }, // get: 재화 획득, use: 재화 사용
   amount: {
     type: Number,
     required: true,
     min: 0,
     validate: integerValidator,
-  },
+  }, // 재화의 변화량의 절댓값
   userId: {
     type: Schema.Types.ObjectId,
     ref: "User",
@@ -143,11 +143,16 @@ const transactionSchema = Schema({
   },
   questId: {
     type: String,
-  },
+  }, // 완료한 퀘스트의 ID
   itemId: {
     type: Schema.Types.ObjectId,
     ref: `${modelNamePrefix}Item`,
-  },
+  }, // 획득한 상품의 ID
+  itemAmount: {
+    type: Number,
+    min: 1,
+    validate: integerValidator,
+  }, // 획득한 상품의 개수
   comment: {
     type: String,
     required: true,
