@@ -120,7 +120,7 @@ const completeQuest = async (userId, timestamp, quest) => {
         },
         $push: {
           completedQuests: {
-            id: quest.id,
+            questId: quest.id,
             completedAt: timestamp,
           },
         },

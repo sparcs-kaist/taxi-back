@@ -8,6 +8,7 @@ const { isLogin, getLoginInfo } = require("../../modules/auths/login");
 const logger = require("../../modules/logger");
 
 const { eventConfig } = require("../../../loadenv");
+const contracts = require("../modules/contracts");
 
 const getItemsHandler = async (req, res) => {
   try {
@@ -281,6 +282,12 @@ const purchaseItemHandler = async (req, res) => {
         comment: `${eventConfig?.credit.name} ${totalPrice}개를 사용해 "${item.name}" ${amount}개를 획득했습니다.`,
       });
       await transaction.save();
+
+      // 4단계: 퀘스트를 완료 처리합니다.
+      await contracts.completeItemPurchaseQuest(
+        req.userOid,
+        transaction.createdAt
+      );
 
       return res.json({ result: true });
     } else {
