@@ -19,8 +19,8 @@ const completeQuestHandler = async (req, res) => {
 
       // 오늘 완료된 dailyAttendance 퀘스트가 있는지 확인합니다.
       const completedQuest = req.eventStatus.completedQuests.find(
-        ({ id, completedAt }) =>
-          id === quest.id &&
+        ({ questId, completedAt }) =>
+          questId === quest.id &&
           completedAt >= todayMidnight &&
           completedAt < tomorrowMidnight
       );

@@ -91,7 +91,7 @@ const quests = buildQuests({
       "매일 Taxi에 접속하여 출석 체크를 하면 송편코인을 드려요! 하루에 한 번, 택시팟도 둘러보고 송편코인도 받아 가세요. 송편코인을 얻으려면 출석 체크 페이지에서 <b>출석 버튼</b>을 눌러야 해요.",
     imageUrl: "",
     reward: 700,
-    maxCount: 0,
+    maxCount: 17,
     isApiRequired: true,
   },
   itemPurchase: {
