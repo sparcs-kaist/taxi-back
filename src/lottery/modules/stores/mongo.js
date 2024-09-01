@@ -106,7 +106,13 @@ const itemSchema = Schema({
     required: true,
     min: 0,
     validate: integerValidator,
-  },
+  }, // 의미 없는 값, 기존 코드와의 호환성을 위해 남겨둡니다.
+  realStock: {
+    type: Number,
+    required: true,
+    min: 1,
+    validate: integerValidator,
+  }, // 상품의 실제 재고
   itemType: {
     type: Number,
     enum: [0, 1, 2, 3],

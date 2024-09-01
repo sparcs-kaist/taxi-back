@@ -102,7 +102,7 @@ itemsDocs[`${apiPrefix}/leaderboard/{itemId}`] = {
           "application/json": {
             schema: {
               type: "object",
-              required: ["leaderboard"],
+              required: ["leaderboard", "totalAmount", "totalUser"],
               properties: {
                 leaderboard: {
                   type: "array",
@@ -138,6 +138,16 @@ itemsDocs[`${apiPrefix}/leaderboard/{itemId}`] = {
                       },
                     },
                   },
+                },
+                totalAmount: {
+                  type: "number",
+                  description: "상품의 총 판매량",
+                  example: 100,
+                },
+                totalUser: {
+                  type: "number",
+                  description: "상품을 구입한 유저의 수",
+                  example: 50,
                 },
                 rank: {
                   type: "number",

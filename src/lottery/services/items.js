@@ -26,10 +26,13 @@ const getItemsHandler = async (req, res) => {
 };
 
 // 유도 과정은 services/publicNotice.js 파일에 정의된 calculateProbabilityV2 함수의 주석 참조
-const calculateWinProbability = (stock, users, amount, totalAmount) => {
-  if (users.length <= stock) return 1;
+const calculateWinProbability = (realStock, users, amount, totalAmount) => {
+  if (users.length <= realStock) return 1;
 
-  const base = Math.pow(1 - stock / users.length, users.length / totalAmount);
+  const base = Math.pow(
+    1 - realStock / users.length,
+    users.length / totalAmount
+  );
   return 1 - Math.pow(base, amount);
 };
 
@@ -93,7 +96,7 @@ const getItemLeaderboardHandler = async (req, res) => {
       userId: user._id,
       amount: user.amount,
       probability: calculateWinProbability(
-        item.stock,
+        item.realStock,
         users,
         user.amount,
         totalAmount
@@ -121,6 +124,8 @@ const getItemLeaderboardHandler = async (req, res) => {
 
     return res.json({
       leaderboard,
+      totalAmount,
+      totalUser: users.length,
       amount: user?.amount,
       probability: user?.probability,
       rank: user?.rank,
