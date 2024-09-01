@@ -123,7 +123,7 @@ const createUserGlobalStateHandler = async (req, res) => {
     eventStatus = new eventStatusModel({
       userId: req.userOid,
       creditAmount: eventConfig?.credit.initialAmount ?? 0,
-      inviter: inviterStatus?._id ?? undefined,
+      inviter: inviterStatus?.userId ?? undefined,
     });
     await eventStatus.save();
 
