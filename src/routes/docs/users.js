@@ -346,8 +346,8 @@ usersDocs[`${apiPrefix}/isBanned`] = {
                 properties: {
                   userId: {
                     type: "string",
-                    description: "사용자의 ObjectId",
-                    pattern: objectId.source,
+                    description: "사용자의 SSO ID",
+                    pattern: "monday-sid",
                   },
                   reason: {
                     type: "string",
@@ -409,8 +409,8 @@ usersDocs[`${apiPrefix}/getBanRecord`] = {
                 properties: {
                   userId: {
                     type: "string",
-                    description: "사용자의 ObjectId",
-                    pattern: objectId.source,
+                    description: "사용자의 SSO ID",
+                    example: "monday-sid",
                   },
                   reason: {
                     type: "string",

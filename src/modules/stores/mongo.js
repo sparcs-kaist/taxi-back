@@ -28,20 +28,11 @@ const userSchema = Schema({
 
 const banSchema = Schema({
   // 정지 시킬 사용자를 기제함.
-  userId: { type: mongoose.Types.ObjectId, ref: "User", required: true },
+  userSid: { type: String, required: true },
   // 정지 사유
-  reason: {
-    type: String,
-    required: true,
-  },
-  bannedAt: {
-    type: Date, // 정지 당한 시각
-    required: true,
-  },
-  expireAt: {
-    type: Date, // 정지 만료 시각
-    required: true,
-  },
+  reason: { type: String, required: true },
+  bannedAt: { type: Date, required: true }, // 정지 당한 시각
+  expireAt: { type: Date, required: true }, // 정지 만료 시각
   // 정지를 당한 서비스를 기제함
   serviceName: {
     type: String,
