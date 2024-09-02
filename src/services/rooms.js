@@ -611,12 +611,7 @@ const commitSettlementHandler = async (req, res) => {
     });
 
     // 이벤트 코드입니다.
-    await contracts?.completePayingQuest(
-      req.userOid,
-      req.timestamp,
-      roomObject
-    );
-    await contracts?.completePayingAndSendingQuest(
+    await contracts?.completeFareSettlementQuest(
       req.userOid,
       req.timestamp,
       roomObject
@@ -689,12 +684,7 @@ const commitPaymentHandler = async (req, res) => {
     });
 
     // 이벤트 코드입니다.
-    await contracts?.completeSendingQuest(
-      req.userOid,
-      req.timestamp,
-      roomObject
-    );
-    await contracts?.completePayingAndSendingQuest(
+    await contracts?.completeFarePaymentQuest(
       req.userOid,
       req.timestamp,
       roomObject

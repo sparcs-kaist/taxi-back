@@ -1,7 +1,8 @@
 const express = require("express");
+const router = express.Router();
+
 const { validateBody } = require("../../middlewares/zod");
 const { globalStateZod } = require("./docs/schemas/globalStateSchema");
-const router = express.Router();
 const globalStateHandlers = require("../services/globalState");
 
 router.get("/", globalStateHandlers.getUserGlobalStateHandler);
