@@ -21,14 +21,14 @@ const naverMapApi = {
 const getTaxiFareHandler = async (req, res) => {
   try {
     if (
-      naverMapApi["X-NCP-APIGW-API-KEY"] === false ||
-      naverMapApi["X-NCP-APIGW-API-KEY-ID"] === false
+      !naverMapApi["X-NCP-APIGW-API-KEY"] ||
+      !naverMapApi["X-NCP-APIGW-API-KEY-ID"]
     ) {
-      res.status(503).json({
+      return res.status(503).json({
         error: "fare/getTaxiFareHandler: Naver Map API credential not found",
       });
-      return;
     }
+
     const from = await locationModel
       .findOne({
         _id: { $eq: req.query.from },
@@ -40,46 +40,21 @@ const getTaxiFareHandler = async (req, res) => {
     const sTime = scaledTime(new Date(req.query.time));
 
     if (!from || !to) {
-      res
+      return res
         .status(400)
         .json({ error: "fare/getTaxiFareHandler: Wrong location" });
-      return;
+    } else if (req.query.from === req.query.to) {
+      // 프론트엔드에서 예상 택시비를 숨기기 위해 0원을 반환
+      return res.status(200).json({ fare: 0 });
     }
-    const isMajor = (
-      await taxiFareModel
-        .findOne(
-          { from: from._id, to: to._id, time: 0 },
-          { isMajor: true },
-          (err, docs) => {
-            if (err)
-              logger.error(
-                "Error occured while finding Taxi Fare documents: " +
-                  err.message
-              );
-          }
-        )
-        .lean()
-    ).isMajor;
-    // 시간대별 정보 관리 (현재: 카이스트 본원 <-> 대전역)
-    if (isMajor) {
-      const taxiFare = await taxiFareModel
-        .findOne(
-          {
-            from: from._id,
-            to: to._id,
-            time: sTime,
-          },
-          (err, docs) => {
-            if (err)
-              logger.error(
-                "Error occured while finding Taxi Fare documents: " +
-                  err.message
-              );
-          }
-        )
-        .lean();
+
+    const fare = await taxiFareModel
+      .findOne({ from: from._id, to: to._id, time: sTime })
+      .lean();
+    // 해당 sTime 대로 값이 존재하는 경우 (현재: 카이스트 본원 <-> 대전역)
+    if (fare) {
       //만일 초기화 되지 않은 시간대의 정보를 필요로하는 비상시의 경우 대비
-      if (!taxiFare || taxiFare.fare <= 0) {
+      if (fare.fare <= 0) {
         await callTaxiFare(from, to)
           .then((fare) => {
             res.status(200).json({ fare: fare });
@@ -88,27 +63,19 @@ const getTaxiFareHandler = async (req, res) => {
             logger.error(err.message);
           });
       } else {
-        res.status(200).json({ fare: taxiFare.fare });
+        res.status(200).json({ fare: fare.fare });
       }
     } else {
-      const taxiFare = await taxiFareModel
-        .findOne(
-          {
-            from: from._id,
-            to: to._id,
-            time: 0,
-          },
-          (err, docs) => {
-            if (err)
-              logger.error(
-                "Error occured while finding Taxi Fare documents: " +
-                  err.message
-              );
-          }
-        )
+      const minorTaxiFare = await taxiFareModel
+        .findOne({
+          from: from._id,
+          to: to._id,
+          time: 48 * new Date(req.query.time).getDay() + 0,
+        })
         .lean();
+
       //만일 초기화 되지 않은 시간대의 정보를 필요로하는 비상시의 경우 대비
-      if (!taxiFare || taxiFare.fare <= 0) {
+      if (!minorTaxiFare || minorTaxiFare.fare <= 0) {
         await callTaxiFare(from, to)
           .then((fare) => {
             res.status(200).json({ fare: fare });
@@ -117,7 +84,7 @@ const getTaxiFareHandler = async (req, res) => {
             logger.error(err.message);
           });
       } else {
-        res.status(200).json({ fare: taxiFare.fare });
+        res.status(200).json({ fare: minorTaxiFare.fare });
       }
     }
   } catch (err) {
