@@ -25,6 +25,19 @@ const getItemsHandler = async (req, res) => {
   }
 };
 
+const getItemHandler = async (req, res) => {
+  try {
+    const { itemId } = req.params;
+    const item = await itemModel.findById(itemId).lean();
+    if (!item) return res.status(400).json({ error: "Items/ : invalid item" });
+
+    res.json({ item });
+  } catch (err) {
+    logger.error(err);
+    res.status(500).json({ error: "Items/ : internal server error" });
+  }
+};
+
 // 유도 과정은 services/publicNotice.js 파일에 정의된 calculateProbabilityV2 함수의 주석 참조
 const calculateWinProbability = (realStock, users, amount, totalAmount) => {
   if (users.length <= realStock) return 1;
@@ -363,6 +376,7 @@ const purchaseItemHandler = async (req, res) => {
 
 module.exports = {
   getItemsHandler,
+  getItemHandler,
   getItemLeaderboardHandler,
   purchaseItemHandler,
 };
