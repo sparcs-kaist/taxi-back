@@ -29,7 +29,7 @@ const createHandler = async (req, res) => {
   try {
     // 사용자가 방 생성 기능에 대하여 이용 정지 상태인지 확인합니다.
     const banErrorMessage = await validateServiceBanRecord(req, "Rooms/create");
-    if (banErrorMessage != undefined) {
+    if (banErrorMessage !== undefined) {
       return res.status(400).json({
         error: banErrorMessage,
       });
@@ -248,7 +248,7 @@ const joinHandler = async (req, res) => {
 
     // 사용자가 방 참여 기능에 대하여 이용 정지 상태인지 확인합니다.
     const banErrorMessage = await validateServiceBanRecord(req, "Rooms/join");
-    if (banErrorMessage != undefined) {
+    if (banErrorMessage !== undefined) {
       return res.status(400).json({
         error: banErrorMessage,
       });
