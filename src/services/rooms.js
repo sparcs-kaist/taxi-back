@@ -27,14 +27,6 @@ const createHandler = async (req, res) => {
   const { name, from, to, time, maxPartLength } = req.body;
 
   try {
-    // 사용자가 방 생성 기능에 대하여 이용 정지 상태인지 확인합니다.
-    const banErrorMessage = await validateServiceBanRecord(req, "Rooms/create");
-    if (banErrorMessage !== undefined) {
-      return res.status(400).json({
-        error: banErrorMessage,
-      });
-    }
-
     if (from === to) {
       return res.status(400).json({
         error: "Rooms/create : locations are same",
@@ -245,14 +237,6 @@ const joinHandler = async (req, res) => {
     const user = await userModel
       .findOne({ id: req.userId })
       .populate("ongoingRoom");
-
-    // 사용자가 방 참여 기능에 대하여 이용 정지 상태인지 확인합니다.
-    const banErrorMessage = await validateServiceBanRecord(req, "Rooms/join");
-    if (banErrorMessage !== undefined) {
-      return res.status(400).json({
-        error: banErrorMessage,
-      });
-    }
 
     // 사용자의 참여중인 진행중인 방이 5개 이상이면 오류를 반환합니다.
     if (user.ongoingRoom.length >= 5) {

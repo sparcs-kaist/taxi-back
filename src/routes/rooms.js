@@ -43,6 +43,9 @@ router.get(
   roomHandlers.infoHandler
 );
 
+// 방 생성/참여전 ban 여부 확인
+router.use(require("../middlewares/ban"));
+
 // JSON으로 받은 정보로 방을 생성한다.
 router.post(
   "/create",

@@ -7,20 +7,8 @@ const { banModel } = require("./stores/mongo");
  * @param {String} service
  */
 const validateServiceBanRecord = async (req, service) => {
-  let _serviceName = undefined;
   let banRecord = undefined;
-  switch (service) {
-    case "Rooms/create":
-    case "Rooms/join":
-      _serviceName = "service";
-      break;
-  }
-  if (_serviceName === undefined) {
-    logger.error(
-      "Error occured while validateServiceBanRecord: given service is not defined."
-    );
-    return;
-  }
+
   try {
     // 현재 시각이 expireAt 보다 작고, 본인인 경우(ban의 userId가 userId랑 같은 경우) 중 serviceName이 "service"인 record를 모두 가져옴
     const bans = await banModel
@@ -29,7 +17,7 @@ const validateServiceBanRecord = async (req, service) => {
         expireAt: {
           $gte: req.timestamp,
         },
-        serviceName: _serviceName,
+        serviceName: service,
       })
       .sort({ expireAt: -1 });
     if (bans.length > 0) {
@@ -47,7 +35,7 @@ const validateServiceBanRecord = async (req, service) => {
       .toISOString()
       .replace("T", " ")
       .split(".")[0];
-    const banErrorMessage = `${service} : user ${req.userId} (${req.session.loginInfo.sid}) is temporarily restricted from service until ${formattedExpireAt}.`;
+    const banErrorMessage = `${req.originalUrl} : user ${req.userId} (${req.session.loginInfo.sid}) is temporarily restricted from service until ${formattedExpireAt}.`;
     return banErrorMessage;
   }
   return;
