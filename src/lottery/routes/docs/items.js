@@ -82,7 +82,7 @@ itemsDocs[`${apiPrefix}/`] = {
     },
   },
 };
-itemsDocs[`${apiPrefix}/:itemId`] = {
+itemsDocs[`${apiPrefix}/{itemId}`] = {
   get: {
     tags: [`${apiPrefix}`],
     summary: "상점에서 판매하는 특정 상품의 정보 반환",
@@ -102,7 +102,7 @@ itemsDocs[`${apiPrefix}/:itemId`] = {
           "application/json": {
             schema: {
               type: "object",
-              required: ["items"],
+              required: ["item"],
               properties: {
                 item: {
                   type: "object",
