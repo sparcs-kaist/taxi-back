@@ -57,7 +57,7 @@ router.get("/editProfileImg/done", userHandlers.editProfileImgDoneHandler);
 router.get("/resetProfileImg", userHandlers.resetProfileImgHandler);
 
 // 유저의 현재 유효한 서비스 정지 기록들만 반환합니다.
-router.get("/isBanned", userHandlers.isBannedHandler);
+router.get("/getValidBanRecord", userHandlers.getValidBanRecordHandler);
 
 // 유저의 서비스 정지 기록들을 모두 반환합니다.
 router.get("/getBanRecord", userHandlers.getBanRecordHandler);
