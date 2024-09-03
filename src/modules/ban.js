@@ -7,16 +7,19 @@ const { banModel } = require("./stores/mongo");
  * @param {String} service
  */
 const validateServiceBanRecord = async (req, service) => {
+  let _serviceName = undefined;
+  let banRecord = undefined;
   switch (service) {
     case "Rooms/create":
     case "Rooms/join":
-      var _serviceName = "service";
+      _serviceName = "service";
       break;
-    default:
-      logger.error(
-        "Error occured while validateServiceBanRecord: given service is not defined."
-      );
-      return;
+  }
+  if (_serviceName === undefined) {
+    logger.error(
+      "Error occured while validateServiceBanRecord: given service is not defined."
+    );
+    return;
   }
   try {
     // 현재 시각이 expireAt 보다 작고, 본인인 경우(ban의 userId가 userId랑 같은 경우) 중 serviceName이 "service"인 record를 모두 가져옴
@@ -27,10 +30,9 @@ const validateServiceBanRecord = async (req, service) => {
       },
       serviceName: _serviceName,
     });
-    var banRecord = undefined;
     if (bans.length > 0) {
       // 가장 expireAt이 큰 정지 기록만 반환함.
-      var banRecord = bans.reduce(
+      banRecord = bans.reduce(
         (max, ban) => (ban.expireAt > max.expireAt ? ban : max),
         bans[0]
       );
@@ -41,19 +43,12 @@ const validateServiceBanRecord = async (req, service) => {
     );
     return;
   }
-  if (banRecord != undefined) {
+  if (banRecord !== undefined) {
     const formattedExpireAt = banRecord.expireAt
       .toISOString()
       .replace("T", " ")
       .split(".")[0];
-    switch (service) {
-      case "Rooms/create":
-        var banErrorMessage = `Rooms/create : user ${req.userId} (${req.session.loginInfo.sid}) is temporarily restricted from creating rooms until ${formattedExpireAt}.`;
-        break;
-      case "Rooms/join":
-        var banErrorMessage = `Rooms/join : user ${req.userId} (${req.session.loginInfo.sid}) is temporarily restricted from joining rooms until ${formattedExpireAt}.`;
-        break;
-    }
+    const banErrorMessage = `${service} : user ${req.userId} (${req.session.loginInfo.sid}) is temporarily restricted from service until ${formattedExpireAt}.`;
     return banErrorMessage;
   }
   return;
