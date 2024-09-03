@@ -43,5 +43,20 @@ module.exports = {
   slackWebhookUrl: {
     report: process.env.SLACK_REPORT_WEBHOOK_URL || "", // optional
   },
-  eventConfig: process.env.EVENT_CONFIG && JSON.parse(process.env.EVENT_CONFIG), // optional
+  eventConfig: (process.env.EVENT_CONFIG &&
+    JSON.parse(process.env.EVENT_CONFIG)) || {
+    mode: "2024fall",
+    credit: {
+      name: "송편코인",
+      initialAmount: 0,
+    },
+    period: {
+      startAt: new Date("2024-09-07T00:00:00+09:00"),
+      endAt: new Date("2024-09-24T00:00:00+09:00"),
+    },
+  }, // optional
+  naverMap: {
+    apiId: process.env.NAVER_MAP_API_ID, // optional
+    apiKey: process.env.NAVER_MAP_API_KEY, //optional
+  },
 };

@@ -2,12 +2,12 @@ const { z } = require("zod");
 const { zodToSchemaObject } = require("../../../../routes/docs/utils");
 const { objectId } = require("../../../../modules/patterns");
 
-const inviteZod = {
+const invitesZod = {
   searchInviterHandler: z.object({
     inviter: z.string().regex(objectId),
   }),
 };
 
-const inviteSchema = zodToSchemaObject(inviteZod);
+const invitesSchema = zodToSchemaObject(invitesZod);
 
-module.exports = { inviteSchema, inviteZod };
+module.exports = { invitesZod, invitesSchema };

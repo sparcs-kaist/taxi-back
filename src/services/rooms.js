@@ -72,6 +72,14 @@ const createHandler = async (req, res) => {
       });
     }
 
+    // 사용자가 참여한 진행중인 방 중 송금을 아직 완료하지 않은 방이 있다면 오류를 반환합니다.
+    const isSendRequired = checkIsSendRequired(user);
+    if (isSendRequired) {
+      return res.status(400).json({
+        error: "Rooms/create : user has send-required rooms",
+      });
+    }
+
     const part = [{ user: user._id }]; // settlementStatus는 기본적으로 "not-departed"로 설정됨
 
     let room = new roomModel({
@@ -112,58 +120,6 @@ const createHandler = async (req, res) => {
     });
     return;
   }
-};
-
-const checkIsAbusing = (
-  { from, to, time, maxPartLength },
-  countRecentlyMadeRooms,
-  candidateRooms
-) => {
-  /**
-   * 방을 생성하였을 때, 다음 조건 중 하나라도 만족하게 되면 어뷰징 가능성이 있다고 판단합니다.
-   * 1. 참여한 방 중, 생성하려는 방의 출발 시간 앞 뒤 12시간 내에 출발하는 방이 3개 이상인 경우
-   * 2. 참여한 방 중, 생성하려는 방의 출발 시간 앞 뒤 12시간 내에 출발하는 방이 2개이고, 다음 조건 중 하나 이상을 만족하는 경우
-   *    a. 두 방의 출발 시간 간격이 1시간 이하인 경우
-   *    b. 두 방의 출발 시간 간격이 1시간 초과이고, 다음 조건 중 하나 이상을 만족하는 경우
-   *       i. 두 방의 출발지가 같은 경우
-   *       ii. 두 방의 목적지가 같은 경우
-   *       iii. 먼저 출발하는 방의 목적지와 나중에 출발하는 방의 출발지가 다른 경우
-   *       iv. 두 방의 최대 탑승 가능 인원이 모두 2명인 경우
-   * 3. 최근 24시간 내에 생성한 방이 4개 이상인 경우
-   */
-
-  if (countRecentlyMadeRooms + 1 >= 4) return true; // 조건 3
-
-  if (candidateRooms.length + 1 >= 3) return true; // 조건 1
-  if (candidateRooms.length + 1 < 2) return false; // 조건 2의 여집합
-
-  let firstRoom = {
-    from: candidateRooms[0].from.toString(),
-    to: candidateRooms[0].to.toString(),
-    time: candidateRooms[0].time,
-    maxPartLength: candidateRooms[0].maxPartLength,
-  };
-  let secondRoom = {
-    from,
-    to,
-    time: new Date(time),
-    maxPartLength,
-  };
-  if (secondRoom.time < firstRoom.time) {
-    [firstRoom, secondRoom] = [secondRoom, firstRoom];
-  }
-
-  if (secondRoom.time - firstRoom.time <= 3600000) return true; // 조건 2-a
-  if (
-    firstRoom.from === secondRoom.from ||
-    firstRoom.to === secondRoom.to ||
-    firstRoom.to !== secondRoom.from
-  )
-    return true; // 조건 2-b-i, 2-b-ii, 2-b-iii
-  if (firstRoom.maxPartLength === 2 && secondRoom.maxPartLength === 2)
-    return true; // 조건 2-b-iv
-
-  return false;
 };
 
 const createTestHandler = async (req, res) => {
@@ -285,6 +241,14 @@ const joinHandler = async (req, res) => {
     if (user.ongoingRoom.length >= 5) {
       return res.status(400).json({
         error: "Rooms/join : participating in too many rooms",
+      });
+    }
+
+    // 사용자가 참여한 진행중인 방 중 송금을 아직 완료하지 않은 방이 있다면 오류를 반환합니다.
+    const isSendRequired = checkIsSendRequired(user);
+    if (isSendRequired) {
+      return res.status(400).json({
+        error: "Rooms/join : user has send-required rooms",
       });
     }
 
@@ -621,7 +585,7 @@ const searchByUserHandler = async (req, res) => {
   }
 };
 
-const commitPaymentHandler = async (req, res) => {
+const commitSettlementHandler = async (req, res) => {
   try {
     const user = await userModel.findOne({ id: req.userId });
     const { roomId } = req.body;
@@ -655,7 +619,7 @@ const commitPaymentHandler = async (req, res) => {
 
     if (!roomObject) {
       return res.status(404).json({
-        error: "Rooms/:id/commitPayment : cannot find settlement info",
+        error: "Rooms/:id/commitSettlement : cannot find settlement info",
       });
     }
 
@@ -668,28 +632,23 @@ const commitPaymentHandler = async (req, res) => {
     if (userOngoingRoomIndex === -1) {
       await user.save();
       return res.status(500).json({
-        error: "Rooms/:id/settlement : internal server error",
+        error: "Rooms/:id/commitSettlement : internal server error",
       });
     }
     user.ongoingRoom.splice(userOngoingRoomIndex, 1);
 
     await user.save();
 
-    // 결제 채팅을 보냅니다.
+    // 정산 채팅을 보냅니다.
     await emitChatEvent(req.app.get("io"), {
       roomId,
-      type: "payment",
+      type: "settlement",
       content: user.id,
       authorId: user._id,
     });
 
     // 이벤트 코드입니다.
-    await contracts?.completePayingQuest(
-      req.userOid,
-      req.timestamp,
-      roomObject
-    );
-    await contracts?.completePayingAndSendingQuest(
+    await contracts?.completeFareSettlementQuest(
       req.userOid,
       req.timestamp,
       roomObject
@@ -700,12 +659,12 @@ const commitPaymentHandler = async (req, res) => {
   } catch (err) {
     logger.error(err);
     res.status(500).json({
-      error: "Rooms/:id/commitPayment : internal server error",
+      error: "Rooms/:id/commitSettlement : internal server error",
     });
   }
 };
 
-const settlementHandler = async (req, res) => {
+const commitPaymentHandler = async (req, res) => {
   try {
     const { roomId } = req.body;
     const user = await userModel.findOne({ id: req.userId });
@@ -733,7 +692,7 @@ const settlementHandler = async (req, res) => {
 
     if (!roomObject) {
       return res.status(404).json({
-        error: "Rooms/:id/settlement : cannot find settlement info",
+        error: "Rooms/:id/commitPayment : cannot find settlement info",
       });
     }
 
@@ -746,28 +705,23 @@ const settlementHandler = async (req, res) => {
     if (userOngoingRoomIndex === -1) {
       await user.save();
       return res.status(500).json({
-        error: "Rooms/:id/settlement : internal server error",
+        error: "Rooms/:id/commitPayment : internal server error",
       });
     }
     user.ongoingRoom.splice(userOngoingRoomIndex, 1);
 
     await user.save();
 
-    // 정산 채팅을 보냅니다.
+    // 송금 채팅을 보냅니다.
     await emitChatEvent(req.app.get("io"), {
       roomId,
-      type: "settlement",
+      type: "payment",
       content: user.id,
       authorId: user._id,
     });
 
     // 이벤트 코드입니다.
-    await contracts?.completeSendingQuest(
-      req.userOid,
-      req.timestamp,
-      roomObject
-    );
-    await contracts?.completePayingAndSendingQuest(
+    await contracts?.completeFarePaymentQuest(
       req.userOid,
       req.timestamp,
       roomObject
@@ -778,9 +732,83 @@ const settlementHandler = async (req, res) => {
   } catch (err) {
     logger.error(err);
     res.status(500).json({
-      error: "Rooms/:id/settlement : internal server error",
+      error: "Rooms/:id/commitPayment : internal server error",
     });
   }
+};
+
+const checkIsAbusing = (
+  { from, to, time, maxPartLength },
+  countRecentlyMadeRooms,
+  candidateRooms
+) => {
+  /**
+   * 방을 생성하였을 때, 다음 조건 중 하나라도 만족하게 되면 어뷰징 가능성이 있다고 판단합니다.
+   * 1. 참여한 방 중, 생성하려는 방의 출발 시간 앞 뒤 12시간 내에 출발하는 방이 3개 이상인 경우
+   * 2. 참여한 방 중, 생성하려는 방의 출발 시간 앞 뒤 12시간 내에 출발하는 방이 2개이고, 다음 조건 중 하나 이상을 만족하는 경우
+   *    a. 두 방의 출발 시간 간격이 1시간 이하인 경우
+   *    b. 두 방의 출발 시간 간격이 1시간 초과이고, 다음 조건 중 하나 이상을 만족하는 경우
+   *       i. 두 방의 출발지가 같은 경우
+   *       ii. 두 방의 목적지가 같은 경우
+   *       iii. 먼저 출발하는 방의 목적지와 나중에 출발하는 방의 출발지가 다른 경우
+   *       iv. 두 방의 최대 탑승 가능 인원이 모두 2명인 경우
+   * 3. 최근 24시간 내에 생성한 방이 4개 이상인 경우
+   */
+
+  if (countRecentlyMadeRooms + 1 >= 4) return true; // 조건 3
+
+  if (candidateRooms.length + 1 >= 3) return true; // 조건 1
+  if (candidateRooms.length + 1 < 2) return false; // 조건 2의 여집합
+
+  let firstRoom = {
+    from: candidateRooms[0].from.toString(),
+    to: candidateRooms[0].to.toString(),
+    time: candidateRooms[0].time,
+    maxPartLength: candidateRooms[0].maxPartLength,
+  };
+  let secondRoom = {
+    from,
+    to,
+    time: new Date(time),
+    maxPartLength,
+  };
+  if (secondRoom.time < firstRoom.time) {
+    [firstRoom, secondRoom] = [secondRoom, firstRoom];
+  }
+
+  if (secondRoom.time - firstRoom.time <= 3600000) return true; // 조건 2-a
+  if (
+    firstRoom.from === secondRoom.from ||
+    firstRoom.to === secondRoom.to ||
+    firstRoom.to !== secondRoom.from
+  )
+    return true; // 조건 2-b-i, 2-b-ii, 2-b-iii
+  if (firstRoom.maxPartLength === 2 && secondRoom.maxPartLength === 2)
+    return true; // 조건 2-b-iv
+
+  return false;
+};
+
+/**
+ * User Object가 주어졌을 때, 해당 유저가 참여한 방 중 아직 유저가 송금하지 않은 방이 있는지 확인합니다.
+ * @param {Object} userObject - userObject입니다. ongoingRoom 정보를 포함한 형태의 object여야 합니다.
+ * @return {Boolean} 송금해야 하는 방이 있는지 여부를 반환합니다.
+ */
+const checkIsSendRequired = (userObject) => {
+  // user의 참여중인 방의 part 정보만 가져오기
+  const ongoingRoomParts = userObject.ongoingRoom.map((room) => room.part);
+  // part에서 자신의 id에 해당하는 part만 가져오기
+  const userParts = ongoingRoomParts
+    .map((partList) =>
+      partList.filter((part) => part.user.equals(userObject._id))
+    )
+    .filter((partList) => partList.length > 0);
+  // 해당 part object들 중 settlementStatus가 "send-required"인 part 찾기
+  const sendRequired = userParts
+    .map((partList) => partList[0].settlementStatus)
+    .filter((status) => status === "send-required");
+
+  return sendRequired.length > 0;
 };
 
 /**
@@ -873,6 +901,6 @@ module.exports = {
   searchHandler,
   searchByUserHandler,
   commitPaymentHandler,
-  settlementHandler,
+  commitSettlementHandler,
   // editHandler,
 };

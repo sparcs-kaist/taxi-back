@@ -98,6 +98,11 @@ roomsDocs[`${apiPrefix}/create`] = {
                   error: "Rooms/create : participating in too many rooms",
                 },
               },
+              "사용자가 아직 송금하지 않은 방이 존재": {
+                value: {
+                  error: "Rooms/create : user has send-required rooms",
+                },
+              },
             },
           },
         },
@@ -307,6 +312,11 @@ roomsDocs[`${apiPrefix}/join`] = {
               "사용자가 참여하는 진행 중 방이 5개 이상": {
                 value: {
                   error: "Rooms/join : participating in too many rooms",
+                },
+              },
+              "사용자가 아직 송금하지 않은 방이 존재": {
+                value: {
+                  error: "Rooms/join : user has send-required rooms",
                 },
               },
               "입력한 시간의 방이 이미 출발함": {
@@ -683,11 +693,11 @@ roomsDocs[`${apiPrefix}/searchByUser`] = {
   },
 };
 
-roomsDocs[`${apiPrefix}/commitPayment`] = {
+roomsDocs[`${apiPrefix}/commitSettlement`] = {
   post: {
     tags: [tag],
-    summary: "방 결제 처리",
-    description: `해당 방에 요청을 보낸 유저를 결제자로 처리합니다.<br/>
+    summary: "방 정산 요청 처리",
+    description: `해당 방에 요청을 보낸 유저를 결제자로 처리하여, 다른 유저들에게 정산을 요청합니다.<br/>
     이미 출발한 방에 대해서만 요청을 처리합니다.<br/>
     방의 \`part\` 배열에서 요청을 보낸 유저의 \`isSettlement\` 속성은 \`paid\`로 설정됩니다.<br/>
     나머지 유저들의 \`isSettlement\` 속성을 \`send-required\`로 설정합니다.`,
@@ -731,7 +741,7 @@ roomsDocs[`${apiPrefix}/commitPayment`] = {
               },
             },
             example: {
-              error: "Rooms/:id/commitPayment : cannot find settlement info",
+              error: "Rooms/:id/commitSettlement : cannot find settlement info",
             },
           },
         },
@@ -749,7 +759,7 @@ roomsDocs[`${apiPrefix}/commitPayment`] = {
               },
             },
             example: {
-              error: "Rooms/:id/commitPayment : internal server error",
+              error: "Rooms/:id/commitSettlement : internal server error",
             },
           },
         },
@@ -758,11 +768,11 @@ roomsDocs[`${apiPrefix}/commitPayment`] = {
   },
 };
 
-roomsDocs[`${apiPrefix}/commitSettlement`] = {
+roomsDocs[`${apiPrefix}/commitPayment`] = {
   post: {
     tags: [tag],
-    summary: "방 정산 완료 처리",
-    description: `해당 방에 요청을 보낸 유저를 정산 완료로 처리합니다.<br/>
+    summary: "방 송금 처리",
+    description: `해당 방에 요청을 보낸 유저를 송금을 완료한 정산 완료로 처리합니다.<br/>
     방의 \`part\` 배열에서 요청을 보낸 유저의 \`isSettlement\` 속성은 \`send-required\`에서 \`sent\`로 변경합니다.<br/>
     방의 참여한 유저들이 모두 정산완료를 하면 방의 \`isOver\` 속성이 \`true\`로 변경되며, 과거 방으로 취급됩니다.`,
     requestBody: {
@@ -805,7 +815,7 @@ roomsDocs[`${apiPrefix}/commitSettlement`] = {
               },
             },
             example: {
-              error: "Rooms/:id/settlement : cannot find settlement info",
+              error: "Rooms/:id/commitPayment : cannot find settlement info",
             },
           },
         },
@@ -823,7 +833,7 @@ roomsDocs[`${apiPrefix}/commitSettlement`] = {
               },
             },
             example: {
-              error: "Rooms/:id/settlement : internal server error",
+              error: "Rooms/:id/commitPayment : internal server error",
             },
           },
         },

@@ -26,6 +26,39 @@ const userSchema = Schema({
   account: { type: String, default: "" }, //계좌번호 정보
 });
 
+const banSchema = Schema({
+  // 정지 시킬 사용자를 기제함.
+  userId: { type: mongoose.Types.ObjectId, ref: "User", required: true },
+  // 정지 사유
+  reason: {
+    type: String,
+    required: true,
+  },
+  bannedAt: {
+    type: Date, // 정지 당한 시각
+    required: true,
+  },
+  expireAt: {
+    type: Date, // 정지 만료 시각
+    required: true,
+  },
+  services: [
+    {
+      // 정지를 당한 서비스를 기제함
+      serviceName: {
+        type: String,
+        required: true,
+        // 필요시 이곳에 정지를 시킬 서비스를 추가함.
+        enum: [
+          "all", // all -> 과거/미래 모든 서비스 및 이벤트 이용 제한
+          "service", // service -> 방 생성/참여 제한
+          "2023-fall-event", // event -> 특정 이벤트 참여 제한
+        ],
+      },
+    },
+  ],
+});
+
 const participantSchema = Schema({
   user: { type: Schema.Types.ObjectId, ref: "User", required: true },
   settlementStatus: {
@@ -172,6 +205,19 @@ const adminLogSchema = Schema({
   }, // 수행 업무
 });
 
+const taxiFareSchema = Schema(
+  {
+    from: { type: Schema.Types.ObjectId, ref: "Location", required: true }, // 출발지
+    to: { type: Schema.Types.ObjectId, ref: "Location", required: true }, // 도착지
+    isMajor: { type: Boolean, default: false }, // 카이스트 본원 <-> 대전역 경로 여부
+    time: { type: Number, required: true }, // 출발 시간 (24h를 30분 단위로 분리 & 요일 정보도 하나로 관리, 0 ~ 6 (Sunday~Saturday) * 48 + 0 ~ 47 (0:00 ~ 23:30))
+    fare: { type: Number, default: false }, // 예상 택시 요금
+  },
+  {
+    timestamps: true, // 최근 업데이트 시간 기록용
+  }
+);
+
 mongoose.set("strictQuery", true);
 
 const database = mongoose.connection;
@@ -207,6 +253,7 @@ const connectDatabase = (mongoUrl) => {
 module.exports = {
   connectDatabase,
   userModel: mongoose.model("User", userSchema),
+  banModel: mongoose.model("Ban", banSchema),
   deviceTokenModel: mongoose.model("DeviceToken", deviceTokenSchema),
   notificationOptionModel: mongoose.model(
     "NotificationOption",
@@ -225,4 +272,5 @@ module.exports = {
     adminIPWhitelistSchema
   ),
   adminLogModel: mongoose.model("AdminLog", adminLogSchema),
+  taxiFareModel: mongoose.model("TaxiFare", taxiFareSchema),
 };
