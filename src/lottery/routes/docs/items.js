@@ -82,6 +82,83 @@ itemsDocs[`${apiPrefix}/`] = {
     },
   },
 };
+itemsDocs[`${apiPrefix}/:itemId`] = {
+  get: {
+    tags: [`${apiPrefix}`],
+    summary: "상점에서 판매하는 특정 상품의 정보 반환",
+    description: "상점에서 판매하는 특정 상품의 정보를 가져옵니다.",
+    parameters: [
+      {
+        in: "path",
+        name: "itemId",
+        required: true,
+        description: "상품 정보를 조회할 ObjectId",
+        example: "ITEM ID",
+      },
+    ],
+    responses: {
+      200: {
+        content: {
+          "application/json": {
+            schema: {
+              type: "object",
+              required: ["items"],
+              properties: {
+                item: {
+                  type: "object",
+                  description: "상품의 정보",
+                  properties: {
+                    _id: {
+                      type: "string",
+                      description: "상품의 ObjectId",
+                      example: "ITEM ID",
+                    },
+                    name: {
+                      type: "string",
+                      description: "상품의 이름",
+                      example: "진짜 송편",
+                    },
+                    description: {
+                      type: "string",
+                      description: "상품의 설명",
+                      example: "먹을 수 있는 송편입니다.",
+                    },
+                    imageUrl: {
+                      type: "string",
+                      description: "상품의 썸네일 이미지 URL",
+                      example: "THUMBNAIL URL",
+                    },
+                    instagramStoryStickerImageUrl: {
+                      type: "string",
+                      description: "인스타그램 스토리 스티커 이미지 URL",
+                      example: "STICKER URL",
+                    },
+                    price: {
+                      type: "number",
+                      description: "상품의 가격. 0 이상의 정수입니다.",
+                      example: 400,
+                    },
+                    isDisabled: {
+                      type: "boolean",
+                      description: "상품의 판매 중지 여부",
+                      example: false,
+                    },
+                    itemType: {
+                      type: "number",
+                      description:
+                        "상품의 유형. 0: 일반 상품, 1: 일반 티켓, 2: 고급 티켓, 3: 랜덤박스입니다.",
+                      example: 0,
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+  },
+};
 itemsDocs[`${apiPrefix}/leaderboard/{itemId}`] = {
   get: {
     tags: [`${apiPrefix}`],
@@ -135,6 +212,11 @@ itemsDocs[`${apiPrefix}/leaderboard/{itemId}`] = {
                         type: "number",
                         description: "유저가 상품에 당첨될 확률",
                         example: 0.1,
+                      },
+                      rank: {
+                        type: "number",
+                        description: "순위",
+                        example: 1,
                       },
                     },
                   },

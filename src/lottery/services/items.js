@@ -28,7 +28,12 @@ const getItemsHandler = async (req, res) => {
 const getItemHandler = async (req, res) => {
   try {
     const { itemId } = req.params;
-    const item = await itemModel.findById(itemId).lean();
+    const item = await itemModel
+      .findById(
+        itemId,
+        "_id name description imageUrl instagramStoryStickerImageUrl price isDisabled itemType"
+      )
+      .lean();
     if (!item) return res.status(400).json({ error: "Items/ : invalid item" });
 
     res.json({ item });
@@ -126,6 +131,7 @@ const getItemLeaderboardHandler = async (req, res) => {
             profileImageUrl: userInfo.profileImageUrl,
             amount: user.amount,
             probability: user.probability,
+            rank: user.rank,
           };
         })
     );
