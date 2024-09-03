@@ -106,6 +106,15 @@ itemsDocs[`${apiPrefix}/{itemId}`] = {
               properties: {
                 item: {
                   type: "object",
+                  required: [
+                    "_id",
+                    "name",
+                    "description",
+                    "imageUrl",
+                    "price",
+                    "isDisabled",
+                    "itemType",
+                  ],
                   description: "상품의 정보",
                   properties: {
                     _id: {
@@ -191,6 +200,7 @@ itemsDocs[`${apiPrefix}/leaderboard/{itemId}`] = {
                       "profileImageUrl",
                       "amount",
                       "probability",
+                      "rank",
                     ],
                     properties: {
                       nickname: {
