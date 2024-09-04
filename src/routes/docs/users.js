@@ -330,7 +330,7 @@ usersDocs[`${apiPrefix}/resetProfileImg`] = {
   },
 };
 
-usersDocs[`${apiPrefix}/isBanned`] = {
+usersDocs[`${apiPrefix}/getBanRecord`] = {
   get: {
     tags: [tag],
     summary: "본인의 현재 정지 기록을 가져움",
@@ -344,73 +344,10 @@ usersDocs[`${apiPrefix}/isBanned`] = {
               type: "array",
               items: {
                 properties: {
-                  userId: {
+                  userSid: {
                     type: "string",
                     description: "사용자의 SSO ID",
                     pattern: "monday-sid",
-                  },
-                  reason: {
-                    type: "string",
-                    description: "정지 사유",
-                    example: "미정산",
-                  },
-                  bannedAt: {
-                    type: "date",
-                    description: "정지 당한 시각",
-                    example: "2024-05-20 12:00",
-                  },
-                  expireAt: {
-                    type: "date",
-                    description: "정지 만료 시각",
-                    example: "2024-05-21 12:00",
-                  },
-                  serviceName: {
-                    type: "string",
-                    description: "정지를 당한 서비스 또는 이벤트 이름",
-                    example: "2023-fall-event",
-                  },
-                },
-              },
-            },
-          },
-        },
-      },
-      400: {
-        content: {
-          "text/html": {
-            example: "Users/isBanned : there is no ban record",
-          },
-        },
-      },
-      500: {
-        content: {
-          "text/html": {
-            example: "Users/isBanned : internal server error",
-          },
-        },
-      },
-    },
-  },
-};
-
-usersDocs[`${apiPrefix}/getBanRecord`] = {
-  get: {
-    tags: [tag],
-    summary: "본인의 모든 정지 기록을 가져움",
-    description:
-      "정지 기록들 중 본인인 경우에 해당하는 정지 기록을 모두 가져옴",
-    responses: {
-      200: {
-        content: {
-          "application/json": {
-            schema: {
-              type: "array",
-              items: {
-                properties: {
-                  userId: {
-                    type: "string",
-                    description: "사용자의 SSO ID",
-                    example: "monday-sid",
                   },
                   reason: {
                     type: "string",

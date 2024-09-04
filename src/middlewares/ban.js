@@ -1,4 +1,5 @@
 const { validateServiceBanRecord } = require("../modules/ban");
+
 const serviceMapper = new Map([
   ["/rooms/create", "service"],
   ["/rooms/join", "service"],

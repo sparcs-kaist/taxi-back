@@ -2,7 +2,6 @@ const logger = require("./logger");
 const { banModel } = require("./stores/mongo");
 
 /**
- *
  * @param {*} req
  * @param {String} service
  */
@@ -26,7 +25,7 @@ const validateServiceBanRecord = async (req, service) => {
     }
   } catch (err) {
     logger.error(
-      "Error occured while getValidServiceBanRecord: " + err.message
+      "Error occured while validateServiceBanRecord: " + err.message
     );
     return;
   }
