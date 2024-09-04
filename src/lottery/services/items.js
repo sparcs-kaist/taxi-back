@@ -13,7 +13,10 @@ const contracts = require("../modules/contracts");
 const getItemsHandler = async (req, res) => {
   try {
     const items = await itemModel
-      .find({}, "_id name imageUrl price isDisabled itemType")
+      .find(
+        {},
+        "_id name description imageUrl price isDisabled itemType realStock"
+      )
       .lean();
     res.json({ items });
   } catch (err) {

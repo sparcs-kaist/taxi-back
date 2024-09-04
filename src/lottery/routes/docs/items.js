@@ -23,10 +23,12 @@ itemsDocs[`${apiPrefix}/`] = {
                     required: [
                       "_id",
                       "name",
+                      "description",
                       "imageUrl",
                       "price",
                       "isDisabled",
                       "itemType",
+                      "realStock",
                     ],
                     properties: {
                       _id: {
@@ -38,6 +40,11 @@ itemsDocs[`${apiPrefix}/`] = {
                         type: "string",
                         description: "상품의 이름",
                         example: "진짜 송편",
+                      },
+                      description: {
+                        type: "string",
+                        description: "상품의 설명",
+                        example: "먹을 수 있는 송편입니다.",
                       },
                       imageUrl: {
                         type: "string",
@@ -59,6 +66,11 @@ itemsDocs[`${apiPrefix}/`] = {
                         description:
                           "상품의 유형. 0: 일반 상품, 1: 일반 티켓, 2: 고급 티켓, 3: 랜덤박스입니다.",
                         example: 0,
+                      },
+                      realStock: {
+                        type: "number",
+                        description: "상품의 실제 재고",
+                        example: 30,
                       },
                     },
                   },
