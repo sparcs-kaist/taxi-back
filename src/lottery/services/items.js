@@ -334,7 +334,7 @@ const purchaseItemHandler = async (req, res) => {
       } else {
         const transaction = new transactionModel({
           type: "use",
-          amount: creditDelta,
+          amount: -creditDelta,
           userId: req.userOid,
           itemId: item._id,
           itemAmount: amount,
