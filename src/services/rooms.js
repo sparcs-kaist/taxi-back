@@ -21,7 +21,6 @@ const eventPeriod = eventConfig && {
   endAt: new Date(eventConfig.period.endAt),
 };
 const { contracts } = require("../lottery");
-const { validateServiceBanRecord } = require("../modules/ban");
 
 const createHandler = async (req, res) => {
   const { name, from, to, time, maxPartLength } = req.body;
