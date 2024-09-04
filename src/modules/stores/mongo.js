@@ -28,35 +28,21 @@ const userSchema = Schema({
 
 const banSchema = Schema({
   // 정지 시킬 사용자를 기제함.
-  userId: { type: mongoose.Types.ObjectId, ref: "User", required: true },
+  userSid: { type: String, required: true },
   // 정지 사유
-  reason: {
+  reason: { type: String, required: true },
+  bannedAt: { type: Date, required: true }, // 정지 당한 시각
+  expireAt: { type: Date, required: true }, // 정지 만료 시각
+  // 정지를 당한 서비스를 기제함
+  serviceName: {
     type: String,
     required: true,
+    // 필요시 이곳에 정지를 시킬 서비스를 추가함.
+    enum: [
+      "service", // service: 방 생성/참여 제한
+      "2023-fall-event", // xxxx-xxxx-event: 특정 이벤트 참여 제한
+    ],
   },
-  bannedAt: {
-    type: Date, // 정지 당한 시각
-    required: true,
-  },
-  expireAt: {
-    type: Date, // 정지 만료 시각
-    required: true,
-  },
-  services: [
-    {
-      // 정지를 당한 서비스를 기제함
-      serviceName: {
-        type: String,
-        required: true,
-        // 필요시 이곳에 정지를 시킬 서비스를 추가함.
-        enum: [
-          "all", // all -> 과거/미래 모든 서비스 및 이벤트 이용 제한
-          "service", // service -> 방 생성/참여 제한
-          "2023-fall-event", // event -> 특정 이벤트 참여 제한
-        ],
-      },
-    },
-  ],
 });
 
 const participantSchema = Schema({
