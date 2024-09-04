@@ -13,10 +13,7 @@ const contracts = require("../modules/contracts");
 const getItemsHandler = async (req, res) => {
   try {
     const items = await itemModel
-      .find(
-        {},
-        "_id name description imageUrl instagramStoryStickerImageUrl price isDisabled itemType"
-      )
+      .find({}, "_id name imageUrl price isDisabled itemType")
       .lean();
     res.json({ items });
   } catch (err) {
@@ -31,7 +28,7 @@ const getItemHandler = async (req, res) => {
     const item = await itemModel
       .findById(
         itemId,
-        "_id name description imageUrl instagramStoryStickerImageUrl price isDisabled itemType"
+        "_id name description imageUrl price isDisabled itemType realStock"
       )
       .lean();
     if (!item) return res.status(400).json({ error: "Items/ : invalid item" });

@@ -23,7 +23,6 @@ itemsDocs[`${apiPrefix}/`] = {
                     required: [
                       "_id",
                       "name",
-                      "description",
                       "imageUrl",
                       "price",
                       "isDisabled",
@@ -40,20 +39,10 @@ itemsDocs[`${apiPrefix}/`] = {
                         description: "상품의 이름",
                         example: "진짜 송편",
                       },
-                      description: {
-                        type: "string",
-                        description: "상품의 설명",
-                        example: "먹을 수 있는 송편입니다.",
-                      },
                       imageUrl: {
                         type: "string",
                         description: "상품의 썸네일 이미지 URL",
                         example: "THUMBNAIL URL",
-                      },
-                      instagramStoryStickerImageUrl: {
-                        type: "string",
-                        description: "인스타그램 스토리 스티커 이미지 URL",
-                        example: "STICKER URL",
                       },
                       price: {
                         type: "number",
@@ -92,7 +81,7 @@ itemsDocs[`${apiPrefix}/{itemId}`] = {
         in: "path",
         name: "itemId",
         required: true,
-        description: "상품 정보를 조회할 ObjectId",
+        description: "정보를 조회할 상품의 ObjectId",
         example: "ITEM ID",
       },
     ],
@@ -114,6 +103,7 @@ itemsDocs[`${apiPrefix}/{itemId}`] = {
                     "price",
                     "isDisabled",
                     "itemType",
+                    "realStock",
                   ],
                   description: "상품의 정보",
                   properties: {
@@ -137,11 +127,6 @@ itemsDocs[`${apiPrefix}/{itemId}`] = {
                       description: "상품의 썸네일 이미지 URL",
                       example: "THUMBNAIL URL",
                     },
-                    instagramStoryStickerImageUrl: {
-                      type: "string",
-                      description: "인스타그램 스토리 스티커 이미지 URL",
-                      example: "STICKER URL",
-                    },
                     price: {
                       type: "number",
                       description: "상품의 가격. 0 이상의 정수입니다.",
@@ -157,6 +142,11 @@ itemsDocs[`${apiPrefix}/{itemId}`] = {
                       description:
                         "상품의 유형. 0: 일반 상품, 1: 일반 티켓, 2: 고급 티켓, 3: 랜덤박스입니다.",
                       example: 0,
+                    },
+                    realStock: {
+                      type: "number",
+                      description: "상품의 실제 재고",
+                      example: 30,
                     },
                   },
                 },
