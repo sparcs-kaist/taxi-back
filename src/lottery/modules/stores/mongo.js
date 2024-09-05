@@ -10,6 +10,17 @@ const integerValidator = {
   message: "{VALUE} is not an integer value",
 };
 
+const completedQuestSchema = Schema({
+  questId: {
+    type: String,
+    required: true,
+  },
+  completedAt: {
+    type: Date,
+    required: true,
+  },
+});
+
 const eventStatusSchema = Schema({
   userId: {
     type: Schema.Types.ObjectId,
@@ -17,7 +28,7 @@ const eventStatusSchema = Schema({
     required: true,
   },
   completedQuests: {
-    type: [String],
+    type: [completedQuestSchema],
     default: [],
   },
   creditAmount: {
@@ -42,17 +53,11 @@ const eventStatusSchema = Schema({
     type: Boolean,
     default: false,
   },
-  group: {
-    type: Number,
-    required: true,
-    min: 1,
-    validate: integerValidator,
-  }, // 소속된 새터반
   inviter: {
     type: Schema.Types.ObjectId,
     ref: "User",
   }, // 이 사용자를 초대한 사용자
-  isEnabledInviteUrl: {
+  isInviteUrlEnabled: {
     type: Boolean,
     default: false,
   }, // 초대 링크 활성화 여부
@@ -101,7 +106,13 @@ const itemSchema = Schema({
     required: true,
     min: 0,
     validate: integerValidator,
-  },
+  }, // 의미 없는 값, 기존 코드와의 호환성을 위해 남겨둡니다.
+  realStock: {
+    type: Number,
+    required: true,
+    min: 1,
+    validate: integerValidator,
+  }, // 상품의 실제 재고
   itemType: {
     type: Number,
     enum: [0, 1, 2, 3],
@@ -124,13 +135,13 @@ const transactionSchema = Schema({
     type: String,
     enum: ["get", "use"],
     required: true,
-  },
+  }, // get: 재화 획득, use: 재화 사용
   amount: {
     type: Number,
     required: true,
     min: 0,
     validate: integerValidator,
-  },
+  }, // 재화의 변화량의 절댓값
   userId: {
     type: Schema.Types.ObjectId,
     ref: "User",
@@ -138,22 +149,23 @@ const transactionSchema = Schema({
   },
   questId: {
     type: String,
-  },
-  item: {
+  }, // 완료한 퀘스트의 ID
+  itemId: {
     type: Schema.Types.ObjectId,
     ref: `${modelNamePrefix}Item`,
-  },
-  itemType: {
+  }, // 획득한 상품의 ID
+  itemAmount: {
     type: Number,
-    enum: [0, 1, 2, 3],
-  },
+    min: 1,
+    validate: integerValidator,
+  }, // 획득한 상품의 개수
   comment: {
     type: String,
     required: true,
   },
 });
 transactionSchema.set("timestamps", {
-  createdAt: "createAt",
+  createdAt: "createdAt",
   updatedAt: false,
 });
 
