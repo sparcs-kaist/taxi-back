@@ -7,6 +7,11 @@ const itemsHandlers = require("../services/items");
 
 router.get("/", itemsHandlers.getItemsHandler);
 router.get(
+  "/:itemId",
+  validateParams(itemsZod.getItemHandler),
+  itemsHandlers.getItemHandler
+);
+router.get(
   "/leaderboard/:itemId",
   validateParams(itemsZod.getItemLeaderboardHandler),
   itemsHandlers.getItemLeaderboardHandler

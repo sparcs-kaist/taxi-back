@@ -35,6 +35,9 @@ router.get(
 // 이후 API 접근 시 로그인 필요
 router.use(require("../middlewares/auth"));
 
+// 방 생성/참여전 ban 여부 확인
+router.use(require("../middlewares/ban"));
+
 // 특정 id 방 세부사항 보기
 router.get(
   "/info",
