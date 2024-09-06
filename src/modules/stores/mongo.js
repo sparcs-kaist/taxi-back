@@ -40,7 +40,7 @@ const banSchema = Schema({
     // 필요시 이곳에 정지를 시킬 서비스를 추가함.
     enum: [
       "service", // service: 방 생성/참여 제한
-      "2023-fall-event", // xxxx-xxxx-event: 특정 이벤트 참여 제한
+      "2024fall", // 2024fall: 가을학기 추석 이벤트 참여 제한
     ],
   },
 });

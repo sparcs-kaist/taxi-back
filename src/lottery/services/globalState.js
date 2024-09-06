@@ -6,6 +6,7 @@ const { nodeEnv } = require("../../../loadenv");
 
 const { eventConfig } = require("../../../loadenv");
 const contracts = require("../modules/contracts");
+const { validateServiceBanRecord } = require("../../modules/ban");
 const quests = Object.values(contracts.quests);
 
 // 아래의 함수는 2024 추석 이벤트에서 사용되지 않습니다.
@@ -85,11 +86,13 @@ const createUserGlobalStateHandler = async (req, res) => {
     const inviterStatus =
       req.body.inviter &&
       (await eventStatusModel.findById(req.body.inviter).lean());
+    const banErrorMessage = await validateServiceBanRecord(
+      req,
+      eventConfig.mode
+    );
     if (
       req.body.inviter &&
-      (!inviterStatus ||
-        inviterStatus.isBanned ||
-        !inviterStatus.isInviteUrlEnabled)
+      (!inviterStatus || !!banErrorMessage || !inviterStatus.isInviteUrlEnabled)
     )
       return res.status(400).json({
         error: "GlobalState/create : invalid inviter",
@@ -128,11 +131,16 @@ const createUserGlobalStateHandler = async (req, res) => {
     await eventStatus.save();
 
     // 퀘스트를 완료 처리합니다.
-    await contracts.completeFirstLoginQuest(req.userOid, req.timestamp);
+    await contracts.completeFirstLoginQuest(req, req.userOid, req.timestamp);
 
     if (inviterStatus) {
-      await contracts.completeEventSharingQuest(req.userOid, req.timestamp);
       await contracts.completeEventSharingQuest(
+        req,
+        req.userOid,
+        req.timestamp
+      );
+      await contracts.completeEventSharingQuest(
+        req,
         inviterStatus.userId,
         req.timestamp
       );

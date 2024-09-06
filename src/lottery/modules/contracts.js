@@ -109,8 +109,8 @@ const quests = buildQuests({
  * @returns {Promise}
  * @usage lottery/globalState - createUserGlobalStateHandler
  */
-const completeFirstLoginQuest = async (userId, timestamp) => {
-  return await completeQuest(userId, timestamp, quests.firstLogin);
+const completeFirstLoginQuest = async (req, userId, timestamp) => {
+  return await completeQuest(req, userId, timestamp, quests.firstLogin);
 };
 
 /**
@@ -121,8 +121,8 @@ const completeFirstLoginQuest = async (userId, timestamp) => {
  * @description 방을 만들 때마다 호출해 주세요.
  * @usage rooms - createHandler
  */
-const completeFirstRoomCreationQuest = async (userId, timestamp) => {
-  return await completeQuest(userId, timestamp, quests.firstRoomCreation);
+const completeFirstRoomCreationQuest = async (req, userId, timestamp) => {
+  return await completeQuest(req, userId, timestamp, quests.firstRoomCreation);
 };
 
 /**
@@ -137,7 +137,12 @@ const completeFirstRoomCreationQuest = async (userId, timestamp) => {
  * @description 정산 요청이 이루어질 때마다 호출해 주세요.
  * @usage rooms - commitSettlementHandler
  */
-const completeFareSettlementQuest = async (userId, timestamp, roomObject) => {
+const completeFareSettlementQuest = async (
+  req,
+  userId,
+  timestamp,
+  roomObject
+) => {
   logger.info(
     `User ${userId} requested to complete fareSettlementQuest in Room ${roomObject._id}`
   );
@@ -150,7 +155,7 @@ const completeFareSettlementQuest = async (userId, timestamp, roomObject) => {
   )
     return null; // 택시 출발 시각이 이벤트 기간 내에 포함되지 않는 경우 퀘스트 완료 요청을 하지 않습니다.
 
-  return await completeQuest(userId, timestamp, quests.fareSettlement);
+  return await completeQuest(req, userId, timestamp, quests.fareSettlement);
 };
 
 /**
@@ -165,7 +170,7 @@ const completeFareSettlementQuest = async (userId, timestamp, roomObject) => {
  * @description 송금이 이루어질 때마다 호출해 주세요.
  * @usage rooms - commitPaymentHandler
  */
-const completeFarePaymentQuest = async (userId, timestamp, roomObject) => {
+const completeFarePaymentQuest = async (req, userId, timestamp, roomObject) => {
   logger.info(
     `User ${userId} requested to complete farePaymentQuest in Room ${roomObject._id}`
   );
@@ -178,7 +183,7 @@ const completeFarePaymentQuest = async (userId, timestamp, roomObject) => {
   )
     return null; // 택시 출발 시각이 이벤트 기간 내에 포함되지 않는 경우 퀘스트 완료 요청을 하지 않습니다.
 
-  return await completeQuest(userId, timestamp, quests.farePayment);
+  return await completeQuest(req, userId, timestamp, quests.farePayment);
 };
 
 /**
@@ -189,8 +194,8 @@ const completeFarePaymentQuest = async (userId, timestamp, roomObject) => {
  * @description 닉네임을 변경할 때마다 호출해 주세요.
  * @usage users - editNicknameHandler
  */
-const completeNicknameChangingQuest = async (userId, timestamp) => {
-  return await completeQuest(userId, timestamp, quests.nicknameChanging);
+const completeNicknameChangingQuest = async (req, userId, timestamp) => {
+  return await completeQuest(req, userId, timestamp, quests.nicknameChanging);
 };
 
 /**
@@ -202,10 +207,15 @@ const completeNicknameChangingQuest = async (userId, timestamp) => {
  * @description 계좌를 변경할 때마다 호출해 주세요.
  * @usage users - editAccountHandler
  */
-const completeAccountChangingQuest = async (userId, timestamp, newAccount) => {
+const completeAccountChangingQuest = async (
+  req,
+  userId,
+  timestamp,
+  newAccount
+) => {
   if (newAccount === "") return null;
 
-  return await completeQuest(userId, timestamp, quests.accountChanging);
+  return await completeQuest(req, userId, timestamp, quests.accountChanging);
 };
 
 /**
@@ -218,13 +228,14 @@ const completeAccountChangingQuest = async (userId, timestamp, newAccount) => {
  * @usage notifications - editOptionsHandler
  */
 const completeAdPushAgreementQuest = async (
+  req,
   userId,
   timestamp,
   advertisement
 ) => {
   if (!advertisement) return null;
 
-  return await completeQuest(userId, timestamp, quests.adPushAgreement);
+  return await completeQuest(req, userId, timestamp, quests.adPushAgreement);
 };
 
 /**
@@ -234,8 +245,8 @@ const completeAdPushAgreementQuest = async (
  * @returns {Promise}
  * @usage lottery/globalState - createUserGlobalStateHandler
  */
-const completeEventSharingQuest = async (userId, timestamp) => {
-  return await completeQuest(userId, timestamp, quests.eventSharing);
+const completeEventSharingQuest = async (req, userId, timestamp) => {
+  return await completeQuest(req, userId, timestamp, quests.eventSharing);
 };
 
 /**
@@ -245,8 +256,8 @@ const completeEventSharingQuest = async (userId, timestamp) => {
  * @returns {Promise}
  * @description 상품을 구입할 때마다 호출해 주세요.
  */
-const completeItemPurchaseQuest = async (userId, timestamp) => {
-  return await completeQuest(userId, timestamp, quests.itemPurchase);
+const completeItemPurchaseQuest = async (req, userId, timestamp) => {
+  return await completeQuest(req, userId, timestamp, quests.itemPurchase);
 };
 
 module.exports = {

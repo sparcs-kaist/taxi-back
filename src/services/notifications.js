@@ -109,6 +109,7 @@ const editOptionsHandler = async (req, res) => {
 
     // 이벤트 코드입니다.
     await contracts?.completeAdPushAgreementQuest(
+      req,
       req.userOid,
       req.timestamp,
       options.advertisement

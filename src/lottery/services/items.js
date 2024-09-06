@@ -309,6 +309,7 @@ const purchaseItemHandler = async (req, res) => {
 
       // 4단계: 퀘스트를 완료 처리합니다.
       await contracts.completeItemPurchaseQuest(
+        req,
         req.userOid,
         transaction.createdAt
       );
