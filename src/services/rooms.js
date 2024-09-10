@@ -27,24 +27,14 @@ const eventPeriod = eventConfig && {
 const { contracts } = require("../lottery");
 
 const createHandler = async (req, res) => {
-  const { name, from, to, time, maxPartLength,preValidationKey } = req.body;
+  const { name, from, to, time, maxPartLength, preValidationKey } = req.body;
 
-  if(!preValidationKey){
-    return res.status(400).json({
-      error: "Rooms/create : preValidation Key is Not Found"
-    })
-  }
-
-  const isAbuseResult = verifyJwt(preValidationKey)
-
-  if(typeof isAbuseResult != object || isAbuseResult.isAbuse) {
-    const user = await userModel.findById(req.userOid).lean();
-    notifyRoomCreationAbuseToReportChannel(
-      req.userOid,
-      user?.nickname ?? req.userOid,
-      req.body
-    );
-  }
+  // 만약 preValidationKey를 사용하지 않을때 경고를 표출한다면 아래 코드를 사용하면 됨.
+  // if(!preValidationKey){
+  //   return res.status(400).json({
+  //     error: "Rooms/create : preValidation Key is Not Found"
+  //   })
+  // }
 
   try {
     if (from === to) {
@@ -132,6 +122,19 @@ const createHandler = async (req, res) => {
 
     // 이벤트 코드입니다.
     await contracts?.completeFirstRoomCreationQuest(req.userOid, req.timestamp);
+
+    if (preValidationKey) {
+      const isAbuseResult = verifyJwt(preValidationKey);
+
+      if (typeof isAbuseResult !== "object" || isAbuseResult.isAbuse) {
+        const user = await userModel.findById(req.userOid).lean();
+        notifyRoomCreationAbuseToReportChannel(
+          req.userOid,
+          user?.nickname ?? req.userOid,
+          req.body
+        );
+      }
+    }
 
     return res.send(roomObjectFormated);
   } catch (err) {
