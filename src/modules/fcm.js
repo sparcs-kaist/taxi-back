@@ -201,7 +201,7 @@ const sendMessageByTokens = async (tokens, type, title, body, icon, link) => {
       },
       apns: { payload: { aps: { alert: { title, body } } } },
       android: {
-        ttl: 0,
+        priority: "high",
       },
     };
     const { responses, failureCount } =
