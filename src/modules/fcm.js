@@ -180,14 +180,13 @@ const getTokensOfUsers = async (userIds, notificationOptions = {}) => {
  * 주어진 token들에 메시지 알림을 전송합니다.
  * TODO: 알림 전송 실패한 토큰 삭제하기
  * @param {Array<string>} tokens - 메시지 알림을 받을 기기의 deviceToken들로 구성된 Array입니다.
- * @param {string} type - 메시지 유형으로, "text" | "in" | "out" | "s3img" | "payment" | "settlement" 입니다.
  * @param {string} title - 보낼 메시지의 제목입니다.
  * @param {string} body - 보낼 메시지의 본문입니다.
  * @param {string?} icon - 메시지를 보낸 사람의 프로필 사진 주소입니다.
  * @param {string?} link - 메시지 알림 팝업을 클릭했을 때 이동할 주소입니다.
  * @return {Promise<Number>} 메시지 알림 전송에 실패한 기기의 수를 반환합니다. 오류가 발생하면 -1을 반환합니다.
  */
-const sendMessageByTokens = async (tokens, type, title, body, icon, link) => {
+const sendMessageByTokens = async (tokens, title, body, icon, link) => {
   if (tokens.length === 0) return -1;
   try {
     const message = {
@@ -201,7 +200,7 @@ const sendMessageByTokens = async (tokens, type, title, body, icon, link) => {
       },
       apns: { payload: { aps: { alert: { title, body } } } },
       android: {
-        ttl: 0,
+        ttl: 3600,
       },
     };
     const { responses, failureCount } =

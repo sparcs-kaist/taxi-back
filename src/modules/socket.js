@@ -191,7 +191,6 @@ const emitChatEvent = async (io, chat) => {
     );
     await sendMessageByTokens(
       deviceTokensExceptAuthor,
-      type,
       name,
       getMessageBody(type, nickname, content),
       profileImageUrl,
