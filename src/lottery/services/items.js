@@ -15,7 +15,7 @@ const getItemsHandler = async (req, res) => {
     const items = await itemModel
       .find(
         {},
-        "_id name description imageUrl instagramStoryStickerImageUrl price isDisabled itemType"
+        "_id name description imageUrl price isDisabled itemType realStock"
       )
       .lean();
     res.json({ items });
@@ -31,7 +31,7 @@ const getItemHandler = async (req, res) => {
     const item = await itemModel
       .findById(
         itemId,
-        "_id name description imageUrl instagramStoryStickerImageUrl price isDisabled itemType"
+        "_id name description imageUrl price isDisabled itemType realStock"
       )
       .lean();
     if (!item) return res.status(400).json({ error: "Items/ : invalid item" });
@@ -340,7 +340,7 @@ const purchaseItemHandler = async (req, res) => {
       } else {
         const transaction = new transactionModel({
           type: "use",
-          amount: creditDelta,
+          amount: -creditDelta,
           userId: req.userOid,
           itemId: item._id,
           itemAmount: amount,

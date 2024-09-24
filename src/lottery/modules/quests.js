@@ -93,7 +93,7 @@ const completeQuest = async (sid, timestamp, url, userId, quest) => {
     // 3단계: 유저의 퀘스트 완료 횟수를 확인합니다.
     // maxCount가 0인 경우, 무제한으로 퀘스트를 완료할 수 있습니다.
     const questCount = eventStatus.completedQuests.filter(
-      (completedQuestId) => completedQuestId === quest.id
+      ({ questId }) => questId === quest.id
     ).length;
     if (quest.maxCount > 0 && questCount >= quest.maxCount) {
       logger.info(
