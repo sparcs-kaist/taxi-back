@@ -104,9 +104,10 @@ const quests = buildQuests({
 
 /**
  * firstLogin 퀘스트의 완료를 요청합니다.
- * @param {Object} req - request 객체입니다.
- * @param {string|mongoose.Types.ObjectId} userId - 퀘스트를 완료한 사용자의 ObjectId입니다.
+ * @param {string} sid - user의 sid입니다.
  * @param {number|Date} timestamp - 퀘스트 완료를 요청한 시각입니다.
+ * @param {string} url - 요청한 url입니다.
+ * @param {string|mongoose.Types.ObjectId} userId - 퀘스트를 완료한 사용자의 ObjectId입니다.
  * @returns {Promise}
  * @usage lottery/globalState - createUserGlobalStateHandler
  */
@@ -116,9 +117,10 @@ const completeFirstLoginQuest = async (sid, timestamp, url, userId) => {
 
 /**
  * firstRoomCreation 퀘스트의 완료를 요청합니다.
- * @param {Object} req - request 객체입니다.
- * @param {string|mongoose.Types.ObjectId} userId - 퀘스트를 완료한 사용자의 ObjectId입니다.
+ * @param {string} sid - user의 sid입니다.
  * @param {number|Date} timestamp - 퀘스트 완료를 요청한 시각입니다.
+ * @param {string} url - 요청한 url입니다.
+ * @param {string|mongoose.Types.ObjectId} userId - 퀘스트를 완료한 사용자의 ObjectId입니다.
  * @returns {Promise}
  * @description 방을 만들 때마다 호출해 주세요.
  * @usage rooms - createHandler
@@ -135,9 +137,10 @@ const completeFirstRoomCreationQuest = async (sid, timestamp, url, userId) => {
 
 /**
  * fareSettlement 퀘스트의 완료를 요청합니다. 방의 참가자 수가 2명 미만이면 요청하지 않습니다.
- * @param {Object} req - request 객체입니다.
- * @param {string|mongoose.Types.ObjectId} userId - 퀘스트를 완료한 사용자의 ObjectId입니다.
+ * @param {string} sid - user의 sid입니다.
  * @param {number|Date} timestamp - 퀘스트 완료를 요청한 시각입니다.
+ * @param {string} url - 요청한 url입니다.
+ * @param {string|mongoose.Types.ObjectId} userId - 퀘스트를 완료한 사용자의 ObjectId입니다.
  * @param {Object} roomObject - 방의 정보입니다.
  * @param {mongoose.Types.ObjectId} roomObject._id - 방의 ObjectId입니다.
  * @param {Array<{ user: mongoose.Types.ObjectId }>} roomObject.part - 참여자 목록입니다.
@@ -176,9 +179,10 @@ const completeFareSettlementQuest = async (
 
 /**
  * farePayment 퀘스트의 완료를 요청합니다. 방의 참가자 수가 2명 미만이면 요청하지 않습니다.
- * @param {Object} req - request 객체입니다.
- * @param {string|mongoose.Types.ObjectId} userId - 퀘스트를 완료한 사용자의 ObjectId입니다.
+ * @param {string} sid - user의 sid입니다.
  * @param {number|Date} timestamp - 퀘스트 완료를 요청한 시각입니다.
+ * @param {string} url - 요청한 url입니다.
+ * @param {string|mongoose.Types.ObjectId} userId - 퀘스트를 완료한 사용자의 ObjectId입니다.
  * @param {Object} roomObject - 방의 정보입니다.
  * @param {mongoose.Types.ObjectId} roomObject._id - 방의 ObjectId입니다.
  * @param {Array<{ user: mongoose.Types.ObjectId }>} roomObject.part - 참여자 목록입니다.
@@ -211,9 +215,10 @@ const completeFarePaymentQuest = async (
 
 /**
  * nicknameChanging 퀘스트의 완료를 요청합니다.
- * @param {Object} req - request 객체입니다.
- * @param {string|mongoose.Types.ObjectId} userId - 퀘스트를 완료한 사용자의 ObjectId입니다.
+ * @param {string} sid - user의 sid입니다.
  * @param {number|Date} timestamp - 퀘스트 완료를 요청한 시각입니다.
+ * @param {string} url - 요청한 url입니다.
+ * @param {string|mongoose.Types.ObjectId} userId - 퀘스트를 완료한 사용자의 ObjectId입니다.
  * @returns {Promise}
  * @description 닉네임을 변경할 때마다 호출해 주세요.
  * @usage users - editNicknameHandler
@@ -230,9 +235,10 @@ const completeNicknameChangingQuest = async (sid, timestamp, url, userId) => {
 
 /**
  * accountChanging 퀘스트의 완료를 요청합니다.
- * @param {Object} req - request 객체입니다.
- * @param {string|mongoose.Types.ObjectId} userId - 퀘스트를 완료한 사용자의 ObjectId입니다.
+ * @param {string} sid - user의 sid입니다.
  * @param {number|Date} timestamp - 퀘스트 완료를 요청한 시각입니다.
+ * @param {string} url - 요청한 url입니다.
+ * @param {string|mongoose.Types.ObjectId} userId - 퀘스트를 완료한 사용자의 ObjectId입니다.
  * @param {string} newAccount - 변경된 계좌입니다.
  * @returns {Promise}
  * @description 계좌를 변경할 때마다 호출해 주세요.
@@ -258,9 +264,10 @@ const completeAccountChangingQuest = async (
 
 /**
  * adPushAgreement 퀘스트의 완료를 요청합니다.
- * @param {Object} req - request 객체입니다.
- * @param {string|mongoose.Types.ObjectId} userId - 퀘스트를 완료한 사용자의 ObjectId입니다.
+ * @param {string} sid - user의 sid입니다.
  * @param {number|Date} timestamp - 퀘스트 완료를 요청한 시각입니다.
+ * @param {string} url - 요청한 url입니다.
+ * @param {string|mongoose.Types.ObjectId} userId - 퀘스트를 완료한 사용자의 ObjectId입니다.
  * @param {boolean} advertisement - 변경된 광고성 알림 수신 동의 여부입니다.
  * @returns {Promise}
  * @description 알림 옵션을 변경할 때마다 호출해 주세요.
@@ -286,9 +293,10 @@ const completeAdPushAgreementQuest = async (
 
 /**
  * eventSharing 퀘스트의 완료를 요청합니다.
- * @param {Object} req - request 객체입니다.
- * @param {string|mongoose.Types.ObjectId} userId - 퀘스트를 완료한 사용자의 ObjectId입니다.
+ * @param {string} sid - user의 sid입니다.
  * @param {number|Date} timestamp - 퀘스트 완료를 요청한 시각입니다.
+ * @param {string} url - 요청한 url입니다.
+ * @param {string|mongoose.Types.ObjectId} userId - 퀘스트를 완료한 사용자의 ObjectId입니다.
  * @returns {Promise}
  * @usage lottery/globalState - createUserGlobalStateHandler
  */
@@ -298,9 +306,10 @@ const completeEventSharingQuest = async (sid, timestamp, url, userId) => {
 
 /**
  * itemPurchase 퀘스트의 완료를 요청합니다.
- * @param {Object} req - request 객체입니다.
- * @param {string|mongoose.Types.ObjectId} userId - 퀘스트를 완료한 사용자의 ObjectId입니다.
+ * @param {string} sid - user의 sid입니다.
  * @param {number|Date} timestamp - 퀘스트 완료를 요청한 시각입니다.
+ * @param {string} url - 요청한 url입니다.
+ * @param {string|mongoose.Types.ObjectId} userId - 퀘스트를 완료한 사용자의 ObjectId입니다.
  * @returns {Promise}
  * @description 상품을 구입할 때마다 호출해 주세요.
  */
