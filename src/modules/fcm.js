@@ -196,7 +196,7 @@ const sendMessageByTokens = async (tokens, type, title, body, icon, link) => {
         title,
         body,
         url: link || "/",
-        icon: icon || "/icons-512.png",
+        icon: icon || "https://taxi.sparcs.org/icons-512.png",
         click_action: "FLUTTER_NOTIFICATION_CLICK",
       },
       apns: { payload: { aps: { alert: { title, body } } } },
@@ -204,9 +204,8 @@ const sendMessageByTokens = async (tokens, type, title, body, icon, link) => {
         ttl: 0,
       },
     };
-    const { responses, failureCount } = await getMessaging().sendMulticast(
-      message
-    );
+    const { responses, failureCount } =
+      await getMessaging().sendEachForMulticast(message);
 
     // 메시지 전송에 실패한 기기가 존재할 경우, 해당 기기의 deviceToken을 DB에서 삭제합니다.
     if (failureCount) {
