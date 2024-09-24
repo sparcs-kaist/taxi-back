@@ -2,19 +2,22 @@ const logger = require("./logger");
 const { banModel } = require("./stores/mongo");
 
 /**
- * @param {*} req
- * @param {String} service
+ * @param {string} sid
+ * @param {number} timestamp
+ * @param {string} url
+ * @param {string} service
+ * @returns {string}
  */
-const validateServiceBanRecord = async (req, service) => {
+const validateServiceBanRecord = async (sid, timestamp, url, service) => {
   let banRecord = undefined;
 
   try {
     // 현재 시각이 expireAt 보다 작고, 본인인 경우(ban의 userId가 userId랑 같은 경우) 중 serviceName이 "service"인 record를 모두 가져옴
     const bans = await banModel
       .find({
-        userSid: req.session.loginInfo.sid,
+        userSid: sid,
         expireAt: {
-          $gte: req.timestamp,
+          $gte: timestamp,
         },
         serviceName: service,
       })
@@ -34,7 +37,7 @@ const validateServiceBanRecord = async (req, service) => {
       .toISOString()
       .replace("T", " ")
       .split(".")[0];
-    const banErrorMessage = `${req.originalUrl} : user ${req.userId} (${req.session.loginInfo.sid}) is temporarily restricted from service until ${formattedExpireAt}.`;
+    const banErrorMessage = `${url} : ${sid} is temporarily restricted from service until ${formattedExpireAt}.`;
     return banErrorMessage;
   }
   return;

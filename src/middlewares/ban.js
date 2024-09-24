@@ -11,7 +11,12 @@ const banMiddleware = async (req, res, next) => {
   if (!service && !!eventConfig && req.originalUrl.includes(eventConfig.mode)) {
     service = eventConfig.mode;
   }
-  const banErrorMessage = await validateServiceBanRecord(req, service);
+  const banErrorMessage = await validateServiceBanRecord(
+    req.session.loginInfo.sid,
+    req.timestamp,
+    req.originalUrl,
+    service
+  );
   if (banErrorMessage !== undefined) {
     return res.status(400).json({ error: banErrorMessage });
   }

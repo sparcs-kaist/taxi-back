@@ -111,9 +111,10 @@ const createHandler = async (req, res) => {
 
     // 이벤트 코드입니다.
     await contracts?.completeFirstRoomCreationQuest(
-      req,
-      req.userOid,
-      req.timestamp
+      req.session.loginInfo.sid,
+      req.timestamp,
+      req.originalUrl,
+      req.userOid
     );
 
     return res.send(roomObjectFormated);
@@ -591,9 +592,10 @@ const commitSettlementHandler = async (req, res) => {
 
     // 이벤트 코드입니다.
     await contracts?.completeFareSettlementQuest(
-      req,
-      req.userOid,
+      req.session.loginInfo.sid,
       req.timestamp,
+      req.originalUrl,
+      req.userOid,
       roomObject
     );
 
@@ -665,9 +667,10 @@ const commitPaymentHandler = async (req, res) => {
 
     // 이벤트 코드입니다.
     await contracts?.completeFarePaymentQuest(
-      req,
-      req.userOid,
+      req.session.loginInfo.sid,
       req.timestamp,
+      req.originalUrl,
+      req.userOid,
       roomObject
     );
 

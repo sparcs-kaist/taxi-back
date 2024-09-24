@@ -87,7 +87,9 @@ const createUserGlobalStateHandler = async (req, res) => {
       req.body.inviter &&
       (await eventStatusModel.findById(req.body.inviter).lean());
     const banErrorMessage = await validateServiceBanRecord(
-      req,
+      req.session.loginInfo.sid,
+      req.timestamp,
+      req.originalUrl,
       eventConfig.mode
     );
     if (
@@ -131,18 +133,25 @@ const createUserGlobalStateHandler = async (req, res) => {
     await eventStatus.save();
 
     // 퀘스트를 완료 처리합니다.
-    await contracts.completeFirstLoginQuest(req, req.userOid, req.timestamp);
+    await contracts.completeFirstLoginQuest(
+      req.session.loginInfo.sid,
+      req.timestamp,
+      req.originalUrl,
+      req.userOid
+    );
 
     if (inviterStatus) {
       await contracts.completeEventSharingQuest(
-        req,
-        req.userOid,
-        req.timestamp
+        req.session.loginInfo.sid,
+        req.timestamp,
+        req.originalUrl,
+        req.userOid
       );
       await contracts.completeEventSharingQuest(
-        req,
-        inviterStatus.userId,
-        req.timestamp
+        req.session.loginInfo.sid,
+        req.timestamp,
+        req.originalUrl,
+        inviterStatus.userId
       );
     }
 

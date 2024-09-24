@@ -20,13 +20,13 @@ const eventValidator = async (req, res, next) => {
         .json({ error: "eventValidator: nonexistent eventStatus" });
     }
     req.eventStatus = eventStatus;
+    next();
   } catch (err) {
     logger.error(err);
     res.error(500).json({
       error: "eventValidator: internal server error",
     });
   }
-  next();
 };
 
 module.exports = eventValidator;

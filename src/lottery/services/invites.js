@@ -15,7 +15,9 @@ const searchInviterHandler = async (req, res) => {
       .findById(req.params.inviter)
       .lean();
     const banErrorMessage = await validateServiceBanRecord(
-      req,
+      req.session.loginInfo.sid,
+      req.timestamp,
+      req.originalUrl,
       eventConfig.mode
     );
     if (
