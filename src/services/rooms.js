@@ -14,6 +14,10 @@ const {
   notifyRoomCreationAbuseToReportChannel,
 } = require("../modules/slackNotification");
 
+const {
+  signJwt,verifyJwt
+} = require("../modules/jwt")
+
 // 이벤트 코드입니다.
 const { eventConfig } = require("../../loadenv");
 const eventPeriod = eventConfig && {
@@ -23,7 +27,14 @@ const eventPeriod = eventConfig && {
 const { contracts } = require("../lottery");
 
 const createHandler = async (req, res) => {
-  const { name, from, to, time, maxPartLength } = req.body;
+  const { name, from, to, time, maxPartLength, preValidationKey } = req.body;
+
+  // 만약 preValidationKey를 사용하지 않을때 경고를 표출한다면 아래 코드를 사용하면 됨.
+  // if(!preValidationKey){
+  //   return res.status(400).json({
+  //     error: "Rooms/create : preValidation Key is Not Found"
+  //   })
+  // }
 
   try {
     if (from === to) {
@@ -112,6 +123,19 @@ const createHandler = async (req, res) => {
     // 이벤트 코드입니다.
     await contracts?.completeFirstRoomCreationQuest(req.userOid, req.timestamp);
 
+    if (preValidationKey) {
+      const isAbuseResult = verifyJwt(preValidationKey);
+
+      if (typeof isAbuseResult !== "object" || isAbuseResult.isAbuse) {
+        const user = await userModel.findById(req.userOid).lean();
+        notifyRoomCreationAbuseToReportChannel(
+          req.userOid,
+          user?.nickname ?? req.userOid,
+          req.body
+        );
+      }
+    }
+
     return res.send(roomObjectFormated);
   } catch (err) {
     logger.error(err);
@@ -168,16 +192,9 @@ const createTestHandler = async (req, res) => {
       countRecentlyMadeRooms,
       candidateRooms
     );
-    if (isAbusing) {
-      const user = await userModel.findById(req.userOid).lean();
-      notifyRoomCreationAbuseToReportChannel(
-        req.userOid,
-        user?.nickname ?? req.userOid,
-        req.body
-      );
-    }
+    const preValidationKey = await signJwt({isAbusing: isAbusing})
 
-    return res.json({ result: !isAbusing });
+    return res.json({ result: !isAbusing, preValidationKey });
   } catch (err) {
     logger.error(err);
     res.status(500).json({
