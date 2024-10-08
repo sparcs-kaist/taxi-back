@@ -38,6 +38,9 @@ describe("[rooms] 1.createHandler", () => {
           sid: testUser1.id,
         },
       },
+      timestamp: Date.now(),
+      originalUrl: "test-url/rooms/create",
+      userOid: testUser1._id,
     });
     let res = httpMocks.createResponse();
     await roomsHandlers.createHandler(req, res);
@@ -99,6 +102,9 @@ describe("[rooms] 4.joinHandler", () => {
           sid: testUser2.id,
         },
       },
+      timestamp: Date.now(),
+      originalUrl: "test-url/rooms/join",
+      userOid: testUser2._id,
     });
     let res = httpMocks.createResponse();
     await roomsHandlers.joinHandler(req, res);
@@ -165,6 +171,9 @@ describe("[rooms] 7.commitSettlementHandler", () => {
           sid: testUser1.id,
         },
       },
+      timestamp: Date.now(),
+      originalUrl: "test-url/rooms/commitSettlement",
+      userOid: testUser1._id,
     });
     let res = httpMocks.createResponse();
     await roomsHandlers.commitSettlementHandler(req, res);
@@ -190,6 +199,9 @@ describe("[rooms] 8.commitPaymentHandler", () => {
           sid: testUser2.id,
         },
       },
+      timestamp: Date.now(),
+      originalUrl: "test-url/rooms/commitPayment",
+      userOid: testUser2._id,
     });
     let res = httpMocks.createResponse();
     await roomsHandlers.commitPaymentHandler(req, res);
@@ -216,6 +228,9 @@ describe("[rooms] 9.abortHandler", () => {
           sid: testUser2.id,
         },
       },
+      timestamp: Date.now(),
+      originalUrl: "test-url/rooms/abort",
+      userOid: testUser2._id,
     });
     let res = httpMocks.createResponse();
     await roomsHandlers.abortHandler(req, res);
