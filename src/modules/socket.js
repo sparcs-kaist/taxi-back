@@ -46,9 +46,10 @@ const transformChatsForRoom = async (chats) => {
     chatsToSend.push({
       roomId: chat.roomId,
       type: chat.type,
-      authorId: chat.authorId?._id ?? null,
-      authorName: chat.authorId?.nickname ?? null,
-      authorProfileUrl: chat.authorId?.profileImageUrl ?? null,
+      authorId: chat.authorId._id,
+      authorName: chat.authorId.nickname,
+      authorProfileUrl: chat.authorId.profileImageUrl,
+      authorIsWithdrew: chat.authorId.withdraw,
       content: chat.content,
       time: chat.time,
       isValid: chat.isValid,

@@ -4,8 +4,7 @@
 const chatPopulateOption = [
   {
     path: "authorId",
-    select: "_id nickname profileImageUrl",
-    match: { withdraw: false },
+    select: "_id nickname profileImageUrl withdraw",
   },
 ];
 
