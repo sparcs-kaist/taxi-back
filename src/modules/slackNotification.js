@@ -48,8 +48,28 @@ const notifyRoomCreationAbuseToReportChannel = (
   );
 };
 
+const notifyEmailFailureToReportChannel = (
+  mailOption,
+  report,
+  error
+) => {
+  sendTextToReportChannel(
+    `${mailOption.to}님께 보내려는 신고 메일이 실패했습니다.
+    
+    신고자 ID: ${report.creatorId}
+    신고 ID: ${report.reportedId}
+    방 ID: ${report.roomId ?? ""}
+    사유: ${report.type}
+    기타: ${report.etcDetail}
+
+    문제 원인: ${error.message}
+    `
+  )
+}
+
 module.exports = {
   sendTextToReportChannel,
   notifyReportToReportChannel,
   notifyRoomCreationAbuseToReportChannel,
+  notifyEmailFailureToReportChannel
 };
