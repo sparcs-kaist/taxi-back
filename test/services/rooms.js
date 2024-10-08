@@ -33,6 +33,11 @@ describe("[rooms] 1.createHandler", () => {
       },
       userId: testUser1.id,
       app,
+      session: {
+        loginInfo: {
+          sid: testUser1.id,
+        },
+      },
     });
     let res = httpMocks.createResponse();
     await roomsHandlers.createHandler(req, res);
@@ -89,6 +94,11 @@ describe("[rooms] 4.joinHandler", () => {
       },
       userId: testUser2.id,
       app,
+      session: {
+        loginInfo: {
+          sid: testUser1.id,
+        },
+      },
     });
     let res = httpMocks.createResponse();
     await roomsHandlers.joinHandler(req, res);
