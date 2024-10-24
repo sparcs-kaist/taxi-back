@@ -57,6 +57,9 @@ eventConfig &&
     require("./src/lottery").lotteryRouter
   );
 
+// 이메일 수신 확인은 origin 검사 거치지 않기
+app.use("/email", require("./src/routes/emails"));
+
 // [Middleware] 모든 API 요청에 대하여 origin 검증
 app.use(require("./src/middlewares/originValidator"));
 

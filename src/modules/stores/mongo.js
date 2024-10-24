@@ -188,6 +188,15 @@ const reportSchema = Schema({
   roomId: { type: Schema.Types.ObjectId, ref: "Room" }, // 신고한 방 id
 });
 
+const emailSchema = Schema({
+  emailAddress: { type: String, required: true }, // 전송된 이메일 주소
+  reportId: { type: Schema.Types.ObjectId, ref: "User" }, 
+  trackingId: { type: String, required: true }, // 이메일 id
+  sentAt: { type: Date, required: true }, // 이메일 전송 시간
+  isOpened: { type: Boolean, required: true }, // 이메일 수신 여부
+  openedAt: { type: Date }, // 이메일 수신 시간
+});
+
 const adminIPWhitelistSchema = Schema({
   ip: { type: String, required: true }, // IP 주소
   description: { type: String, default: "" }, // 설명
@@ -267,6 +276,7 @@ module.exports = {
   locationModel: mongoose.model("Location", locationSchema),
   chatModel: mongoose.model("Chat", chatSchema),
   reportModel: mongoose.model("Report", reportSchema),
+  emailModel: mongoose.model("Email", emailSchema),
   adminIPWhitelistModel: mongoose.model(
     "AdminIPWhitelist",
     adminIPWhitelistSchema

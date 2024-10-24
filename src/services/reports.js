@@ -2,12 +2,14 @@ const {
   userModel,
   reportModel,
   roomModel,
+  emailModel,
 } = require("../modules/stores/mongo");
 const { reportPopulateOption } = require("../modules/populates/reports");
 const { sendReportEmail } = require("../modules/email");
 const logger = require("../modules/logger");
 const reportEmailPage = require("../views/reportEmailPage");
 const { notifyReportToReportChannel } = require("../modules/slackNotification");
+const { v4: uuidv4 } = require("uuid");
 
 const createHandler = async (req, res) => {
   try {
@@ -40,6 +42,26 @@ const createHandler = async (req, res) => {
 
     await report.save();
 
+    const generateUniqueTrackingId = async () => {
+      let trackingId;
+      let existingTracking;
+      do {
+        trackingId = uuidv4();
+        existingTracking = await emailModel.findOne({ trackingId });
+      } while (existingTracking)
+      return trackingId;
+    };
+
+    const trackingId = await generateUniqueTrackingId();
+
+    await emailModel.create({
+      emailAddress: reported.email,
+      reportId: report,
+      trackingId,
+      sentAt: new Date(),
+      isOpened: false
+    });
+
     notifyReportToReportChannel(user.nickname, report);
 
     if (report.type === "no-settlement" || report.type === "no-show") {
@@ -51,7 +73,8 @@ const createHandler = async (req, res) => {
         reported.nickname,
         emailRoomName,
         user.nickname,
-        emailRoomId
+        emailRoomId,
+        trackingId
       );
       sendReportEmail(reported.email, report, emailHtml);
     }
