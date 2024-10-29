@@ -2,7 +2,9 @@ const { getS3Url } = require("../modules/stores/aws");
 
 module.exports = (
   title,
-  content
+  content,
+  trackingId,
+  origin
 ) => `<div style="font-family: system-ui; position: relative; background: #ffffff; margin: 0; padding: 72px;">
   <div style="width: max(min(100%, 800px), 320px); margin: 0 auto; padding 0;">
     <div style="height: 102px; background: #6E3678; margin: 0 0 48px; padding: 0;">
@@ -27,5 +29,7 @@ module.exports = (
       </a>
       <div style="font-family: system-ui; font-size: 12px; font-weight: lighter; color: #999999; margin: 0; padding: 0;">taxi.sparcs@gmail.com</div>
     </div>
+    <!-- Tracking pixel to detect email opens -->
+    <img src="${new URL(`/email?trackingId=${trackingId}`, origin).href}" width="1" height="1" alt="pixel" />
   </div>
 </div>`;
