@@ -11,7 +11,6 @@ const roomPopulateOption = [
     populate: {
       path: "user",
       select: "_id id name nickname profileImageUrl",
-      match: { withdraw: false },
     },
   },
 ];
