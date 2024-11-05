@@ -4,11 +4,8 @@ import { userModel } from "@/modules/stores/mongo";
 import logger from "@/modules/logger";
 import * as aws from "@/modules/stores/aws";
 
-const {
-  generateNickname,
-  generateProfileImageUrl,
-} = require("@/modules/modifyProfile");
 
+import { generateNickname, generateProfileImageUrl } from "@/modules/modifyProfile";
 // 이벤트 코드입니다.
 // const { contracts } = require("@/lottery");
 
