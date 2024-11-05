@@ -164,14 +164,13 @@ describe("[rooms] 7.commitSettlementHandler", () => {
     let req = httpMocks.createRequest({
       body: { roomId: testRoom._id },
       userId: testUser1.id,
-      timestamp: Date.now() + 60 * 1000,
       app,
       session: {
         loginInfo: {
           sid: testUser1.id,
         },
       },
-      timestamp: Date.now(),
+      timestamp: Date.now() + 60 * 1000,
       originalUrl: "test-url/rooms/commitSettlement",
       userOid: testUser1._id,
     });
