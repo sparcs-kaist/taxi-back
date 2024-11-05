@@ -1,12 +1,12 @@
-const express = require("express");
-const { body } = require("express-validator");
-const validator = require("@/middlewares/validator").default;
-const patterns = require("@/modules/patterns").default;
+import express from "express";
+import { body } from "express-validator";
+import validator from "@/middlewares/validator";
+import patterns from "@/modules/patterns";
 
 const router = express.Router();
-const userHandlers = require("@/services/users");
+import * as userHandlers from "@/services/users";
 
-const { replaceSpaceInNickname } = require("@/modules/modifyProfile");
+import { replaceSpaceInNickname } from "@/modules/modifyProfile";
 
 // 라우터 접근 시 로그인 필요
 router.use(require("@/middlewares/auth").default);

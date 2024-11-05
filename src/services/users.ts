@@ -1,6 +1,9 @@
-const { userModel } = require("@/modules/stores/mongo");
-const logger = require("@/modules/logger").default;
-const aws = require("@/modules/stores/aws");
+import type { Request, Response } from "express";
+
+import { userModel } from "@/modules/stores/mongo";
+import logger from "@/modules/logger";
+import * as aws from "@/modules/stores/aws";
+
 const {
   generateNickname,
   generateProfileImageUrl,
@@ -9,10 +12,10 @@ const {
 // 이벤트 코드입니다.
 // const { contracts } = require("@/lottery");
 
-const agreeOnTermsOfServiceHandler = async (req, res) => {
+export const agreeOnTermsOfServiceHandler = async (req: Request, res: Response) => {
   try {
     let user = await userModel.findOne({ id: req.userId });
-    if (user.agreeOnTermsOfService !== true) {
+    if (user && user.agreeOnTermsOfService !== true) {
       user.agreeOnTermsOfService = true;
       await user.save();
       res
@@ -28,13 +31,15 @@ const agreeOnTermsOfServiceHandler = async (req, res) => {
   }
 };
 
-const getAgreeOnTermsOfServiceHandler = async (req, res) => {
+export const getAgreeOnTermsOfServiceHandler = async (req: Request, res: Response) => {
   try {
     const user = await userModel
       .findOne({ id: req.userId }, "agreeOnTermsOfService")
       .lean();
-    const agreeOnTermsOfService = user.agreeOnTermsOfService === true;
-    res.json({ agreeOnTermsOfService });
+    if (user) {
+      const agreeOnTermsOfService = user.agreeOnTermsOfService === true;
+      res.json({ agreeOnTermsOfService });
+    }
   } catch {
     res
       .status(500)
@@ -42,7 +47,7 @@ const getAgreeOnTermsOfServiceHandler = async (req, res) => {
   }
 };
 
-const editNicknameHandler = async (req, res) => {
+export const editNicknameHandler = async (req: Request, res: Response) => {
   try {
     const newNickname = req.body.nickname;
     const result = await userModel.findOneAndUpdate(
@@ -69,7 +74,7 @@ const editNicknameHandler = async (req, res) => {
   }
 };
 
-const editAccountHandler = async (req, res) => {
+export const editAccountHandler = async (req: Request, res: Response) => {
   try {
     const newAccount = req.body.account;
     const result = await userModel.findOneAndUpdate(
@@ -95,7 +100,7 @@ const editAccountHandler = async (req, res) => {
   }
 };
 
-const editProfileImgGetPUrlHandler = async (req, res) => {
+export const editProfileImgGetPUrlHandler = async (req: Request, res: Response) => {
   try {
     const type = req.body.type;
     const user = await userModel.findOne({ id: req.userId }, "_id");
@@ -125,7 +130,7 @@ const editProfileImgGetPUrlHandler = async (req, res) => {
   }
 };
 
-const editProfileImgDoneHandler = async (req, res) => {
+export const editProfileImgDoneHandler = async (req: Request, res: Response) => {
   try {
     const user = await userModel.findOne({ id: req.userId }, "_id");
     if (!user) {
@@ -161,7 +166,7 @@ const editProfileImgDoneHandler = async (req, res) => {
   }
 };
 
-const resetNicknameHandler = async (req, res) => {
+export const resetNicknameHandler = async (req: Request, res: Response) => {
   try {
     const result = await userModel.findOneAndUpdate(
       { id: req.userId },
@@ -181,7 +186,7 @@ const resetNicknameHandler = async (req, res) => {
   }
 };
 
-const resetProfileImgHandler = async (req, res) => {
+export const resetProfileImgHandler = async (req: Request, res: Response) => {
   try {
     const result = await userModel.findOneAndUpdate(
       { id: req.userId },
@@ -200,13 +205,3 @@ const resetProfileImgHandler = async (req, res) => {
   }
 };
 
-module.exports = {
-  agreeOnTermsOfServiceHandler,
-  getAgreeOnTermsOfServiceHandler,
-  editNicknameHandler,
-  editAccountHandler,
-  editProfileImgGetPUrlHandler,
-  editProfileImgDoneHandler,
-  resetNicknameHandler,
-  resetProfileImgHandler,
-};
