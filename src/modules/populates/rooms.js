@@ -10,7 +10,7 @@ const roomPopulateOption = [
     select: "-_id user settlementStatus readAt",
     populate: {
       path: "user",
-      select: "_id id name nickname profileImageUrl",
+      select: "_id id name nickname profileImageUrl withdraw",
     },
   },
 ];
@@ -32,7 +32,7 @@ const formatSettlement = (
   roomObject.part = roomObject.part.map((participantSubDocument) => {
     if (!participantSubDocument.user) return null;
 
-    const { _id, name, nickname, profileImageUrl } =
+    const { _id, name, nickname, profileImageUrl, withdraw } =
       participantSubDocument.user;
     const { settlementStatus, readAt } = participantSubDocument;
     return {
@@ -40,6 +40,7 @@ const formatSettlement = (
       name,
       nickname,
       profileImageUrl,
+      withdraw,
       isSettlement: includeSettlement ? settlementStatus : undefined,
       readAt: readAt ?? roomObject.madeat,
     };
