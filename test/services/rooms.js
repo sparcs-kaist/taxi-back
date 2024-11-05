@@ -33,6 +33,14 @@ describe("[rooms] 1.createHandler", () => {
       },
       userId: testUser1.id,
       app,
+      session: {
+        loginInfo: {
+          sid: testUser1.id,
+        },
+      },
+      timestamp: Date.now(),
+      originalUrl: "test-url/rooms/create",
+      userOid: testUser1._id,
     });
     let res = httpMocks.createResponse();
     await roomsHandlers.createHandler(req, res);
@@ -89,6 +97,14 @@ describe("[rooms] 4.joinHandler", () => {
       },
       userId: testUser2.id,
       app,
+      session: {
+        loginInfo: {
+          sid: testUser2.id,
+        },
+      },
+      timestamp: Date.now(),
+      originalUrl: "test-url/rooms/join",
+      userOid: testUser2._id,
     });
     let res = httpMocks.createResponse();
     await roomsHandlers.joinHandler(req, res);
@@ -148,8 +164,15 @@ describe("[rooms] 7.commitSettlementHandler", () => {
     let req = httpMocks.createRequest({
       body: { roomId: testRoom._id },
       userId: testUser1.id,
-      timestamp: Date.now() + 60 * 1000,
       app,
+      session: {
+        loginInfo: {
+          sid: testUser1.id,
+        },
+      },
+      timestamp: Date.now() + 60 * 1000,
+      originalUrl: "test-url/rooms/commitSettlement",
+      userOid: testUser1._id,
     });
     let res = httpMocks.createResponse();
     await roomsHandlers.commitSettlementHandler(req, res);
@@ -170,6 +193,14 @@ describe("[rooms] 8.commitPaymentHandler", () => {
       body: { roomId: testRoom._id },
       userId: testUser2.id,
       app,
+      session: {
+        loginInfo: {
+          sid: testUser2.id,
+        },
+      },
+      timestamp: Date.now(),
+      originalUrl: "test-url/rooms/commitPayment",
+      userOid: testUser2._id,
     });
     let res = httpMocks.createResponse();
     await roomsHandlers.commitPaymentHandler(req, res);
@@ -191,6 +222,14 @@ describe("[rooms] 9.abortHandler", () => {
       userId: testUser2.id,
       session: {},
       app,
+      session: {
+        loginInfo: {
+          sid: testUser2.id,
+        },
+      },
+      timestamp: Date.now(),
+      originalUrl: "test-url/rooms/abort",
+      userOid: testUser2._id,
     });
     let res = httpMocks.createResponse();
     await roomsHandlers.abortHandler(req, res);

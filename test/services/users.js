@@ -56,6 +56,14 @@ describe("[users] 3.editNicknameHandler", () => {
       body: {
         nickname: testNickname,
       },
+      session: {
+        loginInfo: {
+          sid: testUser1.id,
+        },
+      },
+      timestamp: Date.now(),
+      originalUrl: "test-url/users/editNickname",
+      userOid: testUser1._id,
     });
     let res = httpMocks.createResponse();
     await usersHandlers.editNicknameHandler(req, res);
@@ -83,6 +91,14 @@ describe("[users] 4.editAccountHandler", () => {
       body: {
         account: testAccount,
       },
+      session: {
+        loginInfo: {
+          sid: testUser1.id,
+        },
+      },
+      timestamp: Date.now(),
+      originalUrl: "test-url/users/editAccount",
+      userOid: testUser1._id,
     });
     let res = httpMocks.createResponse();
     await usersHandlers.editAccountHandler(req, res);

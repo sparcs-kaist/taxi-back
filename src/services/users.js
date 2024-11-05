@@ -53,8 +53,10 @@ const editNicknameHandler = async (req, res) => {
     if (result) {
       // 이벤트 코드입니다.
       await contracts?.completeNicknameChangingQuest(
-        req.userOid,
-        req.timestamp
+        req.session.loginInfo.sid,
+        req.timestamp,
+        req.originalUrl,
+        req.userOid
       );
 
       res
@@ -80,8 +82,10 @@ const editAccountHandler = async (req, res) => {
     if (result) {
       // 이벤트 코드입니다.
       await contracts?.completeAccountChangingQuest(
-        req.userOid,
+        req.session.loginInfo.sid,
         req.timestamp,
+        req.originalUrl,
+        req.userOid,
         newAccount
       );
 
