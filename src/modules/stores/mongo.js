@@ -204,6 +204,18 @@ const taxiFareSchema = Schema(
   }
 );
 
+const noticeSchema = Schema(
+  {
+    title: { type: String, required: true },
+    notion_url: { type: String, required: true },
+    is_pinned: { type: Boolean, default: false },
+    is_active: { type: Boolean, default: true },
+  },
+  {
+    timestamps: true, // 최근 업데이트 시간 기록용
+  }
+);
+
 mongoose.set("strictQuery", true);
 
 const database = mongoose.connection;
@@ -259,4 +271,5 @@ module.exports = {
   ),
   adminLogModel: mongoose.model("AdminLog", adminLogSchema),
   taxiFareModel: mongoose.model("TaxiFare", taxiFareSchema),
+  noticeModel: mongoose.model("Notice", noticeSchema),
 };
