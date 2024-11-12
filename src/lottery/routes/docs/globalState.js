@@ -5,24 +5,21 @@ const globalStateDocs = {};
 globalStateDocs[`${apiPrefix}/`] = {
   get: {
     tags: [`${apiPrefix}`],
-    summary: "Frontend에서 Global state로 관리하는 정보 반환",
+    summary: "Frontend에서 Global State로 관리하는 정보 반환",
     description:
-      "유저의 재화 개수, 퀘스트 완료 상태 등 Frontend에서 Global state로 관리할 정보를 가져옵니다.",
+      "유저의 재화 개수, 퀘스트 완료 상태 등 Frontend에서 Global State로 관리하는 정보를 가져옵니다.",
     responses: {
       200: {
-        description: "",
         content: {
           "application/json": {
             schema: {
               type: "object",
               required: [
                 "isAgreeOnTermsOfEvent",
-                "isEligible",
+                "isBanned",
                 "creditAmount",
-                "groupCreditAmount",
-                "completedQuests",
-                "group",
                 "quests",
+                "completedQuests",
               ],
               properties: {
                 isAgreeOnTermsOfEvent: {
@@ -30,44 +27,19 @@ globalStateDocs[`${apiPrefix}/`] = {
                   description: "유저의 이벤트 참여 동의 여부",
                   example: true,
                 },
-                isEligible: {
+                isBanned: {
                   type: "boolean",
-                  description: "유저의 이벤트 참여 가능 여부",
-                  example: true,
+                  description: "유저의 이벤트 참여 제한 여부",
+                  example: false,
                 },
                 creditAmount: {
                   type: "number",
-                  description: "재화 개수. 0 이상입니다.",
+                  description: "유저의 재화 개수. 0 이상의 정수입니다.",
                   example: 1000,
-                },
-                groupCreditAmount: {
-                  type: "number",
-                  description: "소속 새터반에 소속된 유저의 전체 재화 개수",
-                  example: 35000,
-                },
-                completedQuests: {
-                  type: "array",
-                  description:
-                    "유저가 완료한 퀘스트의 배열. 여러 번 완료할 수 있는 퀘스트의 경우 배열 내에 같은 퀘스트가 여러 번 포함됩니다.",
-                  items: {
-                    type: "string",
-                    description: "Quest의 Id",
-                    example: "QUEST ID",
-                  },
-                },
-                isBanned: {
-                  type: "boolean",
-                  description: "해당 유저 제재 대상 여부",
-                  example: false,
-                },
-                group: {
-                  type: "number",
-                  description: "유저의 소속 새터반",
-                  example: 16,
                 },
                 quests: {
                   type: "array",
-                  description: "Quest의 배열",
+                  description: "전체 퀘스트의 배열",
                   items: {
                     type: "object",
                     required: [
@@ -82,7 +54,7 @@ globalStateDocs[`${apiPrefix}/`] = {
                     properties: {
                       id: {
                         type: "string",
-                        description: "Quest의 Id",
+                        description: "퀘스트의 Id",
                         example: "QUEST ID",
                       },
                       name: {
@@ -98,30 +70,50 @@ globalStateDocs[`${apiPrefix}/`] = {
                       },
                       imageUrl: {
                         type: "string",
-                        description: "이미지 썸네일 URL",
+                        description: "퀘스트의 썸네일 이미지 URL",
                         example: "THUMBNAIL URL",
                       },
                       reward: {
                         type: "object",
-                        description: "완료 보상",
                         required: ["credit"],
                         properties: {
                           credit: {
                             type: "number",
-                            description: "완료 보상 중 재화의 개수입니다.",
+                            description: "퀘스트의 완료 보상 중 재화의 개수",
                             example: 100,
                           },
                         },
                       },
                       maxCount: {
                         type: "number",
-                        description: "최대 완료 가능 횟수",
+                        description: "퀘스트의 최대 완료 가능 횟수",
                         example: 1,
                       },
                       isApiRequired: {
                         type: "boolean",
-                        description: `/events/${eventConfig?.mode}/quests/complete/:questId API를 통해 퀘스트 완료를 요청할 수 있는지 여부`,
+                        description: `/events/${eventConfig?.mode}/quests/complete/:questId API를 통해 퀘스트 완료를 요청해야 하는지의 여부`,
                         example: false,
+                      },
+                    },
+                  },
+                },
+                completedQuests: {
+                  type: "array",
+                  description:
+                    "유저가 완료한 퀘스트의 배열. 여러 번 완료한 퀘스트의 경우 배열 내에 같은 퀘스트가 여러 번 포함됩니다.",
+                  items: {
+                    type: "object",
+                    required: ["questId", "completedAt"],
+                    properties: {
+                      questId: {
+                        type: "string",
+                        description: "퀘스트의 Id",
+                        example: "QUEST ID",
+                      },
+                      completedAt: {
+                        type: "string",
+                        description: "퀘스트의 완료 시각",
+                        example: "2023-01-01 00:00:00",
                       },
                     },
                   },
@@ -137,11 +129,10 @@ globalStateDocs[`${apiPrefix}/`] = {
 globalStateDocs[`${apiPrefix}/create`] = {
   post: {
     tags: [`${apiPrefix}`],
-    summary: "Frontend에서 Global state로 관리하는 정보 생성",
+    summary: "Frontend에서 Global State로 관리할 정보 생성",
     description:
-      "유저의 재화 개수, 퀘스트 완료 상태 등 Frontend에서 Global state로 관리할 정보를 생성합니다.",
+      "유저의 재화 개수, 퀘스트 완료 상태 등 Frontend에서 Global State로 관리할 정보를 생성합니다.",
     requestBody: {
-      description: "",
       content: {
         "application/json": {
           schema: {
@@ -152,7 +143,6 @@ globalStateDocs[`${apiPrefix}/create`] = {
     },
     responses: {
       200: {
-        description: "",
         content: {
           "application/json": {
             schema: {

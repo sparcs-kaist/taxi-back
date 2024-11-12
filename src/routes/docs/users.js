@@ -1,5 +1,6 @@
 const tag = "users";
 const apiPrefix = "/users";
+const { objectId } = require("../../modules/patterns");
 
 const usersDocs = {};
 usersDocs[`${apiPrefix}/agreeOnTermsOfService`] = {
@@ -322,6 +323,69 @@ usersDocs[`${apiPrefix}/resetProfileImg`] = {
         content: {
           "text/html": {
             example: "Users/resetProfileImg : internal server error",
+          },
+        },
+      },
+    },
+  },
+};
+
+usersDocs[`${apiPrefix}/getBanRecord`] = {
+  get: {
+    tags: [tag],
+    summary: "본인의 현재 정지 기록을 가져움",
+    description:
+      "정지 기록들 중 본인이고, 서버 시간을 기준으로 expireAt 보다 작은 경우에 해당하는 정지 기록을 모두 가져옴",
+    responses: {
+      200: {
+        content: {
+          "application/json": {
+            schema: {
+              type: "array",
+              items: {
+                properties: {
+                  userSid: {
+                    type: "string",
+                    description: "사용자의 SSO ID",
+                    pattern: "monday-sid",
+                  },
+                  reason: {
+                    type: "string",
+                    description: "정지 사유",
+                    example: "미정산",
+                  },
+                  bannedAt: {
+                    type: "date",
+                    description: "정지 당한 시각",
+                    example: "2024-05-20 12:00",
+                  },
+                  expireAt: {
+                    type: "date",
+                    description: "정지 만료 시각",
+                    example: "2024-05-21 12:00",
+                  },
+                  serviceName: {
+                    type: "string",
+                    description: "정지를 당한 서비스 또는 이벤트 이름",
+                    example: "2023-fall-event",
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+      400: {
+        content: {
+          "text/html": {
+            example: "Users/getBanRecord : there is no ban record",
+          },
+        },
+      },
+      500: {
+        content: {
+          "text/html": {
+            example: "Users/getBanRecord : internal server error",
           },
         },
       },

@@ -1,15 +1,19 @@
 import type { Request, Response } from "express";
-
-import { userModel } from "@/modules/stores/mongo";
+import { userModel, banModel } from "@/modules/stores/mongo";
 import logger from "@/modules/logger";
 import * as aws from "@/modules/stores/aws";
 
-
-import { generateNickname, generateProfileImageUrl } from "@/modules/modifyProfile";
+import {
+  generateNickname,
+  generateProfileImageUrl,
+} from "@/modules/modifyProfile";
 // 이벤트 코드입니다.
 // const { contracts } = require("@/lottery");
 
-export const agreeOnTermsOfServiceHandler = async (req: Request, res: Response) => {
+export const agreeOnTermsOfServiceHandler = async (
+  req: Request,
+  res: Response
+) => {
   try {
     let user = await userModel.findOne({ id: req.userId });
     if (user && user.agreeOnTermsOfService !== true) {
@@ -28,7 +32,10 @@ export const agreeOnTermsOfServiceHandler = async (req: Request, res: Response) 
   }
 };
 
-export const getAgreeOnTermsOfServiceHandler = async (req: Request, res: Response) => {
+export const getAgreeOnTermsOfServiceHandler = async (
+  req: Request,
+  res: Response
+) => {
   try {
     const user = await userModel
       .findOne({ id: req.userId }, "agreeOnTermsOfService")
@@ -97,7 +104,10 @@ export const editAccountHandler = async (req: Request, res: Response) => {
   }
 };
 
-export const editProfileImgGetPUrlHandler = async (req: Request, res: Response) => {
+export const editProfileImgGetPUrlHandler = async (
+  req: Request,
+  res: Response
+) => {
   try {
     const type = req.body.type;
     const user = await userModel.findOne({ id: req.userId }, "_id");
@@ -127,7 +137,10 @@ export const editProfileImgGetPUrlHandler = async (req: Request, res: Response) 
   }
 };
 
-export const editProfileImgDoneHandler = async (req: Request, res: Response) => {
+export const editProfileImgDoneHandler = async (
+  req: Request,
+  res: Response
+) => {
   try {
     const user = await userModel.findOne({ id: req.userId }, "_id");
     if (!user) {
@@ -202,3 +215,18 @@ export const resetProfileImgHandler = async (req: Request, res: Response) => {
   }
 };
 
+export const getBanRecordHandler = async (req: Request, res: Response) => {
+  try {
+    // 본인인 경우(ban의 userId가 userSid랑 같은 경우)의 record를 모두 가져옴
+    const result = await banModel
+      .find({
+        userSid: req.session.loginInfo.sid,
+      })
+      .sort({ expireAt: -1 });
+    if (!result)
+      return res.status(500).send("Users/getBanRecord : internal server error");
+    res.status(200).json(result);
+  } catch (err) {
+    res.status(500).send("Users/getBanRecord : internal server error");
+  }
+};

@@ -28,10 +28,10 @@ lotteryRouter.use(require("../middlewares/originValidator"));
 
 // [Router] APIs
 lotteryRouter.use("/globalState", require("./routes/globalState"));
-lotteryRouter.use("/invite", require("./routes/invite"));
+lotteryRouter.use("/invites", require("./routes/invites"));
 lotteryRouter.use("/transactions", require("./routes/transactions"));
 lotteryRouter.use("/items", require("./routes/items"));
-lotteryRouter.use("/publicNotice", require("./routes/publicNotice"));
+// lotteryRouter.use("/publicNotice", require("./routes/publicNotice"));
 lotteryRouter.use("/quests", require("./routes/quests"));
 
 // [AdminJS] AdminJS에 표시할 Resource 생성

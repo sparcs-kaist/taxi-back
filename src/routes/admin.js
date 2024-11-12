@@ -4,6 +4,7 @@ const AdminJSExpress = require("@adminjs/express");
 const AdminJSMongoose = require("@adminjs/mongoose");
 const {
   userModel,
+  banModel,
   roomModel,
   locationModel,
   chatModel,
@@ -12,6 +13,7 @@ const {
   adminLogModel,
   deviceTokenModel,
   notificationOptionModel,
+  taxiFareModel,
 } = require("@/modules/stores/mongo");
 const { buildResource } = require("@/modules/adminResource");
 
@@ -26,6 +28,7 @@ AdminJS.registerAdapter(AdminJSMongoose);
 
 const resources = [
   userModel,
+  banModel,
   roomModel,
   locationModel,
   chatModel,
@@ -34,6 +37,7 @@ const resources = [
   adminLogModel,
   deviceTokenModel,
   notificationOptionModel,
+  taxiFareModel,
 ]
   .map(buildResource())
   .concat(/*require("@/lottery").resources*/ []);

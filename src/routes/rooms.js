@@ -1,5 +1,7 @@
 const express = require("express");
 const { query, body } = require("express-validator");
+const { validateBody } = require("../middlewares/zod");
+const { roomsZod } = require("./docs/schemas/roomsSchema");
 const router = express.Router();
 
 const roomHandlers = require("@/services/rooms");
@@ -32,6 +34,9 @@ router.get(
 
 // 이후 API 접근 시 로그인 필요
 router.use(require("@/middlewares/auth").default);
+
+// 방 생성/참여전 ban 여부 확인
+router.use(require("../middlewares/ban"));
 
 // 특정 id 방 세부사항 보기
 router.get(
@@ -91,19 +96,18 @@ router.post(
 // 로그인된 사용자의 모든 방들을 반환한다.
 router.get("/searchByUser", roomHandlers.searchByUserHandler);
 
-router.post(
-  "/commitPayment",
-  body("roomId").isMongoId(),
-  validator,
-  roomHandlers.commitPaymentHandler
-);
-
-// 해당 룸의 요청을 보낸 유저의 정산을 완료로 처리한다.
+// 해당 방에 요청을 보낸 유저의 정산을 처리한다.
 router.post(
   "/commitSettlement",
-  body("roomId").isMongoId(),
-  validator,
-  roomHandlers.settlementHandler
+  validateBody(roomsZod.commitSettlement),
+  roomHandlers.commitSettlementHandler
+);
+
+// 해당 방에 요청을 보낸 유저의 송금을 처리한다.
+router.post(
+  "/commitPayment",
+  validateBody(roomsZod.commitPayment),
+  roomHandlers.commitPaymentHandler
 );
 
 // json으로 수정할 값들을 받아 방의 정보를 수정합니다.

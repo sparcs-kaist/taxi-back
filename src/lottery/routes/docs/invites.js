@@ -1,25 +1,23 @@
 const { eventConfig } = require("../../../../loadenv");
-const apiPrefix = `/events/${eventConfig?.mode}/invite`;
+const apiPrefix = `/events/${eventConfig?.mode}/invites`;
 
-const inviteDocs = {};
-inviteDocs[`${apiPrefix}/search/:inviter`] = {
+const invitesDocs = {};
+invitesDocs[`${apiPrefix}/search/{inviter}`] = {
   get: {
     tags: [`${apiPrefix}`],
-    summary: "초대자 정보 조회",
-    description: "초대자의 정보를 조회합니다.",
-    requestBody: {
-      description: "",
-      content: {
-        "application/json": {
-          schema: {
-            $ref: "#/components/schemas/searchInviterHandler",
-          },
-        },
+    summary: "초대한 유저의 정보 반환",
+    description: "초대한 유저의 정보를 가져옵니다.",
+    parameters: [
+      {
+        in: "path",
+        name: "inviter",
+        required: true,
+        description: "초대한 유저의 eventStatus ObjectId",
+        example: "INVITER ID",
       },
-    },
+    ],
     responses: {
       200: {
-        description: "",
         content: {
           "application/json": {
             schema: {
@@ -28,13 +26,13 @@ inviteDocs[`${apiPrefix}/search/:inviter`] = {
               properties: {
                 nickname: {
                   type: "string",
-                  description: "초대자의 닉네임",
-                  example: "asdf",
+                  description: "초대한 유저의 닉네임",
+                  example: "static",
                 },
                 profileImageUrl: {
                   type: "string",
-                  description: "초대자의 프로필 이미지 URL",
-                  example: "IMAGE URL",
+                  description: "초대한 유저의 프로필 이미지 URL",
+                  example: "PROFILE URL",
                 },
               },
             },
@@ -44,14 +42,13 @@ inviteDocs[`${apiPrefix}/search/:inviter`] = {
     },
   },
 };
-inviteDocs[`${apiPrefix}/create`] = {
+invitesDocs[`${apiPrefix}/create`] = {
   post: {
     tags: [`${apiPrefix}`],
     summary: "초대 링크 생성",
     description: "초대 링크를 생성합니다.",
     responses: {
       200: {
-        description: "",
         content: {
           "application/json": {
             schema: {
@@ -72,4 +69,4 @@ inviteDocs[`${apiPrefix}/create`] = {
   },
 };
 
-module.exports = inviteDocs;
+module.exports = invitesDocs;

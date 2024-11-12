@@ -56,4 +56,7 @@ router.get("/editProfileImg/done", userHandlers.editProfileImgDoneHandler);
 // 프로필 이미지를 기본값으로 재설정합니다.
 router.get("/resetProfileImg", userHandlers.resetProfileImgHandler);
 
+// 유저의 서비스 정지 기록들을 모두 반환합니다.
+router.get("/getBanRecord", userHandlers.getBanRecordHandler);
+
 module.exports = router;

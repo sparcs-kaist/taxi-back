@@ -15,5 +15,7 @@ export default {
   chat: {
     chatImgType: RegExp("^(image/png|image/jpg|image/jpeg)$"),
     chatSendType: RegExp("^(text|account)$"),
+    chatContent: RegExp("^\\s{0,}\\S{1}[\\s\\S]{0,}$"), // 왼쪽 공백 제외 최소 1개 문자
+    chatContentLength: RegExp("^[\\s\\S]{1,140}$"), // 공백 포함 최대 140문자
   },
 };

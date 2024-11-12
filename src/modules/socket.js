@@ -82,11 +82,11 @@ const getMessageBody = (type, nickname = "", content = "") => {
       const suffix = "님이 퇴장하였습니다";
       return `${ellipsisedNickname} ${suffix}`;
     }
-    case "payment": {
+    case "settlement": {
       const suffix = "님이 정산을 시작하였습니다";
       return `${ellipsisedNickname} ${suffix}`;
     }
-    case "settlement": {
+    case "payment": {
       const suffix = "님이 송금을 완료하였습니다";
       return `${ellipsisedNickname} ${suffix}`;
     }
