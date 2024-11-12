@@ -37,6 +37,19 @@ export interface User extends Document {
   account: string;
 }
 
+export interface Ban extends Document {
+  /** 정지된 사용자의 ID. */
+  userSid: string;
+  /** 정지 사유. */
+  reason: string;
+  /** 정지 시각. */
+  bannedAt: Date;
+  /** 정지 만료 시각. */
+  expireAt: Date;
+  /** 정지된 서비스의 이름. */
+  serviceName: "service" | "2023-fall-event";
+}
+
 export type SettlementStatus =
   | "not-departed"
   | "paid"
@@ -165,4 +178,15 @@ export interface AdminLog extends Document {
   target: string;
   /** 수행한 업무. */
   action: AdminLogAction;
+}
+
+export interface TaxiFare extends Document {
+  /** 출발지의 Location ObjectID. */
+  from: Types.ObjectId;
+  /** 목적지의 Location ObjectID. */
+  to: Types.ObjectId;
+  isMajor: boolean;
+  time: number;
+  /** 예상 택시 요금. */
+  fare: number;
 }

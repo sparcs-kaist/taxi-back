@@ -216,7 +216,7 @@ export const sendMessageByTokens = async (
       },
       apns: { payload: { aps: { alert: { title, body } } } },
       android: {
-        priority: "high",
+        priority: "high" as const,
       },
     };
     const { responses, failureCount } =

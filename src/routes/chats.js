@@ -4,7 +4,6 @@ const validator = require("@/middlewares/validator").default;
 const patterns = require("@/modules/patterns").default;
 const { validateBody } = require("@/middlewares/zod");
 const { chatsZod } = require("./docs/schemas/chatsSchema");
-const patterns = require("@/modules/patterns");
 
 const router = express.Router();
 const chatsHandlers = require("@/services/chats");

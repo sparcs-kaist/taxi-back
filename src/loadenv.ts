@@ -63,3 +63,7 @@ export const slackWebhookUrl = {
 };
 // export const eventConfig =
 //   process.env.EVENT_CONFIG && JSON.parse(process.env.EVENT_CONFIG); // optional
+export const naverMap = {
+  apiId: process.env.NAVER_MAP_API_ID || "", // optional
+  apiKey: process.env.NAVER_MAP_API_KEY || "", // optional
+};

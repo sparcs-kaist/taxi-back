@@ -1,6 +1,6 @@
 const { sparcssso: sparcsssoEnv, nodeEnv, testAccounts } = require("@/loadenv");
 const { userModel } = require("@/modules/stores/mongo");
-const { user: userPattern } = require("@/modules/patterns");
+const { user: userPattern } = require("@/modules/patterns").default;
 const { getLoginInfo, logout, login } = require("@/modules/auths/login");
 
 const { unregisterDeviceToken } = require("@/modules/fcm");

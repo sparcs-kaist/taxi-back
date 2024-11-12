@@ -220,7 +220,7 @@ export const getBanRecordHandler = async (req: Request, res: Response) => {
     // 본인인 경우(ban의 userId가 userSid랑 같은 경우)의 record를 모두 가져옴
     const result = await banModel
       .find({
-        userSid: req.session.loginInfo.sid,
+        userSid: req.session.loginInfo?.sid,
       })
       .sort({ expireAt: -1 });
     if (!result)

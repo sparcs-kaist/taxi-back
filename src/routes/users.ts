@@ -59,4 +59,4 @@ router.get("/resetProfileImg", userHandlers.resetProfileImgHandler);
 // 유저의 서비스 정지 기록들을 모두 반환합니다.
 router.get("/getBanRecord", userHandlers.getBanRecordHandler);
 
-module.exports = router;
+export default router;

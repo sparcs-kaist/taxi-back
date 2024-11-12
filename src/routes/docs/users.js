@@ -1,6 +1,6 @@
 const tag = "users";
 const apiPrefix = "/users";
-const { objectId } = require("../../modules/patterns");
+const { objectId } = require("../../modules/patterns").default;
 
 const usersDocs = {};
 usersDocs[`${apiPrefix}/agreeOnTermsOfService`] = {

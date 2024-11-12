@@ -8,3 +8,4 @@ export { default as notificationRouter } from "./notifications";
 export { default as reportRouter } from "./reports";
 export { default as roomRouter } from "./rooms";
 export { default as userRouter } from "./users";
+export { default as fareRouter } from "./fare";

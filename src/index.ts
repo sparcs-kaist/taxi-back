@@ -24,8 +24,10 @@ import {
   notificationRouter,
   adminRouter,
   docsRouter,
+  fareRouter,
 } from "@/routes";
 import { initializeApp } from "@/modules/fcm";
+import { initializeDatabase as initializeFareDatabase } from "@/modules/fare";
 import logger from "@/modules/logger";
 import { connectDatabase } from "@/modules/stores/mongo";
 import { startSocketServer } from "@/modules/socket";
@@ -85,6 +87,7 @@ app.use("/chats", chatRouter);
 app.use("/locations", locationRouter);
 app.use("/reports", reportRouter);
 app.use("/notifications", notificationRouter);
+app.use("/fare", fareRouter);
 
 // [Middleware] 전역 에러 핸들러. 에러 핸들러는 router들보다 아래에 등록되어야 합니다.
 app.use(errorHandler);
@@ -101,3 +104,6 @@ app.set("io", startSocketServer(serverHttp));
 
 // [Schedule] 스케줄러 시작
 registerSchedules(app);
+
+// [Module] 택시 예상 비용 db 초기화
+initializeFareDatabase();
