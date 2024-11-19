@@ -1,18 +1,19 @@
 import axios from "axios";
-import { nodeEnv, slackWebhookUrl as slackUrl } from "@/loadenv";
+import config from "@/loadenv";
 import logger from "@/modules/logger";
 import { type Report } from "@/types/mongo";
 
 export const sendTextToReportChannel = (text: string) => {
-  if (!slackUrl.report) return;
+  if (!config.slackWebhookUrl.report) return;
 
   const data = {
-    text: nodeEnv === "production" ? text : `(${nodeEnv}) ${text}`, // Production 환경이 아닌 경우, 환경 이름을 붙여서 전송합니다.
+    text:
+      config.nodeEnv === "production" ? text : `(${config.nodeEnv}) ${text}`, // Production 환경이 아닌 경우, 환경 이름을 붙여서 전송합니다.
   };
-  const config = { headers: { "Content-Type": "application/json" } };
+  const axiosConfig = { headers: { "Content-Type": "application/json" } };
 
   axios
-    .post(slackUrl.report, data, config)
+    .post(config.slackWebhookUrl.report, data, axiosConfig)
     .then(() => {
       logger.info("Slack webhook sent successfully");
     })

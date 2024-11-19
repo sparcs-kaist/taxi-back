@@ -1,6 +1,6 @@
 import firebaseAdmin from "firebase-admin";
 import { type SendResponse, getMessaging } from "firebase-admin/messaging";
-import { googleApplicationCredentials } from "@/loadenv";
+import config from "@/loadenv";
 import logger from "@/modules/logger";
 import {
   deviceTokenModel,
@@ -13,9 +13,11 @@ import { type ChatType } from "@/types/mongo";
  * credential을 등록합니다.
  */
 export const initializeApp = () => {
-  if (googleApplicationCredentials) {
+  if (config.googleApplicationCredentials) {
     firebaseAdmin.initializeApp({
-      credential: firebaseAdmin.credential.cert(googleApplicationCredentials),
+      credential: firebaseAdmin.credential.cert(
+        config.googleApplicationCredentials
+      ),
     });
   } else {
     logger.error(
