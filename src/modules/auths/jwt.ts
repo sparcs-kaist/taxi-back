@@ -1,7 +1,7 @@
 import jwt, { type SignOptions } from "jsonwebtoken";
-import config from "@/loadenv";
+import { jwt as jwtConfig } from "@/loadenv";
 
-const { secretKey, option, TOKEN_EXPIRED, TOKEN_INVALID } = config.jwt;
+const { secretKey, option, TOKEN_EXPIRED, TOKEN_INVALID } = jwtConfig;
 
 type TokenType = "access" | "refresh";
 

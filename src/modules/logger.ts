@@ -2,7 +2,7 @@ import path from "path";
 import { createLogger, format, transports } from "winston";
 import DailyRotateFileTransport from "winston-daily-rotate-file";
 
-import config from "@/loadenv";
+import { nodeEnv } from "@/loadenv";
 
 // logger에서 사용할 포맷들을 정의합니다.
 const baseFormat = format.combine(
@@ -50,7 +50,7 @@ const consoleTransport = new transports.Console();
  * @method error(message: string, callback: winston.LogCallback)  - 오류 메시지를 기록하기 위해 사용합니다.
  */
 const logger =
-  config.nodeEnv === "production"
+  nodeEnv === "production"
     ? // "production" 환경에서 사용되는 Logger 객체
       createLogger({
         level: "info",

@@ -3,7 +3,7 @@ import express from "express";
 import cookieParser from "cookie-parser";
 import http from "http";
 
-import config from "@/loadenv";
+import { nodeEnv, mongo as mongoUrl, port as httpPort } from "@/loadenv";
 import {
   corsMiddleware,
   sessionMiddleware,
@@ -40,14 +40,14 @@ initializeApp();
 const app = express();
 
 // 데이터베이스 연결
-connectDatabase(config.mongoUrl);
+connectDatabase(mongoUrl);
 
 // [Middleware] request body 파싱
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
 
 // reverse proxy가 설정한 헤더를 신뢰합니다.
-if (config.nodeEnv === "production") app.set("trust proxy", 2);
+if (nodeEnv === "production") app.set("trust proxy", 2);
 
 // [Middleware] CORS 설정
 app.use(corsMiddleware);
@@ -95,8 +95,8 @@ app.use(errorHandler);
 // express 서버 시작
 const serverHttp = http
   .createServer(app)
-  .listen(config.port, () =>
-    logger.info(`Express server started from port ${config.port}`)
+  .listen(httpPort, () =>
+    logger.info(`Express server started from port ${httpPort}`)
   );
 
 // socket.io 서버 시작

@@ -1,5 +1,5 @@
 import AWS from "aws-sdk";
-import config from "@/loadenv";
+import { aws as awsEnv } from "@/loadenv";
 
 AWS.config.update({
   region: "ap-northeast-2",
@@ -16,7 +16,7 @@ export const getList = (
 ) => {
   s3.listObjects(
     {
-      Bucket: config.aws.s3BucketName,
+      Bucket: awsEnv.s3BucketName,
       Prefix: directoryPath,
     },
     (err, data) => {
@@ -31,7 +31,7 @@ export const getUploadPUrlPut = (
   contentType: string = "image/png"
 ) => {
   const presignedUrl = s3.getSignedUrl("putObject", {
-    Bucket: config.aws.s3BucketName,
+    Bucket: awsEnv.s3BucketName,
     Key: filePath,
     ContentType: contentType,
     Expires: 60, // 1 min
@@ -47,7 +47,7 @@ export const getUploadPUrlPost = (
 ) => {
   s3.createPresignedPost(
     {
-      Bucket: config.aws.s3BucketName,
+      Bucket: awsEnv.s3BucketName,
       Expires: 60, // 1 min
       Conditions: [
         { key: filePath },
@@ -68,7 +68,7 @@ export const deleteObject = (
 ) => {
   s3.deleteObject(
     {
-      Bucket: config.aws.s3BucketName,
+      Bucket: awsEnv.s3BucketName,
       Key: filePath,
     },
     (err, data) => {
@@ -84,7 +84,7 @@ export const foundObject = (
 ) => {
   s3.headObject(
     {
-      Bucket: config.aws.s3BucketName,
+      Bucket: awsEnv.s3BucketName,
       Key: filePath,
     },
     (err, data) => {
@@ -95,5 +95,5 @@ export const foundObject = (
 
 // function to return full URL of the object
 export const getS3Url = (filePath: string) => {
-  return `${config.aws.s3Url}${filePath}`;
+  return `${awsEnv.s3Url}${filePath}`;
 };

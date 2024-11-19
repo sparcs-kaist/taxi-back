@@ -5,7 +5,7 @@ const {
   generateChats,
 } = require("./src/testData");
 const { connectDatabase } = require("../modules/stores/mongo");
-const { mongoUrl, numberOfChats, numberOfRooms } = require("./loadenv");
+const { mongo: mongoUrl, numberOfChats, numberOfRooms } = require("./loadenv");
 
 const database = connectDatabase(mongoUrl);
 

@@ -1,8 +1,8 @@
 import cors from "cors";
-import config from "@/loadenv";
+import { corsWhiteList } from "@/loadenv";
 
 const corsMiddleware = cors({
-  origin: config.corsWhiteList,
+  origin: corsWhiteList,
   credentials: true,
   exposedHeaders: ["Date"],
 });
