@@ -1,4 +1,4 @@
-import { type Request, type Response, type NextFunction } from "express";
+import type { ErrorRequestHandler } from "express";
 import logger from "@/modules/logger";
 
 /**
@@ -11,20 +11,17 @@ import logger from "@/modules/logger";
  * @param res - 응답 객체
  * @param next - 다음 미들웨어 함수. Express에서는 next 함수에 err 인자를 넘겨주면 기본 global error handler가 호출됩니다.
  */
-const errorHandler = (
-  err: Error,
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
+const errorHandler: ErrorRequestHandler = (err, req, res, next) => {
+  logger.error(err);
+
   // 이미 클라이언트에 HTTP 응답 헤더를 전송한 경우, 응답 헤더를 다시 전송하지 않아야 합니다.
   // 클라이언트에게 스트리밍 형태로 응답을 전송하는 도중 오류가 발생하는 경우가 여기에 해당합니다.
   // 이럴 때 기본 global error handler를 호출하면 기본 global error handler가 클라이언트와의 연결을 종료시켜 줍니다.
-  logger.error(err);
   if (res.headersSent) {
-    return next(err);
+    next(err);
+  } else {
+    return res.status(500).send("internal server error");
   }
-  return res.status(500).send("internal server error");
 };
 
 export default errorHandler;

@@ -1,18 +1,14 @@
-import { type Request, type Response, type NextFunction } from "express";
+import type { RequestHandler } from "express";
 import { validationResult } from "express-validator";
 
-const validatorMiddleware = (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
+const validatorMiddleware: RequestHandler = (req, res, next) => {
   const validationErrors = validationResult(req);
-  if (!validationErrors.isEmpty()) {
+  if (!validationErrors.isEmpty())
     return res.status(400).json({
       error: "validation : bad request",
     });
-  }
-  return next();
+
+  next();
 };
 
 export default validatorMiddleware;

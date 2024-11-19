@@ -1,6 +1,6 @@
 import expressSession from "express-session";
 import { nodeEnv, session as sessionConfig } from "@/loadenv";
-import { type LoginInfo } from "@/modules/auths/login";
+import type { LoginInfo } from "@/modules/auths/login";
 import sessionStore from "@/modules/stores/sessionStore";
 
 // 세션에 저장할 데이터 타입을 지정합니다.

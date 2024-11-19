@@ -1,10 +1,6 @@
-import { type Request, type Response, type NextFunction } from "express";
+import type { RequestHandler } from "express";
 
-const informationMiddleware = (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
+const informationMiddleware: RequestHandler = (req, res, next) => {
   req.clientIP =
     (req.headers["x-forwarded-for"] as string | undefined) ||
     req.connection.remoteAddress;
