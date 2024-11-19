@@ -1,15 +1,28 @@
+import { ObjectId } from "mongoose";
+
 const emailPage = require("./emailPage").default;
 
-const reportEmailPage = {};
+interface ReportEmailPage {
+  [key: string]: (
+    origin: string,
+    name: string,
+    nickname: string,
+    roomName: string,
+    payer: string,
+    roomId: string | ObjectId
+  ) => string;
+}
+
+const reportEmailPage: ReportEmailPage = {};
 
 /* 미정산 알림 메일을 위한 템플릿 */
 reportEmailPage["no-settlement"] = (
-  origin,
-  name,
-  nickname,
-  roomName,
-  payer,
-  roomId
+  origin: string,
+  name: string,
+  nickname: string,
+  roomName: string,
+  payer: string,
+  roomId: string | ObjectId
 ) =>
   emailPage(
     "미정산 내역 관련 안내",
@@ -45,12 +58,12 @@ reportEmailPage["no-settlement"] = (
 
 /* 미탑승 알림 메일을 위한 템플릿 */
 reportEmailPage["no-show"] = (
-  origin,
-  name,
-  nickname,
-  roomName,
-  payer,
-  roomId
+  origin: string,
+  name: string,
+  nickname: string,
+  roomName: string,
+  payer: string,
+  roomId: string | ObjectId
 ) =>
   emailPage(
     "미탑승 내역 관련 안내",
