@@ -1,18 +1,14 @@
 import MongoStore from "connect-mongo";
 import RedisStore from "connect-redis";
 import redis from "redis";
-import {
-  redis as redisUrl,
-  mongo as mongoUrl,
-  session as sessionConfig,
-} from "@/loadenv";
+import config from "@/loadenv";
 import logger from "@/modules/logger";
 
 const getSessionStore = () => {
   // 환경변수 REDIS_PATH 유무에 따라 session 저장 방식이 변경됩니다.
-  if (redisUrl) {
+  if (config.redisUrl) {
     const client = redis.createClient({
-      url: redisUrl,
+      url: config.redisUrl,
     });
 
     // redis client 연결 성공 시 로그를 출력합니다.
@@ -26,9 +22,9 @@ const getSessionStore = () => {
     });
 
     client.connect().catch(logger.error);
-    return new RedisStore({ client, ttl: sessionConfig.expiry });
+    return new RedisStore({ client, ttl: config.session.expiry });
   } else {
-    return MongoStore.create({ mongoUrl });
+    return MongoStore.create({ mongoUrl: config.mongoUrl });
   }
 };
 

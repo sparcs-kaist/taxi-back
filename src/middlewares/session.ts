@@ -1,5 +1,5 @@
 import expressSession from "express-session";
-import { nodeEnv, session as sessionConfig } from "@/loadenv";
+import config from "@/loadenv";
 import { type LoginInfo } from "@/modules/auths/login";
 import sessionStore from "@/modules/stores/sessionStore";
 
@@ -26,14 +26,14 @@ declare module "express-session" {
 }
 
 const sessionMiddleware = expressSession({
-  secret: sessionConfig.secret,
+  secret: config.session.secret,
   resave: false,
   saveUninitialized: false,
   store: sessionStore,
   cookie: {
-    maxAge: sessionConfig.expiry,
+    maxAge: config.session.expiry,
     // nodeEnv가 production일 때만 secure cookie를 사용합니다.
-    secure: nodeEnv === "production",
+    secure: config.nodeEnv === "production",
   },
 });
 

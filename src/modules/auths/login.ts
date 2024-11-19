@@ -1,5 +1,5 @@
 import { type Request } from "express";
-import { session as sessionConfig } from "@/loadenv";
+import config from "@/loadenv";
 import logger from "@/modules/logger";
 
 export interface LoginInfo {
@@ -16,7 +16,7 @@ export const getLoginInfo = (req: Request) => {
     const timeFlow = Date.now() - time;
     // 14일이 지난 세션에 대해서는 로그인 정보를 반환하지 않습니다.
     // 세션은 새로운 요청 시 갱신되지 않습니다.
-    if (timeFlow > sessionConfig.expiry) {
+    if (timeFlow > config.session.expiry) {
       return { id: undefined, sid: undefined, oid: undefined, name: undefined };
     }
     return { id, sid, oid, name };
