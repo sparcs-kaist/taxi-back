@@ -1,9 +1,10 @@
 {
-    "ignore": ["node_modules/*"],
-    "watch": ["./src", ".env.development"],
-    "exec": "tsc && tsc-alias && node dist/index.js",
-    "env": {
-        "TZ": "Asia/Seoul",
-        "NODE_ENV": "development"
-    } 
+  "ignore": ["node_modules"],
+  "watch": ["src", ".env.development"],
+  "ext": "js,json,ts",
+  "exec": "ts-node --require tsconfig-paths/register src",
+  "env": {
+    "TZ": "Asia/Seoul",
+    "NODE_ENV": "development"
+  } 
 }
