@@ -16,19 +16,17 @@ export const agreeOnTermsOfServiceHandler: RequestHandler = async (
 ) => {
   try {
     let user = await userModel.findOne({ id: req.userId });
-    if (user && user.agreeOnTermsOfService !== true) {
-      user.agreeOnTermsOfService = true;
-      await user.save();
-      return res
-        .status(200)
-        .send(
-          "Users/agreeOnTermsOfService : agree on Terms of Service successful"
-        );
-    } else {
-      return res
-        .status(400)
-        .send("Users/agreeOnTermsOfService : already agreed");
+    if (!user) {
+      return res.status(500).send("Users/agreeOnTermsOfService : no such user");
     }
+
+    if (user.agreeOnTermsOfService === true) {
+      return res.status(400).send("Users/agreeOnTermsOfService: already agreed");
+    }
+
+    user.agreeOnTermsOfService = true;
+    await user.save();
+    return res.status(200).send("Users/agreeOnTermsOfService : agree successful");
   } catch {
     return res
       .status(500)
