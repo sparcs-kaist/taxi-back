@@ -23,15 +23,18 @@ FROM node:18-alpine
 
 WORKDIR /usr/src/app
 
+# Install pnpm
 RUN npm install --global pnpm@8.8.0
 
+# devDependencies are not fetched
 COPY pnpm-lock.yaml .
 RUN pnpm fetch --prod
 
 COPY package.json .
-RUN pnpm install --prod
+RUN pnpm install --offline --prod
 
-COPY --from=builder /usr/src/app/dist dist
+# Copy the built app from the previous stage
+COPY --from=builder /usr/src/app/dist ./dist
 
 # Run container
 EXPOSE 80
