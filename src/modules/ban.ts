@@ -1,6 +1,6 @@
 import type { Request } from "express";
 import logger from "@/modules/logger";
-import { banModel } from "./stores/mongo";
+import { banModel } from "@/modules/stores/mongo";
 
 export const validateServiceBanRecord = async (
   req: Request,
