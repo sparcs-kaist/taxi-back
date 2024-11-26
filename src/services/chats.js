@@ -1,7 +1,7 @@
 const { chatModel, userModel, roomModel } = require("@/modules/stores/mongo");
 const { chatPopulateOption } = require("@/modules/populates/chats");
 const { roomPopulateOption } = require("@/modules/populates/rooms");
-const aws = require("@/modules/stores/aws").default;
+const aws = require("@/modules/stores/aws");
 const {
   transformChatsForRoom,
   emitChatEvent,

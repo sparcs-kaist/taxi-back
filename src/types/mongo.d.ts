@@ -1,4 +1,4 @@
-import { Document, Types } from "mongoose";
+import type { Document, Types } from "mongoose";
 
 export interface User extends Document {
   /** 사용자의 실명. */
@@ -13,6 +13,7 @@ export interface User extends Document {
   ongoingRoom?: Types.Array<Types.ObjectId>;
   /** 사용자가 참여한 방 중 완료된 방의 배열. */
   doneRoom?: Types.Array<Types.ObjectId>;
+  /** 계정 탈퇴 여부. */
   withdraw: boolean;
   /** 사용자의 전화번호. 2023 가을 이벤트부터 추가됨. */
   phoneNumber?: string;
