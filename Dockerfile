@@ -23,9 +23,17 @@ FROM node:18-alpine
 
 WORKDIR /usr/src/app
 
+RUN npm install --global pnpm@8.8.0
+
+COPY pnpm-lock.yaml .
+RUN pnpm fetch --prod
+
+COPY package.json .
+RUN pnpm install --prod
+
 COPY --from=builder /usr/src/app/dist dist
 
 # Run container
 EXPOSE 80
 ENV PORT 80
-CMD ["node", "dist/index.js"]
+CMD ["pnpm", "serve"]
