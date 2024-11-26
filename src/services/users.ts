@@ -26,7 +26,7 @@ export const agreeOnTermsOfServiceHandler: RequestHandler = async (
 
     user.agreeOnTermsOfService = true;
     await user.save();
-    return res.status(200).send("Users/agreeOnTermsOfService : agree successful");
+    return res.status(200).send("Users/agreeOnTermsOfService : agree on Terms of Service successful");
   } catch {
     return res
       .status(500)
