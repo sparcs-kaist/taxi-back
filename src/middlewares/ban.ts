@@ -1,22 +1,12 @@
 import type { RequestHandler } from "express";
 import { validateServiceBanRecord } from "@/modules/ban";
-import logger from "@/modules/logger";
 
-const serviceMapper: Map<string, string> = new Map([
+const serviceMapper = new Map([
   ["/rooms/create", "service"],
   ["/rooms/join", "service"],
 ]);
 
 const banMiddleware: RequestHandler = async (req, res, next) => {
-  if (req.originalUrl === undefined) {
-    logger.error(
-      "Error occured while validateServiceBanRecord: req.originalUrl is undefined"
-    );
-    return res.status(500).json({
-      error:
-        "Error occured while validateServiceBanRecord: req.originalUrl is undefined",
-    });
-  }
   const banErrorMessage = await validateServiceBanRecord(
     req,
     serviceMapper.get(req.originalUrl) || ""
@@ -27,4 +17,4 @@ const banMiddleware: RequestHandler = async (req, res, next) => {
   next();
 };
 
-module.exports = banMiddleware;
+export default banMiddleware;

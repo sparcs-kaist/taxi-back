@@ -1,4 +1,4 @@
-import { type Request, type Response } from "express";
+import type { Request, Response } from "express";
 import responseTime from "response-time";
 import logger from "@/modules/logger";
 

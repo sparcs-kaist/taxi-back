@@ -36,7 +36,7 @@ router.get(
 router.use(require("@/middlewares/auth").default);
 
 // 방 생성/참여전 ban 여부 확인
-router.use(require("../middlewares/ban"));
+router.use(require("@/middlewares/ban").default);
 
 // 특정 id 방 세부사항 보기
 router.get(
