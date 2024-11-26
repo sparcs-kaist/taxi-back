@@ -9,7 +9,7 @@ const {
   generateProfileImageUrl,
   getFullUsername,
 } = require("@/modules/modifyProfile");
-const jwt = require("@/modules/auths/jwt").default;
+const jwt = require("@/modules/auths/jwt");
 const logger = require("@/modules/logger").default;
 
 // SPARCS SSO
