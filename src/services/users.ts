@@ -21,7 +21,7 @@ export const agreeOnTermsOfServiceHandler: RequestHandler = async (
     }
 
     if (user.agreeOnTermsOfService === true) {
-      return res.status(400).send("Users/agreeOnTermsOfService: already agreed");
+      return res.status(400).send("Users/agreeOnTermsOfService : already agreed");
     }
 
     user.agreeOnTermsOfService = true;
