@@ -1,7 +1,7 @@
 import type { Request } from "express";
 
-const logger = require("./logger");
-const { banModel } = require("./stores/mongo");
+import logger from "@/modules/logger";
+import { banModel } from "./stores/mongo";
 
 /**
  * @param {*} req
