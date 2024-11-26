@@ -263,7 +263,7 @@ database.on("error", function (err) {
 });
 
 export const connectDatabase = (mongoUrl: string) => {
-  database.on("disconnected", function () {
+  database.on("disconnected", () => {
     // 데이터베이스 연결이 끊어지면 5초 후 재연결을 시도합니다.
     logger.error("Disconnected from database!");
     setTimeout(() => {
