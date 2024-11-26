@@ -6,41 +6,42 @@ import http from "http";
 import { nodeEnv, mongo as mongoUrl, port as httpPort } from "@/loadenv";
 import {
   corsMiddleware,
-  sessionMiddleware,
+  errorHandler,
   informationMiddleware,
-  responseTimeMiddleware,
   limitRateMiddleware,
   originValidatorMiddleware,
-  errorHandler,
+  responseTimeMiddleware,
+  sessionMiddleware,
 } from "@/middlewares";
 import {
-  authRouter,
-  logininfoRouter,
-  userRouter,
-  roomRouter,
-  chatRouter,
-  locationRouter,
-  reportRouter,
-  notificationRouter,
   adminRouter,
+  authRouter,
+  chatRouter,
   docsRouter,
   fareRouter,
+  locationRouter,
+  logininfoRouter,
+  notificationRouter,
+  reportRouter,
+  roomRouter,
+  userRouter,
 } from "@/routes";
-import { initializeApp } from "@/modules/fcm";
+
+import { initializeApp as initializeFirebase } from "@/modules/fcm";
 import { initializeDatabase as initializeFareDatabase } from "@/modules/fare";
 import logger from "@/modules/logger";
-import { connectDatabase } from "@/modules/stores/mongo";
 import { startSocketServer } from "@/modules/socket";
+import { connectDatabase } from "@/modules/stores/mongo";
 import registerSchedules from "@/schedules";
 
 // Firebase Admin 초기설정
-initializeApp();
-
-// 익스프레스 서버 생성
-const app = express();
+initializeFirebase();
 
 // 데이터베이스 연결
 connectDatabase(mongoUrl);
+
+// 익스프레스 서버 생성
+const app = express();
 
 // [Middleware] request body 파싱
 app.use(express.urlencoded({ extended: false }));
@@ -80,14 +81,14 @@ app.use(originValidatorMiddleware);
 
 // [Router] APIs
 app.use("/auth", authRouter);
-app.use("/logininfo", logininfoRouter);
-app.use("/users", userRouter);
-app.use("/rooms", roomRouter);
 app.use("/chats", chatRouter);
-app.use("/locations", locationRouter);
-app.use("/reports", reportRouter);
-app.use("/notifications", notificationRouter);
 app.use("/fare", fareRouter);
+app.use("/locations", locationRouter);
+app.use("/logininfo", logininfoRouter);
+app.use("/notifications", notificationRouter);
+app.use("/reports", reportRouter);
+app.use("/rooms", roomRouter);
+app.use("/users", userRouter);
 
 // [Middleware] 전역 에러 핸들러. 에러 핸들러는 router들보다 아래에 등록되어야 합니다.
 app.use(errorHandler);
