@@ -7,7 +7,7 @@ const {
   generateProfileImageUrl,
 } = require("@/modules/modifyProfile");
 const logger = require("@/modules/logger").default;
-const jwt = require("@/modules/auths/jwt").default;
+const jwt = require("@/modules/auths/jwt");
 
 const { registerDeviceTokenHandler, tryLogin } = require("@/services/auth");
 const loginReplacePage = require("@/views/loginReplacePage").default;

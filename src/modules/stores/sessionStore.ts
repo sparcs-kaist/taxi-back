@@ -1,6 +1,6 @@
 import MongoStore from "connect-mongo";
 import RedisStore from "connect-redis";
-import redis from "redis";
+import { createClient } from "redis";
 import {
   redis as redisUrl,
   mongo as mongoUrl,
@@ -11,7 +11,7 @@ import logger from "@/modules/logger";
 const getSessionStore = () => {
   // 환경변수 REDIS_PATH 유무에 따라 session 저장 방식이 변경됩니다.
   if (redisUrl) {
-    const client = redis.createClient({
+    const client = createClient({
       url: redisUrl,
     });
 

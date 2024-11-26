@@ -155,7 +155,7 @@ const roomSchema = new Schema<Room>({
   }, // 참여 멤버 및 정산 여부
   madeat: { type: Date, required: true }, // 생성 날짜
   settlementTotal: { type: Number, default: 0, required: true },
-  maxPartLength: { type: Number, require: true, default: 4 },
+  maxPartLength: { type: Number, required: true, default: 4 },
 });
 
 export const roomModel = model("Room", roomSchema);
