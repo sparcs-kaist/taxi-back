@@ -42,15 +42,12 @@ export const getAgreeOnTermsOfServiceHandler: RequestHandler = async (
     const user = await userModel
       .findOne({ id: req.userId }, "agreeOnTermsOfService")
       .lean();
-
     if (!user) {
       return res.status(400).send("Users/agreeOnTermsOfService : no such user");
     }
 
-    if (user) {
-      const agreeOnTermsOfService = user.agreeOnTermsOfService === true;
-      return res.json({ agreeOnTermsOfService });
-    }
+    const agreeOnTermsOfService = user.agreeOnTermsOfService === true;
+    return res.json({ agreeOnTermsOfService });
   } catch {
     return res
       .status(500)
@@ -234,7 +231,7 @@ export const getBanRecordHandler: RequestHandler = async (req, res) => {
     // 본인인 경우(ban의 userId가 userSid랑 같은 경우)의 record를 모두 가져옴
     const result = await banModel
       .find({
-        userSid: req.session.loginInfo?.sid,
+        userSid: req.session.loginInfo!.sid,
       })
       .sort({ expireAt: -1 });
     if (!result)
