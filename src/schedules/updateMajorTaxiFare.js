@@ -1,4 +1,4 @@
-const logger = require("../modules/logger");
+const logger = require("../modules/logger").default;
 
 const { scaledTime, updateTaxiFare } = require("../modules/fare");
 

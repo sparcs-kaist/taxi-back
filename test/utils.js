@@ -7,7 +7,7 @@ const {
   connectDatabase,
 } = require("../src/modules/stores/mongo");
 const { generateProfileImageUrl } = require("../src/modules/modifyProfile");
-const { mongo: mongoUrl } = require("../loadenv");
+const { mongo: mongoUrl } = require("@/loadenv");
 
 connectDatabase(mongoUrl);
 

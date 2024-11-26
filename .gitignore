@@ -1,4 +1,7 @@
 /node_modules
+/dist
+/dump
+.env
 .env.test
 .env.production
 .env.development

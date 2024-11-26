@@ -1,11 +1,11 @@
-const { userModel } = require("../modules/stores/mongo");
-const { notificationOptionModel } = require("../modules/stores/mongo");
-const logger = require("../modules/logger");
+const { userModel } = require("@/modules/stores/mongo");
+const { notificationOptionModel } = require("@/modules/stores/mongo");
+const logger = require("@/modules/logger").default;
 
-const { registerDeviceToken, validateDeviceToken } = require("../modules/fcm");
+const { registerDeviceToken, validateDeviceToken } = require("@/modules/fcm");
 
 // 이벤트 코드입니다.
-const { contracts } = require("../lottery");
+// const { contracts } = require("@/lottery");
 
 const registerDeviceTokenHandler = async (req, res) => {
   try {
@@ -108,11 +108,11 @@ const editOptionsHandler = async (req, res) => {
     }
 
     // 이벤트 코드입니다.
-    await contracts?.completeAdPushAgreementQuest(
-      req.userOid,
-      req.timestamp,
-      options.advertisement
-    );
+    // await contracts?.completeAdPushAgreementQuest(
+    //   req.userOid,
+    //   req.timestamp,
+    //   options.advertisement
+    // );
 
     res.status(200).json(updatedNotificationOptions);
   } catch (err) {

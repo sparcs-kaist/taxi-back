@@ -1,8 +1,8 @@
-const logger = require("../modules/logger");
+const logger = require("@/modules/logger").default;
 
-const { naverMap } = require("../../loadenv");
-const { taxiFareModel, locationModel } = require("../modules/stores/mongo");
-const { scaledTime, callTaxiFare } = require("../modules/fare");
+const { naverMap } = require("@/loadenv");
+const { taxiFareModel, locationModel } = require("@/modules/stores/mongo");
+const { scaledTime, callTaxiFare } = require("@/modules/fare");
 
 const naverMapApi = {
   "X-NCP-APIGW-API-KEY-ID": naverMap.apiId,
