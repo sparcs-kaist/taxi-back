@@ -1,6 +1,6 @@
 import express from "express";
 import { body } from "express-validator";
-import validator from "@/middlewares/validator";
+import { authMiddleware, validatorMiddleware } from "@/middlewares";
 import patterns from "@/modules/patterns";
 
 const router = express.Router();
@@ -9,7 +9,7 @@ import * as userHandlers from "@/services/users";
 import { replaceSpaceInNickname } from "@/modules/modifyProfile";
 
 // 라우터 접근 시 로그인 필요
-router.use(require("@/middlewares/auth").default);
+router.use(authMiddleware);
 
 // 이용 약관에 동의합니다.
 router.post(
@@ -27,7 +27,7 @@ router.post(
   body("nickname")
     .customSanitizer(replaceSpaceInNickname)
     .matches(patterns.user.nickname),
-  validator,
+  validatorMiddleware,
   userHandlers.editNicknameHandler
 );
 
@@ -38,7 +38,7 @@ router.get("/resetNickname", userHandlers.resetNicknameHandler);
 router.post(
   "/editAccount",
   body("account").matches(patterns.user.account),
-  validator,
+  validatorMiddleware,
   userHandlers.editAccountHandler
 );
 
@@ -46,7 +46,7 @@ router.post(
 router.post(
   "/editProfileImg/getPUrl",
   body("type").matches(patterns.user.profileImgType),
-  validator,
+  validatorMiddleware,
   userHandlers.editProfileImgGetPUrlHandler
 );
 

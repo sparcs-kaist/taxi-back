@@ -1,40 +1,44 @@
-import type { Request, Response } from "express";
+import type { RequestHandler } from "express";
 import { userModel, banModel } from "@/modules/stores/mongo";
 import logger from "@/modules/logger";
-import * as aws from "@/modules/stores/aws";
-
 import {
   generateNickname,
   generateProfileImageUrl,
 } from "@/modules/modifyProfile";
+import * as aws from "@/modules/stores/aws";
+
 // 이벤트 코드입니다.
 // const { contracts } = require("@/lottery");
 
-export const agreeOnTermsOfServiceHandler = async (
-  req: Request,
-  res: Response
+export const agreeOnTermsOfServiceHandler: RequestHandler = async (
+  req,
+  res
 ) => {
   try {
     let user = await userModel.findOne({ id: req.userId });
     if (user && user.agreeOnTermsOfService !== true) {
       user.agreeOnTermsOfService = true;
       await user.save();
-      res
+      return res
         .status(200)
         .send(
           "Users/agreeOnTermsOfService : agree on Terms of Service successful"
         );
     } else {
-      res.status(400).send("Users/agreeOnTermsOfService : already agreed");
+      return res
+        .status(400)
+        .send("Users/agreeOnTermsOfService : already agreed");
     }
   } catch {
-    res.status(500).send("Users/agreeOnTermsOfService : internal server error");
+    return res
+      .status(500)
+      .send("Users/agreeOnTermsOfService : internal server error");
   }
 };
 
-export const getAgreeOnTermsOfServiceHandler = async (
-  req: Request,
-  res: Response
+export const getAgreeOnTermsOfServiceHandler: RequestHandler = async (
+  req,
+  res
 ) => {
   try {
     const user = await userModel
@@ -42,18 +46,18 @@ export const getAgreeOnTermsOfServiceHandler = async (
       .lean();
     if (user) {
       const agreeOnTermsOfService = user.agreeOnTermsOfService === true;
-      res.json({ agreeOnTermsOfService });
+      return res.json({ agreeOnTermsOfService });
     }
   } catch {
-    res
+    return res
       .status(500)
       .send("Users/getAgreeOnTermsOfService : internal server error");
   }
 };
 
-export const editNicknameHandler = async (req: Request, res: Response) => {
+export const editNicknameHandler: RequestHandler = async (req, res) => {
   try {
-    const newNickname = req.body.nickname;
+    const newNickname = req.body.nickname; // TODO: Typing
     const result = await userModel.findOneAndUpdate(
       { id: req.userId },
       { nickname: newNickname }
@@ -66,21 +70,23 @@ export const editNicknameHandler = async (req: Request, res: Response) => {
       //   req.timestamp
       // );
 
-      res
+      return res
         .status(200)
         .send("Users/editNickname : edit user nickname successful");
     } else {
-      res.status(400).send("Users/editNickname : such user id does not exist");
+      return res
+        .status(400)
+        .send("Users/editNickname : such user id does not exist");
     }
   } catch (err) {
     logger.error(err);
-    res.status(500).send("Users/editNickname : internal server error");
+    return res.status(500).send("Users/editNickname : internal server error");
   }
 };
 
-export const editAccountHandler = async (req: Request, res: Response) => {
+export const editAccountHandler: RequestHandler = async (req, res) => {
   try {
-    const newAccount = req.body.account;
+    const newAccount = req.body.account; // TODO: Typing
     const result = await userModel.findOneAndUpdate(
       { id: req.userId },
       { account: newAccount }
@@ -94,22 +100,26 @@ export const editAccountHandler = async (req: Request, res: Response) => {
       //   newAccount
       // );
 
-      res.status(200).send("Users/editAccount : edit user account successful");
+      return res
+        .status(200)
+        .send("Users/editAccount : edit user account successful");
     } else {
-      res.status(400).send("Users/editAccount : such user id does not exist");
+      return res
+        .status(400)
+        .send("Users/editAccount : such user id does not exist");
     }
   } catch (err) {
     logger.error(err);
-    res.status(500).send("Users/editAccount : internal server error");
+    return res.status(500).send("Users/editAccount : internal server error");
   }
 };
 
-export const editProfileImgGetPUrlHandler = async (
-  req: Request,
-  res: Response
+export const editProfileImgGetPUrlHandler: RequestHandler = async (
+  req,
+  res
 ) => {
   try {
-    const type = req.body.type;
+    const type = req.body.type; // TODO: Typing
     const user = await userModel.findOne({ id: req.userId }, "_id");
     if (!user) {
       return res
@@ -125,22 +135,19 @@ export const editProfileImgGetPUrlHandler = async (
       }
       data.fields["Content-Type"] = type;
       data.fields["key"] = key;
-      res.json({
+      return res.json({
         url: data.url,
         fields: data.fields,
       });
     });
   } catch (e) {
-    res
+    return res
       .status(500)
       .send("Users/editProfileImg/getPUrl : internal server error");
   }
 };
 
-export const editProfileImgDoneHandler = async (
-  req: Request,
-  res: Response
-) => {
+export const editProfileImgDoneHandler: RequestHandler = async (req, res) => {
   try {
     const user = await userModel.findOne({ id: req.userId }, "_id");
     if (!user) {
@@ -166,37 +173,39 @@ export const editProfileImgDoneHandler = async (
           .status(500)
           .send("Users/editProfileImg/done : internal server error");
       }
-      res.json({
+      return res.json({
         result: true,
         profileImageUrl: userAfter.profileImageUrl,
       });
     });
   } catch (e) {
-    res.status(500).send("Users/editProfileImg/done : internal server error");
+    return res
+      .status(500)
+      .send("Users/editProfileImg/done : internal server error");
   }
 };
 
-export const resetNicknameHandler = async (req: Request, res: Response) => {
+export const resetNicknameHandler: RequestHandler = async (req, res) => {
   try {
     const result = await userModel.findOneAndUpdate(
       { id: req.userId },
-      { nickname: generateNickname(req.body.id) },
+      { nickname: generateNickname(req.body.id) }, // TODO: Typing or Validation
       { new: true }
     );
     if (!result)
       return res
         .status(400)
         .send("Users/resetNickname : such user does not exist");
-    res
+    return res
       .status(200)
       .send("Users/resetNickname : reset user nickname successful");
   } catch (err) {
     logger.error(err);
-    res.status(500).send("Users/resetNickname : internal server error");
+    return res.status(500).send("Users/resetNickname : internal server error");
   }
 };
 
-export const resetProfileImgHandler = async (req: Request, res: Response) => {
+export const resetProfileImgHandler: RequestHandler = async (req, res) => {
   try {
     const result = await userModel.findOneAndUpdate(
       { id: req.userId },
@@ -207,15 +216,17 @@ export const resetProfileImgHandler = async (req: Request, res: Response) => {
       return res
         .status(400)
         .send("Users/resetProfileImg : such user does not exist");
-    res
+    return res
       .status(200)
       .send("Users/resetProfileImg : reset user profile image successful");
   } catch (err) {
-    res.status(500).send("Users/resetProfileImg : internal server error");
+    return res
+      .status(500)
+      .send("Users/resetProfileImg : internal server error");
   }
 };
 
-export const getBanRecordHandler = async (req: Request, res: Response) => {
+export const getBanRecordHandler: RequestHandler = async (req, res) => {
   try {
     // 본인인 경우(ban의 userId가 userSid랑 같은 경우)의 record를 모두 가져옴
     const result = await banModel
@@ -225,8 +236,8 @@ export const getBanRecordHandler = async (req: Request, res: Response) => {
       .sort({ expireAt: -1 });
     if (!result)
       return res.status(500).send("Users/getBanRecord : internal server error");
-    res.status(200).json(result);
+    return res.status(200).json(result);
   } catch (err) {
-    res.status(500).send("Users/getBanRecord : internal server error");
+    return res.status(500).send("Users/getBanRecord : internal server error");
   }
 };
