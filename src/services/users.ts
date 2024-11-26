@@ -17,7 +17,7 @@ export const agreeOnTermsOfServiceHandler: RequestHandler = async (
   try {
     let user = await userModel.findOne({ id: req.userId });
     if (!user) {
-      return res.status(500).send("Users/agreeOnTermsOfService : no such user");
+      return res.status(400).send("Users/agreeOnTermsOfService : no such user");
     }
 
     if (user.agreeOnTermsOfService === true) {
@@ -42,6 +42,11 @@ export const getAgreeOnTermsOfServiceHandler: RequestHandler = async (
     const user = await userModel
       .findOne({ id: req.userId }, "agreeOnTermsOfService")
       .lean();
+
+    if (!user) {
+      return res.status(400).send("Users/agreeOnTermsOfService : no such user");
+    }
+
     if (user) {
       const agreeOnTermsOfService = user.agreeOnTermsOfService === true;
       return res.json({ agreeOnTermsOfService });
