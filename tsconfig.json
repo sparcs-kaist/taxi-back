@@ -1,24 +1,23 @@
 {
-    "compilerOptions": {
-      "target": "es6",
-      "module": "node16",
-      "moduleResolution": "node16",
-      "allowJs": true,
-      "outDir": "./dist",
-      "resolveJsonModule": true,
-      "strict": true,
-      "esModuleInterop": true,
-      "skipLibCheck": true,
-      "forceConsistentCasingInFileNames": true,
-      "baseUrl": "./src",
-      "paths": {
-        "@/*": ["./*"]
-      }
-    },
-    "include": ["src"],
-    "exclude": ["dist", "node_modules"],
-    "ts-node": {
-      "files": true
+  "compilerOptions": {
+    "target": "es6",
+    "module": "node16",
+    "moduleResolution": "node16",
+    "allowJs": true,
+    "outDir": "./dist",
+    "resolveJsonModule": true,
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "baseUrl": "./src",
+    "paths": {
+      "@/*": ["./*"]
     }
+  },
+  "include": ["src"],
+  "exclude": ["dist", "node_modules"],
+  "ts-node": {
+    "files": true
   }
-  
+}
