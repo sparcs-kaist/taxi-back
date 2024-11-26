@@ -1,4 +1,4 @@
-import mongoose, { model, Schema, Types } from "mongoose";
+import mongoose, { model, Schema, type Types } from "mongoose";
 import logger from "@/modules/logger";
 import type {
   User,
