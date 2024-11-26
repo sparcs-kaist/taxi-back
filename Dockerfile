@@ -26,6 +26,9 @@ WORKDIR /usr/src/app
 # Install pnpm
 RUN npm install --global pnpm@8.8.0
 
+# Install curl for taxi-watchtower
+RUN apk update && apk add curl
+
 # devDependencies are not fetched
 COPY pnpm-lock.yaml .
 RUN pnpm fetch --prod
