@@ -2,7 +2,7 @@
 // https://github.com/sparcs-kaist/taxi-back/issues/173
 
 const { MongoClient } = require("mongodb");
-const { mongo: mongoUrl, aws: awsEnv } = require("../loadenv"); // FIXME: 올바른 경로로 수정해야 합니다.
+const { mongo: mongoUrl, aws: awsEnv } = require("@/loadenv");
 
 const time = Date.now();
 
