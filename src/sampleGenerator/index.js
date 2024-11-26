@@ -9,7 +9,6 @@ const { mongo: mongoUrl, numberOfChats, numberOfRooms } = require("./loadenv");
 
 const database = connectDatabase(mongoUrl);
 
-const fs = require("fs");
 const sampleData = require("./sampleData.json");
 
 const main = async () => {
