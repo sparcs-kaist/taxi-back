@@ -1,6 +1,5 @@
-import { ObjectId } from "mongoose";
-
-const emailPage = require("./emailPage").default;
+import type { ObjectId } from "mongoose";
+import emailPage from "./emailPage";
 
 interface ReportEmailPage {
   [key: string]: (
@@ -96,4 +95,4 @@ reportEmailPage["no-show"] = (
     `
   );
 
-module.exports = reportEmailPage;
+export default reportEmailPage;
