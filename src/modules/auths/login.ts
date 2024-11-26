@@ -1,4 +1,4 @@
-import { type Request } from "express";
+import type { Request } from "express";
 import { session as sessionConfig } from "@/loadenv";
 import logger from "@/modules/logger";
 

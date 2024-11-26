@@ -1,7 +1,7 @@
 import axios from "axios";
 import { nodeEnv, slackWebhookUrl as slackUrl } from "@/loadenv";
 import logger from "@/modules/logger";
-import { type Report } from "@/types/mongo";
+import type { Report } from "@/types/mongo";
 
 export const sendTextToReportChannel = (text: string) => {
   if (!slackUrl.report) return;

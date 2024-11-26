@@ -1,4 +1,4 @@
-import { type User, type Report } from "@/types/mongo";
+import type { User, Report } from "@/types/mongo";
 
 export const reportPopulateOption = [
   {
