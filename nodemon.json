@@ -1,7 +1,10 @@
 {
-    "ignore": ["node_modules/*"],
-    "env": {
-        "TZ": "Asia/Seoul",
-        "NODE_ENV": "development"
-    } 
+  "ignore": ["node_modules"],
+  "watch": ["src", ".env.development"],
+  "ext": "js,json,ts",
+  "exec": "ts-node --require tsconfig-paths/register src",
+  "env": {
+    "TZ": "Asia/Seoul",
+    "NODE_ENV": "development"
+  } 
 }

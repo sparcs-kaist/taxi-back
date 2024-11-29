@@ -1,13 +1,9 @@
-const {
-  userModel,
-  reportModel,
-  roomModel,
-} = require("../modules/stores/mongo");
-const { reportPopulateOption } = require("../modules/populates/reports");
-const { sendReportEmail } = require("../modules/email");
-const logger = require("../modules/logger");
-const reportEmailPage = require("../views/reportEmailPage");
-const { notifyReportToReportChannel } = require("../modules/slackNotification");
+const { userModel, reportModel, roomModel } = require("@/modules/stores/mongo");
+const { reportPopulateOption } = require("@/modules/populates/reports");
+const { sendReportEmail } = require("@/modules/email");
+const logger = require("@/modules/logger").default;
+const reportEmailPage = require("@/views/reportEmailPage").default;
+const { notifyReportToReportChannel } = require("@/modules/slackNotification");
 
 const createHandler = async (req, res) => {
   try {

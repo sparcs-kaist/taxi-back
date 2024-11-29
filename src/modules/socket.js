@@ -1,13 +1,13 @@
 const { Server } = require("socket.io");
 
-const sessionMiddleware = require("../middlewares/session");
-const logger = require("./logger");
-const { getLoginInfo } = require("./auths/login");
-const { roomModel, userModel, chatModel } = require("./stores/mongo");
-const { getTokensOfUsers, sendMessageByTokens } = require("./fcm");
+const sessionMiddleware = require("@/middlewares/session").default;
+const logger = require("@/modules/logger").default;
+const { getLoginInfo } = require("@/modules/auths/login");
+const { roomModel, userModel, chatModel } = require("@/modules/stores/mongo");
+const { getTokensOfUsers, sendMessageByTokens } = require("@/modules/fcm");
 
-const { corsWhiteList } = require("../../loadenv");
-const { chatPopulateOption } = require("./populates/chats");
+const { corsWhiteList } = require("@/loadenv");
+const { chatPopulateOption } = require("@/modules/populates/chats");
 
 /**
  * emitChatEvent의 필수 파라미터가 주어지지 않은 경우 발생하는 예외를 정의하는 클래스입니다.
