@@ -125,7 +125,13 @@ const getItemLeaderboardHandler = async (req, res) => {
       leaderboardBase
         .filter((user) => user.rank <= 20)
         .map(async (user) => {
-          const userInfo = await userModel.findById(user.userId).lean();
+          const userInfo = await userModel
+            .findOne({ _id: user.userId, withdraw: false })
+            .lean();
+          if (!userInfo) {
+            logger.error(`Fail to find user ${user.userId}`);
+            return null;
+          }
           return {
             nickname: userInfo.nickname,
             profileImageUrl: userInfo.profileImageUrl,
@@ -135,6 +141,10 @@ const getItemLeaderboardHandler = async (req, res) => {
           };
         })
     );
+    if (leaderboard.includes(null))
+      return res
+        .status(500)
+        .json({ error: "Items/leaderboard : internal server error" });
 
     const userId = isLogin(req) ? getLoginInfo(req).oid : null;
     const user = leaderboardBase.find(
