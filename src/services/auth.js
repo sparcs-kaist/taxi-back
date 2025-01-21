@@ -37,7 +37,7 @@ const transUserData = (userData) => {
 
 const joinus = async (req, userData) => {
   const newUser = new userModel({
-    id: userData.id,
+    id: userData.id, // NOTE: SSO uid
     name: userData.name,
     nickname: generateNickname(userData.id),
     profileImageUrl: generateProfileImageUrl(),

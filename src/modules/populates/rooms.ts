@@ -112,15 +112,15 @@ export const formatSettlement = (
 };
 
 /**
- * roomPopulateOption을 사용해 populate된 Room Object와 사용자의 id(userId)가 주어졌을 때, 해당 사용자의 정산 상태를 반환합니다.
+ * roomPopulateOption을 사용해 populate된 Room Object와 사용자의 objectId가 주어졌을 때, 해당 사용자의 정산 상태를 반환합니다.
  * @param roomObject - roomPopulateOption을 사용해 populate된 변환한 Room Object입니다.
- * @param userId - 방 완료 상태를 확인하려는 사용자의 id(user.id)입니다.
+ * @param userOid - 방 완료 상태를 확인하려는 사용자의 objectId입니다.
  * @return 사용자의 해당 방에 대한 완료 여부(true | false)를 반환합니다. 사용자가 참여중인 방이 아닐 경우 undefined를 반환합니다.
  **/
-export const getIsOver = (roomObject: PopulatedRoom, userId: string) => {
+export const getIsOver = (roomObject: PopulatedRoom, userOid: string) => {
   // room document의 part subdoocument에서 사용자 id와 일치하는 정산 정보를 찾습니다.
   const participantSubDocuments = roomObject.part?.filter((part) => {
-    return part.user?.id === userId;
+    return part.user?._id?.toString() === userOid;
   });
 
   // 방에 참여중이지 않은 사용자의 경우, undefined을 반환합니다.
