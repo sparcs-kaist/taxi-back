@@ -102,7 +102,7 @@ const createHandler = async (req, res) => {
     await emitChatEvent(req.app.get("io"), {
       roomId: room._id,
       type: "in",
-      content: user.id,
+      content: user._id,
       authorId: user._id,
     });
 
@@ -299,7 +299,7 @@ const joinHandler = async (req, res) => {
     await emitChatEvent(req.app.get("io"), {
       roomId: room._id,
       type: "in",
-      content: user.id,
+      content: user._id,
       authorId: user._id,
     });
 
@@ -386,7 +386,7 @@ const abortHandler = async (req, res) => {
     await emitChatEvent(req.app.get("io"), {
       roomId: room._id,
       type: "out",
-      content: user.id,
+      content: user._id,
       authorId: user._id,
     });
 
@@ -584,7 +584,7 @@ const commitSettlementHandler = async (req, res) => {
     await emitChatEvent(req.app.get("io"), {
       roomId,
       type: "settlement",
-      content: user.id,
+      content: user._id,
       authorId: user._id,
     });
 
@@ -657,7 +657,7 @@ const commitPaymentHandler = async (req, res) => {
     await emitChatEvent(req.app.get("io"), {
       roomId,
       type: "payment",
-      content: user.id,
+      content: user._id,
       authorId: user._id,
     });
 
