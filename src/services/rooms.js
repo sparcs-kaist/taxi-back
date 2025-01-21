@@ -219,7 +219,7 @@ const infoHandler = async (req, res) => {
       .lean()
       .populate(roomPopulateOption);
     if (roomObject) {
-      const isOver = getIsOver(roomObject, user._id);
+      const isOver = getIsOver(roomObject, user._id.toString());
       res.send(formatSettlement(roomObject, { isOver }));
     } else {
       res.status(404).json({
@@ -391,7 +391,7 @@ const abortHandler = async (req, res) => {
     });
 
     const roomObject = (await room.populate(roomPopulateOption)).toObject();
-    const isOver = getIsOver(roomObject, user._id);
+    const isOver = getIsOver(roomObject, user._id.toString());
 
     res.send(formatSettlement(roomObject, { isOver }));
   } catch (err) {
