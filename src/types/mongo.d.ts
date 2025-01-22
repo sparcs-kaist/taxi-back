@@ -16,7 +16,7 @@ export interface User extends Document<Types.ObjectId> {
   /** 계정 탈퇴 여부. */
   withdraw: boolean;
   /** 계정 탈퇴 시각. */
-  withdrawAt?: Date;
+  withdrewAt?: Date;
   /** 사용자의 전화번호. 2023 가을 이벤트부터 추가됨. */
   phoneNumber?: string;
   /** 계정 정지 여부. */

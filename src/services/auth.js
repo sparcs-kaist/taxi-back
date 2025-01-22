@@ -36,6 +36,24 @@ const transUserData = (userData) => {
 };
 
 const joinus = async (req, userData) => {
+  const oldUser = await userModel
+    .findOne(
+      {
+        id: userData.id,
+        withdraw: true,
+      },
+      "withdrewAt"
+    )
+    .sort({ withdrewAt: -1 })
+    .lean();
+  if (oldUser && oldUser.withdrewAt) {
+    // 탈퇴 후 7일이 지나지 않았을 경우, 가입을 거부합니다.
+    const diff = req.timestamp - oldUser.withdrewAt.getTime();
+    if (diff < 7 * 24 * 60 * 60 * 1000) {
+      return false;
+    }
+  }
+
   const newUser = new userModel({
     id: userData.id, // NOTE: SSO uid
     name: userData.name,
@@ -51,6 +69,7 @@ const joinus = async (req, userData) => {
     email: userData.email,
   });
   await newUser.save();
+  return true;
 };
 
 const update = async (userData) => {
@@ -72,8 +91,13 @@ const tryLogin = async (req, res, userData, redirectOrigin, redirectPath) => {
       "_id name email subinfo id withdraw ban"
     );
     if (!user) {
-      await joinus(req, userData);
-      return tryLogin(req, res, userData, redirectOrigin, redirectPath);
+      if (await joinus(req, userData)) {
+        return tryLogin(req, res, userData, redirectOrigin, redirectPath);
+      } else {
+        const redirectUrl = new URL("/login/fail", redirectOrigin).href;
+        res.redirect(redirectUrl);
+        return;
+      }
     }
     if (
       user.name !== userData.name ||

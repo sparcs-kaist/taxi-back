@@ -24,7 +24,7 @@ const userSchema = new Schema<User>({
   ongoingRoom: [{ type: Schema.Types.ObjectId, ref: "Room" }], // 참여중인 진행중인 방 배열
   doneRoom: [{ type: Schema.Types.ObjectId, ref: "Room" }], // 참여중인 완료된 방 배열
   withdraw: { type: Boolean, default: false }, //탈퇴 여부
-  withdrawAt: { type: Date }, //탈퇴 시각
+  withdrewAt: { type: Date }, //탈퇴 시각
   phoneNumber: { type: String }, // 전화번호 (2023FALL 이벤트부터 추가)
   ban: { type: Boolean, default: false }, //계정 정지 여부
   joinat: { type: Date, required: true }, //가입 시각

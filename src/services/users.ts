@@ -274,7 +274,7 @@ export const withdrawHandler: RequestHandler = async (req, res) => {
 
     // 회원 탈퇴 처리 (Soft Delete)
     user.withdraw = true;
-    user.withdrawAt = new Date(req.timestamp!);
+    user.withdrewAt = new Date(req.timestamp!);
 
     await user.save();
 

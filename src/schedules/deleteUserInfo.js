@@ -7,7 +7,7 @@ module.exports = async () => {
     await userModel.updateMany(
       {
         withdraw: true,
-        withdrawAt: {
+        withdrewAt: {
           $lte: new Date(Date.now() - 5 * 365 * 24 * 60 * 60 * 1000),
         },
         name: { $ne: "" },
