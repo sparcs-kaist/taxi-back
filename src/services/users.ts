@@ -1,4 +1,5 @@
 import type { RequestHandler } from "express";
+import { ssoClient, getLoginInfo, logout } from "@/modules/auths/login";
 import { unregisterAllDeviceTokens } from "@/modules/fcm";
 import logger from "@/modules/logger";
 import {
@@ -257,6 +258,11 @@ export const getBanRecordHandler: RequestHandler = async (req, res) => {
 
 export const withdrawHandler: RequestHandler = async (req, res) => {
   try {
+    const redirectPath = decodeURIComponent(
+      (req.query.redirect as string | undefined) || "%2F"
+    ); // TODO: Typing or Validation
+    const { sid } = getLoginInfo(req);
+
     const user = await userModel.findOne({ _id: req.userOid, withdraw: false });
     if (!user) {
       return res.status(500).send("Users/withdraw : internal server error");
@@ -275,10 +281,14 @@ export const withdrawHandler: RequestHandler = async (req, res) => {
     // 회원 탈퇴 처리 (Soft Delete)
     user.withdraw = true;
     user.withdrewAt = new Date(req.timestamp!);
-
     await user.save();
 
-    res.status(200).send("Users/withdraw : withdraw successful");
+    // 로그아웃 처리
+    const redirectUrl = new URL(redirectPath, req.origin).href;
+    const ssoLogoutUrl =
+      ssoClient?.getLogoutUrl(sid, redirectUrl) ?? redirectUrl;
+    logout(req);
+    res.json({ ssoLogoutUrl });
   } catch (err) {
     res.status(500).send("Users/withdraw : internal server error");
   }

@@ -1,7 +1,12 @@
-const { sparcssso: sparcsssoEnv, nodeEnv, testAccounts } = require("@/loadenv");
+const { nodeEnv, testAccounts } = require("@/loadenv");
 const { userModel } = require("@/modules/stores/mongo");
 const { user: userPattern } = require("@/modules/patterns").default;
-const { getLoginInfo, logout, login } = require("@/modules/auths/login");
+const {
+  ssoClient,
+  getLoginInfo,
+  logout,
+  login,
+} = require("@/modules/auths/login");
 
 const { unregisterDeviceToken } = require("@/modules/fcm");
 const {
@@ -11,10 +16,6 @@ const {
 } = require("@/modules/modifyProfile");
 const jwt = require("@/modules/auths/jwt");
 const logger = require("@/modules/logger").default;
-
-// SPARCS SSO
-const Client = require("@/modules/auths/sparcssso");
-const client = new Client(sparcsssoEnv?.id, sparcsssoEnv?.key);
 
 const transUserData = (userData) => {
   const kaistInfo = userData.kaist_info ? JSON.parse(userData.kaist_info) : {};
@@ -137,7 +138,7 @@ const tryLogin = async (req, res, userData, redirectOrigin, redirectPath) => {
 const sparcsssoHandler = (req, res) => {
   const redirectPath = decodeURIComponent(req.query?.redirect || "%2F");
   const isApp = !!req.query.isApp;
-  const { url, state } = client.getLoginParams();
+  const { url, state } = ssoClient.getLoginParams();
 
   req.session.loginAfterState = {
     state: state,
@@ -167,7 +168,7 @@ const sparcsssoCallbackHandler = (req, res) => {
     return res.redirect(redirectUrl);
   }
 
-  client.getUserInfo(code).then((userDataBefore) => {
+  ssoClient.getUserInfo(code).then((userDataBefore) => {
     const userData = transUserData(userDataBefore);
     const isTestAccount = testAccounts?.includes(userData.email);
     if (userData.isEligible || nodeEnv !== "production" || isTestAccount) {
@@ -176,7 +177,7 @@ const sparcsssoCallbackHandler = (req, res) => {
       // 카이스트 구성원이 아닌 경우, SSO 로그아웃 이후, 로그인 실패 URI 로 이동합니다
       const { sid } = userData;
       const redirectUrl = new URL("/login/fail", redirectOrigin).href;
-      const ssoLogoutUrl = client.getLogoutUrl(sid, redirectUrl);
+      const ssoLogoutUrl = ssoClient.getLogoutUrl(sid, redirectUrl);
       res.redirect(ssoLogoutUrl);
     }
   });
@@ -202,7 +203,7 @@ const logoutHandler = async (req, res) => {
 
     // 로그아웃 URL을 생성 및 반환
     const redirectUrl = new URL(redirectPath, req.origin).href;
-    const ssoLogoutUrl = client.getLogoutUrl(sid, redirectUrl);
+    const ssoLogoutUrl = ssoClient.getLogoutUrl(sid, redirectUrl);
     logout(req, res);
     res.json({ ssoLogoutUrl });
   } catch (e) {
