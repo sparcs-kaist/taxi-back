@@ -1,6 +1,6 @@
 const { z } = require("zod");
 const { zodToSchemaObject } = require("../utils");
-const { objectId, chat } = require("../../../modules/patterns");
+const { objectId, chat } = require("@/modules/patterns").default;
 
 const chatsZod = {
   sendChatHandler: z.object({

@@ -1,4 +1,4 @@
-const loginReplacePage = require("../../views/loginReplacePage");
+const loginReplacePage = require("../../views/loginReplacePage").default;
 const tag = "auth";
 const apiPrefix = "/auth(dev)";
 

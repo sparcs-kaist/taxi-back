@@ -2,25 +2,25 @@ const {
   roomModel,
   locationModel,
   userModel,
-} = require("../modules/stores/mongo");
-const { emitChatEvent } = require("../modules/socket");
-const logger = require("../modules/logger");
+} = require("@/modules/stores/mongo");
+const { emitChatEvent } = require("@/modules/socket");
+const logger = require("@/modules/logger").default;
 const {
   roomPopulateOption,
   formatSettlement,
   getIsOver,
-} = require("../modules/populates/rooms");
+} = require("@/modules/populates/rooms");
 const {
   notifyRoomCreationAbuseToReportChannel,
-} = require("../modules/slackNotification");
+} = require("@/modules/slackNotification");
 
 // 이벤트 코드입니다.
-const { eventConfig } = require("../../loadenv");
-const eventPeriod = eventConfig && {
-  startAt: new Date(eventConfig.period.startAt),
-  endAt: new Date(eventConfig.period.endAt),
-};
-const { contracts } = require("../lottery");
+// const { eventConfig } = require("@/loadenv");
+// const eventPeriod = eventConfig && {
+//   startAt: new Date(eventConfig.period.startAt),
+//   endAt: new Date(eventConfig.period.endAt),
+// };
+// const { contracts } = require("@/lottery");
 
 const createHandler = async (req, res) => {
   const { name, from, to, time, maxPartLength } = req.body;
@@ -110,7 +110,7 @@ const createHandler = async (req, res) => {
     const roomObjectFormated = formatSettlement(roomObject);
 
     // 이벤트 코드입니다.
-    await contracts?.completeFirstRoomCreationQuest(req.userOid, req.timestamp);
+    // await contracts?.completeFirstRoomCreationQuest(req.userOid, req.timestamp);
 
     return res.send(roomObjectFormated);
   } catch (err) {
@@ -128,56 +128,57 @@ const createTestHandler = async (req, res) => {
 
   try {
     // 이벤트 코드입니다.
-    if (
-      !eventPeriod ||
-      req.timestamp >= eventPeriod.endAt ||
-      req.timestamp < eventPeriod.startAt
-    )
-      return res.json({ result: true });
+    // if (
+    //   !eventPeriod ||
+    //   req.timestamp >= eventPeriod.endAt ||
+    //   req.timestamp < eventPeriod.startAt
+    // )
+    //   return res.json({ result: true });
 
-    const countRecentlyMadeRooms = await roomModel.countDocuments({
-      madeat: { $gte: new Date(req.timestamp - 86400000) }, // 밀리초 단위로 24시간을 나타냅니다.
-      "part.0.user": req.userOid, // 방 최초 생성자를 저장하는 필드가 없으므로, 첫 번째 참여자를 생성자로 간주합니다.
-    });
-    if (!countRecentlyMadeRooms && countRecentlyMadeRooms !== 0)
-      return res
-        .status(500)
-        .json({ error: "Rooms/create/test : internal server error" });
+    // const countRecentlyMadeRooms = await roomModel.countDocuments({
+    //   madeat: { $gte: new Date(req.timestamp - 86400000) }, // 밀리초 단위로 24시간을 나타냅니다.
+    //   "part.0.user": req.userOid, // 방 최초 생성자를 저장하는 필드가 없으므로, 첫 번째 참여자를 생성자로 간주합니다.
+    // });
+    // if (!countRecentlyMadeRooms && countRecentlyMadeRooms !== 0)
+    //   return res
+    //     .status(500)
+    //     .json({ error: "Rooms/create/test : internal server error" });
 
-    const dateTime = new Date(time);
-    const candidateRooms = await roomModel
-      .find(
-        {
-          time: {
-            $gte: new Date(dateTime.getTime() - 43200000),
-            $lte: new Date(dateTime.getTime() + 43200000),
-          },
-          part: { $elemMatch: { user: req.userOid } },
-        },
-        "from to time maxPartLength"
-      )
-      .limit(2)
-      .lean();
-    if (!candidateRooms)
-      return res
-        .status(500)
-        .json({ error: "Rooms/create/test : internal server error" });
+    // const dateTime = new Date(time);
+    // const candidateRooms = await roomModel
+    //   .find(
+    //     {
+    //       time: {
+    //         $gte: new Date(dateTime.getTime() - 43200000),
+    //         $lte: new Date(dateTime.getTime() + 43200000),
+    //       },
+    //       part: { $elemMatch: { user: req.userOid } },
+    //     },
+    //     "from to time maxPartLength"
+    //   )
+    //   .limit(2)
+    //   .lean();
+    // if (!candidateRooms)
+    //   return res
+    //     .status(500)
+    //     .json({ error: "Rooms/create/test : internal server error" });
 
-    const isAbusing = checkIsAbusing(
-      req.body,
-      countRecentlyMadeRooms,
-      candidateRooms
-    );
-    if (isAbusing) {
-      const user = await userModel.findById(req.userOid).lean();
-      notifyRoomCreationAbuseToReportChannel(
-        req.userOid,
-        user?.nickname ?? req.userOid,
-        req.body
-      );
-    }
+    // const isAbusing = checkIsAbusing(
+    //   req.body,
+    //   countRecentlyMadeRooms,
+    //   candidateRooms
+    // );
+    // if (isAbusing) {
+    //   const user = await userModel.findById(req.userOid).lean();
+    //   notifyRoomCreationAbuseToReportChannel(
+    //     req.userOid,
+    //     user?.nickname ?? req.userOid,
+    //     req.body
+    //   );
+    // }
 
-    return res.json({ result: !isAbusing });
+    // return res.json({ result: !isAbusing });
+    return res.json({ result: true });
   } catch (err) {
     logger.error(err);
     res.status(500).json({
@@ -648,11 +649,11 @@ const commitSettlementHandler = async (req, res) => {
     });
 
     // 이벤트 코드입니다.
-    await contracts?.completeFareSettlementQuest(
-      req.userOid,
-      req.timestamp,
-      roomObject
-    );
+    // await contracts?.completeFareSettlementQuest(
+    //   req.userOid,
+    //   req.timestamp,
+    //   roomObject
+    // );
 
     // 수정한 방 정보를 반환합니다.
     res.send(formatSettlement(roomObject, { isOver: true }));
@@ -721,11 +722,11 @@ const commitPaymentHandler = async (req, res) => {
     });
 
     // 이벤트 코드입니다.
-    await contracts?.completeFarePaymentQuest(
-      req.userOid,
-      req.timestamp,
-      roomObject
-    );
+    // await contracts?.completeFarePaymentQuest(
+    //   req.userOid,
+    //   req.timestamp,
+    //   roomObject
+    // );
 
     // 수정한 방 정보를 반환합니다.
     res.send(formatSettlement(roomObject, { isOver: true }));

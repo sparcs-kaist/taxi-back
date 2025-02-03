@@ -15,10 +15,28 @@ const getItemsHandler = async (req, res) => {
     const items = await itemModel
       .find(
         {},
-        "_id name description imageUrl instagramStoryStickerImageUrl price isDisabled itemType"
+        "_id name description imageUrl price isDisabled itemType realStock"
       )
       .lean();
     res.json({ items });
+  } catch (err) {
+    logger.error(err);
+    res.status(500).json({ error: "Items/ : internal server error" });
+  }
+};
+
+const getItemHandler = async (req, res) => {
+  try {
+    const { itemId } = req.params;
+    const item = await itemModel
+      .findById(
+        itemId,
+        "_id name description imageUrl price isDisabled itemType realStock"
+      )
+      .lean();
+    if (!item) return res.status(400).json({ error: "Items/ : invalid item" });
+
+    res.json({ item });
   } catch (err) {
     logger.error(err);
     res.status(500).json({ error: "Items/ : internal server error" });
@@ -113,6 +131,7 @@ const getItemLeaderboardHandler = async (req, res) => {
             profileImageUrl: userInfo.profileImageUrl,
             amount: user.amount,
             probability: user.probability,
+            rank: user.rank,
           };
         })
     );
@@ -318,7 +337,7 @@ const purchaseItemHandler = async (req, res) => {
       } else {
         const transaction = new transactionModel({
           type: "use",
-          amount: creditDelta,
+          amount: -creditDelta,
           userId: req.userOid,
           itemId: item._id,
           itemAmount: amount,
@@ -363,6 +382,7 @@ const purchaseItemHandler = async (req, res) => {
 
 module.exports = {
   getItemsHandler,
+  getItemHandler,
   getItemLeaderboardHandler,
   purchaseItemHandler,
 };

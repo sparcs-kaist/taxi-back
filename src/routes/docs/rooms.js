@@ -1,4 +1,4 @@
-const { objectId, room } = require("../../modules/patterns");
+const { objectId, room } = require("@/modules/patterns").default;
 
 const tag = "rooms";
 const apiPrefix = "/rooms";
@@ -72,6 +72,12 @@ roomsDocs[`${apiPrefix}/create`] = {
               },
             },
             examples: {
+              "방 생성 기능이 정지당한 경우": {
+                value: {
+                  error:
+                    "Rooms/join : user monday is temporarily restricted from creating rooms until 2024-08-23 15:00:00.",
+                },
+              },
               "출발지와 도착지가 같음": {
                 value: {
                   error: "Rooms/create : locations are same",
@@ -309,6 +315,12 @@ roomsDocs[`${apiPrefix}/join`] = {
               },
             },
             examples: {
+              "방 참여 기능이 정지당한 경우": {
+                value: {
+                  error:
+                    "Rooms/join : user monday is temporarily restricted from joining rooms until 2024-08-23 15:00:00.",
+                },
+              },
               "사용자가 참여하는 진행 중 방이 5개 이상": {
                 value: {
                   error: "Rooms/join : participating in too many rooms",

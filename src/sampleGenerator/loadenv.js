@@ -1,5 +1,5 @@
 // Root directory에 있는 .env.test 파일을 읽어옴
-require("dotenv").config({ path: "../../.env.test" });
+require("dotenv").config({ path: "./.env.test" });
 
 module.exports = {
   mongo: process.env.DB_PATH, // required
