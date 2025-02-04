@@ -1,5 +1,5 @@
 import express from "express";
-import { body, query } from "express-validator";
+import { body } from "express-validator";
 import { authMiddleware, validatorMiddleware } from "@/middlewares";
 import patterns from "@/modules/patterns";
 

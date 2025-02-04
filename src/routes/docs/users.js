@@ -398,16 +398,6 @@ usersDocs[`${apiPrefix}/withdraw`] = {
     tags: [tag],
     summary: "회원 탈퇴",
     description: "회원 탈퇴를 요청합니다.",
-    parameters: [
-      {
-        in: "query",
-        name: "redirect",
-        schema: {
-          type: "string",
-        },
-        description: "로그아웃 후 리다이렉트 URI",
-      },
-    ],
     responses: {
       200: {
         content: {
