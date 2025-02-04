@@ -5,11 +5,12 @@ import notifyBeforeDepart from "./notifyBeforeDepart";
 import notifyAfterArrival from "./notifyAfterArrival";
 import updateMajorTaxiFare from "./updateMajorTaxiFare";
 import updateMinorTaxiFare from "./updateMinorTaxiFare";
+import autoProcessingRoom from "./autoProcessingRoom";
 
 const registerSchedules = (app: Express) => {
   cron.schedule("*/5 * * * *", notifyBeforeDepart(app));
   cron.schedule("*/10 * * * *", notifyAfterArrival(app));
-  cron.schedule("*/15 * * * *", require("./autoProcessingRoom")(app));
+  cron.schedule("1-59/10 * * * *", autoProcessingRoom(app));
 
   if (naverMap.apiId && naverMap.apiKey) {
     cron.schedule("0,30 * * * * ", updateMajorTaxiFare(app));

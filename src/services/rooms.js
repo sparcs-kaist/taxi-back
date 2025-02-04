@@ -485,7 +485,7 @@ const searchHandler = async (req, res) => {
 
 const searchByUserHandler = async (req, res) => {
   try {
-    var user = await userModel // 일련의 작업 후 user를 재정의하기 때문에 var로 정의
+    let user = await userModel
       .findOne({ id: req.userId })
       .populate({
         path: "ongoingRoom",
@@ -498,78 +498,6 @@ const searchByUserHandler = async (req, res) => {
         populate: roomPopulateOption,
       });
 
-    // ongoingRoom 중 이미 출발했고, 혼자 참여중인 방은
-    // 정산 상태를 완료로 바꾸고 doneRoom으로 옮긴다.
-    const moving = user.ongoingRoom.filter(
-      (room) => room.part.length == 1 && room.time <= req.timestamp
-    );
-
-    // 정산 상태를 완료로 바꾼다.
-    for await (const room of moving) {
-      console.log("before changing settlement: " + room);
-      let changingRoomObject = await roomModel
-        .findOneAndUpdate(
-          {
-            _id: room._id,
-            part: {
-              $elemMatch: {
-                user: user._id,
-                settlementStatus: "not-departed",
-              },
-            },
-            time: { $lte: req.timestamp },
-          },
-          {
-            settlementTotal: 1,
-            $set: { "part.$.settlementStatus": "paid" },
-          },
-          { new: true }
-        )
-        .lean()
-        .populate(roomPopulateOption);
-
-      if (!changingRoomObject) {
-        return res.status(404).json({
-          error: "Rooms/searchByUser : cannot find settlement info",
-        });
-      }
-
-      // ongoingRoom에서 doneRoom으로 옮긴다.
-      await userModel.updateOne(
-        { id: req.userId },
-        { $push: { doneRoom: room.id } }
-      );
-
-      await userModel.updateOne(
-        { id: req.userId },
-        { $pull: { ongoingRoom: room.id } }
-      );
-    }
-
-    // lean()이 적용된 user를 response에 반환해줘야 하기 때문에 user를 한 번 더 지정한다.
-    user = await userModel
-      .findOne({ id: req.userId })
-      .populate({
-        path: "ongoingRoom",
-        options: {
-          limit: 1000,
-          // ongoingRoom 은 시간 오름차순 정렬
-          sort: { time: 1 },
-        },
-        populate: roomPopulateOption,
-      })
-      .populate({
-        path: "doneRoom",
-        options: {
-          limit: 1000,
-          // doneRoom 은 시간 내림차순 정렬
-          sort: { time: -1 },
-        },
-        populate: roomPopulateOption,
-      })
-      .lean();
-
-    // 정산완료여부 기준으로 진행중인 방과 완료된 방을 분리해서 응답을 전송합니다.
     const response = {};
     response.ongoing = user.ongoingRoom.map((room) =>
       formatSettlement(room, { isOver: false })
