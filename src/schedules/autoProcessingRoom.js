@@ -1,7 +1,8 @@
 const { userModel, roomModel, chatModel } = require("../modules/stores/mongo");
 const logger = require("../modules/logger");
-const { MS_PER_MINUTE } = require("../modules/constants");
 const { emitChatEvent } = require("../modules/socket");
+
+const MS_PER_MINUTE = 60000;
 
 // 탑승자가 1명인 상태로 탑승일이 지난 방에 대해서 정산 완료 처리
 module.exports = (app) => async () => {

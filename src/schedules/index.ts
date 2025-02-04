@@ -9,6 +9,7 @@ import updateMinorTaxiFare from "./updateMinorTaxiFare";
 const registerSchedules = (app: Express) => {
   cron.schedule("*/5 * * * *", notifyBeforeDepart(app));
   cron.schedule("*/10 * * * *", notifyAfterArrival(app));
+  cron.schedule("*/15 * * * *", require("./autoProcessingRoom")(app));
 
   if (naverMap.apiId && naverMap.apiKey) {
     cron.schedule("0,30 * * * * ", updateMajorTaxiFare(app));
