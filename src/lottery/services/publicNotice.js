@@ -132,6 +132,7 @@ const getTicketLeaderboardHandler = async (req, res) => {
       );
     const leaderboard = await Promise.all(
       sortedUsers.slice(0, 20).map(async (user) => {
+        // 여기서 userId는 oid입니다.
         const userInfo = await userModel
           .findOne({ _id: user.userId, withdraw: false })
           .lean();
