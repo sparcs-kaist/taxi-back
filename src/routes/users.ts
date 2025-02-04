@@ -60,11 +60,6 @@ router.get("/resetProfileImg", userHandlers.resetProfileImgHandler);
 router.get("/getBanRecord", userHandlers.getBanRecordHandler);
 
 // 회원 탈퇴를 요청합니다.
-router.post(
-  "/withdraw",
-  query("redirect").optional().isString(),
-  validatorMiddleware,
-  userHandlers.withdrawHandler
-);
+router.post("/withdraw", validatorMiddleware, userHandlers.withdrawHandler);
 
 export default router;

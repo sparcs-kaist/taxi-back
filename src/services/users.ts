@@ -258,9 +258,6 @@ export const getBanRecordHandler: RequestHandler = async (req, res) => {
 
 export const withdrawHandler: RequestHandler = async (req, res) => {
   try {
-    const redirectPath = decodeURIComponent(
-      (req.query.redirect as string | undefined) || "%2F"
-    ); // TODO: Typing or Validation
     const { sid } = getLoginInfo(req);
 
     const user = await userModel.findOne({ _id: req.userOid, withdraw: false });
@@ -284,7 +281,7 @@ export const withdrawHandler: RequestHandler = async (req, res) => {
     await user.save();
 
     // 로그아웃 처리
-    const redirectUrl = new URL(redirectPath, req.origin).href;
+    const redirectUrl = new URL("/mypage?withdraw=true", req.origin).href;
     const ssoLogoutUrl =
       ssoClient?.getLogoutUrl(sid, redirectUrl) ?? redirectUrl;
     logout(req);
