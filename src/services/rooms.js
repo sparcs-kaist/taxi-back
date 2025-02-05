@@ -486,7 +486,7 @@ const searchHandler = async (req, res) => {
 const searchByUserHandler = async (req, res) => {
   try {
     // lean()이 적용된 user를 response에 반환해줘야 하기 때문에 user를 한 번 더 지정한다.
-    let user = await userModel
+    const user = await userModel
       .findOne({ id: req.userId })
       .populate({
         path: "ongoingRoom",
