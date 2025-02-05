@@ -10,8 +10,7 @@ import autoProcessingRoom from "./autoProcessingRoom";
 const registerSchedules = (app: Express) => {
   cron.schedule("*/5 * * * *", notifyBeforeDepart(app));
   cron.schedule("*/10 * * * *", notifyAfterArrival(app));
-  cron.schedule("1-59/10 * * * *", autoProcessingRoom(app));
-
+  cron.schedule("1,11,21,31,41,51 * * * *", autoProcessingRoom(app));
   if (naverMap.apiId && naverMap.apiKey) {
     cron.schedule("0,30 * * * * ", updateMajorTaxiFare(app));
     cron.schedule("0 18 * * *", updateMinorTaxiFare(app));

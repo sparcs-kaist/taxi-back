@@ -485,19 +485,30 @@ const searchHandler = async (req, res) => {
 
 const searchByUserHandler = async (req, res) => {
   try {
+    // lean()이 적용된 user를 response에 반환해줘야 하기 때문에 user를 한 번 더 지정한다.
     let user = await userModel
       .findOne({ id: req.userId })
       .populate({
         path: "ongoingRoom",
-        options: { limit: 1000 },
+        options: {
+          limit: 1000,
+          // ongoingRoom 은 시간 오름차순 정렬
+          sort: { time: 1 },
+        },
         populate: roomPopulateOption,
       })
       .populate({
         path: "doneRoom",
-        options: { limit: 1000 },
+        options: {
+          limit: 1000,
+          // doneRoom 은 시간 내림차순 정렬
+          sort: { time: -1 },
+        },
         populate: roomPopulateOption,
-      });
+      })
+      .lean();
 
+    // 정산완료여부 기준으로 진행중인 방과 완료된 방을 분리해서 응답을 전송합니다.
     const response = {};
     response.ongoing = user.ongoingRoom.map((room) =>
       formatSettlement(room, { isOver: false })
