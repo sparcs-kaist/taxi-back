@@ -656,8 +656,7 @@ roomsDocs[`${apiPrefix}/searchByUser`] = {
     tags: [tag],
     summary: "사용자가 참여 중인 방 검색",
     description: `로그인 된 사용자가 참여 중인 방을 검색합니다.<br/>
-    정산 완료 여부 기준으로 진행 중인 방과 완료된 방을 \`ongoing\`과 \`done\`으로 각각 분리하여 응답을 전송합니다.<br/>
-    혼자 참여 중인 방 중 이미 출발한 방이 있으면 정산 완료 처리한 후 과거 참여 방으로 옮긴다.`,
+    정산 완료 여부 기준으로 진행 중인 방과 완료된 방을 \`ongoing\`과 \`done\`으로 각각 분리하여 응답을 전송합니다.`,
     parameters: {},
     responses: {
       200: {
