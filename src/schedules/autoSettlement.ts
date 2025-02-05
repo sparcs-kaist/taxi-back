@@ -23,8 +23,6 @@ const autoSettlement = (app: Express) => async () => {
     await Promise.all(
       candidateRooms.map(async ({ _id: roomId, part }) => {
         const user = await userModel.findById(part![0].user._id);
-        if (user && !user.withdraw) return false;
-
         // 정산 채팅을 보냅니다.
         await emitChatEvent(io, {
           roomId: roomId.toString(),
