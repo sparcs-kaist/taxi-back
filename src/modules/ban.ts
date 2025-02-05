@@ -32,7 +32,7 @@ export const validateServiceBanRecord = async (
       .toISOString()
       .replace("T", " ")
       .split(".")[0];
-    const banErrorMessage = `${req.originalUrl} : user ${req.userId} (${
+    const banErrorMessage = `${req.originalUrl} : user ${req.userOid} (${
       req.session.loginInfo!.sid
     }) is temporarily restricted from service until ${formattedExpireAt}.`;
     return banErrorMessage;

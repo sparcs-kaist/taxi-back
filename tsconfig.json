@@ -18,6 +18,7 @@
   "include": ["src", "scripts"],
   "exclude": ["dist", "node_modules"],
   "ts-node": {
-    "files": true
+    "files": true,
+    "transpileOnly": true
   }
 }

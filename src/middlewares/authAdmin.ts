@@ -11,8 +11,8 @@ const authAdminMiddleware: RequestHandler = async (req, res, next) => {
     if (!isLogin(req)) return res.redirect(redirectUrl);
 
     // 관리자 유무를 확인
-    const { id } = getLoginInfo(req);
-    const user = await userModel.findOne({ id });
+    const { oid } = getLoginInfo(req);
+    const user = await userModel.findOne({ _id: oid, withdraw: false });
     if (!user?.isAdmin) return res.redirect(redirectUrl);
 
     // 접속한 IP가 화이트리스트에 있는지 확인

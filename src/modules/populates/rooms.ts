@@ -15,28 +15,47 @@ export const roomPopulateOption = [
   {
     path: "part",
     select: "-_id user settlementStatus readAt",
-    populate: { path: "user", select: "_id id name nickname profileImageUrl" },
+    populate: {
+      path: "user",
+      select: "_id id name nickname profileImageUrl withdraw",
+    },
   },
 ];
 
 interface PopulatedParticipant
   extends Pick<Participant, "settlementStatus" | "readAt"> {
-  user: Pick<User, "_id" | "id" | "name" | "nickname" | "profileImageUrl">;
+  user: Pick<
+    User,
+    "_id" | "id" | "name" | "nickname" | "profileImageUrl" | "withdraw"
+  > | null;
 }
 
 export interface PopulatedRoom extends Omit<Room, "from" | "to" | "part"> {
-  from: Pick<Location, "_id" | "koName" | "enName">;
-  to: Pick<Location, "_id" | "koName" | "enName">;
-  part?: PopulatedParticipant[];
+  from: Pick<Location, "_id" | "koName" | "enName"> | null;
+  to: Pick<Location, "_id" | "koName" | "enName"> | null;
+  part: PopulatedParticipant[];
 }
 
-export interface FormattedRoom
-  extends Omit<PopulatedRoom, "part" | "settlementTotal"> {
-  part?: {
+interface FormattedLocation {
+  _id: string;
+  enName: string;
+  koName: string;
+}
+
+export interface FormattedRoom {
+  _id: string;
+  name: string;
+  from: FormattedLocation;
+  to: FormattedLocation;
+  time: Date;
+  madeat: Date;
+  maxPartLength: number;
+  part: {
     _id: string;
     name: string;
     nickname: string;
     profileImageUrl: string;
+    withdraw: boolean;
     isSettlement?: SettlementStatus;
     readAt: Date;
   }[];
@@ -61,15 +80,27 @@ export const formatSettlement = (
 ): FormattedRoom => {
   return {
     ...roomObject,
-    part: roomObject.part?.map((participantSubDocument) => {
-      const { _id, name, nickname, profileImageUrl } =
-        participantSubDocument.user;
+    _id: roomObject._id!.toString(),
+    from: {
+      _id: roomObject.from!._id!.toString(),
+      enName: roomObject.from!.enName,
+      koName: roomObject.from!.koName,
+    },
+    to: {
+      _id: roomObject.to!._id!.toString(),
+      enName: roomObject.to!.enName,
+      koName: roomObject.to!.koName,
+    },
+    part: roomObject.part.map((participantSubDocument) => {
+      const { _id, name, nickname, profileImageUrl, withdraw } =
+        participantSubDocument.user!;
       const { settlementStatus, readAt } = participantSubDocument;
       return {
-        _id,
+        _id: _id!.toString(),
         name,
         nickname,
         profileImageUrl,
+        withdraw,
         isSettlement: includeSettlement ? settlementStatus : undefined,
         readAt: readAt ?? roomObject.madeat,
       };
@@ -81,15 +112,15 @@ export const formatSettlement = (
 };
 
 /**
- * roomPopulateOption을 사용해 populate된 Room Object와 사용자의 id(userId)가 주어졌을 때, 해당 사용자의 정산 상태를 반환합니다.
+ * roomPopulateOption을 사용해 populate된 Room Object와 사용자의 objectId가 주어졌을 때, 해당 사용자의 정산 상태를 반환합니다.
  * @param roomObject - roomPopulateOption을 사용해 populate된 변환한 Room Object입니다.
- * @param userId - 방 완료 상태를 확인하려는 사용자의 id(user.id)입니다.
+ * @param userOid - 방 완료 상태를 확인하려는 사용자의 objectId입니다.
  * @return 사용자의 해당 방에 대한 완료 여부(true | false)를 반환합니다. 사용자가 참여중인 방이 아닐 경우 undefined를 반환합니다.
  **/
-export const getIsOver = (roomObject: PopulatedRoom, userId: string) => {
+export const getIsOver = (roomObject: PopulatedRoom, userOid: string) => {
   // room document의 part subdoocument에서 사용자 id와 일치하는 정산 정보를 찾습니다.
   const participantSubDocuments = roomObject.part?.filter((part) => {
-    return part.user.id === userId;
+    return part.user?._id?.toString() === userOid;
   });
 
   // 방에 참여중이지 않은 사용자의 경우, undefined을 반환합니다.

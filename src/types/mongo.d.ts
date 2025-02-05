@@ -1,6 +1,6 @@
 import type { Document, Types } from "mongoose";
 
-export interface User extends Document {
+export interface User extends Document<Types.ObjectId> {
   /** 사용자의 실명. */
   name: string;
   /** 사용자의 닉네임. */
@@ -15,6 +15,8 @@ export interface User extends Document {
   doneRoom?: Types.Array<Types.ObjectId>;
   /** 계정 탈퇴 여부. */
   withdraw: boolean;
+  /** 계정 탈퇴 시각. */
+  withdrewAt?: Date;
   /** 사용자의 전화번호. 2023 가을 이벤트부터 추가됨. */
   phoneNumber?: string;
   /** 계정 정지 여부. */
@@ -38,7 +40,7 @@ export interface User extends Document {
   account: string;
 }
 
-export interface Ban extends Document {
+export interface Ban extends Document<Types.ObjectId> {
   /** 정지된 사용자의 ID. */
   userSid: string;
   /** 정지 사유. */
@@ -57,7 +59,7 @@ export type SettlementStatus =
   | "send-required"
   | "sent";
 
-export interface Participant extends Document {
+export interface Participant extends Document<Types.ObjectId> {
   /** 방 참여자의 User ObjectID. */
   user: Types.ObjectId;
   /** 방 참여자의 정산 상태. */
@@ -66,14 +68,14 @@ export interface Participant extends Document {
   readAt?: Date;
 }
 
-export interface DeviceToken extends Document {
+export interface DeviceToken extends Document<Types.ObjectId> {
   /** 디바이스 토큰 소유자의 User ObjectID. */
   userId: Types.ObjectId;
   /** 소유한 디바이스 토큰의 배열. */
   deviceTokens: Types.Array<string>;
 }
 
-export interface NotificationOption extends Document {
+export interface NotificationOption extends Document<Types.ObjectId> {
   deviceToken: string;
   /** 채팅 알림 수신 여부. */
   chatting: boolean;
@@ -87,13 +89,13 @@ export interface NotificationOption extends Document {
   advertisement: boolean;
 }
 
-export interface TopicSubscription extends Document {
+export interface TopicSubscription extends Document<Types.ObjectId> {
   deviceToken?: string;
   topic?: string;
   subscribedAt: Date;
 }
 
-export interface Room extends Document {
+export interface Room extends Document<Types.ObjectId> {
   /** 방의 이름. */
   name: string;
   /** 방의 출발지의 Location ObjectID. */
@@ -112,7 +114,7 @@ export interface Room extends Document {
   maxPartLength: number;
 }
 
-export interface Location extends Document {
+export interface Location extends Document<Types.ObjectId> {
   enName: string;
   koName: string;
   priority: number;
@@ -134,7 +136,7 @@ export type ChatType =
   | "departure"
   | "arrival";
 
-export interface Chat extends Document {
+export interface Chat extends Document<Types.ObjectId> {
   /** 메세지가 전송된 방의 Room ObjectID. */
   roomId: Types.ObjectId;
   /** 메세지의 종류. */
@@ -146,7 +148,7 @@ export interface Chat extends Document {
   isValid: boolean;
 }
 
-export interface Report extends Document {
+export interface Report extends Document<Types.ObjectId> {
   /** 신고한 사용자의 ObjectID. */
   creatorId: Types.ObjectId;
   /** 신고받은 사용자의 ObjectID. */
@@ -161,14 +163,14 @@ export interface Report extends Document {
   roomId?: Types.ObjectId;
 }
 
-export interface AdminIPWhitelist extends Document {
+export interface AdminIPWhitelist extends Document<Types.ObjectId> {
   ip: string;
   description: string;
 }
 
 export type AdminLogAction = "create" | "read" | "update" | "delete";
 
-export interface AdminLog extends Document {
+export interface AdminLog extends Document<Types.ObjectId> {
   /** 로그 발생자의 User ObjectID. */
   user: Types.ObjectId;
   /** 로그의 발생 시각. */
@@ -181,7 +183,7 @@ export interface AdminLog extends Document {
   action: AdminLogAction;
 }
 
-export interface TaxiFare extends Document {
+export interface TaxiFare extends Document<Types.ObjectId> {
   /** 출발지의 Location ObjectID. */
   from: Types.ObjectId;
   /** 목적지의 Location ObjectID. */

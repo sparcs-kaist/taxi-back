@@ -1,11 +1,13 @@
 import type { RequestHandler } from "express";
-import { userModel, banModel } from "@/modules/stores/mongo";
+import { ssoClient, getLoginInfo, logout } from "@/modules/auths/login";
+import { unregisterAllDeviceTokens } from "@/modules/fcm";
 import logger from "@/modules/logger";
 import {
   generateNickname,
   generateProfileImageUrl,
 } from "@/modules/modifyProfile";
 import * as aws from "@/modules/stores/aws";
+import { userModel, banModel } from "@/modules/stores/mongo";
 
 // 이벤트 코드입니다.
 // const { contracts } = require("@/lottery");
@@ -15,18 +17,24 @@ export const agreeOnTermsOfServiceHandler: RequestHandler = async (
   res
 ) => {
   try {
-    let user = await userModel.findOne({ id: req.userId });
+    let user = await userModel.findOne({ _id: req.userOid, withdraw: false });
     if (!user) {
       return res.status(400).send("Users/agreeOnTermsOfService : no such user");
     }
 
     if (user.agreeOnTermsOfService === true) {
-      return res.status(400).send("Users/agreeOnTermsOfService : already agreed");
+      return res
+        .status(400)
+        .send("Users/agreeOnTermsOfService : already agreed");
     }
 
     user.agreeOnTermsOfService = true;
     await user.save();
-    return res.status(200).send("Users/agreeOnTermsOfService : agree on Terms of Service successful");
+    return res
+      .status(200)
+      .send(
+        "Users/agreeOnTermsOfService : agree on Terms of Service successful"
+      );
   } catch {
     return res
       .status(500)
@@ -40,7 +48,7 @@ export const getAgreeOnTermsOfServiceHandler: RequestHandler = async (
 ) => {
   try {
     const user = await userModel
-      .findOne({ id: req.userId }, "agreeOnTermsOfService")
+      .findOne({ _id: req.userOid, withdraw: false }, "agreeOnTermsOfService")
       .lean();
     if (!user) {
       return res.status(400).send("Users/agreeOnTermsOfService : no such user");
@@ -59,7 +67,7 @@ export const editNicknameHandler: RequestHandler = async (req, res) => {
   try {
     const newNickname = req.body.nickname; // TODO: Typing
     const result = await userModel.findOneAndUpdate(
-      { id: req.userId },
+      { _id: req.userOid, withdraw: false },
       { nickname: newNickname }
     );
 
@@ -88,7 +96,7 @@ export const editAccountHandler: RequestHandler = async (req, res) => {
   try {
     const newAccount = req.body.account; // TODO: Typing
     const result = await userModel.findOneAndUpdate(
-      { id: req.userId },
+      { _id: req.userOid, withdraw: false },
       { account: newAccount }
     );
 
@@ -120,7 +128,10 @@ export const editProfileImgGetPUrlHandler: RequestHandler = async (
 ) => {
   try {
     const type = req.body.type; // TODO: Typing
-    const user = await userModel.findOne({ id: req.userId }, "_id");
+    const user = await userModel.findOne(
+      { _id: req.userOid, withdraw: false },
+      "_id"
+    );
     if (!user) {
       return res
         .status(500)
@@ -149,7 +160,10 @@ export const editProfileImgGetPUrlHandler: RequestHandler = async (
 
 export const editProfileImgDoneHandler: RequestHandler = async (req, res) => {
   try {
-    const user = await userModel.findOne({ id: req.userId }, "_id");
+    const user = await userModel.findOne(
+      { _id: req.userOid, withdraw: false },
+      "_id"
+    );
     if (!user) {
       return res
         .status(500)
@@ -164,7 +178,7 @@ export const editProfileImgDoneHandler: RequestHandler = async (req, res) => {
           .send("Users/editProfileImg/done : internal server error");
       }
       const userAfter = await userModel.findOneAndUpdate(
-        { id: req.userId },
+        { _id: req.userOid, withdraw: false },
         { profileImageUrl: aws.getS3Url(`/${key}?token=${req.timestamp}`) },
         { new: true }
       );
@@ -188,7 +202,7 @@ export const editProfileImgDoneHandler: RequestHandler = async (req, res) => {
 export const resetNicknameHandler: RequestHandler = async (req, res) => {
   try {
     const result = await userModel.findOneAndUpdate(
-      { id: req.userId },
+      { _id: req.userOid, withdraw: false },
       { nickname: generateNickname(req.body.id) }, // TODO: Typing or Validation
       { new: true }
     );
@@ -208,7 +222,7 @@ export const resetNicknameHandler: RequestHandler = async (req, res) => {
 export const resetProfileImgHandler: RequestHandler = async (req, res) => {
   try {
     const result = await userModel.findOneAndUpdate(
-      { id: req.userId },
+      { _id: req.userOid, withdraw: false },
       { profileImageUrl: generateProfileImageUrl() },
       { new: true }
     );
@@ -239,5 +253,40 @@ export const getBanRecordHandler: RequestHandler = async (req, res) => {
     return res.status(200).json(result);
   } catch (err) {
     return res.status(500).send("Users/getBanRecord : internal server error");
+  }
+};
+
+export const withdrawHandler: RequestHandler = async (req, res) => {
+  try {
+    const { sid } = getLoginInfo(req);
+
+    const user = await userModel.findOne({ _id: req.userOid, withdraw: false });
+    if (!user) {
+      return res.status(500).send("Users/withdraw : internal server error");
+    }
+
+    // 회원 탈퇴가 가능한 조건인지 확인
+    if (user.withdraw) {
+      return res.status(400).send("Users/withdraw : already withdrawn");
+    } else if (user.ongoingRoom?.length !== 0) {
+      return res.status(400).send("Users/withdraw : ongoing room exists");
+    }
+
+    // 등록된 모든 디바이스 토큰 삭제
+    await unregisterAllDeviceTokens(req.userOid!);
+
+    // 회원 탈퇴 처리 (Soft Delete)
+    user.withdraw = true;
+    user.withdrewAt = new Date(req.timestamp!);
+    await user.save();
+
+    // 로그아웃 처리
+    const redirectUrl = new URL("/mypage?withdraw=true", req.origin).href;
+    const ssoLogoutUrl =
+      ssoClient?.getLogoutUrl(sid, redirectUrl) ?? redirectUrl;
+    logout(req);
+    res.json({ ssoLogoutUrl });
+  } catch (err) {
+    res.status(500).send("Users/withdraw : internal server error");
   }
 };

@@ -125,7 +125,7 @@ const generateJoinAbortChat = async (roomId, userOid, isJoining, time) => {
     roomId: roomId,
     type: isJoining ? "in" : "out",
     authorId: user._id,
-    content: user.id,
+    content: user._id,
     time: time,
     isValid: false,
   });

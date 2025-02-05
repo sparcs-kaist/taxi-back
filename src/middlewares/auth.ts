@@ -8,9 +8,9 @@ const authMiddleware: RequestHandler = (req, res, next) => {
       error: "not logged in",
     });
 
-  const { id, oid } = getLoginInfo(req);
-  req.userId = id;
+  const { oid } = getLoginInfo(req);
   req.userOid = oid;
+
   next();
 };
 

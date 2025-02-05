@@ -25,7 +25,7 @@ const tokenLoginHandler = async (req, res) => {
       return res.status(401).json({ message: "Not Access token" });
     }
 
-    const user = await userModel.findOne({ _id: data.id });
+    const user = await userModel.findOne({ _id: data.id, withdraw: false });
     if (!user) {
       return res.status(401).json({ message: "No corresponding user" });
     }

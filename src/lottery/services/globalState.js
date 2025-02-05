@@ -95,7 +95,7 @@ const createUserGlobalStateHandler = async (req, res) => {
         error: "GlobalState/create : invalid inviter",
       });
 
-    const user = await userModel.findById(req.userOid);
+    const user = await userModel.findOne({ _id: req.userOid, withdraw: false });
     if (!user)
       return res
         .status(500)

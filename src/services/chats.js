@@ -1,6 +1,5 @@
 const { chatModel, userModel, roomModel } = require("@/modules/stores/mongo");
 const { chatPopulateOption } = require("@/modules/populates/chats");
-const { roomPopulateOption } = require("@/modules/populates/rooms");
 const aws = require("@/modules/stores/aws");
 const {
   transformChatsForRoom,
@@ -14,17 +13,17 @@ const chatCount = 60;
 const loadRecentChatHandler = async (req, res) => {
   try {
     const io = req.app.get("io");
-    const { userId } = req;
+    const { userOid } = req;
     const { roomId } = req.body;
     const { id: sessionId } = req.session;
-    if (!userId) {
+    if (!userOid) {
       return res.status(500).send("Chat/ : internal server error");
     }
     if (!io) {
       return res.status(403).send("Chat/ : socket did not connected");
     }
 
-    const isPart = await isUserInRoom(userId, roomId);
+    const isPart = await isUserInRoom(userOid, roomId);
     if (!isPart) {
       return res
         .status(403)
@@ -56,10 +55,10 @@ const loadRecentChatHandler = async (req, res) => {
 const loadBeforeChatHandler = async (req, res) => {
   try {
     const io = req.app.get("io");
-    const { userId } = req;
+    const { userOid } = req;
     const { roomId, lastMsgDate } = req.body;
     const { id: sessionId } = req.session;
-    if (!userId) {
+    if (!userOid) {
       return res.status(500).send("Chat/load/before : internal server error");
     }
     if (!io) {
@@ -68,7 +67,7 @@ const loadBeforeChatHandler = async (req, res) => {
         .send("Chat/load/before : socket did not connected");
     }
 
-    const isPart = await isUserInRoom(userId, roomId);
+    const isPart = await isUserInRoom(userOid, roomId);
     if (!isPart) {
       return res
         .status(403)
@@ -100,17 +99,17 @@ const loadBeforeChatHandler = async (req, res) => {
 const loadAfterChatHandler = async (req, res) => {
   try {
     const io = req.app.get("io");
-    const { userId } = req;
+    const { userOid } = req;
     const { roomId, lastMsgDate } = req.body;
     const { id: sessionId } = req.session;
-    if (!userId) {
+    if (!userOid) {
       return res.status(500).send("Chat/load/after : internal server error");
     }
     if (!io) {
       return res.status(403).send("Chat/load/after : socket did not connected");
     }
 
-    const isPart = await isUserInRoom(userId, roomId);
+    const isPart = await isUserInRoom(userOid, roomId);
     if (!isPart) {
       return res
         .status(403)
@@ -141,18 +140,18 @@ const loadAfterChatHandler = async (req, res) => {
 const sendChatHandler = async (req, res) => {
   try {
     const io = req.app.get("io");
-    const { userId } = req;
+    const { userOid } = req;
     const { roomId, type, content } = req.body;
-    const user = await userModel.findOne({ id: userId });
+    const user = await userModel.findOne({ _id: userOid, withdraw: false });
 
-    if (!userId || !user) {
+    if (!userOid || !user) {
       return res.status(500).send("Chat/send : internal server error");
     }
     if (!io) {
       return res.status(403).send("Chat/send : socket did not connected");
     }
 
-    const isPart = await isUserInRoom(userId, roomId);
+    const isPart = await isUserInRoom(userOid, roomId);
     if (!isPart) {
       return res
         .status(403)
@@ -178,11 +177,11 @@ const sendChatHandler = async (req, res) => {
 const readChatHandler = async (req, res) => {
   try {
     const io = req.app.get("io");
-    const { userId } = req;
+    const { userOid } = req;
     const { roomId } = req.body;
-    const user = await userModel.findOne({ id: userId });
+    const user = await userModel.findOne({ _id: userOid, withdraw: false });
 
-    if (!userId || !user) {
+    if (!userOid || !user) {
       return res.status(500).send("Chat/read : internal server error");
     }
     if (!io) {
@@ -223,7 +222,7 @@ const readChatHandler = async (req, res) => {
 const uploadChatImgGetPUrlHandler = async (req, res) => {
   try {
     const { type, roomId } = req.body;
-    const user = await userModel.findOne({ id: req.userId });
+    const user = await userModel.findOne({ _id: req.userOid, withdraw: false });
     if (!roomId) {
       return res
         .status(403)
@@ -266,7 +265,7 @@ const uploadChatImgGetPUrlHandler = async (req, res) => {
 const uploadChatImgDoneHandler = async (req, res) => {
   try {
     const user = await userModel.findOne(
-      { id: req.userId },
+      { _id: req.userOid, withdraw: false },
       "_id nickname profileImageUrl"
     );
     const chat = await chatModel.findById(req.body.id).lean();
@@ -313,18 +312,17 @@ const uploadChatImgDoneHandler = async (req, res) => {
 /**
  * 주어진 유저가 주어진 방에 참여하는 중인지 확인합니다.
  * @summary 채팅 load/send 관련 api에서 검증을 위하여 함수로 분리하였습니다.
- * @param {string} userId - 확인하고픈 user의 Id 입니다.
+ * @param {string} userOid - 확인하고픈 user의 objectId 입니다.
  * @param {string} roomId - 참여하는지 확인하고픈 방의 objectId 입니다.
  * @return {Promise<Boolean>} userId가 방에 포함되어 있다면 true, 그 외의 경우 false를 반환합니다.
  */
-const isUserInRoom = async (userId, roomId) => {
-  const user = await userModel.findOne({ id: userId });
+const isUserInRoom = async (userOid, roomId) => {
   const { part } = await roomModel.findById(roomId);
 
-  if (!part || !user) return false;
+  if (!part) return false;
   return part
     .map((participant) => participant.user)
-    .some((user) => user.equals(user._id));
+    .some((user) => user.equals(userOid));
 };
 
 module.exports = {

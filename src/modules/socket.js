@@ -32,11 +32,11 @@ const transformChatsForRoom = async (chats) => {
     // inOutNames 배열(들어오거나 나간 사용자들의 닉네임으로 이루어진 배열)을 생성합니다.
     chat.inOutNames = [];
     if (chat.type === "in" || chat.type === "out") {
-      const inOutUserIds = chat.content.split("|");
+      const inOutUserOids = chat.content.split("|");
       chat.inOutNames = await Promise.all(
-        inOutUserIds.map(async (userId) => {
-          const user = await userModel.findOne({ id: userId }, "nickname");
-          return user.nickname;
+        inOutUserOids.map(async (userOid) => {
+          const user = await userModel.findById(userOid, "nickname");
+          return user?.nickname;
         })
       );
     }
@@ -46,6 +46,7 @@ const transformChatsForRoom = async (chats) => {
       authorId: chat.authorId?._id,
       authorName: chat.authorId?.nickname,
       authorProfileUrl: chat.authorId?.profileImageUrl,
+      authorIsWithdrew: chat.authorId?.withdraw,
       content: chat.content,
       time: chat.time,
       isValid: chat.isValid,
@@ -111,7 +112,7 @@ const getMessageBody = (type, nickname = "", content = "") => {
  * @param {Object} chat - 채팅 메시지 내용입니다.
  * @param {string} chat.roomId - 채팅 및 채팅 알림을 보낼 방의 ObjectId입니다.
  * @param {string} chat.type - 채팅 메시지의 유형입니다. "text" | "s3img" | "in" | "out" | "payment" | "settlement" | "account" | "departure" | "arrival" 입니다.
- * @param {string} chat.content - 채팅 메시지의 본문입니다. chat.type이 "s3img"인 경우에는 채팅의 objectId입니다. chat.type이 "in"이거나 "out"인 경우 입퇴장한 사용자의 id(!==ObjectId)입니다.
+ * @param {string} chat.content - 채팅 메시지의 본문입니다. chat.type이 "s3img"인 경우에는 채팅의 objectId입니다. chat.type이 "in"이거나 "out"인 경우 입퇴장한 사용자의 oid입니다.
  * @param {string} chat.authorId - optional. 채팅을 보낸 사용자의 ObjectId입니다.
  * @param {Date?} chat.time - optional. 채팅 메시지 전송 시각입니다.
  * @return {Promise<Boolean>} 채팅 및 알림 전송에 성공하면 true, 중간에 오류가 발생하면 false를 반환합니다.
@@ -136,7 +137,10 @@ const emitChatEvent = async (io, chat) => {
 
     // chat optionally contains authorId
     const { nickname, profileImageUrl } = authorId
-      ? await userModel.findById(authorId, "nickname profileImageUrl")
+      ? await userModel.findOne(
+          { _id: authorId, withdraw: false },
+          "nickname profileImageUrl"
+        )
       : {};
     if (authorId && (!nickname || !profileImageUrl)) {
       throw new IllegalArgumentsException();
@@ -162,9 +166,6 @@ const emitChatEvent = async (io, chat) => {
       )
       .lean()
       .populate(chatPopulateOption);
-
-    chatDocument.authorName = nickname;
-    chatDocument.authorProfileUrl = profileImageUrl;
 
     const userIds = part.map((participant) => participant.user);
     const userIdsExceptAuthor = authorId

@@ -1,6 +1,13 @@
 import type { Request } from "express";
-import { session as sessionConfig } from "@/loadenv";
+import { session as sessionConfig, sparcssso as sparcsssoEnv } from "@/loadenv";
 import logger from "@/modules/logger";
+import SsoClient from "./sparcssso";
+
+// 환경변수 SPARCSSSO_CLIENT_ID 유무에 따라 로그인 방식이 변경됩니다.
+export const isAuthReplace = !sparcsssoEnv.id;
+export const ssoClient = !isAuthReplace
+  ? new SsoClient(sparcsssoEnv.id, sparcsssoEnv.key)
+  : undefined;
 
 export interface LoginInfo {
   id: string;

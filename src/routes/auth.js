@@ -6,10 +6,7 @@ const validator = require("@/middlewares/validator").default;
 const authHandlers = require("@/services/auth");
 const authReplaceHandlers = require("@/services/auth.replace");
 const mobileAuthHandlers = require("@/services/auth.mobile");
-
-// 환경변수 SPARCSSSO_CLIENT_ID 유무에 따라 로그인 방식이 변경됩니다.
-const { sparcssso: sparcsssoEnv } = require("@/loadenv");
-const isAuthReplace = !sparcsssoEnv?.id;
+const { isAuthReplace } = require("@/modules/auths/login");
 
 // 로그인 페이지로 redirect합니다.
 router.get(

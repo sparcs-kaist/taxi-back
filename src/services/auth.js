@@ -1,7 +1,12 @@
-const { sparcssso: sparcsssoEnv, nodeEnv, testAccounts } = require("@/loadenv");
+const { nodeEnv, testAccounts } = require("@/loadenv");
 const { userModel } = require("@/modules/stores/mongo");
 const { user: userPattern } = require("@/modules/patterns").default;
-const { getLoginInfo, logout, login } = require("@/modules/auths/login");
+const {
+  ssoClient,
+  getLoginInfo,
+  logout,
+  login,
+} = require("@/modules/auths/login");
 
 const { unregisterDeviceToken } = require("@/modules/fcm");
 const {
@@ -11,10 +16,6 @@ const {
 } = require("@/modules/modifyProfile");
 const jwt = require("@/modules/auths/jwt");
 const logger = require("@/modules/logger").default;
-
-// SPARCS SSO
-const Client = require("@/modules/auths/sparcssso");
-const client = new Client(sparcsssoEnv?.id, sparcsssoEnv?.key);
 
 const transUserData = (userData) => {
   const kaistInfo = userData.kaist_info ? JSON.parse(userData.kaist_info) : {};
@@ -36,8 +37,26 @@ const transUserData = (userData) => {
 };
 
 const joinus = async (req, userData) => {
+  const oldUser = await userModel
+    .findOne(
+      {
+        id: userData.id,
+        withdraw: true,
+      },
+      "withdrewAt"
+    )
+    .sort({ withdrewAt: -1 })
+    .lean();
+  if (oldUser && oldUser.withdrewAt) {
+    // 탈퇴 후 7일이 지나지 않았을 경우, 가입을 거부합니다.
+    const diff = req.timestamp - oldUser.withdrewAt.getTime();
+    if (diff < 7 * 24 * 60 * 60 * 1000) {
+      return false;
+    }
+  }
+
   const newUser = new userModel({
-    id: userData.id,
+    id: userData.id, // NOTE: SSO uid
     name: userData.name,
     nickname: generateNickname(userData.id),
     profileImageUrl: generateProfileImageUrl(),
@@ -51,6 +70,7 @@ const joinus = async (req, userData) => {
     email: userData.email,
   });
   await newUser.save();
+  return true;
 };
 
 const update = async (userData) => {
@@ -59,7 +79,7 @@ const update = async (userData) => {
     email: userData.email,
     "subinfo.kaist": userData.kaist,
   };
-  await userModel.updateOne({ id: userData.id }, updateInfo);
+  await userModel.updateOne({ id: userData.id, withdraw: false }, updateInfo); // NOTE: SSO uid 쓰는 곳
   logger.info(
     `Update user info: ${userData.id} ${userData.name} ${userData.email} ${userData.kaist}`
   );
@@ -68,12 +88,17 @@ const update = async (userData) => {
 const tryLogin = async (req, res, userData, redirectOrigin, redirectPath) => {
   try {
     const user = await userModel.findOne(
-      { id: userData.id },
+      { id: userData.id, withdraw: false }, // NOTE: SSO uid 쓰는 곳
       "_id name email subinfo id withdraw ban"
     );
     if (!user) {
-      await joinus(req, userData);
-      return tryLogin(req, res, userData, redirectOrigin, redirectPath);
+      if (await joinus(req, userData)) {
+        return tryLogin(req, res, userData, redirectOrigin, redirectPath);
+      } else {
+        const redirectUrl = new URL("/login/fail", redirectOrigin).href;
+        res.redirect(redirectUrl);
+        return;
+      }
     }
     if (
       user.name !== userData.name ||
@@ -113,7 +138,7 @@ const tryLogin = async (req, res, userData, redirectOrigin, redirectPath) => {
 const sparcsssoHandler = (req, res) => {
   const redirectPath = decodeURIComponent(req.query?.redirect || "%2F");
   const isApp = !!req.query.isApp;
-  const { url, state } = client.getLoginParams();
+  const { url, state } = ssoClient.getLoginParams();
 
   req.session.loginAfterState = {
     state: state,
@@ -143,7 +168,7 @@ const sparcsssoCallbackHandler = (req, res) => {
     return res.redirect(redirectUrl);
   }
 
-  client.getUserInfo(code).then((userDataBefore) => {
+  ssoClient.getUserInfo(code).then((userDataBefore) => {
     const userData = transUserData(userDataBefore);
     const isTestAccount = testAccounts?.includes(userData.email);
     if (userData.isEligible || nodeEnv !== "production" || isTestAccount) {
@@ -152,7 +177,7 @@ const sparcsssoCallbackHandler = (req, res) => {
       // 카이스트 구성원이 아닌 경우, SSO 로그아웃 이후, 로그인 실패 URI 로 이동합니다
       const { sid } = userData;
       const redirectUrl = new URL("/login/fail", redirectOrigin).href;
-      const ssoLogoutUrl = client.getLogoutUrl(sid, redirectUrl);
+      const ssoLogoutUrl = ssoClient.getLogoutUrl(sid, redirectUrl);
       res.redirect(ssoLogoutUrl);
     }
   });
@@ -178,7 +203,7 @@ const logoutHandler = async (req, res) => {
 
     // 로그아웃 URL을 생성 및 반환
     const redirectUrl = new URL(redirectPath, req.origin).href;
-    const ssoLogoutUrl = client.getLogoutUrl(sid, redirectUrl);
+    const ssoLogoutUrl = ssoClient.getLogoutUrl(sid, redirectUrl);
     logout(req, res);
     res.json({ ssoLogoutUrl });
   } catch (e) {
