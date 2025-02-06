@@ -25,6 +25,7 @@ import {
   reportRouter,
   roomRouter,
   userRouter,
+  favoriteRoutesRouter,
 } from "@/routes";
 
 import { initializeApp as initializeFirebase } from "@/modules/fcm";
@@ -89,6 +90,7 @@ app.use("/notifications", notificationRouter);
 app.use("/reports", reportRouter);
 app.use("/rooms", roomRouter);
 app.use("/users", userRouter);
+app.use("/favoriteRoutes", favoriteRoutesRouter);
 
 // [Middleware] 전역 에러 핸들러. 에러 핸들러는 router들보다 아래에 등록되어야 합니다.
 app.use(errorHandler);
