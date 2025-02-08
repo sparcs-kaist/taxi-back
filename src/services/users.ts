@@ -10,7 +10,7 @@ import * as aws from "@/modules/stores/aws";
 import { userModel, banModel } from "@/modules/stores/mongo";
 
 // 이벤트 코드입니다.
-// const { contracts } = require("@/lottery");
+const { contracts } = require("@/lottery");
 
 export const agreeOnTermsOfServiceHandler: RequestHandler = async (
   req,
@@ -73,10 +73,10 @@ export const editNicknameHandler: RequestHandler = async (req, res) => {
 
     if (result) {
       // 이벤트 코드입니다.
-      // await contracts?.completeNicknameChangingQuest(
-      //   req.userOid,
-      //   req.timestamp
-      // );
+      await contracts?.completeNicknameChangingQuest(
+        req.userOid,
+        req.timestamp
+      );
 
       return res
         .status(200)
@@ -102,11 +102,11 @@ export const editAccountHandler: RequestHandler = async (req, res) => {
 
     if (result) {
       // 이벤트 코드입니다.
-      // await contracts?.completeAccountChangingQuest(
-      //   req.userOid,
-      //   req.timestamp,
-      //   newAccount
-      // );
+      await contracts?.completeAccountChangingQuest(
+        req.userOid,
+        req.timestamp,
+        newAccount
+      );
 
       return res
         .status(200)

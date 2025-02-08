@@ -3,7 +3,12 @@ import express from "express";
 import cookieParser from "cookie-parser";
 import http from "http";
 
-import { nodeEnv, mongo as mongoUrl, port as httpPort } from "@/loadenv";
+import {
+  nodeEnv,
+  mongo as mongoUrl,
+  port as httpPort,
+  eventConfig,
+} from "@/loadenv";
 import {
   corsMiddleware,
   errorHandler,
@@ -72,9 +77,16 @@ app.use(limitRateMiddleware);
 // [Router] Swagger (API 문서)
 app.use("/docs", docsRouter);
 
+if (eventConfig) {
+  console.log("Registering /events router");
+  app.use(`/events`, require("@/lottery").lotteryRouter);
+} else {
+  console.log("eventConfig is undefined");
+}
+
 // [Router] 이벤트 전용 라우터입니다.
-// eventConfig &&
-//   app.use(`/events/${eventConfig.mode}`, require("@/lottery").lotteryRouter);
+eventConfig && app.use(`/events`, require("@/lottery").lotteryRouter);
+// app.use(`/events/${eventConfig.mode}`, require("@/lottery").lotteryRouter);
 
 // [Middleware] 모든 API 요청에 대하여 origin 검증
 app.use(originValidatorMiddleware);

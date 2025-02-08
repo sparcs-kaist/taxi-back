@@ -2,7 +2,7 @@ const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 
 // 이벤트마다 사용된 모델을 구분하기 위해 이름에 Prefix를 붙입니다.
-const { eventConfig } = require("../../../../loadenv");
+const { eventConfig } = require("@/loadenv");
 const modelNamePrefix = eventConfig?.mode ?? "";
 
 const integerValidator = {

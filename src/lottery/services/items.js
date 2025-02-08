@@ -7,7 +7,7 @@ const { userModel } = require("../../modules/stores/mongo");
 const { isLogin, getLoginInfo } = require("../../modules/auths/login");
 const logger = require("../../modules/logger");
 
-const { eventConfig } = require("../../../loadenv");
+const { eventConfig } = require("@/loadenv");
 const contracts = require("../modules/contracts");
 
 const getItemsHandler = async (req, res) => {
