@@ -1,6 +1,6 @@
 const { buildQuests, completeQuest } = require("./quests");
 const mongoose = require("mongoose");
-const logger = require("../../modules/logger");
+import logger from "../../modules/logger";
 
 const { eventConfig } = require("@/loadenv");
 const eventPeriod = eventConfig && {

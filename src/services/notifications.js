@@ -5,7 +5,7 @@ const logger = require("@/modules/logger").default;
 const { registerDeviceToken, validateDeviceToken } = require("@/modules/fcm");
 
 // 이벤트 코드입니다.
-const { contracts } = require("@/lottery");
+import { contracts } from "@/lottery";
 
 const registerDeviceTokenHandler = async (req, res) => {
   try {

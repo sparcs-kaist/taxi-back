@@ -10,7 +10,7 @@ const {
   maximumIntervalBtwChats,
   occurenceOfJoin,
   occurenceOfAbort,
-} = require("@/loadenv");
+} = require("../loadenv");
 
 const generateUser = async (id, num, isAdmin) => {
   const newUser = new userModel({

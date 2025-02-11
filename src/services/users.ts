@@ -10,7 +10,7 @@ import * as aws from "@/modules/stores/aws";
 import { userModel, banModel } from "@/modules/stores/mongo";
 
 // 이벤트 코드입니다.
-const { contracts } = require("@/lottery");
+import { contracts } from "@/lottery";
 
 export const agreeOnTermsOfServiceHandler: RequestHandler = async (
   req,

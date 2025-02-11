@@ -20,7 +20,7 @@ const eventPeriod = eventConfig && {
   startAt: new Date(eventConfig.period.startAt),
   endAt: new Date(eventConfig.period.endAt),
 };
-const { contracts } = require("@/lottery");
+import { contracts } from "@/lottery";
 
 const createHandler = async (req, res) => {
   const { name, from, to, time, maxPartLength } = req.body;
