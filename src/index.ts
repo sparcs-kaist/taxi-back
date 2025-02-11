@@ -80,7 +80,7 @@ app.use("/docs", docsRouter);
 
 // [Router] 이벤트 전용 라우터입니다.
 if (eventConfig) {
-  app.use("/events", lotteryRouter);
+  app.use(`/events/${eventConfig.mode}`, lotteryRouter);
 }
 
 // [Middleware] 모든 API 요청에 대하여 origin 검증
