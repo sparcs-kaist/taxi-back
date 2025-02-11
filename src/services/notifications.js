@@ -5,7 +5,7 @@ const logger = require("@/modules/logger").default;
 const { registerDeviceToken, validateDeviceToken } = require("@/modules/fcm");
 
 // 이벤트 코드입니다.
-// const { contracts } = require("@/lottery");
+import { contracts } from "@/lottery";
 
 const registerDeviceTokenHandler = async (req, res) => {
   try {
@@ -111,11 +111,11 @@ const editOptionsHandler = async (req, res) => {
     }
 
     // 이벤트 코드입니다.
-    // await contracts?.completeAdPushAgreementQuest(
-    //   req.userOid,
-    //   req.timestamp,
-    //   options.advertisement
-    // );
+    await contracts?.completeAdPushAgreementQuest(
+      req.userOid,
+      req.timestamp,
+      options.advertisement
+    );
 
     res.status(200).json(updatedNotificationOptions);
   } catch (err) {

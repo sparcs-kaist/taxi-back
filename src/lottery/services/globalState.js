@@ -2,9 +2,9 @@ const { eventStatusModel } = require("../modules/stores/mongo");
 const { userModel } = require("../../modules/stores/mongo");
 const logger = require("../../modules/logger");
 const { isLogin, getLoginInfo } = require("../../modules/auths/login");
-const { nodeEnv } = require("../../../loadenv");
+const { nodeEnv } = require("@/loadenv");
 
-const { eventConfig } = require("../../../loadenv");
+const { eventConfig } = require("@/loadenv");
 const contracts = require("../modules/contracts");
 const quests = Object.values(contracts.quests);
 

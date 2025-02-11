@@ -2,7 +2,7 @@ const { eventStatusModel } = require("../modules/stores/mongo");
 const { userModel } = require("../../modules/stores/mongo");
 const logger = require("../../modules/logger");
 
-const { eventConfig } = require("../../../loadenv");
+const { eventConfig } = require("@/loadenv");
 
 const searchInviterHandler = async (req, res) => {
   try {

@@ -61,8 +61,8 @@ export const testAccounts =
 export const slackWebhookUrl = {
   report: process.env.SLACK_REPORT_WEBHOOK_URL || "", // optional
 };
-// export const eventConfig =
-//   process.env.EVENT_CONFIG && JSON.parse(process.env.EVENT_CONFIG); // optional
+export const eventConfig =
+  process.env.EVENT_CONFIG && JSON.parse(process.env.EVENT_CONFIG); // optional
 export const naverMap = {
   apiId: process.env.NAVER_MAP_API_ID || "", // optional
   apiKey: process.env.NAVER_MAP_API_KEY || "", // optional

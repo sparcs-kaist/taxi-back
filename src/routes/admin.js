@@ -40,7 +40,7 @@ const resources = [
   taxiFareModel,
 ]
   .map(buildResource())
-  .concat(/*require("@/lottery").resources*/ []);
+  .concat(require("@/lottery").resources);
 
 // Create router for admin page
 const adminJS = new AdminJS({ resources });

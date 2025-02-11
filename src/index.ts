@@ -3,7 +3,12 @@ import express from "express";
 import cookieParser from "cookie-parser";
 import http from "http";
 
-import { nodeEnv, mongo as mongoUrl, port as httpPort } from "@/loadenv";
+import {
+  nodeEnv,
+  mongo as mongoUrl,
+  port as httpPort,
+  eventConfig,
+} from "@/loadenv";
 import {
   corsMiddleware,
   errorHandler,
@@ -33,6 +38,7 @@ import logger from "@/modules/logger";
 import { startSocketServer } from "@/modules/socket";
 import { connectDatabase } from "@/modules/stores/mongo";
 import registerSchedules from "@/schedules";
+import { lotteryRouter } from "@/lottery";
 
 // Firebase Admin 초기설정
 initializeFirebase();
@@ -73,8 +79,9 @@ app.use(limitRateMiddleware);
 app.use("/docs", docsRouter);
 
 // [Router] 이벤트 전용 라우터입니다.
-// eventConfig &&
-//   app.use(`/events/${eventConfig.mode}`, require("@/lottery").lotteryRouter);
+if (eventConfig) {
+  app.use("/events", lotteryRouter);
+}
 
 // [Middleware] 모든 API 요청에 대하여 origin 검증
 app.use(originValidatorMiddleware);

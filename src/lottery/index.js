@@ -12,7 +12,7 @@ const {
   addFiveItemStockAction,
 } = require("./modules/items");
 
-const { eventConfig } = require("../../loadenv");
+const { eventConfig } = require("@/loadenv");
 const contracts = eventConfig && require("./modules/contracts");
 
 // [Routes] 기존 docs 라우터의 docs extend
@@ -24,7 +24,7 @@ eventConfig && require("./schedules")();
 const lotteryRouter = express.Router();
 
 // [Middleware] 모든 API 요청에 대하여 origin 검증
-lotteryRouter.use(require("../middlewares/originValidator"));
+lotteryRouter.use(require("../middlewares/originValidator").default);
 
 // [Router] APIs
 lotteryRouter.use("/globalState", require("./routes/globalState"));
