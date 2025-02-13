@@ -15,6 +15,8 @@ const {
 const { eventConfig } = require("@/loadenv");
 const contracts = eventConfig && require("./modules/contracts");
 
+import quizRoutes from "./routes/quiz";
+
 // [Routes] 기존 docs 라우터의 docs extend
 eventConfig && require("./routes/docs")();
 
@@ -33,6 +35,7 @@ lotteryRouter.use("/transactions", require("./routes/transactions"));
 lotteryRouter.use("/items", require("./routes/items"));
 // lotteryRouter.use("/publicNotice", require("./routes/publicNotice"));
 lotteryRouter.use("/quests", require("./routes/quests"));
+lotteryRouter.use("/quiz", quizRoutes);
 
 // [AdminJS] AdminJS에 표시할 Resource 생성
 const resources =

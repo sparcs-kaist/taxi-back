@@ -169,6 +169,28 @@ transactionSchema.set("timestamps", {
   updatedAt: false,
 });
 
+const quizSchema = Schema({
+  quizDate: { type: Date, required: true, unique: true },
+  title: { type: String, required: true },
+  content: { type: String, required: true },
+  image: { type: String, required: true },
+  answer: { type: String, enum: ["A", "B", "C"], default: "C" },
+  countA: { type: Number, default: 0 },
+  countB: { type: Number, default: 0 },
+  answers: [
+    {
+      userId: { type: Schema.Types.ObjectId, ref: "User", required: true },
+      answer: { type: String, enum: ["A", "B"] },
+      submittedAt: { type: Date, required: true },
+      status: {
+        type: String,
+        enum: ["correct", "wrong", "unknown"],
+        default: "unknown",
+      },
+    },
+  ],
+});
+
 module.exports = {
   eventStatusModel: mongoose.model(
     `${modelNamePrefix}EventStatus`,
@@ -180,4 +202,5 @@ module.exports = {
     `${modelNamePrefix}Transaction`,
     transactionSchema
   ),
+  quizModel: mongoose.model(`${modelNamePrefix}Quiz`, quizSchema),
 };
