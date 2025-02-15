@@ -9,7 +9,7 @@ const {
   publicNoticePopulateOption,
 } = require("../modules/populates/transactions");
 
-const { eventConfig } = require("../../../loadenv");
+const { eventConfig } = require("@/loadenv");
 
 /**
  * getValueRank 사용자의 상품 구매 내역 또는 경품 추첨 내역의 순위 결정을 위한 가치를 평가하는 함수
@@ -41,7 +41,7 @@ const getRecentPurchaceItemListHandler = async (req, res) => {
         .find({ type: "use", itemType: 0 })
         .sort({ createAt: -1 })
         .limit(1000)
-        .populate(publicNoticePopulateOption)
+        .populate(publicNoticePopulateOption) // TODO: 회원 탈퇴 핸들링
         .lean()
     )
       .sort(
@@ -132,7 +132,10 @@ const getTicketLeaderboardHandler = async (req, res) => {
       );
     const leaderboard = await Promise.all(
       sortedUsers.slice(0, 20).map(async (user) => {
-        const userInfo = await userModel.findOne({ _id: user.userId }).lean();
+        // 여기서 userId는 oid입니다.
+        const userInfo = await userModel
+          .findOne({ _id: user.userId, withdraw: false })
+          .lean();
         if (!userInfo) {
           logger.error(`Fail to find user ${user.userId}`);
           return null;
@@ -211,7 +214,9 @@ const getGroupLeaderboardHandler = async (req, res) => {
         if (mvp?.length !== 1)
           throw new Error(`Fail to find MVP in group ${group.group}`);
 
-        const mvpInfo = await userModel.findOne({ _id: mvp[0].userId }).lean();
+        const mvpInfo = await userModel
+          .findOne({ _id: mvp[0].userId, withdraw: false })
+          .lean();
         if (!mvpInfo) throw new Error(`Fail to find user ${mvp[0].userId}`);
 
         return {

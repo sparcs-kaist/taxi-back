@@ -2,25 +2,25 @@ const {
   roomModel,
   locationModel,
   userModel,
-} = require("../modules/stores/mongo");
-const { emitChatEvent } = require("../modules/socket");
-const logger = require("../modules/logger");
+} = require("@/modules/stores/mongo");
+const { emitChatEvent } = require("@/modules/socket");
+const logger = require("@/modules/logger").default;
 const {
   roomPopulateOption,
   formatSettlement,
   getIsOver,
-} = require("../modules/populates/rooms");
+} = require("@/modules/populates/rooms");
 const {
   notifyRoomCreationAbuseToReportChannel,
-} = require("../modules/slackNotification");
+} = require("@/modules/slackNotification");
 
 // 이벤트 코드입니다.
-const { eventConfig } = require("../../loadenv");
+const { eventConfig } = require("@/loadenv");
 const eventPeriod = eventConfig && {
   startAt: new Date(eventConfig.period.startAt),
   endAt: new Date(eventConfig.period.endAt),
 };
-const { contracts } = require("../lottery");
+import { contracts } from "@/lottery";
 
 const createHandler = async (req, res) => {
   const { name, from, to, time, maxPartLength } = req.body;
@@ -62,7 +62,7 @@ const createHandler = async (req, res) => {
 
     // 방 생성 요청을 한 사용자의 ObjectID를 room의 part 리스트에 추가
     const user = await userModel
-      .findOne({ id: req.userId })
+      .findOne({ _id: req.userOid, withdraw: false })
       .populate("ongoingRoom");
 
     // 사용자의 참여중인 진행중인 방이 5개 이상이면 오류를 반환합니다.
@@ -102,7 +102,7 @@ const createHandler = async (req, res) => {
     await emitChatEvent(req.app.get("io"), {
       roomId: room._id,
       type: "in",
-      content: user.id,
+      content: user._id,
       authorId: user._id,
     });
 
@@ -169,7 +169,9 @@ const createTestHandler = async (req, res) => {
       candidateRooms
     );
     if (isAbusing) {
-      const user = await userModel.findById(req.userOid).lean();
+      const user = await userModel
+        .findOne({ _id: req.userOid, withdraw: false })
+        .lean();
       notifyRoomCreationAbuseToReportChannel(
         req.userOid,
         user?.nickname ?? req.userOid,
@@ -178,6 +180,7 @@ const createTestHandler = async (req, res) => {
     }
 
     return res.json({ result: !isAbusing });
+    return res.json({ result: true });
   } catch (err) {
     logger.error(err);
     res.status(500).json({
@@ -210,13 +213,13 @@ const publicInfoHandler = async (req, res) => {
 
 const infoHandler = async (req, res) => {
   try {
-    const user = await userModel.findOne({ id: req.userId });
+    const user = await userModel.findOne({ _id: req.userOid, withdraw: false });
     const roomObject = await roomModel
       .findOne({ _id: req.query.id, "part.user": user._id })
       .lean()
       .populate(roomPopulateOption);
     if (roomObject) {
-      const isOver = getIsOver(roomObject, user.id);
+      const isOver = getIsOver(roomObject, user._id.toString());
       res.send(formatSettlement(roomObject, { isOver }));
     } else {
       res.status(404).json({
@@ -234,7 +237,7 @@ const infoHandler = async (req, res) => {
 const joinHandler = async (req, res) => {
   try {
     const user = await userModel
-      .findOne({ id: req.userId })
+      .findOne({ _id: req.userOid, withdraw: false })
       .populate("ongoingRoom");
 
     // 사용자의 참여중인 진행중인 방이 5개 이상이면 오류를 반환합니다.
@@ -296,7 +299,7 @@ const joinHandler = async (req, res) => {
     await emitChatEvent(req.app.get("io"), {
       roomId: room._id,
       type: "in",
-      content: user.id,
+      content: user._id,
       authorId: user._id,
     });
 
@@ -317,7 +320,7 @@ const abortHandler = async (req, res) => {
   };
 
   try {
-    const user = await userModel.findOne({ id: req.userId });
+    const user = await userModel.findOne({ _id: req.userOid, withdraw: false });
     const room = await roomModel.findById(req.body.roomId);
     if (!user) {
       res.status(400).json({
@@ -383,12 +386,12 @@ const abortHandler = async (req, res) => {
     await emitChatEvent(req.app.get("io"), {
       roomId: room._id,
       type: "out",
-      content: user.id,
+      content: user._id,
       authorId: user._id,
     });
 
     const roomObject = (await room.populate(roomPopulateOption)).toObject();
-    const isOver = getIsOver(roomObject, user.id);
+    const isOver = getIsOver(roomObject, user._id.toString());
 
     res.send(formatSettlement(roomObject, { isOver }));
   } catch (err) {
@@ -484,8 +487,9 @@ const searchHandler = async (req, res) => {
 
 const searchByUserHandler = async (req, res) => {
   try {
+    // lean()이 적용된 user를 response에 반환해줘야 하기 때문에 user를 한 번 더 지정한다.
     const user = await userModel
-      .findOne({ id: req.userId })
+      .findOne({ _id: req.userOid, withdraw: false })
       .populate({
         path: "ongoingRoom",
         options: {
@@ -525,7 +529,7 @@ const searchByUserHandler = async (req, res) => {
 
 const commitSettlementHandler = async (req, res) => {
   try {
-    const user = await userModel.findOne({ id: req.userId });
+    const user = await userModel.findOne({ _id: req.userOid, withdraw: false });
     const { roomId } = req.body;
     const roomObject = await roomModel
       .findOneAndUpdate(
@@ -581,7 +585,7 @@ const commitSettlementHandler = async (req, res) => {
     await emitChatEvent(req.app.get("io"), {
       roomId,
       type: "settlement",
-      content: user.id,
+      content: user._id,
       authorId: user._id,
     });
 
@@ -605,7 +609,7 @@ const commitSettlementHandler = async (req, res) => {
 const commitPaymentHandler = async (req, res) => {
   try {
     const { roomId } = req.body;
-    const user = await userModel.findOne({ id: req.userId });
+    const user = await userModel.findOne({ _id: req.userOid, withdraw: false });
     let roomObject = await roomModel
       .findOneAndUpdate(
         {
@@ -654,7 +658,7 @@ const commitPaymentHandler = async (req, res) => {
     await emitChatEvent(req.app.get("io"), {
       roomId,
       type: "payment",
-      content: user.id,
+      content: user._id,
       authorId: user._id,
     });
 
@@ -771,7 +775,7 @@ const checkIsSendRequired = (userObject) => {
 
 //   // Room update query에 사용할 filter입니다.
 //   // 방에 참여중인 인원만 방 정보를 수정할 수 있습니다.
-//   const user = await userModel.findOne({ id: req.userId }, "_id");
+//   const user = await userModel.findOne({ _id: req.userOid, withdraw: false }, "_id");
 //   const roomFilter = {
 //     _id: roomId,
 //     part: {
@@ -814,7 +818,7 @@ const checkIsSendRequired = (userObject) => {
 //     });
 //     if (result) {
 //       const roomObject = (await result.populate(roomPopulateOption)).toObject();
-//       const isOver = getIsOver(room, user.id);
+//       const isOver = getIsOver(room, user._id);
 //       res.send(formatSettlement(roomObject, { isOver }));
 //     } else {
 //       res.status(404).json({

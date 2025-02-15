@@ -1,4 +1,4 @@
-const { objectId, room } = require("../../modules/patterns");
+const { objectId, room } = require("@/modules/patterns").default;
 
 const tag = "rooms";
 const apiPrefix = "/rooms";

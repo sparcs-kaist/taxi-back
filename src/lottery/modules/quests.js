@@ -7,7 +7,7 @@ const {
 const logger = require("../../modules/logger");
 const mongoose = require("mongoose");
 
-const { eventConfig } = require("../../../loadenv");
+const { eventConfig } = require("@/loadenv");
 const eventPeriod = eventConfig && {
   startAt: new Date(eventConfig.period.startAt),
   endAt: new Date(eventConfig.period.endAt),

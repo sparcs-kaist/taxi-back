@@ -1,14 +1,11 @@
-const { userModel } = require("../modules/stores/mongo");
-const { login } = require("../modules/auths/login");
+const { userModel } = require("@/modules/stores/mongo");
+const { login } = require("@/modules/auths/login");
 
-const {
-  registerDeviceToken,
-  unregisterDeviceToken,
-} = require("../modules/fcm");
-const jwt = require("../modules/auths/jwt");
-const logger = require("../modules/logger");
+const { registerDeviceToken, unregisterDeviceToken } = require("@/modules/fcm");
+const jwt = require("@/modules/auths/jwt");
+const logger = require("@/modules/logger").default;
 
-const { TOKEN_EXPIRED, TOKEN_INVALID } = require("../../loadenv").jwt;
+const { TOKEN_EXPIRED, TOKEN_INVALID } = require("@/loadenv").jwt;
 
 const tokenLoginHandler = async (req, res) => {
   const { accessToken, deviceToken } = req.query;
@@ -28,7 +25,7 @@ const tokenLoginHandler = async (req, res) => {
       return res.status(401).json({ message: "Not Access token" });
     }
 
-    const user = await userModel.findOne({ _id: data.id });
+    const user = await userModel.findOne({ _id: data.id, withdraw: false });
     if (!user) {
       return res.status(401).json({ message: "No corresponding user" });
     }
