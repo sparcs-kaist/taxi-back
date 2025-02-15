@@ -1,36 +1,15 @@
-import { Request, Response } from "express";
+import { RequestHandler } from "express";
 import { quizModel } from "../modules/stores/mongo";
 import { getLoginInfo } from "@/modules/auths/login";
+import logger from "@/modules/logger";
 
-export const getTodayQuiz = async (
-  req: Request,
-  res: Response
-): Promise<Response> => {
+export const getTodayQuiz: RequestHandler = async (req, res) => {
   try {
-    const now = new Date();
-    const kstOffset = 9 * 60 * 60 * 1000; // UTC+9 오프셋
-    const kstNow = new Date(now.getTime() + kstOffset);
+    const startOfToday = new Date();
+    startOfToday.setHours(0, 0, 0, 0);
 
-    const startOfToday = new Date(
-      Date.UTC(
-        kstNow.getUTCFullYear(),
-        kstNow.getUTCMonth(),
-        kstNow.getUTCDate(),
-        0,
-        1,
-        0
-      )
-    );
-    const endOfToday = new Date(
-      Date.UTC(
-        kstNow.getUTCFullYear(),
-        kstNow.getUTCMonth(),
-        kstNow.getUTCDate(),
-        23,
-        59,
-        59
-      )
-    );
+    const endOfToday = new Date();
+    endOfToday.setDate(startOfToday.getDate() + 1);
 
     // 오늘의 퀴즈 조회
     const quiz = await quizModel.findOne({
@@ -54,34 +33,22 @@ export const getTodayQuiz = async (
 
     return res.status(200).json(response);
   } catch (error) {
-    return res.status(500).json({ message: "Internal server error" });
+    logger.error(err);
+    res.status(500).json({ error: "Quizzes/today : internal server error" });
   }
 };
 
-export const getQuizByDate = async (
-  req: Request,
-  res: Response
-): Promise<Response> => {
+export const getQuizByDate: RequestHandler = async (req, res) => {
   try {
     const { date } = req.params;
 
-    // 날짜 유효성 검사 (YYYY-MM-DD 형식)
-    if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
-      return res
-        .status(400)
-        .json({ message: "Invalid date format. Use YYYY-MM-DD." });
-    }
-
     const requestedDate = new Date(`${date}T00:00:00Z`);
 
-    // KST 기준으로 오늘 자정 설정
-    const kstNow = new Date();
-    const kstOffset = 9 * 60 * 60 * 1000; // UTC+9
-    const kstToday = new Date(kstNow.getTime() + kstOffset);
-    kstToday.setUTCHours(0, 0, 0, 0); // KST 기준 오늘 0시 0분 0초로 설정
+    const startOfToday = new Date();
+    startOfToday.setHours(0, 0, 0, 0);
 
     // 미래 날짜 조회 제한
-    if (requestedDate > kstToday) {
+    if (requestedDate > startOfToday) {
       return res
         .status(403)
         .json({ message: "You cannot access future quizzes." });
@@ -123,14 +90,12 @@ export const getQuizByDate = async (
 
     return res.status(200).json(response);
   } catch (error) {
-    return res.status(500).json({ message: "Internal server error" });
+    logger.error(err);
+    res.status(500).json({ error: "Quizzes/date : internal server error" });
   }
 };
 
-export const getTodayAnswer = async (
-  req: Request,
-  res: Response
-): Promise<Response> => {
+export const getTodayAnswer: RequestHandler = async (req, res) => {
   try {
     // 로그인된 사용자 정보 가져오기
     const user = getLoginInfo(req);
@@ -142,29 +107,11 @@ export const getTodayAnswer = async (
 
     const userId = user.oid;
 
-    const now = new Date();
-    const kstOffset = 9 * 60 * 60 * 1000;
-    const kstNow = new Date(now.getTime() + kstOffset);
-    const startOfToday = new Date(
-      Date.UTC(
-        kstNow.getUTCFullYear(),
-        kstNow.getUTCMonth(),
-        kstNow.getUTCDate(),
-        0,
-        1,
-        0
-      )
-    );
-    const endOfToday = new Date(
-      Date.UTC(
-        kstNow.getUTCFullYear(),
-        kstNow.getUTCMonth(),
-        kstNow.getUTCDate(),
-        23,
-        59,
-        59
-      )
-    );
+    const startOfToday = new Date();
+    startOfToday.setHours(0, 0, 0, 0);
+
+    const endOfToday = new Date();
+    endOfToday.setDate(startOfToday.getDate() + 1);
 
     // 오늘의 퀴즈 조회
     const quiz = await quizModel.findOne({
@@ -180,7 +127,7 @@ export const getTodayAnswer = async (
 
     // 사용자의 오늘 제출된 답안 찾기
     const userAnswer = quiz.answers.find(
-      (answer: any) => answer.userId.toString() === userId.toString()
+      (answer) => answer.userId.toString() === userId.toString()
     );
 
     if (!userAnswer) {
@@ -196,15 +143,14 @@ export const getTodayAnswer = async (
 
     return res.status(200).json(response);
   } catch (error) {
-    console.error("Error fetching today's answer:", error);
-    return res.status(500).json({ message: "Internal server error" });
+    logger.error(err);
+    res
+      .status(500)
+      .json({ error: "Quizzes/todayAnswer : internal server error" });
   }
 };
 
-export const getAllAnswers = async (
-  req: Request,
-  res: Response
-): Promise<Response> => {
+export const getAllAnswers: RequestHandler = async (req, res) => {
   try {
     // 로그인된 사용자 정보 가져오기
     const user = getLoginInfo(req);
@@ -228,10 +174,10 @@ export const getAllAnswers = async (
     }
 
     // 사용자의 답안을 정리해서 응답으로 반환
-    const userAnswers = quizzes.flatMap((quiz: any) =>
+    const userAnswers = quizzes.flatMap((quiz) =>
       quiz.answers
-        .filter((answer: any) => answer.userId.toString() === userId.toString())
-        .map((answer: any) => ({
+        .filter((answer) => answer.userId.toString() === userId.toString())
+        .map((answer) => ({
           quizDate: quiz.quizDate,
           answer: answer.answer,
           status: answer.status || "unknown",
@@ -246,15 +192,12 @@ export const getAllAnswers = async (
 
     return res.status(200).json(response);
   } catch (error) {
-    console.error("Error fetching all answers:", error);
-    return res.status(500).json({ message: "Internal server error" });
+    logger.error(err);
+    res.status(500).json({ error: "Quizzes/answers : internal server error" });
   }
 };
 
-export const submitAnswer = async (
-  req: Request,
-  res: Response
-): Promise<Response> => {
+export const submitAnswer: RequestHandler = async (req, res) => {
   try {
     // 로그인된 사용자 정보 가져오기
     const user = getLoginInfo(req);
@@ -274,29 +217,11 @@ export const submitAnswer = async (
         .json({ message: "Invalid answer. Only 'A' or 'B' is allowed." });
     }
 
-    const now = new Date();
-    const kstOffset = 9 * 60 * 60 * 1000;
-    const kstNow = new Date(now.getTime() + kstOffset);
-    const startOfToday = new Date(
-      Date.UTC(
-        kstNow.getUTCFullYear(),
-        kstNow.getUTCMonth(),
-        kstNow.getUTCDate(),
-        0,
-        1,
-        0
-      )
-    );
-    const endOfToday = new Date(
-      Date.UTC(
-        kstNow.getUTCFullYear(),
-        kstNow.getUTCMonth(),
-        kstNow.getUTCDate(),
-        23,
-        59,
-        59
-      )
-    );
+    const startOfToday = new Date();
+    startOfToday.setHours(0, 0, 0, 0);
+
+    const endOfToday = new Date();
+    endOfToday.setDate(startOfToday.getDate() + 1);
 
     // 오늘의 퀴즈 조회
     const quiz = await quizModel.findOne({
@@ -340,15 +265,12 @@ export const submitAnswer = async (
       submittedAt: submittedAt.toISOString(),
     });
   } catch (error) {
-    console.error("Error submitting answer:", error);
-    return res.status(500).json({ message: "Internal server error" });
+    logger.error(err);
+    res.status(500).json({ error: "Quizzes/submit : internal server error" });
   }
 };
 
-export const cancelAnswer = async (
-  req: Request,
-  res: Response
-): Promise<Response> => {
+export const cancelAnswer: RequestHandler = async (req, res) => {
   try {
     // 로그인된 사용자 정보 가져오기
     const user = getLoginInfo(req);
@@ -360,29 +282,11 @@ export const cancelAnswer = async (
 
     const userId = user.oid;
 
-    const now = new Date();
-    const kstOffset = 9 * 60 * 60 * 1000;
-    const kstNow = new Date(now.getTime() + kstOffset);
-    const startOfToday = new Date(
-      Date.UTC(
-        kstNow.getUTCFullYear(),
-        kstNow.getUTCMonth(),
-        kstNow.getUTCDate(),
-        0,
-        1,
-        0
-      )
-    );
-    const endOfToday = new Date(
-      Date.UTC(
-        kstNow.getUTCFullYear(),
-        kstNow.getUTCMonth(),
-        kstNow.getUTCDate(),
-        23,
-        59,
-        59
-      )
-    );
+    const startOfToday = new Date();
+    startOfToday.setHours(0, 0, 0, 0);
+
+    const endOfToday = new Date();
+    endOfToday.setDate(startOfToday.getDate() + 1);
 
     // 오늘의 퀴즈 조회
     const quiz = await quizModel.findOne({
@@ -399,7 +303,7 @@ export const cancelAnswer = async (
     // 사용자의 제출된 답안을 찾고 삭제
     const initialAnswersLength = quiz.answers.length;
     quiz.answers = quiz.answers.filter(
-      (answer: any) => answer.userId.toString() !== userId.toString()
+      (answer) => answer.userId.toString() !== userId.toString()
     );
 
     if (quiz.answers.length === initialAnswersLength) {
@@ -409,14 +313,14 @@ export const cancelAnswer = async (
     }
 
     // countA 또는 countB 감소
-    quiz.countA = quiz.answers.filter((a: any) => a.answer === "A").length;
-    quiz.countB = quiz.answers.filter((a: any) => a.answer === "B").length;
+    quiz.countA = quiz.answers.filter((a) => a.answer === "A").length;
+    quiz.countB = quiz.answers.filter((a) => a.answer === "B").length;
 
     await quiz.save(); // 변경 사항 저장
 
     return res.status(200).json({ message: "Answer canceled successfully" });
   } catch (error) {
-    console.error("Error canceling answer:", error);
-    return res.status(500).json({ message: "Internal server error" });
+    logger.error(err);
+    res.status(500).json({ error: "Quizzes/cancel : internal server error" });
   }
 };

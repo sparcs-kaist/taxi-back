@@ -6,7 +6,9 @@ import {
   cancelAnswer,
   getTodayAnswer,
   getAllAnswers,
-} from "../services/quiz";
+} from "../services/quizzes";
+import quizzesSchema from "./docs/schemas/quizzesSchema";
+import { validateParams } from "../../middlewares/zod";
 
 const router = Router();
 
@@ -20,7 +22,11 @@ router.get("/todayAnswer", getTodayAnswer);
 router.get("/answers", getAllAnswers);
 
 // Get quiz by date
-router.get("/:date", getQuizByDate);
+router.get(
+  "/:date",
+  validateParams(quizzesSchema.getQuizByDateParams),
+  getQuizByDate
+);
 
 // Submit quiz answer
 router.post("/submit", submitAnswer);
