@@ -174,7 +174,7 @@ const quizSchema = Schema({
   title: { type: String, required: true },
   content: { type: String, required: true },
   image: { type: String, required: true },
-  answer: { type: String, enum: ["A", "B", "C"], default: "C" },
+  answer: { type: String, enum: ["A", "B", "C", "D"], default: "C" },
   countA: { type: Number, default: 0 },
   countB: { type: Number, default: 0 },
   answers: [

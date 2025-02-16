@@ -1,6 +1,5 @@
 import { RequestHandler } from "express";
 import { quizModel } from "../modules/stores/mongo";
-import { getLoginInfo } from "@/modules/auths/login";
 import logger from "@/modules/logger";
 
 export const getTodayQuiz: RequestHandler = async (req, res) => {
@@ -12,12 +11,14 @@ export const getTodayQuiz: RequestHandler = async (req, res) => {
     endOfToday.setDate(startOfToday.getDate() + 1);
 
     // 오늘의 퀴즈 조회
-    const quiz = await quizModel.findOne({
-      quizDate: {
-        $gte: startOfToday,
-        $lte: endOfToday,
-      },
-    });
+    const quiz = await quizModel
+      .findOne({
+        quizDate: {
+          $gte: startOfToday,
+          $lte: endOfToday,
+        },
+      })
+      .lean();
 
     if (!quiz) {
       return res.status(404).json({ message: "No quiz found for today" });
@@ -58,12 +59,14 @@ export const getQuizByDate: RequestHandler = async (req, res) => {
     const endOfDate = new Date(`${date}T23:59:59Z`);
 
     // 해당 날짜의 퀴즈 조회
-    const quiz = await quizModel.findOne({
-      quizDate: {
-        $gte: startOfDate,
-        $lt: endOfDate,
-      },
-    });
+    const quiz = await quizModel
+      .findOne({
+        quizDate: {
+          $gte: startOfDate,
+          $lt: endOfDate,
+        },
+      })
+      .lean();
 
     if (!quiz) {
       return res
@@ -98,14 +101,7 @@ export const getQuizByDate: RequestHandler = async (req, res) => {
 export const getTodayAnswer: RequestHandler = async (req, res) => {
   try {
     // 로그인된 사용자 정보 가져오기
-    const user = getLoginInfo(req);
-    if (!user.oid) {
-      return res
-        .status(401)
-        .json({ message: "Unauthorized: No valid session found" });
-    }
-
-    const userId = user.oid;
+    const userId = req.userOid;
 
     const startOfToday = new Date();
     startOfToday.setHours(0, 0, 0, 0);
@@ -114,12 +110,14 @@ export const getTodayAnswer: RequestHandler = async (req, res) => {
     endOfToday.setDate(startOfToday.getDate() + 1);
 
     // 오늘의 퀴즈 조회
-    const quiz = await quizModel.findOne({
-      quizDate: {
-        $gte: startOfToday,
-        $lte: endOfToday,
-      },
-    });
+    const quiz = await quizModel
+      .findOne({
+        quizDate: {
+          $gte: startOfToday,
+          $lte: endOfToday,
+        },
+      })
+      .lean();
 
     if (!quiz) {
       return res.status(404).json({ message: "No quiz available for today." });
@@ -153,19 +151,14 @@ export const getTodayAnswer: RequestHandler = async (req, res) => {
 export const getAllAnswers: RequestHandler = async (req, res) => {
   try {
     // 로그인된 사용자 정보 가져오기
-    const user = getLoginInfo(req);
-    if (!user.oid) {
-      return res
-        .status(401)
-        .json({ message: "Unauthorized: No valid session found" });
-    }
-
-    const userId = user.oid;
+    const userId = req.userOid;
 
     // 모든 퀴즈에서 사용자의 답안 조회
-    const quizzes = await quizModel.find({
-      "answers.userId": userId,
-    });
+    const quizzes = await quizModel
+      .find({
+        "answers.userId": userId,
+      })
+      .lean();
 
     if (quizzes.length === 0) {
       return res
@@ -200,22 +193,8 @@ export const getAllAnswers: RequestHandler = async (req, res) => {
 export const submitAnswer: RequestHandler = async (req, res) => {
   try {
     // 로그인된 사용자 정보 가져오기
-    const user = getLoginInfo(req);
-    if (!user.oid) {
-      return res
-        .status(401)
-        .json({ message: "Unauthorized: No valid session found" });
-    }
-
-    const userId = user.oid; // 사용자 고유 ID
+    const userId = req.userOid;
     const { answer } = req.body;
-
-    // 답안 유효성 검사 (A 또는 B만 허용)
-    if (!["A", "B"].includes(answer)) {
-      return res
-        .status(400)
-        .json({ message: "Invalid answer. Only 'A' or 'B' is allowed." });
-    }
 
     const startOfToday = new Date();
     startOfToday.setHours(0, 0, 0, 0);
@@ -273,14 +252,7 @@ export const submitAnswer: RequestHandler = async (req, res) => {
 export const cancelAnswer: RequestHandler = async (req, res) => {
   try {
     // 로그인된 사용자 정보 가져오기
-    const user = getLoginInfo(req);
-    if (!user.oid) {
-      return res
-        .status(401)
-        .json({ message: "Unauthorized: No valid session found" });
-    }
-
-    const userId = user.oid;
+    const userId = req.userOid;
 
     const startOfToday = new Date();
     startOfToday.setHours(0, 0, 0, 0);

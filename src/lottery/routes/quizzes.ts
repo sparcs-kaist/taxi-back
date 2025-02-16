@@ -8,7 +8,8 @@ import {
   getAllAnswers,
 } from "../services/quizzes";
 import quizzesSchema from "./docs/schemas/quizzesSchema";
-import { validateParams } from "../../middlewares/zod";
+import { validateParams, validateBody } from "../../middlewares/zod";
+import authMiddleware from "../../middlewares/auth";
 
 const router = Router();
 
@@ -16,10 +17,10 @@ const router = Router();
 router.get("/today", getTodayQuiz);
 
 // Get today answer
-router.get("/todayAnswer", getTodayAnswer);
+router.get("/todayAnswer", authMiddleware, getTodayAnswer);
 
 // Get All answers
-router.get("/answers", getAllAnswers);
+router.get("/answers", authMiddleware, getAllAnswers);
 
 // Get quiz by date
 router.get(
@@ -29,9 +30,14 @@ router.get(
 );
 
 // Submit quiz answer
-router.post("/submit", submitAnswer);
+router.post(
+  "/submit",
+  validateBody(quizzesSchema.submitAnswerBody),
+  authMiddleware,
+  submitAnswer
+);
 
 // Cancel quiz answer
-router.post("/cancel", cancelAnswer);
+router.post("/cancel", authMiddleware, cancelAnswer);
 
 export default router;
