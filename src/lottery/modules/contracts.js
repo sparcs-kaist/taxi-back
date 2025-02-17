@@ -13,7 +13,7 @@ const quests = buildQuests({
   firstLogin: {
     name: "첫 발걸음",
     description:
-      "이벤트 참여만 해도 송편코인을 얻을 수 있다고?? 이벤트 참여에 동의하고 송편코인을 받아 보세요.",
+      "이벤트 참여만 해도 송편코인을 얻을 수 있다고?? 이벤트 참여에 동의하고 넙죽죽코인을 받아 보세요.",
     imageUrl:
       "https://sparcs-taxi-prod.s3.ap-northeast-2.amazonaws.com/assets/event-2024fall/quest_firstLogin.png",
     reward: 200,
@@ -80,7 +80,7 @@ const quests = buildQuests({
   eventSharing: {
     name: "Taxi를 아십니까",
     description:
-      "내가 초대한 사람이 이벤트에 참여하면 송편코인을 드려요. 다른 사람의 초대를 받아 이벤트에 참여한 경우에도 이 퀘스트가 달성돼요.",
+      "내가 초대한 사람이 이벤트에 참여하면 넙죽코인을 드려요. 다른 사람의 초대를 받아 이벤트에 참여한 경우에도 이 퀘스트가 달성돼요.",
     imageUrl:
       "https://sparcs-taxi-prod.s3.ap-northeast-2.amazonaws.com/assets/event-2024fall/quest_eventSharing.png",
     reward: 700,
@@ -89,7 +89,7 @@ const quests = buildQuests({
   dailyAttendance: {
     name: "매일매일 출석 췤!",
     description:
-      "매일 Taxi에 접속하면 하루 한 번 송편코인을 드려요! 하루에 한 번, 택시팟도 둘러보고 송편코인도 받아 가세요.",
+      "퀴즈의 답을 제출하면 하루 한 번 넙죽코인을 드려요! 하루에 한 번, 택시팟도 둘러보고 넙죽코인도 받아 가세요.",
     imageUrl:
       "https://sparcs-taxi-prod.s3.ap-northeast-2.amazonaws.com/assets/event-2024fall/quest_dailyAttendance.png",
     reward: 700,
@@ -103,6 +103,14 @@ const quests = buildQuests({
     imageUrl:
       "https://sparcs-taxi-prod.s3.ap-northeast-2.amazonaws.com/assets/event-2024fall/quest_itemPurchase.png",
     reward: 500,
+  },
+  answerCorrectly: {
+    name: "정답 맞혀버리기~",
+    description: "오늘의 퀴즈 정답을 맞혀보세요. 틀려도 좋아요.",
+    imageUrl:
+      "https://sparcs-taxi-prod.s3.ap-northeast-2.amazonaws.com/assets/event-2024fall/quest_itemPurchase.png",
+    reward: 600,
+    maxCount: 17,
   },
 });
 
@@ -253,6 +261,11 @@ const completeItemPurchaseQuest = async (userId, timestamp) => {
   return await completeQuest(userId, timestamp, quests.itemPurchase);
 };
 
+const completeAnswerCorrectlyQuest = async (userId, timestamp) => {
+  console.log("ok");
+  return await completeQuest(userId, timestamp, quests.answerCorrectly);
+};
+
 module.exports = {
   quests,
   completeFirstLoginQuest,
@@ -264,4 +277,5 @@ module.exports = {
   completeAdPushAgreementQuest,
   completeEventSharingQuest,
   completeItemPurchaseQuest,
+  completeAnswerCorrectlyQuest,
 };

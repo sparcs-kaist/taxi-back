@@ -1,5 +1,6 @@
 import { quizModel } from "../modules/stores/mongo";
-import logger from "../../modules/logger";
+const logger = require("@/modules/logger").default;
+const { completeAnswerCorrectlyQuest } = require("../modules/contracts");
 
 const determineQuizResult = async () => {
   try {
@@ -42,10 +43,19 @@ const determineQuizResult = async () => {
         answer.status = "draw";
       });
     } else {
-      // 사용자의 정/오답 처리
-      quiz.answers.forEach((answer: any) => {
-        answer.status = answer.answer === correctAnswer ? "correct" : "wrong";
-      });
+      // 사용자의 정/오답 처리 & 코인 지급
+      for (const answer of quiz.answers) {
+        if (answer.answer === correctAnswer) {
+          answer.status = "unknown";
+          // 정답을 맞힌 사용자에게 퀘스트 완료 적용
+          await completeAnswerCorrectlyQuest(
+            answer.userId.toHexString(),
+            Date.now()
+          );
+        } else {
+          answer.status = "wrong";
+        }
+      }
     }
 
     // 저장

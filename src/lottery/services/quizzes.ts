@@ -7,7 +7,7 @@ export const getTodayQuiz: RequestHandler = async (req, res) => {
     const startOfToday = new Date();
     startOfToday.setHours(0, 0, 0, 0);
 
-    const endOfToday = new Date();
+    const endOfToday = new Date(startOfToday);
     endOfToday.setDate(startOfToday.getDate() + 1);
 
     // 오늘의 퀴즈 조회
@@ -106,7 +106,7 @@ export const getTodayAnswer: RequestHandler = async (req, res) => {
     const startOfToday = new Date();
     startOfToday.setHours(0, 0, 0, 0);
 
-    const endOfToday = new Date();
+    const endOfToday = new Date(startOfToday);
     endOfToday.setDate(startOfToday.getDate() + 1);
 
     // 오늘의 퀴즈 조회
@@ -199,7 +199,7 @@ export const submitAnswer: RequestHandler = async (req, res) => {
     const startOfToday = new Date();
     startOfToday.setHours(0, 0, 0, 0);
 
-    const endOfToday = new Date();
+    const endOfToday = new Date(startOfToday);
     endOfToday.setDate(startOfToday.getDate() + 1);
 
     // 오늘의 퀴즈 조회
@@ -257,7 +257,7 @@ export const cancelAnswer: RequestHandler = async (req, res) => {
     const startOfToday = new Date();
     startOfToday.setHours(0, 0, 0, 0);
 
-    const endOfToday = new Date();
+    const endOfToday = new Date(startOfToday);
     endOfToday.setDate(startOfToday.getDate() + 1);
 
     // 오늘의 퀴즈 조회

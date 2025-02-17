@@ -184,7 +184,7 @@ const quizSchema = Schema({
       submittedAt: { type: Date, required: true },
       status: {
         type: String,
-        enum: ["correct", "wrong", "unknown"],
+        enum: ["correct", "wrong", "unknown", "draw"],
         default: "unknown",
       },
     },
