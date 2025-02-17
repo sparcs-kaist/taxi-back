@@ -262,7 +262,6 @@ const completeItemPurchaseQuest = async (userId, timestamp) => {
 };
 
 const completeAnswerCorrectlyQuest = async (userId, timestamp) => {
-  console.log("ok");
   return await completeQuest(userId, timestamp, quests.answerCorrectly);
 };
 

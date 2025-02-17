@@ -66,7 +66,6 @@ const buildQuests = (quests) => {
  */
 const completeQuest = async (userId, timestamp, quest) => {
   try {
-    console.log("ok2");
     // 1단계: 유저의 EventStatus를 가져옵니다. 블록드리스트인지도 확인합니다.
     const eventStatus = await eventStatusModel.findOne({ userId }).lean();
     if (!eventStatus || eventStatus.isBanned) return null;

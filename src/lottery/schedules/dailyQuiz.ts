@@ -46,7 +46,7 @@ const determineQuizResult = async () => {
       // 사용자의 정/오답 처리 & 코인 지급
       for (const answer of quiz.answers) {
         if (answer.answer === correctAnswer) {
-          answer.status = "unknown";
+          answer.status = "correct";
           // 정답을 맞힌 사용자에게 퀘스트 완료 적용
           await completeAnswerCorrectlyQuest(
             answer.userId.toHexString(),
