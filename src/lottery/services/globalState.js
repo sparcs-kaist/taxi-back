@@ -1,6 +1,6 @@
 const { eventStatusModel } = require("../modules/stores/mongo");
 const { userModel } = require("../../modules/stores/mongo");
-const logger = require("../../modules/logger");
+const logger = require("../../modules/logger").default;
 const { isLogin, getLoginInfo } = require("../../modules/auths/login");
 const { nodeEnv } = require("@/loadenv");
 
