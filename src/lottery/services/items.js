@@ -182,7 +182,7 @@ const updateEventStatus = async (
     }
   );
 
-// 아래의 함수는 2024 추석 이벤트에서 사용되지 않습니다.
+// 아래의 함수는 2025 봄 이벤트에서 사용되지 않습니다.
 //
 // const getRandomItem = async (req, depth) => {
 //   if (depth >= 10) {
