@@ -1,6 +1,6 @@
 const { itemModel } = require("./stores/mongo");
-const { buildRecordAction } = require("../../modules/adminResource");
-const logger = require("../../modules/logger");
+const { buildRecordAction } = require("@/modules/adminResource");
+const logger = require("@/modules/logger").default;
 
 const addItemStockActionHandler = (count) => async (req, res, context) => {
   const itemId = context.record.params._id;
