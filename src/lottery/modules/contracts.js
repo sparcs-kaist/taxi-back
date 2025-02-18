@@ -92,7 +92,7 @@ const quests = buildQuests({
       "퀴즈의 답을 제출하면 하루 한 번 넙죽코인을 드려요! 하루에 한 번, 택시팟도 둘러보고 넙죽코인도 받아 가세요.",
     imageUrl:
       "https://sparcs-taxi-prod.s3.ap-northeast-2.amazonaws.com/assets/event-2024fall/quest_dailyAttendance.png",
-    reward: 700,
+    reward: 100,
     maxCount: 17,
     isApiRequired: true,
   },
