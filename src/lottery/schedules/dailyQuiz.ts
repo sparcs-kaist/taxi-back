@@ -39,7 +39,7 @@ const determineQuizResult = async () => {
 
     // A와 B의 선택 수가 동일할 때 draw 처리
     if (quiz.countA === quiz.countB) {
-      quiz.answers.forEach((answer: any) => {
+      quiz.answers.forEach((answer) => {
         answer.status = "draw";
       });
     } else {
