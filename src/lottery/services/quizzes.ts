@@ -15,7 +15,7 @@ export const getTodayQuizHandler: RequestHandler = async (req, res) => {
       .findOne({
         quizDate: {
           $gte: startOfToday,
-          $lte: endOfToday,
+          $lt: endOfToday,
         },
       })
       .lean();
@@ -46,7 +46,9 @@ export const getTodayQuizHandler: RequestHandler = async (req, res) => {
     return res.status(200).json(response);
   } catch (error) {
     logger.error(error);
-    res.status(500).json({ error: "Quizzes/today : internal server error" });
+    return res
+      .status(500)
+      .json({ error: "Quizzes/today : internal server error" });
   }
 };
 
@@ -115,7 +117,9 @@ export const getQuizByDateHandler: RequestHandler = async (req, res) => {
     return res.status(200).json(response);
   } catch (error) {
     logger.error(error);
-    res.status(500).json({ error: "Quizzes/date : internal server error" });
+    return res
+      .status(500)
+      .json({ error: "Quizzes/date : internal server error" });
   }
 };
 
@@ -207,7 +211,9 @@ export const getAllAnswersHandler: RequestHandler = async (req, res) => {
     return res.status(200).json(response);
   } catch (error) {
     logger.error(error);
-    res.status(500).json({ error: "Quizzes/answers : internal server error" });
+    return res
+      .status(500)
+      .json({ error: "Quizzes/answers : internal server error" });
   }
 };
 
@@ -271,7 +277,9 @@ export const submitAnswerHandler: RequestHandler = async (req, res) => {
     });
   } catch (error) {
     logger.error(error);
-    res.status(500).json({ error: "Quizzes/submit : internal server error" });
+    return res
+      .status(500)
+      .json({ error: "Quizzes/submit : internal server error" });
   }
 };
 
@@ -324,6 +332,8 @@ export const cancelAnswerHandler: RequestHandler = async (req, res) => {
     return res.status(200).json({ message: "Answer canceled successfully" });
   } catch (error) {
     logger.error(error);
-    res.status(500).json({ error: "Quizzes/cancel : internal server error" });
+    return res
+      .status(500)
+      .json({ error: "Quizzes/cancel : internal server error" });
   }
 };

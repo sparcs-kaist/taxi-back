@@ -7,7 +7,7 @@ import {
   getTodayAnswerHandler,
   getAllAnswersHandler,
 } from "../services/quizzes";
-import quizzesSchema from "./docs/schemas/quizzesSchema";
+import { quizzesZod } from "./docs/schemas/quizzesSchema";
 import { validateParams, validateBody } from "../../middlewares/zod";
 import authMiddleware from "../../middlewares/auth";
 
@@ -25,14 +25,14 @@ router.get("/answers", authMiddleware, getAllAnswersHandler);
 // Get quiz by date
 router.get(
   "/:date",
-  validateParams(quizzesSchema.getQuizByDateParams),
+  validateParams(quizzesZod.getQuizByDateParams),
   getQuizByDateHandler
 );
 
 // Submit quiz answer
 router.post(
   "/submit",
-  validateBody(quizzesSchema.submitAnswerBody),
+  validateBody(quizzesZod.submitAnswerBody),
   authMiddleware,
   submitAnswerHandler
 );

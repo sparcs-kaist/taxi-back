@@ -174,6 +174,7 @@ const quizSchema = Schema({
   title: { type: String, required: true },
   content: { type: String, required: true },
   image: { type: String, required: true },
+  // A와 B는 최종 답안, C와 D는 인원 수에 따라 dailyQuiz.ts 에서 A와 B로 결정됩니다.
   answer: { type: String, enum: ["A", "B", "C", "D"], default: "C" },
   countA: { type: Number, default: 0 },
   countB: { type: Number, default: 0 },
