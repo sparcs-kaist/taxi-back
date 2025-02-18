@@ -24,12 +24,23 @@ export const getTodayQuizHandler: RequestHandler = async (req, res) => {
       return res.status(404).json({ message: "No quiz found for today" });
     }
 
+    // content를 "/" 기준으로 split
+    const contentParts = quiz.content.split("/");
+    const optionA = contentParts.length > 1 ? contentParts[0] : null;
+    const optionB = contentParts.length > 2 ? contentParts[1] : null;
+    const quizContent =
+      contentParts.length > 2 ? contentParts[2] : quiz.content;
+
+    const totalCount = quiz.countA + quiz.countB; // quizCount
+
     const response = {
       quizDate: quiz.quizDate,
       quizTitle: quiz.title,
-      quizContent: quiz.content,
+      quizContent: quizContent,
       quizImage: quiz.image,
-      quizCount: quiz.answers.length,
+      quizCount: totalCount,
+      optionA: optionA || "Option A", // 기본값 설정
+      optionB: optionB || "Option B",
     };
 
     return res.status(200).json(response);
@@ -82,14 +93,23 @@ export const getQuizByDateHandler: RequestHandler = async (req, res) => {
       B: totalCount > 0 ? Math.round((quiz.countB / totalCount) * 100) : 0,
     };
 
+    // content를 "/" 기준으로 split
+    const contentParts = quiz.content.split("/");
+    const optionA = contentParts.length > 1 ? contentParts[0] : null;
+    const optionB = contentParts.length > 2 ? contentParts[1] : null;
+    const quizContent =
+      contentParts.length > 2 ? contentParts[2] : quiz.content;
+
     const response = {
       quizDate: quiz.quizDate,
       quizTitle: quiz.title,
       quizImage: quiz.image,
-      quizContent: quiz.content,
+      quizContent: quizContent,
       quizCount: totalCount,
       answer: quiz.answer,
       pickRatio: pickRatio,
+      optionA: optionA || "Option A", // 기본값 설정
+      optionB: optionB || "Option B",
     };
 
     return res.status(200).json(response);
