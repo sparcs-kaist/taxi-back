@@ -223,6 +223,14 @@ export const submitAnswerHandler: RequestHandler = async (req, res) => {
     const userId = req.userOid;
     const { answer } = req.body;
 
+    // 11시 55분 이전인지 검사하기
+    const timestamp = new Date();
+    const settingtime = new Date();
+    settingtime.setHours(23, 55, 0, 0);
+    if (timestamp > settingtime) {
+      return res.status(404).json({ message: "You can't submit answer now." });
+    }
+
     const startOfToday = new Date();
     startOfToday.setHours(0, 0, 0, 0);
 
@@ -287,6 +295,14 @@ export const cancelAnswerHandler: RequestHandler = async (req, res) => {
   try {
     // 로그인된 사용자 정보 가져오기
     const userId = req.userOid;
+
+    // 11시 55분 이전인지 검사하기
+    const timestamp = new Date();
+    const settingtime = new Date();
+    settingtime.setHours(23, 55, 0, 0);
+    if (timestamp > settingtime) {
+      return res.status(404).json({ message: "You can't submit answer now." });
+    }
 
     const startOfToday = new Date();
     startOfToday.setHours(0, 0, 0, 0);

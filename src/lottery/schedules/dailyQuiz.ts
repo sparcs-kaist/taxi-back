@@ -4,23 +4,23 @@ import { completeAnswerCorrectlyQuest } from "../modules/contracts";
 
 const determineQuizResult = async () => {
   try {
-    const yesterdayMidnight = new Date();
-    yesterdayMidnight.setHours(0, 0, 0, 0);
-    yesterdayMidnight.setDate(yesterdayMidnight.getDate() + 1);
+    const tomorrowMidnight = new Date();
+    tomorrowMidnight.setHours(0, 0, 0, 0);
+    tomorrowMidnight.setDate(tomorrowMidnight.getDate() + 1);
 
     const todayMidnight = new Date();
     todayMidnight.setHours(0, 0, 0, 0);
 
-    // 어제의 퀴즈 조회
+    // 오늘의 퀴즈 조회
     const quiz = await quizModel.findOne({
       quizDate: {
-        $lt: yesterdayMidnight,
         $gte: todayMidnight,
+        $lt: tomorrowMidnight,
       },
     });
 
     if (!quiz) {
-      logger.info("No quiz found for yesterday.");
+      logger.info("No quiz found for today.");
       return;
     }
 
