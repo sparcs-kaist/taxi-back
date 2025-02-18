@@ -2,7 +2,7 @@ import { RequestHandler } from "express";
 import { quizModel } from "../modules/stores/mongo";
 import logger from "@/modules/logger";
 
-export const getTodayQuiz: RequestHandler = async (req, res) => {
+export const getTodayQuizHandler: RequestHandler = async (req, res) => {
   try {
     const startOfToday = new Date();
     startOfToday.setHours(0, 0, 0, 0);
@@ -34,29 +34,30 @@ export const getTodayQuiz: RequestHandler = async (req, res) => {
 
     return res.status(200).json(response);
   } catch (error) {
-    logger.error(err);
+    logger.error(error);
     res.status(500).json({ error: "Quizzes/today : internal server error" });
   }
 };
 
-export const getQuizByDate: RequestHandler = async (req, res) => {
+export const getQuizByDateHandler: RequestHandler = async (req, res) => {
   try {
-    const { date } = req.params;
+    const { date }: { date: string } = req.params;
 
-    const requestedDate = new Date(`${date}T00:00:00Z`);
+    const [year, month, day] = date.split("-").map(Number);
+    const requestedDate = new Date(year, month - 1, day);
 
     const startOfToday = new Date();
     startOfToday.setHours(0, 0, 0, 0);
 
     // 미래 날짜 조회 제한
-    if (requestedDate > startOfToday) {
+    if (requestedDate >= startOfToday) {
       return res
         .status(403)
         .json({ message: "You cannot access future quizzes." });
     }
 
-    const startOfDate = new Date(`${date}T00:00:00Z`);
-    const endOfDate = new Date(`${date}T23:59:59Z`);
+    const startOfDate = new Date(year, month - 1, day, 0, 0, 0);
+    const endOfDate = new Date(year, month - 1, day, 23, 59, 59);
 
     // 해당 날짜의 퀴즈 조회
     const quiz = await quizModel
@@ -93,12 +94,12 @@ export const getQuizByDate: RequestHandler = async (req, res) => {
 
     return res.status(200).json(response);
   } catch (error) {
-    logger.error(err);
+    logger.error(error);
     res.status(500).json({ error: "Quizzes/date : internal server error" });
   }
 };
 
-export const getTodayAnswer: RequestHandler = async (req, res) => {
+export const getTodayAnswerHandler: RequestHandler = async (req, res) => {
   try {
     // 로그인된 사용자 정보 가져오기
     const userId = req.userOid;
@@ -141,14 +142,14 @@ export const getTodayAnswer: RequestHandler = async (req, res) => {
 
     return res.status(200).json(response);
   } catch (error) {
-    logger.error(err);
+    logger.error(error);
     res
       .status(500)
       .json({ error: "Quizzes/todayAnswer : internal server error" });
   }
 };
 
-export const getAllAnswers: RequestHandler = async (req, res) => {
+export const getAllAnswersHandler: RequestHandler = async (req, res) => {
   try {
     // 로그인된 사용자 정보 가져오기
     const userId = req.userOid;
@@ -185,12 +186,12 @@ export const getAllAnswers: RequestHandler = async (req, res) => {
 
     return res.status(200).json(response);
   } catch (error) {
-    logger.error(err);
+    logger.error(error);
     res.status(500).json({ error: "Quizzes/answers : internal server error" });
   }
 };
 
-export const submitAnswer: RequestHandler = async (req, res) => {
+export const submitAnswerHandler: RequestHandler = async (req, res) => {
   try {
     // 로그인된 사용자 정보 가져오기
     const userId = req.userOid;
@@ -226,30 +227,35 @@ export const submitAnswer: RequestHandler = async (req, res) => {
 
     // 답안 제출 기록 추가
     const submittedAt = new Date();
-    quiz.answers.push({
-      userId, // 로그인된 사용자 ID 추가
-      answer,
-      submittedAt,
-      status: "unknown",
-    });
-
-    // 선택된 답에 따라 count 증가
-    if (answer === "A") quiz.countA++;
-    if (answer === "B") quiz.countB++;
-
-    await quiz.save(); // 변경 사항 저장
+    await quizModel.updateOne(
+      { _id: quiz._id },
+      {
+        $push: {
+          answers: {
+            userId, // 로그인된 사용자 ID 추가
+            answer,
+            submittedAt,
+            status: "unknown",
+          },
+        },
+        $inc: {
+          countA: answer === "A" ? 1 : 0, // A 선택 시 count 증가
+          countB: answer === "B" ? 1 : 0, // B 선택 시 count 증가
+        },
+      }
+    );
 
     return res.status(200).json({
       message: "Answer submitted successfully",
       submittedAt: submittedAt.toISOString(),
     });
   } catch (error) {
-    logger.error(err);
+    logger.error(error);
     res.status(500).json({ error: "Quizzes/submit : internal server error" });
   }
 };
 
-export const cancelAnswer: RequestHandler = async (req, res) => {
+export const cancelAnswerHandler: RequestHandler = async (req, res) => {
   try {
     // 로그인된 사용자 정보 가져오기
     const userId = req.userOid;
@@ -272,27 +278,32 @@ export const cancelAnswer: RequestHandler = async (req, res) => {
       return res.status(404).json({ message: "No quiz available for today." });
     }
 
-    // 사용자의 제출된 답안을 찾고 삭제
-    const initialAnswersLength = quiz.answers.length;
-    quiz.answers = quiz.answers.filter(
-      (answer) => answer.userId.toString() !== userId.toString()
+    // 사용자의 제출된 답안 찾기
+    const userAnswer = quiz.answers.find(
+      (answer) => answer.userId.toString() === userId.toString()
     );
 
-    if (quiz.answers.length === initialAnswersLength) {
+    if (!userAnswer) {
       return res
         .status(404)
         .json({ message: "No answer found for cancellation." });
     }
 
-    // countA 또는 countB 감소
-    quiz.countA = quiz.answers.filter((a) => a.answer === "A").length;
-    quiz.countB = quiz.answers.filter((a) => a.answer === "B").length;
-
-    await quiz.save(); // 변경 사항 저장
+    // 답안 제거 및 count 감소 (MongoDB의 $pull 및 $inc 사용)
+    await quizModel.updateOne(
+      { _id: quiz._id },
+      {
+        $pull: { answers: { userId } }, // 사용자의 답안을 배열에서 제거
+        $inc: {
+          countA: userAnswer.answer === "A" ? -1 : 0, // A 선택 취소 시 count 감소
+          countB: userAnswer.answer === "B" ? -1 : 0, // B 선택 취소 시 count 감소
+        },
+      }
+    );
 
     return res.status(200).json({ message: "Answer canceled successfully" });
   } catch (error) {
-    logger.error(err);
+    logger.error(error);
     res.status(500).json({ error: "Quizzes/cancel : internal server error" });
   }
 };

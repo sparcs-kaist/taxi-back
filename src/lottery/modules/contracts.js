@@ -13,7 +13,7 @@ const quests = buildQuests({
   firstLogin: {
     name: "첫 발걸음",
     description:
-      "이벤트 참여만 해도 송편코인을 얻을 수 있다고?? 이벤트 참여에 동의하고 넙죽죽코인을 받아 보세요.",
+      "이벤트 참여만 해도 송편코인을 얻을 수 있다고?? 이벤트 참여에 동의하고 넙죽코인을 받아 보세요.",
     imageUrl:
       "https://sparcs-taxi-prod.s3.ap-northeast-2.amazonaws.com/assets/event-2024fall/quest_firstLogin.png",
     reward: 200,
@@ -261,6 +261,13 @@ const completeItemPurchaseQuest = async (userId, timestamp) => {
   return await completeQuest(userId, timestamp, quests.itemPurchase);
 };
 
+/**
+ * completeAnswerCorrectlyQuest 퀘스트의 완료를 요청합니다.
+ * @param {string|mongoose.Types.ObjectId} userId - 퀘스트를 완료한 사용자의 ObjectId입니다.
+ * @param {number|Date} timestamp - 퀘스트 완료를 요청한 시각입니다.
+ * @returns {Promise}
+ * @usage lottery/schedules/dailyQuiz - determineQuizResult
+ */
 const completeAnswerCorrectlyQuest = async (userId, timestamp) => {
   return await completeQuest(userId, timestamp, quests.answerCorrectly);
 };

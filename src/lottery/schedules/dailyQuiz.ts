@@ -1,5 +1,5 @@
 import { quizModel } from "../modules/stores/mongo";
-const logger = require("@/modules/logger").default;
+import logger from "@/modules/logger";
 const { completeAnswerCorrectlyQuest } = require("../modules/contracts");
 
 const determineQuizResult = async () => {
@@ -44,18 +44,20 @@ const determineQuizResult = async () => {
       });
     } else {
       // 사용자의 정/오답 처리 & 코인 지급
-      for (const answer of quiz.answers) {
-        if (answer.answer === correctAnswer) {
-          answer.status = "correct";
-          // 정답을 맞힌 사용자에게 퀘스트 완료 적용
-          await completeAnswerCorrectlyQuest(
-            answer.userId.toHexString(),
-            Date.now()
-          );
-        } else {
-          answer.status = "wrong";
-        }
-      }
+      await Promise.all(
+        quiz.answers.map(async (answer) => {
+          if (answer.answer === correctAnswer) {
+            answer.status = "correct";
+            // 정답을 맞힌 사용자에게 퀘스트 완료 적용
+            await completeAnswerCorrectlyQuest(
+              answer.userId.toString(),
+              Date.now()
+            );
+          } else {
+            answer.status = "wrong";
+          }
+        })
+      );
     }
 
     // 저장
@@ -64,7 +66,8 @@ const determineQuizResult = async () => {
 
     logger.info(`Quiz result determined: ${correctAnswer}`);
   } catch (error) {
-    logger.error("Error determining quiz result:", error);
+    logger.error("Error determining quiz result:");
+    logger.error(error);
   }
 };
 
