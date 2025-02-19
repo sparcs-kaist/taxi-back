@@ -15,6 +15,9 @@ const itemsZod = {
   purchaseItemHandlerBody: z.object({
     amount: z.number().int().positive(),
   }),
+  useCouponHandlerParams: z.object({
+    couponCode: z.string().regex(/^[a-zA-Z0-9]+$/),
+  }),
 };
 
 const itemsSchema = zodToSchemaObject(itemsZod);

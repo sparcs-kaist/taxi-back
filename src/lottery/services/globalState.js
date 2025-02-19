@@ -1,6 +1,6 @@
 const { eventStatusModel } = require("../modules/stores/mongo");
 const { userModel } = require("../../modules/stores/mongo");
-const logger = require("../../modules/logger");
+const logger = require("@/modules/logger").default;
 const { isLogin, getLoginInfo } = require("../../modules/auths/login");
 const { nodeEnv } = require("@/loadenv");
 
@@ -8,7 +8,7 @@ const { eventConfig } = require("@/loadenv");
 const contracts = require("../modules/contracts");
 const quests = Object.values(contracts.quests);
 
-// 아래의 함수는 2024 추석 이벤트에서 사용되지 않습니다.
+// 아래의 함수는 2025 봄 이벤트에서 사용되지 않습니다.
 //
 // // 유저가 이벤트에 참여할 수 있는지 확인하는 함수입니다.
 // const checkIsUserEligible = (user) => {

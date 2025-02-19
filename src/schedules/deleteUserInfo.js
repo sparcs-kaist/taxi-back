@@ -1,5 +1,5 @@
 const { userModel } = require("../modules/stores/mongo");
-const logger = require("../modules/logger");
+const logger = require("../modules/logger").default;
 
 module.exports = async () => {
   try {

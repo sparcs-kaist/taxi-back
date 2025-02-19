@@ -2,7 +2,7 @@ const { transactionModel } = require("../modules/stores/mongo");
 const {
   transactionPopulateOption,
 } = require("../modules/populates/transactions");
-const logger = require("../../modules/logger");
+const logger = require("@/modules/logger").default;
 
 const formatTransaction = (transaction) => {
   if (transaction.itemId) {

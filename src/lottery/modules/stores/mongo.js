@@ -115,7 +115,7 @@ const itemSchema = Schema({
   }, // 상품의 실제 재고
   itemType: {
     type: Number,
-    enum: [0, 1, 2, 3],
+    enum: [0, 1, 2, 3, 4], // 0: 일반 상품, 1: 일반 응모권, 2: 고급 응모권, 3: 랜덤 박스, 4: 쿠폰
     required: true,
   },
   isRandomItem: {
@@ -125,6 +125,15 @@ const itemSchema = Schema({
   randomWeight: {
     type: Number,
     required: true,
+    min: 0,
+    validate: integerValidator,
+  },
+  couponCode: {
+    type: String,
+    unique: true,
+  },
+  couponReward: {
+    type: Number,
     min: 0,
     validate: integerValidator,
   },

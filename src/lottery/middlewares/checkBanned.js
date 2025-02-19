@@ -1,5 +1,5 @@
 const { eventStatusModel } = require("../modules/stores/mongo");
-const logger = require("../../modules/logger");
+const logger = require("@/modules/logger").default;
 
 /**
  * 사용자가 차단 되었는지 여부를 판단합니다.
