@@ -399,7 +399,9 @@ const purchaseItem = async (req, item, amount) => {
 const purchaseItemHandler = async (req, res) => {
   try {
     const { itemId } = req.params;
-    const item = await itemModel.findById(itemId).lean();
+    const item = await itemModel
+      .findOne({ _id: itemId, itemType: { $ne: 4 } })
+      .lean();
     if (!item)
       return res.status(400).json({ error: "Items/purchase : invalid Item" });
 
@@ -417,12 +419,7 @@ const purchaseItemHandler = async (req, res) => {
 const useCouponHandler = async (req, res) => {
   try {
     const { couponCode } = req.params;
-    const coupon = await itemModel
-      .findOne({
-        itemType: 4,
-        couponCode,
-      })
-      .lean();
+    const coupon = await itemModel.findOne({ couponCode, itemType: 4 }).lean();
     if (!coupon)
       return res
         .status(400)
