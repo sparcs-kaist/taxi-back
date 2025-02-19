@@ -4,6 +4,7 @@ const {
   questModel,
   itemModel,
   transactionModel,
+  quizModel,
 } = require("./modules/stores/mongo");
 
 const { buildResource } = require("../modules/adminResource");
