@@ -273,7 +273,7 @@ export const cancelAnswerHandler: RequestHandler = async (req, res) => {
 
     if (!userAnswer) {
       return res
-        .status(404)
+        .status(200)
         .json({ message: "No answer found for cancellation." });
     }
 
