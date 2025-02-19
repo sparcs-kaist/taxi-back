@@ -42,6 +42,7 @@ const resources =
     buildResource()(questModel),
     buildResource([addOneItemStockAction, addFiveItemStockAction])(itemModel),
     buildResource()(transactionModel),
+    buildResource()(quizModel),
   ]) ||
   [];
 

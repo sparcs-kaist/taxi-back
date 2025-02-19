@@ -1,24 +1,11 @@
 import { RequestHandler } from "express";
 import { quizModel } from "../modules/stores/mongo";
 import logger from "@/modules/logger";
+import { getQuizByDate } from "../modules/quizzes";
 
 export const getTodayQuizHandler: RequestHandler = async (req, res) => {
   try {
-    const startOfToday = new Date();
-    startOfToday.setHours(0, 0, 0, 0);
-
-    const endOfToday = new Date(startOfToday);
-    endOfToday.setDate(startOfToday.getDate() + 1);
-
-    // 오늘의 퀴즈 조회
-    const quiz = await quizModel
-      .findOne({
-        quizDate: {
-          $gte: startOfToday,
-          $lt: endOfToday,
-        },
-      })
-      .lean();
+    const quiz = await getQuizByDate(new Date(req.timestamp!));
 
     if (!quiz) {
       return res.status(404).json({ message: "No quiz found for today" });
@@ -59,7 +46,7 @@ export const getQuizByDateHandler: RequestHandler = async (req, res) => {
     const [year, month, day] = date.split("-").map(Number);
     const requestedDate = new Date(year, month - 1, day);
 
-    const startOfToday = new Date();
+    const startOfToday = new Date(req.timestamp!);
     startOfToday.setHours(0, 0, 0, 0);
 
     // 미래 날짜 조회 제한
@@ -70,17 +57,8 @@ export const getQuizByDateHandler: RequestHandler = async (req, res) => {
     }
 
     const startOfDate = new Date(year, month - 1, day, 0, 0, 0);
-    const endOfDate = new Date(year, month - 1, day, 23, 59, 59);
 
-    // 해당 날짜의 퀴즈 조회
-    const quiz = await quizModel
-      .findOne({
-        quizDate: {
-          $gte: startOfDate,
-          $lt: endOfDate,
-        },
-      })
-      .lean();
+    const quiz = await getQuizByDate(startOfDate);
 
     if (!quiz) {
       return res
@@ -128,21 +106,7 @@ export const getTodayAnswerHandler: RequestHandler = async (req, res) => {
     // 로그인된 사용자 정보 가져오기
     const userId = req.userOid;
 
-    const startOfToday = new Date();
-    startOfToday.setHours(0, 0, 0, 0);
-
-    const endOfToday = new Date(startOfToday);
-    endOfToday.setDate(startOfToday.getDate() + 1);
-
-    // 오늘의 퀴즈 조회
-    const quiz = await quizModel
-      .findOne({
-        quizDate: {
-          $gte: startOfToday,
-          $lte: endOfToday,
-        },
-      })
-      .lean();
+    const quiz = await getQuizByDate(new Date(req.timestamp!));
 
     if (!quiz) {
       return res.status(404).json({ message: "No quiz available for today." });
@@ -223,27 +187,16 @@ export const submitAnswerHandler: RequestHandler = async (req, res) => {
     const userId = req.userOid;
     const { answer } = req.body;
 
-    // 11시 55분 이전인지 검사하기
-    const timestamp = new Date();
-    const settingtime = new Date();
-    settingtime.setHours(23, 55, 0, 0);
-    if (timestamp > settingtime) {
+    const timestamp = new Date(req.timestamp!);
+    const hours = timestamp.getHours();
+    const minutes = timestamp.getMinutes();
+
+    // 23시 55분 이후 취소 금지
+    if (hours === 23 && minutes >= 55) {
       return res.status(404).json({ message: "You can't submit answer now." });
     }
 
-    const startOfToday = new Date();
-    startOfToday.setHours(0, 0, 0, 0);
-
-    const endOfToday = new Date(startOfToday);
-    endOfToday.setDate(startOfToday.getDate() + 1);
-
-    // 오늘의 퀴즈 조회
-    const quiz = await quizModel.findOne({
-      quizDate: {
-        $gte: startOfToday,
-        $lte: endOfToday,
-      },
-    });
+    const quiz = await getQuizByDate(new Date(req.timestamp!));
 
     if (!quiz) {
       return res.status(404).json({ message: "No quiz available for today." });
@@ -260,7 +213,7 @@ export const submitAnswerHandler: RequestHandler = async (req, res) => {
     }
 
     // 답안 제출 기록 추가
-    const submittedAt = new Date();
+    const submittedAt = new Date(req.timestamp!);
     await quizModel.updateOne(
       { _id: quiz._id },
       {
@@ -296,27 +249,16 @@ export const cancelAnswerHandler: RequestHandler = async (req, res) => {
     // 로그인된 사용자 정보 가져오기
     const userId = req.userOid;
 
-    // 11시 55분 이전인지 검사하기
-    const timestamp = new Date();
-    const settingtime = new Date();
-    settingtime.setHours(23, 55, 0, 0);
-    if (timestamp > settingtime) {
+    const timestamp = new Date(req.timestamp!);
+    const hours = timestamp.getHours();
+    const minutes = timestamp.getMinutes();
+
+    // 23시 55분 이후 취소 금지
+    if (hours === 23 && minutes >= 55) {
       return res.status(404).json({ message: "You can't submit answer now." });
     }
 
-    const startOfToday = new Date();
-    startOfToday.setHours(0, 0, 0, 0);
-
-    const endOfToday = new Date(startOfToday);
-    endOfToday.setDate(startOfToday.getDate() + 1);
-
-    // 오늘의 퀴즈 조회
-    const quiz = await quizModel.findOne({
-      quizDate: {
-        $gte: startOfToday,
-        $lte: endOfToday,
-      },
-    });
+    const quiz = await getQuizByDate(new Date(req.timestamp!));
 
     if (!quiz) {
       return res.status(404).json({ message: "No quiz available for today." });

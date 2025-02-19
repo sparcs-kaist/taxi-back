@@ -13,6 +13,4 @@ export const quizzesZod = {
   }),
 };
 
-const quizzesSchema = zodToSchemaObject(quizzesZod);
-
-module.exports = { quizzesZod, quizzesSchema };
+export const quizzesSchema = zodToSchemaObject(quizzesZod);
