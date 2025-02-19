@@ -86,6 +86,14 @@ const quests = buildQuests({
     reward: 700,
     maxCount: 0,
   },
+  indirectEventSharing: {
+    name: "돈이 복사가 된다고?",
+    description: "내가 초대한 사람이 누군가를 초대하면 넙죽코인을 드려요.",
+    imageUrl:
+      "https://sparcs-taxi-prod.s3.ap-northeast-2.amazonaws.com/assets/event-2024fall/quest_eventSharing.png",
+    reward: 700,
+    maxCount: 10,
+  },
   dailyAttendance: {
     name: "매일매일 출석 췤!",
     description:
@@ -243,6 +251,17 @@ const completeEventSharingQuest = async (userId, timestamp) => {
 };
 
 /**
+ * indirectEventSharing 퀘스트의 완료를 요청합니다.
+ * @param {string|mongoose.Types.ObjectId} userId - 퀘스트를 완료한 사용자의 ObjectId입니다.
+ * @param {number|Date} timestamp - 퀘스트 완료를 요청한 시각입니다.
+ * @returns {Promise}
+ * @usage lottery/globalState - createUserGlobalStateHandler
+ */
+const completeIndirectEventSharingQuest = async (userId, timestamp) => {
+  return await completeQuest(userId, timestamp, quests.indirectEventSharing);
+};
+
+/**
  * itemPurchase 퀘스트의 완료를 요청합니다.
  * @param {string|mongoose.Types.ObjectId} userId - 퀘스트를 완료한 사용자의 ObjectId입니다.
  * @param {number|Date} timestamp - 퀘스트 완료를 요청한 시각입니다.
@@ -263,5 +282,6 @@ module.exports = {
   completeAccountChangingQuest,
   completeAdPushAgreementQuest,
   completeEventSharingQuest,
+  completeIndirectEventSharingQuest,
   completeItemPurchaseQuest,
 };

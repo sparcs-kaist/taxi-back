@@ -1,6 +1,6 @@
 const { eventStatusModel } = require("../modules/stores/mongo");
 const { userModel } = require("../../modules/stores/mongo");
-const logger = require("../../modules/logger");
+const logger = require("../../modules/logger").default;
 const { isLogin, getLoginInfo } = require("../../modules/auths/login");
 const { nodeEnv } = require("@/loadenv");
 
@@ -136,6 +136,19 @@ const createUserGlobalStateHandler = async (req, res) => {
         inviterStatus.userId,
         req.timestamp
       );
+      let currentInviter = inviterStatus;
+      while (currentInviter?.inviter) {
+        const higherInviter = await eventStatusModel
+          .findById(currentInviter.inviter)
+          .lean();
+        if (!higherInviter) break;
+
+        await contracts.completeIndirectEventSharingQuest(
+          higherInviter.userId,
+          req.timestamp
+        );
+        currentInviter = higherInviter;
+      }
     }
 
     return res.json({ result: true });

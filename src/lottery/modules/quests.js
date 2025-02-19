@@ -4,7 +4,7 @@ const {
   itemModel,
   transactionModel,
 } = require("./stores/mongo");
-const logger = require("../../modules/logger");
+const logger = require("../../modules/logger").default;
 const mongoose = require("mongoose");
 
 const { eventConfig } = require("@/loadenv");
