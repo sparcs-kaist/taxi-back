@@ -257,13 +257,13 @@ export const cancelAnswerHandler: RequestHandler = async (req, res) => {
 
     // 23시 55분 이후 취소 금지
     if (hours === 23 && minutes >= 55) {
-      return res.status(404).json({ message: "You can't submit answer now." });
+      return res.status(200).json({ message: "You can't submit answer now." });
     }
 
     const quiz = await getQuizByDate(new Date(req.timestamp!));
 
     if (!quiz) {
-      return res.status(404).json({ message: "No quiz available for today." });
+      return res.status(200).json({ message: "No quiz available for today." });
     }
 
     // 사용자의 제출된 답안 찾기
@@ -273,7 +273,7 @@ export const cancelAnswerHandler: RequestHandler = async (req, res) => {
 
     if (!userAnswer) {
       return res
-        .status(404)
+        .status(200)
         .json({ message: "No answer found for cancellation." });
     }
 

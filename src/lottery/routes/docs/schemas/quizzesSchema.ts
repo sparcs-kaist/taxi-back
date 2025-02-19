@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { zodToSchemaObject } from "../../../../routes/docs/utils";
+import { zodToSchemaObject } from "@/routes/docs/utils";
 
 // 날짜 및 답안 형식 검증용 Zod 객체
 export const quizzesZod = {
