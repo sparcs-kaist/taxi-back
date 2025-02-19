@@ -85,6 +85,7 @@ const createUserGlobalStateHandler = async (req, res) => {
     const inviterStatus =
       req.body.inviter &&
       (await eventStatusModel.findById(req.body.inviter).lean());
+
     if (
       req.body.inviter &&
       (!inviterStatus ||
@@ -135,6 +136,23 @@ const createUserGlobalStateHandler = async (req, res) => {
       await contracts.completeEventSharingQuest(
         inviterStatus.userId,
         req.timestamp
+      );
+      let currentInviter = inviterStatus;
+      const ancestorIds = [];
+
+      while (currentInviter?.inviter) {
+        const higherInviter = await eventStatusModel
+          .findOne({ userId: currentInviter.inviter })
+          .lean();
+        if (!higherInviter) break;
+
+        ancestorIds.push(higherInviter.userId);
+        currentInviter = higherInviter;
+      }
+      await Promise.all(
+        ancestorIds.map((ancestorId) =>
+          contracts.completeIndirectEventSharingQuest(ancestorId, req.timestamp)
+        )
       );
     }
 
