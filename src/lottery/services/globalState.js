@@ -138,18 +138,22 @@ const createUserGlobalStateHandler = async (req, res) => {
         req.timestamp
       );
       let currentInviter = inviterStatus;
+      const ancestorIds = [];
+
       while (currentInviter?.inviter) {
         const higherInviter = await eventStatusModel
           .findOne({ userId: currentInviter.inviter })
           .lean();
         if (!higherInviter) break;
 
-        await contracts.completeIndirectEventSharingQuest(
-          higherInviter.userId,
-          req.timestamp
-        );
+        ancestorIds.push(higherInviter.userId);
         currentInviter = higherInviter;
       }
+      await Promise.all(
+        ancestorIds.map((ancestorId) =>
+          contracts.completeIndirectEventSharingQuest(ancestorId, req.timestamp)
+        )
+      );
     }
 
     return res.json({ result: true });
