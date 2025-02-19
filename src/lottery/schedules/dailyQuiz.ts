@@ -11,7 +11,7 @@ const determineQuizResult = async () => {
       return;
     }
 
-    let correctAnswer;
+    let correctAnswer: string = "";
 
     if (quiz.answer === "A" || quiz.answer === "B") {
       correctAnswer = quiz.answer;
@@ -25,7 +25,7 @@ const determineQuizResult = async () => {
       }
       // A와 B의 선택 수가 동일할 때 draw 처리
       if (quiz.countA === quiz.countB) {
-        quiz.answers.forEach((answer) => {
+        quiz.answers.forEach((answer: { answer: string; status: string }) => {
           answer.status = "draw";
         });
       }
@@ -33,7 +33,7 @@ const determineQuizResult = async () => {
 
     // 사용자의 정/오답 처리 & 코인 지급
     await Promise.all(
-      quiz.answers.map(async (answer) => {
+      quiz.answers.map(async (answer: any) => {
         if (answer.answer === correctAnswer || answer.status === "draw") {
           if (answer.status !== "draw") {
             answer.status = "correct";

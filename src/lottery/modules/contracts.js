@@ -268,7 +268,7 @@ const completeItemPurchaseQuest = async (userId, timestamp) => {
  * @returns {Promise}
  * @usage lottery/schedules/dailyQuiz - determineQuizResult
  */
-const completeAnswerCorrectlyQuest = async (userId, timestamp) => {
+export const completeAnswerCorrectlyQuest = async (userId, timestamp) => {
   return await completeQuest(userId, timestamp, quests.answerCorrectly);
 };
 
@@ -283,5 +283,4 @@ module.exports = {
   completeAdPushAgreementQuest,
   completeEventSharingQuest,
   completeItemPurchaseQuest,
-  completeAnswerCorrectlyQuest,
 };

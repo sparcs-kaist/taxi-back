@@ -41,7 +41,7 @@ export const getTodayQuizHandler: RequestHandler = async (req, res) => {
 
 export const getQuizByDateHandler: RequestHandler = async (req, res) => {
   try {
-    const { date }: { date: string } = req.params;
+    const { date } = req.params;
 
     const [year, month, day] = date.split("-").map(Number);
     const requestedDate = new Date(year, month - 1, day);
@@ -114,7 +114,7 @@ export const getTodayAnswerHandler: RequestHandler = async (req, res) => {
 
     // 사용자의 오늘 제출된 답안 찾기
     const userAnswer = quiz.answers.find(
-      (answer) => answer.userId.toString() === userId.toString()
+      (answer: any) => answer.userId.toString() === userId?.toString()
     );
 
     if (!userAnswer) {
@@ -156,10 +156,12 @@ export const getAllAnswersHandler: RequestHandler = async (req, res) => {
     }
 
     // 사용자의 답안을 정리해서 응답으로 반환
-    const userAnswers = quizzes.flatMap((quiz) =>
+    const userAnswers = quizzes.flatMap((quiz: any) =>
       quiz.answers
-        .filter((answer) => answer.userId.toString() === userId.toString())
-        .map((answer) => ({
+        .filter(
+          (answer: any) => answer.userId.toString() === userId?.toString()
+        )
+        .map((answer: any) => ({
           quizDate: quiz.quizDate,
           answer: answer.answer,
           status: answer.status || "unknown",
@@ -204,7 +206,7 @@ export const submitAnswerHandler: RequestHandler = async (req, res) => {
 
     // 사용자가 이미 답안을 제출했는지 확인
     const existingAnswer = quiz.answers.some(
-      (answer) => answer.userId.toString() === userId.toString()
+      (answer: any) => answer.userId.toString() === userId?.toString()
     );
     if (existingAnswer) {
       return res
@@ -266,7 +268,7 @@ export const cancelAnswerHandler: RequestHandler = async (req, res) => {
 
     // 사용자의 제출된 답안 찾기
     const userAnswer = quiz.answers.find(
-      (answer) => answer.userId.toString() === userId.toString()
+      (answer: any) => answer.userId.toString() === userId?.toString()
     );
 
     if (!userAnswer) {

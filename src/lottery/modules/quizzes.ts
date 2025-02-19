@@ -5,7 +5,7 @@ import { quizModel } from "../modules/stores/mongo";
  * @param {Date} date - 조회할 날짜
  * @returns {Promise<any>} - 조회된 퀴즈 객체 반환 (없으면 null)
  */
-export const getQuizByDate = async (date) => {
+export const getQuizByDate = async (date: any) => {
   const todayMidnight = new Date(date);
   todayMidnight.setHours(0, 0, 0, 0);
 

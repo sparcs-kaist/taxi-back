@@ -9,7 +9,7 @@ export const quizzesZod = {
       .regex(/^\d{4}-\d{2}-\d{2}$/, "Invalid date format. Use YYYY-MM-DD."),
   }),
   submitAnswerBody: z.object({
-    answer: z.enum(["A", "B"], "Invalid answer. Only 'A' or 'B' is allowed."),
+    answer: z.enum(["A", "B"]),
   }),
 };
 
