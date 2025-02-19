@@ -4,6 +4,7 @@ const {
   questModel,
   itemModel,
   transactionModel,
+  quizModel,
 } = require("./modules/stores/mongo");
 
 const { buildResource } = require("../modules/adminResource");
@@ -33,6 +34,7 @@ lotteryRouter.use("/transactions", require("./routes/transactions"));
 lotteryRouter.use("/items", require("./routes/items"));
 // lotteryRouter.use("/publicNotice", require("./routes/publicNotice"));
 lotteryRouter.use("/quests", require("./routes/quests"));
+lotteryRouter.use("/quizzes", require("./routes/quizzes").default);
 
 // [AdminJS] AdminJS에 표시할 Resource 생성
 const resources =
@@ -41,6 +43,7 @@ const resources =
     buildResource()(questModel),
     buildResource([addOneItemStockAction, addFiveItemStockAction])(itemModel),
     buildResource()(transactionModel),
+    buildResource()(quizModel),
   ]) ||
   [];
 
