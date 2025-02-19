@@ -86,8 +86,6 @@ const createUserGlobalStateHandler = async (req, res) => {
       req.body.inviter &&
       (await eventStatusModel.findById(req.body.inviter).lean());
 
-    console.log(inviterStatus);
-
     if (
       req.body.inviter &&
       (!inviterStatus ||
