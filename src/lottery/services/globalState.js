@@ -85,6 +85,9 @@ const createUserGlobalStateHandler = async (req, res) => {
     const inviterStatus =
       req.body.inviter &&
       (await eventStatusModel.findById(req.body.inviter).lean());
+
+    console.log(inviterStatus);
+
     if (
       req.body.inviter &&
       (!inviterStatus ||
@@ -139,7 +142,7 @@ const createUserGlobalStateHandler = async (req, res) => {
       let currentInviter = inviterStatus;
       while (currentInviter?.inviter) {
         const higherInviter = await eventStatusModel
-          .findById(currentInviter.inviter)
+          .findOne({ userId: currentInviter.inviter })
           .lean();
         if (!higherInviter) break;
 
