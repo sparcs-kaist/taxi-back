@@ -272,17 +272,6 @@ const completeIndirectEventSharingQuest = async (userId, timestamp) => {
 };
 
 /**
- * itemPurchase 퀘스트의 완료를 요청합니다.
- * @param {string|mongoose.Types.ObjectId} userId - 퀘스트를 완료한 사용자의 ObjectId입니다.
- * @param {number|Date} timestamp - 퀘스트 완료를 요청한 시각입니다.
- * @returns {Promise}
- * @description 상품을 구입할 때마다 호출해 주세요.
- */
-const completeItemPurchaseQuest = async (userId, timestamp) => {
-  return await completeQuest(userId, timestamp, quests.itemPurchase);
-};
-
-/**
  * completeAnswerCorrectlyQuest 퀘스트의 완료를 요청합니다.
  * @param {string|mongoose.Types.ObjectId} userId - 퀘스트를 완료한 사용자의 ObjectId입니다.
  * @param {number|Date} timestamp - 퀘스트 완료를 요청한 시각입니다.
@@ -291,6 +280,17 @@ const completeItemPurchaseQuest = async (userId, timestamp) => {
  */
 export const completeAnswerCorrectlyQuest = async (userId, timestamp) => {
   return await completeQuest(userId, timestamp, quests.answerCorrectly);
+};
+
+/**
+ * itemPurchase 퀘스트의 완료를 요청합니다.
+ * @param {string|mongoose.Types.ObjectId} userId - 퀘스트를 완료한 사용자의 ObjectId입니다.
+ * @param {number|Date} timestamp - 퀘스트 완료를 요청한 시각입니다.
+ * @returns {Promise}
+ * @description 상품을 구입할 때마다 호출해 주세요.
+ */
+const completeItemPurchaseQuest = async (userId, timestamp) => {
+  return await completeQuest(userId, timestamp, quests.itemPurchase);
 };
 
 module.exports = {
@@ -304,5 +304,6 @@ module.exports = {
   completeAdPushAgreementQuest,
   completeEventSharingQuest,
   completeIndirectEventSharingQuest,
+  completeAnswerCorrectlyQuest,
   completeItemPurchaseQuest,
 };
