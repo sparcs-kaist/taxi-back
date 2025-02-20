@@ -66,8 +66,8 @@ export const eventConfig = (process.env.EVENT_CONFIG &&
   mode: "2025spring",
   credit: { name: "넙죽코인", initialAmount: 0 },
   period: {
-    startAt: "2025-02-19T00:00:00+09:00",
-    endAt: "2024-03-13T00:00:00+09:00",
+    startAt: "2025-02-21T00:00:00+09:00",
+    endAt: "2025-03-13T00:00:00+09:00",
   },
 };
 export const naverMap = {

@@ -4,7 +4,7 @@ const {
 } = require("../modules/stores/mongo");
 const { userModel } = require("../../modules/stores/mongo");
 const { isLogin, getLoginInfo } = require("../../modules/auths/login");
-const logger = require("../../modules/logger");
+const logger = require("@/modules/logger").default;
 const {
   publicNoticePopulateOption,
 } = require("../modules/populates/transactions");

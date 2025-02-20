@@ -11,6 +11,7 @@ import { userModel, banModel } from "@/modules/stores/mongo";
 
 // 이벤트 코드입니다.
 import { contracts } from "@/lottery";
+import { eventStatusModel } from "@/lottery/modules/stores/mongo";
 
 export const agreeOnTermsOfServiceHandler: RequestHandler = async (
   req,
@@ -270,6 +271,14 @@ export const withdrawHandler: RequestHandler = async (req, res) => {
       return res.status(400).send("Users/withdraw : already withdrawn");
     } else if (user.ongoingRoom?.length !== 0) {
       return res.status(400).send("Users/withdraw : ongoing room exists");
+    }
+
+    // 이벤트 코드입니다.
+    const isEventRegistered = await eventStatusModel.exists({
+      userId: req.userOid,
+    });
+    if (isEventRegistered) {
+      return res.status(400).send("Users/withdraw : event registered");
     }
 
     // 등록된 모든 디바이스 토큰 삭제

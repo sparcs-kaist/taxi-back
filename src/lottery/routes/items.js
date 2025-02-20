@@ -28,5 +28,10 @@ router.post(
   validateBody(itemsZod.purchaseItemHandlerBody),
   itemsHandlers.purchaseItemHandler
 );
+router.post(
+  "/useCoupon/:couponCode",
+  validateParams(itemsZod.useCouponHandlerParams),
+  itemsHandlers.useCouponHandler
+);
 
 module.exports = router;

@@ -7,7 +7,7 @@ const {
 const {
   notifyAbuseDetectionResultToReportChannel,
 } = require("../modules/slackNotification");
-const logger = require("../../modules/logger");
+const logger = require("@/modules/logger").default;
 
 const { eventConfig } = require("@/loadenv");
 const eventPeriod = eventConfig && {

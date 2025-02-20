@@ -1,4 +1,4 @@
-const { sendTextToReportChannel } = require("../../modules/slackNotification");
+const { sendTextToReportChannel } = require("@/modules/slackNotification");
 
 const generateContent = (name, userIds, roomIds = []) => {
   if (userIds.length === 0) return "";
