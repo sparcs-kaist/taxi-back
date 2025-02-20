@@ -89,16 +89,16 @@ const quests = buildQuests({
   indirectEventSharing: {
     name: "코인이 복사가 된다고?",
     description:
-      "내가 초대한 사람이 다른 누군가를 이벤트에 초대하면 넙죽코인을 받아요. 그 사람이 또 다른 누군가를 초대하면 또 넙죽코인을 받아요. 그 사람이 또 ...",
+      "내가 초대한 사람이 다른 누군가를 이벤트에 초대하면 넙죽코인을 받아요. 그 사람이 또 다른 누군가를 초대하면 또 넙죽코인을 받아요. 그 사람이 또 …",
     imageUrl:
       "https://sparcs-taxi-prod.s3.ap-northeast-2.amazonaws.com/assets/event-2025spring/quest_indirectEventSharing.png",
-    reward: 700,
+    reward: 300,
     maxCount: 10,
   },
   dailyAttendance: {
     name: "매일매일 출석 췤!",
     description:
-      "매일 Taxi에 접속해서 <b>설문조사에 응답</b>하면 하루에 한 번씩 넙죽코인을 드려요! 매일 Taxi에서 택시팟 둘러보고 넙죽코인도 받아가세요.",
+      "매일 Taxi에 접속해서 <b>밸런스 게임에 참여</b>하면 하루에 한 번씩 넙죽코인을 드려요! 매일 Taxi에서 택시팟 둘러보고 넙죽코인도 받아가세요. 밸런스 게임은 23시 55분까지만 참여할 수 있어요.",
     imageUrl:
       "https://sparcs-taxi-prod.s3.ap-northeast-2.amazonaws.com/assets/event-2025spring/quest_dailyAttendance.png",
     reward: 100,
@@ -108,7 +108,7 @@ const quests = buildQuests({
   answerCorrectly: {
     name: "이기는 편 우리 편",
     description:
-      "전날의 설문조사에서 응답자 수가 많은 선택지를 고른 경우 추가 넙죽코인을 드려요.",
+      "전날의 밸런스 게임에서 응답자 수가 많은 선택지를 고른 경우 추가 넙죽코인을 드려요.",
     imageUrl:
       "https://sparcs-taxi-prod.s3.ap-northeast-2.amazonaws.com/assets/event-2025spring/quest_answerCorrectly.png",
     reward: 600,

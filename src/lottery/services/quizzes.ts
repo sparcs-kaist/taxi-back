@@ -194,7 +194,7 @@ export const submitAnswerHandler: RequestHandler = async (req, res) => {
     const minutes = timestamp.getMinutes();
 
     // 23시 55분 이후 취소 금지
-    if (hours === 23 && minutes >= 55) {
+    if (hours === 23 && minutes > 55) {
       return res.status(404).json({ message: "You can't submit answer now." });
     }
 
@@ -256,7 +256,7 @@ export const cancelAnswerHandler: RequestHandler = async (req, res) => {
     const minutes = timestamp.getMinutes();
 
     // 23시 55분 이후 취소 금지
-    if (hours === 23 && minutes >= 55) {
+    if (hours === 23 && minutes > 55) {
       return res.status(404).json({ message: "You can't submit answer now." });
     }
 
