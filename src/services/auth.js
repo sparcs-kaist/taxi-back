@@ -21,7 +21,7 @@ const transUserData = (userData) => {
   const kaistInfo = userData.kaist_info ? JSON.parse(userData.kaist_info) : {};
 
   // info.ku_std_no: 학번
-  // info.isEligible: 카이스트 구성원인지 여부. DB에 저장하지 않음.
+  // info.isEligible: 카이스트 구성원인지 여부
   const info = {
     id: userData.uid,
     sid: userData.sid,
@@ -29,9 +29,10 @@ const transUserData = (userData) => {
     facebook: userData.facebook_id || "",
     twitter: userData.twitter_id || "",
     kaist: kaistInfo?.ku_std_no || "",
+    kaistType: kaistInfo?.employeeType || "", // DB에 저장하지 않음
     sparcs: userData.sparcs_id || "",
     email: kaistInfo?.mail || userData.email,
-    isEligible: userPattern.allowedEmployeeTypes.test(kaistInfo?.employeeType),
+    isEligible: userPattern.allowedEmployeeTypes.test(kaistInfo?.employeeType), // DB에 저장하지 않음
   };
   return info;
 };
@@ -177,8 +178,10 @@ const sparcsssoCallbackHandler = (req, res) => {
       tryLogin(req, res, userData, redirectOrigin, redirectPath);
     } else {
       // 카이스트 구성원이 아닌 경우, SSO 로그아웃 이후, 로그인 실패 URI 로 이동합니다
-      const { id, sid } = userData;
-      logger.info(`Login denied: not a KAIST member (uid: ${id}, sid: ${sid})`);
+      const { id, sid, kaist, kaistType } = userData;
+      logger.info(
+        `Login denied: not a KAIST member (uid: ${id}, sid: ${sid}, kaist: ${kaist}, kaistType: ${kaistType})`
+      );
 
       const redirectUrl = new URL("/login/fail", redirectOrigin).href;
       const ssoLogoutUrl = ssoClient.getLogoutUrl(sid, redirectUrl);
