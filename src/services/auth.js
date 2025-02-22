@@ -164,6 +164,8 @@ const sparcsssoCallbackHandler = (req, res) => {
   }
 
   if (state !== stateForCmp) {
+    logger.info("Login denied: state mismatch");
+
     const redirectUrl = new URL("/login/fail", redirectOrigin).href;
     return res.redirect(redirectUrl);
   }
@@ -175,7 +177,9 @@ const sparcsssoCallbackHandler = (req, res) => {
       tryLogin(req, res, userData, redirectOrigin, redirectPath);
     } else {
       // 카이스트 구성원이 아닌 경우, SSO 로그아웃 이후, 로그인 실패 URI 로 이동합니다
-      const { sid } = userData;
+      const { id, sid } = userData;
+      logger.info(`Login denied: not a KAIST member (uid: ${id}, sid: ${sid})`);
+
       const redirectUrl = new URL("/login/fail", redirectOrigin).href;
       const ssoLogoutUrl = ssoClient.getLogoutUrl(sid, redirectUrl);
       res.redirect(ssoLogoutUrl);
