@@ -133,6 +133,7 @@ const getItemLeaderboardHandler = async (req, res) => {
             return null;
           }
           return {
+            userId: user.userId,
             nickname: userInfo.nickname,
             profileImageUrl: userInfo.profileImageUrl,
             amount: user.amount,
@@ -157,7 +158,7 @@ const getItemLeaderboardHandler = async (req, res) => {
       totalUser: users.length,
       amount: user?.amount,
       probability: user?.probability,
-      rank: user?.rank,
+      userId: user?.userId,
     });
   } catch (err) {
     logger.error(err);
