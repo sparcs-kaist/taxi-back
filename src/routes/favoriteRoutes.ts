@@ -1,12 +1,12 @@
 import express from "express";
-import { validateBody, validateParams, validateQuery } from "@/middlewares/zod"; // Zod 검증 미들웨어
-import { favoriteRoutesZod } from "./docs/schemas/favoriteRoutesSchema"; // Zod 스키마
+import { validateBody } from "@/middlewares/zod";
+import { favoriteRoutesZod } from "./docs/schemas/favoriteRoutesSchema";
 import {
   createHandler,
   getHandler,
   deleteHandler,
 } from "@/services/favoriteRoutes";
-import authMiddleware from "@/middlewares/auth"; // 인증 미들웨어
+import authMiddleware from "@/middlewares/auth";
 
 const router = express.Router();
 

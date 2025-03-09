@@ -3,7 +3,7 @@ import { favoriteRouteModel } from "@/modules/stores/mongo";
 import { Types } from "mongoose";
 import { getLoginInfo } from "@/modules/auths/login"; // 로그인 정보 가져오기
 
-// ✅ 즐겨찾기 생성 (POST)
+// 즐겨찾기 생성
 export const createHandler = async (
   req: Request,
   res: Response
@@ -18,6 +18,16 @@ export const createHandler = async (
     const userId = user.oid;
     const { from, to } = req.body;
 
+    if (!from || !to) {
+      return res
+        .status(400)
+        .json({ error: "FavoriteRoutes/create: Wrong location" });
+    } else if (from === to) {
+      return res
+        .status(200)
+        .json({ error: "FavoriteRoutes/create: Same location" });
+    }
+
     const existingRoute = await favoriteRouteModel.findOne({
       user: userId,
       from,
@@ -30,7 +40,12 @@ export const createHandler = async (
       return;
     }
 
-    const newRoute = new favoriteRouteModel({ user: userId, from, to });
+    const newRoute = new favoriteRouteModel({
+      user: userId,
+      from,
+      to,
+      createdAt: new Date(req.timestamp!),
+    });
     await newRoute.save();
 
     res.status(201).json(newRoute);
@@ -41,13 +56,13 @@ export const createHandler = async (
   }
 };
 
-// ✅ 즐겨찾기 조회 (GET)
+// 즐겨찾기 조회
 export const getHandler = async (
   req: Request,
   res: Response
 ): Promise<void> => {
   try {
-    const user = getLoginInfo(req); // 로그인된 사용자 정보 가져오기
+    const user = getLoginInfo(req);
     if (!user.oid) {
       res.status(401).json({ error: "Unauthorized: No valid session found" });
       return;
@@ -66,13 +81,13 @@ export const getHandler = async (
   }
 };
 
-// ✅ 즐겨찾기 삭제 (DELETE)
+// 즐겨찾기 삭제
 export const deleteHandler = async (
   req: Request<{ id: string }>,
   res: Response
 ): Promise<void> => {
   try {
-    const user = getLoginInfo(req); // 로그인된 사용자 정보 가져오기
+    const user = getLoginInfo(req);
 
     if (!user.oid) {
       res.status(401).json({ error: "Unauthorized: No valid session found" });
