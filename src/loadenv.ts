@@ -61,13 +61,12 @@ export const testAccounts =
 export const slackWebhookUrl = {
   report: process.env.SLACK_REPORT_WEBHOOK_URL || "", // optional
 };
-export const eventConfig = (process.env.EVENT_CONFIG &&
-  JSON.parse(process.env.EVENT_CONFIG)) || {
+export const eventConfig = {
   mode: "2025spring",
   credit: { name: "넙죽코인", initialAmount: 0 },
   period: {
     startAt: "2025-02-21T00:00:00+09:00",
-    endAt: "2025-03-13T00:00:00+09:00",
+    endAt: "2025-03-14T00:00:00+09:00",
   },
 };
 export const naverMap = {
