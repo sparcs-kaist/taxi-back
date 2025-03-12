@@ -193,3 +193,14 @@ export interface TaxiFare extends Document<Types.ObjectId> {
   /** 예상 택시 요금. */
   fare: number;
 }
+
+export interface FavoriteRoute extends Document {
+  /** 즐겨찾기를 등록한 사용자의 User ObjectID. */
+  user: Types.ObjectId;
+  /** 경로의 출발지 Location ObjectID. */
+  from: Types.ObjectId;
+  /** 경로의 도착지 Location ObjectID. */
+  to: Types.ObjectId;
+  /** 즐겨찾기 등록 시각. */
+  createdAt?: Date;
+}

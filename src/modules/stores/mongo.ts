@@ -14,6 +14,7 @@ import type {
   AdminIPWhitelist,
   AdminLog,
   TaxiFare,
+  FavoriteRoute,
 } from "@/types/mongo";
 
 const userSchema = new Schema<User>({
@@ -262,6 +263,28 @@ database.on("error", function (err) {
   logger.error("Database connection error occurred: " + err);
   mongoose.disconnect();
 });
+
+const favoriteRouteSchema = new Schema<FavoriteRoute>({
+  user: {
+    type: Schema.Types.ObjectId,
+    ref: "User",
+    required: true,
+  },
+  from: {
+    type: Schema.Types.ObjectId,
+    ref: "Location",
+    required: true,
+  },
+  to: {
+    type: Schema.Types.ObjectId,
+    ref: "Location",
+    required: true,
+  },
+  createdAt: { type: Date },
+});
+
+// 즐겨찾기 모델 생성
+export const favoriteRouteModel = model("FavoriteRoute", favoriteRouteSchema);
 
 export const connectDatabase = (mongoUrl: string) => {
   database.on("disconnected", () => {
