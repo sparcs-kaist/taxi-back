@@ -1,9 +1,13 @@
-const express = require("express");
-const router = express.Router();
+import express from "express";
+import { validateBody, validateParams } from "../../middlewares/zod";
+import { itemsZod } from "./docs/schemas/itemsSchema";
+import itemsHandlers from "../services/items";
+import authMiddleware from "../../middlewares/auth";
+import checkBanned from "../middlewares/checkBanned";
+import timestampValidator from "../middlewares/timestampValidator";
+import type { Router } from "express";
 
-const { validateBody, validateParams } = require("../../middlewares/zod");
-const { itemsZod } = require("./docs/schemas/itemsSchema");
-const itemsHandlers = require("../services/items");
+const router: Router = express.Router();
 
 router.get("/", itemsHandlers.getItemsHandler);
 router.get(
@@ -18,9 +22,9 @@ router.get(
 );
 
 // 아래의 Endpoint 접근 시 로그인, 차단 여부 및 시각 체크 필요
-router.use(require("../../middlewares/auth").default);
-router.use(require("../middlewares/checkBanned"));
-router.use(require("../middlewares/timestampValidator"));
+router.use(authMiddleware);
+router.use(checkBanned);
+router.use(timestampValidator);
 
 router.post(
   "/purchase/:itemId",
@@ -34,4 +38,4 @@ router.post(
   itemsHandlers.useCouponHandler
 );
 
-module.exports = router;
+export default router;

@@ -7,7 +7,7 @@ import {
 import logger from "@/modules/logger";
 import mongoose, { Types } from "mongoose";
 import { eventConfig } from "@/loadenv";
-import { EventPeriod } from "../types";
+import type { EventPeriod, Quest } from "../types";
 
 const eventPeriod: EventPeriod | null = eventConfig && {
   startAt: new Date(eventConfig.period.startAt),
@@ -21,23 +21,6 @@ const requiredQuestFields: string[] = [
   "reward",
 ];
 
-// 리워드 타입 정의
-interface Reward {
-  credit: number;
-  ticket1?: number;
-}
-
-// 퀘스트 타입 정의
-interface Quest {
-  id: string;
-  name: string;
-  description: string;
-  imageUrl: string;
-  reward: Reward;
-  maxCount: number;
-  isApiRequired: boolean;
-}
-
 // 유저의 이벤트 상태 타입 정의
 interface EventStatus {
   userId: Types.ObjectId;
@@ -49,7 +32,7 @@ interface EventStatus {
   isInviteUrlEnabled: boolean;
 }
 
-const buildQuests = (
+export const buildQuests = (
   quests: Record<string, Quest>
 ): Record<string, Quest> | null => {
   for (const [id, quest] of Object.entries(quests)) {
@@ -89,18 +72,18 @@ const buildQuests = (
 
 /**
  * 퀘스트 완료를 요청합니다.
- * @param {string|mongoose.Types.ObjectId} userId - 퀘스트를 완료한 사용자의 ObjectId입니다.
- * @param {number|Date} timestamp - 퀘스트 완료를 요청한 시각입니다.
- * @param {Object} quest - 퀘스트의 정보입니다.
- * @param {string} quest.id - 퀘스트의 Id입니다.
- * @param {string} quest.name - 퀘스트의 이름입니다.
- * @param {Object} quest.reward - 퀘스트의 완료 보상입니다.
- * @param {number} quest.reward.credit - 퀘스트의 완료 보상 중 재화의 양입니다.
- * @param {number} quest.reward.ticket1 - 퀘스트의 완료 보상 중 일반 티켓의 개수입니다.
- * @param {number} quest.maxCount - 퀘스트의 최대 완료 가능 횟수입니다.
- * @returns {Object|null} 성공한 경우 Object를, 실패한 경우 null을 반환합니다. 이미 최대 완료 횟수에 도달했거나, 퀘스트가 원격으로 비활성화된 경우에도 실패로 처리됩니다.
+ * @param userId - 퀘스트를 완료한 사용자의 ObjectId입니다.
+ * @param timestamp - 퀘스트 완료를 요청한 시각입니다.
+ * @param quest - 퀘스트의 정보입니다.
+ * @param quest.id - 퀘스트의 Id입니다.
+ * @param quest.name - 퀘스트의 이름입니다.
+ * @param quest.reward - 퀘스트의 완료 보상입니다.
+ * @param quest.reward.credit - 퀘스트의 완료 보상 중 재화의 양입니다.
+ * @param quest.reward.ticket1 - 퀘스트의 완료 보상 중 일반 티켓의 개수입니다.
+ * @param quest.maxCount - 퀘스트의 최대 완료 가능 횟수입니다.
+ * @returns 성공한 경우 Object를, 실패한 경우 null을 반환합니다. 이미 최대 완료 횟수에 도달했거나, 퀘스트가 원격으로 비활성화된 경우에도 실패로 처리됩니다.
  */
-const completeQuest = async (
+export const completeQuest = async (
   userId: Types.ObjectId | string,
   timestamp: number | Date,
   quest: Quest
@@ -218,5 +201,3 @@ const completeQuest = async (
     return null;
   }
 };
-
-export { buildQuests, completeQuest };

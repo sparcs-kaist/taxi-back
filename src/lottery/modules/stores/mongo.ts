@@ -1,5 +1,13 @@
-import mongoose, { Schema, Document, Model } from "mongoose";
+import mongoose, { Schema, Model } from "mongoose";
 import { eventConfig } from "@/loadenv";
+import type {
+  CompletedQuest,
+  EventStatus,
+  Item,
+  Quest,
+  Quiz,
+  Transaction,
+} from "@/lottery/types";
 
 // 이벤트마다 사용된 모델을 구분하기 위해 Prefix 설정
 const modelNamePrefix = eventConfig?.mode ?? "";
@@ -10,83 +18,13 @@ const integerValidator = {
   message: "{VALUE} is not an integer value",
 };
 
-// 인터페이스 정의
-// Document 안에 쓰이는 객체는 그래도 쓰고
-// Document로 받아오는 객체는 Document 확장함.
-
-interface ICompletedQuest {
-  questId: string;
-  completedAt: Date;
-}
-
-interface IEventStatus extends Document {
-  userId: mongoose.Types.ObjectId;
-  completedQuests: ICompletedQuest[];
-  creditAmount: number;
-  ticket1Amount: number;
-  ticket2Amount: number;
-  isBanned: boolean;
-  inviter?: mongoose.Types.ObjectId;
-  isInviteUrlEnabled: boolean;
-}
-
-interface IQuest extends Document {
-  id: string;
-  isDisabled: boolean;
-}
-
-interface IItem extends Document {
-  name: string;
-  imageUrl: string;
-  instagramStoryStickerImageUrl?: string;
-  price: number;
-  description: string;
-  isDisabled: boolean;
-  stock: number;
-  realStock: number;
-  itemType: 0 | 1 | 2 | 3 | 4;
-  isRandomItem: boolean;
-  randomWeight: number;
-  couponCode?: string;
-  couponReward?: number;
-}
-
-interface ITransaction extends Document {
-  type: "get" | "use";
-  amount: number;
-  userId: mongoose.Types.ObjectId;
-  questId?: string;
-  itemId?: mongoose.Types.ObjectId;
-  itemAmount?: number;
-  comment: string;
-  createdAt: Date;
-}
-
-interface IQuizAnswer {
-  userId: mongoose.Types.ObjectId;
-  answer: "A" | "B";
-  submittedAt: Date;
-  status: "correct" | "wrong" | "unknown" | "draw";
-}
-
-interface IQuiz extends Document {
-  quizDate: Date;
-  title: string;
-  content: string;
-  image: string;
-  answer: "A" | "B" | "C" | "D";
-  countA: number;
-  countB: number;
-  answers: IQuizAnswer[];
-}
-
 // 스키마 정의
-const completedQuestSchema = new Schema<ICompletedQuest>({
+const completedQuestSchema = new Schema<CompletedQuest>({
   questId: { type: String, required: true },
   completedAt: { type: Date, required: true },
 });
 
-const eventStatusSchema = new Schema<IEventStatus>({
+const eventStatusSchema = new Schema<EventStatus>({
   userId: { type: Schema.Types.ObjectId, ref: "User", required: true },
   completedQuests: { type: [completedQuestSchema], default: [] },
   creditAmount: {
@@ -112,12 +50,12 @@ const eventStatusSchema = new Schema<IEventStatus>({
   isInviteUrlEnabled: { type: Boolean, default: false },
 });
 
-const questSchema = new Schema<IQuest>({
+const questSchema = new Schema<Quest>({
   id: { type: String, required: true, unique: true },
   isDisabled: { type: Boolean, required: true },
 });
 
-const itemSchema = new Schema<IItem>({
+const itemSchema = new Schema<Item>({
   name: { type: String, required: true },
   imageUrl: { type: String, required: true },
   instagramStoryStickerImageUrl: { type: String },
@@ -143,7 +81,7 @@ const itemSchema = new Schema<IItem>({
   couponReward: { type: Number, min: 0, validate: integerValidator },
 });
 
-const transactionSchema = new Schema<ITransaction>(
+const transactionSchema = new Schema<Transaction>(
   {
     type: { type: String, enum: ["get", "use"], required: true },
     amount: {
@@ -161,7 +99,7 @@ const transactionSchema = new Schema<ITransaction>(
   { timestamps: { createdAt: "createdAt", updatedAt: false } }
 );
 
-const quizSchema = new Schema<IQuiz>({
+const quizSchema = new Schema<Quiz>({
   quizDate: { type: Date, required: true, unique: true },
   title: { type: String, required: true },
   content: { type: String, required: true },
@@ -184,25 +122,27 @@ const quizSchema = new Schema<IQuiz>({
 });
 
 // 모델생성
-const eventStatusModel: Model<IEventStatus> = mongoose.model(
+export const eventStatusModel: Model<EventStatus> = mongoose.model(
   `${modelNamePrefix}EventStatus`,
   eventStatusSchema
 );
-const questModel: Model<IQuest> = mongoose.model(
+
+export const questModel: Model<Quest> = mongoose.model(
   `${modelNamePrefix}Quest`,
   questSchema
 );
-const itemModel: Model<IItem> = mongoose.model(
+
+export const itemModel: Model<Item> = mongoose.model(
   `${modelNamePrefix}Item`,
   itemSchema
 );
-const transactionModel: Model<ITransaction> = mongoose.model(
+
+export const transactionModel: Model<Transaction> = mongoose.model(
   `${modelNamePrefix}Transaction`,
   transactionSchema
 );
-const quizModel: Model<IQuiz> = mongoose.model(
+
+export const quizModel: Model<Quiz> = mongoose.model(
   `${modelNamePrefix}Quiz`,
   quizSchema
 );
-
-export { eventStatusModel, questModel, itemModel, transactionModel, quizModel };

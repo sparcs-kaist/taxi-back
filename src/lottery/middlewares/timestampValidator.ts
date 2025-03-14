@@ -1,11 +1,13 @@
 import { eventConfig } from "@/loadenv";
-import { Request, Response, NextFunction } from "express";
-import { EventPeriod } from "../types";
+import type { Request, Response, NextFunction } from "express";
+import type { EventPeriod } from "../types";
 
-const eventPeriod: EventPeriod | null = eventConfig && {
-  startAt: new Date(eventConfig.period.startAt),
-  endAt: new Date(eventConfig.period.endAt),
-};
+const eventPeriod: EventPeriod | null = eventConfig
+  ? {
+      startAt: new Date(eventConfig.period.startAt),
+      endAt: new Date(eventConfig.period.endAt),
+    }
+  : null;
 
 const timestampValidator = (
   req: Request,
