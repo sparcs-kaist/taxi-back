@@ -194,7 +194,7 @@ export interface TaxiFare extends Document<Types.ObjectId> {
   fare: number;
 }
 
-export interface FavoriteRoute extends Document {
+export interface FavoriteRoute extends Document<Types.ObjectId> {
   /** 즐겨찾기를 등록한 사용자의 User ObjectID. */
   user: Types.ObjectId;
   /** 경로의 출발지 Location ObjectID. */

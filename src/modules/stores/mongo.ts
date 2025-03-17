@@ -282,6 +282,10 @@ const favoriteRouteSchema = new Schema<FavoriteRoute>({
   },
   createdAt: { type: Date },
 });
+favoriteRouteSchema.set("timestamps", {
+  createdAt: "createdAt",
+  updatedAt: false,
+});
 
 // 즐겨찾기 모델 생성
 export const favoriteRouteModel = model("FavoriteRoute", favoriteRouteSchema);

@@ -8,6 +8,9 @@ import {
 } from "@/modules/modifyProfile";
 import * as aws from "@/modules/stores/aws";
 import { userModel, banModel } from "@/modules/stores/mongo";
+import { favoriteRouteModel, locationModel } from "@/modules/stores/mongo";
+import { Types } from "mongoose";
+import { favoriteRoutesPopulateOption } from "@/modules/populates/favoriteRoutes";
 
 // 이벤트 코드입니다.
 // const { contracts } = require("@/lottery");
@@ -288,5 +291,124 @@ export const withdrawHandler: RequestHandler = async (req, res) => {
     res.json({ ssoLogoutUrl });
   } catch (err) {
     res.status(500).send("Users/withdraw : internal server error");
+  }
+};
+
+// 즐겨찾기 생성
+export const createFavoriteHandler: RequestHandler = async (
+  req,
+  res
+): Promise<void> => {
+  try {
+    const user = getLoginInfo(req);
+
+    const userId = user.oid;
+    const { from, to } = req.body;
+
+    if (!from || !to) {
+      return res
+        .status(400)
+        .json({ error: "FavoriteRoutes/create: Wrong location" });
+    } else if (from === to) {
+      return res
+        .status(200)
+        .json({ error: "FavoriteRoutes/create: Same location" });
+    }
+
+    const fromlocation = await locationModel.findOne({ _id: from });
+    const tolocation = await locationModel.findOne({ _id: to });
+
+    if (!fromlocation || !tolocation) {
+      return res
+        .status(400)
+        .json({ error: "FavoriteRoutes/create: Location not found" });
+    }
+
+    const existingRoute = await favoriteRouteModel.findOne({
+      user: userId,
+      from,
+      to,
+    });
+    if (existingRoute) {
+      return res
+        .status(400)
+        .json({ error: "FavoriteRoutes/create: route already exists" });
+    }
+
+    const newRoute = new favoriteRouteModel({
+      user: userId,
+      from,
+      to,
+    });
+    await newRoute.save();
+
+    return res.status(201).json(newRoute);
+  } catch (error) {
+    return res
+      .status(500)
+      .json({ error: "FavoriteRoutes/create: internal server error" });
+  }
+};
+
+// 즐겨찾기 조회
+export const getFavoriteHandler: RequestHandler = async (
+  req,
+  res
+): Promise<void> => {
+  try {
+    const user = getLoginInfo(req);
+
+    const userId = user.oid;
+    const routes = await favoriteRouteModel
+      .find({ user: userId })
+      .populate(favoriteRoutesPopulateOption);
+
+    return res.status(200).json(routes);
+  } catch (error) {
+    return res
+      .status(500)
+      .json({ error: "FavoriteRoutes/get: internal server error" });
+  }
+};
+
+// 즐겨찾기 삭제
+export const deleteFavoriteHandler: RequestHandler = async (
+  req,
+  res
+): Promise<void> => {
+  try {
+    const user = getLoginInfo(req);
+
+    if (!user.oid) {
+      return res
+        .status(401)
+        .json({ error: "Unauthorized: No valid session found" });
+    }
+
+    const userId = user.oid;
+    const { id } = req.params;
+
+    if (!id || !Types.ObjectId.isValid(id)) {
+      return res
+        .status(400)
+        .json({ error: "Invalid request: Missing or invalid route ID" });
+    }
+
+    const route = await favoriteRouteModel.findOneAndDelete({
+      _id: id,
+      user: userId,
+    });
+
+    if (!route) {
+      return res
+        .status(400)
+        .json({ error: "FavoriteRoutes/delete: no corresponding route" });
+    }
+
+    return res.status(200).json(route);
+  } catch (error) {
+    return res
+      .status(500)
+      .json({ error: "FavoriteRoutes/delete: internal server error" });
   }
 };

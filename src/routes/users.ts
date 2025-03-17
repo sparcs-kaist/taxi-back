@@ -2,10 +2,10 @@ import express from "express";
 import { body } from "express-validator";
 import { authMiddleware, validatorMiddleware } from "@/middlewares";
 import patterns from "@/modules/patterns";
-
+import { favoriteRoutesZod } from "./docs/schemas/favoriteRoutesSchema";
 const router = express.Router();
 import * as userHandlers from "@/services/users";
-
+import { validateBody, validateParams } from "@/middlewares/zod";
 import { replaceSpaceInNickname } from "@/modules/modifyProfile";
 
 // 라우터 접근 시 로그인 필요
@@ -61,5 +61,22 @@ router.get("/getBanRecord", userHandlers.getBanRecordHandler);
 
 // 회원 탈퇴를 요청합니다.
 router.post("/withdraw", validatorMiddleware, userHandlers.withdrawHandler);
+
+// 즐겨찾기 생성
+router.post(
+  "/createFavorite",
+  validateBody(favoriteRoutesZod.createFavoriteHandler),
+  userHandlers.createFavoriteHandler
+);
+
+// 즐겨찾기 조회
+router.get("/getFavorite", userHandlers.getFavoriteHandler);
+
+// 즐겨찾기 삭제
+router.delete(
+  "/deleteFavorite/:id",
+  validateParams(favoriteRoutesZod.deleteFavoriteHandler),
+  userHandlers.deleteFavoriteHandler
+);
 
 export default router;

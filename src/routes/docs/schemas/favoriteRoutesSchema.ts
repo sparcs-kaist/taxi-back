@@ -1,13 +1,22 @@
 import { z } from "zod";
-import patterns from "../../../modules/patterns";
+import patterns from "@/modules/patterns";
 
 const objectId = patterns.objectId;
 
 export const favoriteRoutesZod = {
-  createHandler: z.object({
-    from: z.string().regex(objectId, "Invalid from location ID"),
-    to: z.string().regex(objectId, "Invalid to location ID"),
+  createFavoriteHandler: z.object({
+    from: z.string().regex(objectId),
+    to: z.string().regex(objectId),
+  }),
+  deleteFavoriteHandler: z.object({
+    id: z.string().regex(objectId),
   }),
 };
 
 export type FavoriteRoutesSchema = typeof favoriteRoutesZod;
+export type CreateHandlerSchema = z.infer<
+  typeof favoriteRoutesZod.createFavoriteHandler
+>;
+export type DeleteHandlerSchema = z.infer<
+  typeof favoriteRoutesZod.deleteFavoriteHandler
+>;
