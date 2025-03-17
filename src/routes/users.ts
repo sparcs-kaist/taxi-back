@@ -50,6 +50,12 @@ router.post(
   userHandlers.createPhoneNumberHandler
 );
 
+// 전화번호 인증이 완료된 사용자를 대상으로 뱃지를 부여합니다.
+router.post("/badge/on", userHandlers.badgeOn);
+
+// 뱃지를 제거합니다.
+router.post("/badge/off", userHandlers.badgeOff);
+
 // 프로필 이미지를 업로드할 수 있는 Presigned-url을 발급합니다.
 router.post(
   "/editProfileImg/getPUrl",

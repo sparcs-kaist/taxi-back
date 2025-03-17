@@ -148,6 +148,50 @@ export const createPhoneNumberHandler: RequestHandler = async (req, res) => {
   }
 };
 
+export const badgeOn: RequestHandler = async (req, res) => {
+  try {
+    const result = await userModel.findOneAndUpdate(
+      {
+        _id: req.userOid,
+        withdraw: false,
+        phoneNumber: { $exists: true, $ne: null },
+      },
+      { badge: true }
+    );
+
+    if (result) {
+      return res.status(200).send("Users/badgeOn : badge successfully applied");
+    } else {
+      return res.status(400).send("Users/badgeOn : Unauthorized user");
+    }
+  } catch (err) {
+    logger.error(err);
+    return res.status(500).send("Users/badgeOn : internal server error");
+  }
+};
+
+export const badgeOff: RequestHandler = async (req, res) => {
+  try {
+    const result = await userModel.findOneAndUpdate(
+      { _id: req.userOid, withdraw: false },
+      { badge: false }
+    );
+
+    if (result) {
+      return res
+        .status(200)
+        .send("Users/badgeOff : badge successfully deleted");
+    } else {
+      return res
+        .status(400)
+        .send("Users/badgeOff : such user id does not exist");
+    }
+  } catch (err) {
+    logger.error(err);
+    return res.status(500).send("Users/badgeOff : internal server error");
+  }
+};
+
 export const editProfileImgGetPUrlHandler: RequestHandler = async (
   req,
   res
