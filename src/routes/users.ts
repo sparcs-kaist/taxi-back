@@ -42,6 +42,14 @@ router.post(
   userHandlers.editAccountHandler
 );
 
+// 새 전화번호를 받아 로그인된 유저의 전화번호를 저장합니다.
+router.post(
+  "/createPhoneNumber",
+  body("phonenumber").matches(patterns.user.phoneNumber),
+  validatorMiddleware,
+  userHandlers.createPhoneNumberHandler
+);
+
 // 프로필 이미지를 업로드할 수 있는 Presigned-url을 발급합니다.
 router.post(
   "/editProfileImg/getPUrl",

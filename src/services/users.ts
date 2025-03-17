@@ -123,6 +123,31 @@ export const editAccountHandler: RequestHandler = async (req, res) => {
   }
 };
 
+export const createPhoneNumberHandler: RequestHandler = async (req, res) => {
+  try {
+    const newphoneNumber = req.body.phonenumber;
+    const result = await userModel.findOneAndUpdate(
+      { _id: req.userOid, withdraw: false },
+      { phoneNumber: newphoneNumber }
+    );
+
+    if (result) {
+      return res
+        .status(200)
+        .send("Users/createPhoneNumber : create user phoneNumber successful");
+    } else {
+      return res
+        .status(400)
+        .send("Users/createPhoneNumber : such user id does not exist");
+    }
+  } catch (err) {
+    logger.error(err);
+    return res
+      .status(500)
+      .send("Users/createPhoneNumber : internal server error");
+  }
+};
+
 export const editProfileImgGetPUrlHandler: RequestHandler = async (
   req,
   res
