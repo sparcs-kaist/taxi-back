@@ -1,4 +1,4 @@
-import mongoose from "mongoose";
+import mongoose, { Types } from "mongoose";
 
 export interface EventPeriod {
   startAt: Date;
@@ -26,15 +26,15 @@ export interface Reward {
   ticket1?: number;
 }
 
-export interface Quest extends Document {
-  id: string;
+export interface Quest {
+  id?: string;
   name: string;
   description: string;
   imageUrl: string;
   reward: Reward;
-  maxCount: number;
-  isApiRequired: boolean;
-  isDisabled: boolean;
+  maxCount?: number;
+  isApiRequired?: boolean;
+  isDisabled?: boolean;
 }
 
 export interface Item extends Document {
@@ -82,5 +82,3 @@ export interface Quiz extends Document {
   countB: number;
   answers: QuizAnswer[];
 }
-
-//

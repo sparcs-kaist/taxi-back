@@ -8,7 +8,6 @@ import {
   quizModel,
 } from "./modules/stores/mongo";
 import { buildResource } from "../modules/adminResource";
-import { addOneItemStockAction, addFiveItemStockAction } from "./modules/items";
 import { eventConfig } from "@/loadenv";
 
 import globalStateRouter from "./routes/globalState";
@@ -48,7 +47,6 @@ export const resources = eventConfig
   ? [
       buildResource()(eventStatusModel),
       buildResource()(questModel),
-      buildResource([addOneItemStockAction, addFiveItemStockAction])(itemModel),
       buildResource()(transactionModel),
       buildResource()(quizModel),
     ]

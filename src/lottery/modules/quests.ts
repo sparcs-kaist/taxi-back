@@ -5,9 +5,9 @@ import {
   transactionModel,
 } from "./stores/mongo";
 import logger from "@/modules/logger";
-import mongoose, { Types } from "mongoose";
+import type { Types } from "mongoose";
 import { eventConfig } from "@/loadenv";
-import type { EventPeriod, Quest } from "../types";
+import type { EventPeriod, EventStatus, Quest } from "../types";
 
 const eventPeriod: EventPeriod | null = eventConfig && {
   startAt: new Date(eventConfig.period.startAt),
@@ -21,22 +21,12 @@ const requiredQuestFields: string[] = [
   "reward",
 ];
 
-// 유저의 이벤트 상태 타입 정의
-interface EventStatus {
-  userId: Types.ObjectId;
-  completedQuests: { questId: string; completedAt: Date }[];
-  creditAmount: number;
-  ticket1Amount: number;
-  isBanned: boolean;
-  inviter?: Types.ObjectId;
-  isInviteUrlEnabled: boolean;
-}
-
 export const buildQuests = (
   quests: Record<string, Quest>
-): Record<string, Quest> | null => {
+): Record<string, Required<Quest>> | null => {
+  const updatedQuests: Record<string, Required<Quest>> = {};
+
   for (const [id, quest] of Object.entries(quests)) {
-    // quest에 필수 필드가 모두 포함되어 있는지 확인합니다.
     const hasError = requiredQuestFields.reduce((before, field) => {
       if (quest[field as keyof Quest] !== undefined) return before;
 
@@ -45,29 +35,24 @@ export const buildQuests = (
     }, false);
     if (hasError) return null;
 
-    // quest.id 필드를 설정합니다.
-    quest.id = id;
-
-    // quest.reward가 number인 경우, object로 변환합니다.
-    if (typeof quest.reward === "number") {
-      const credit = quest.reward;
-      quest.reward = {
-        credit,
-      };
-    }
-
-    // quest.reward에 누락된 필드가 있는 경우, 기본값(0)으로 설정합니다.
-    quest.reward.credit = quest.reward.credit ?? 0;
-    quest.reward.ticket1 = quest.reward.ticket1 ?? 0;
-
-    // quest.maxCount가 없는 경우, 기본값(1)으로 설정합니다.
-    quest.maxCount = quest.maxCount ?? 1;
-
-    // quest.isApiRequired가 없는 경우, 기본값(false)으로 설정합니다.
-    quest.isApiRequired = quest.isApiRequired ?? false;
+    // 새로운 객체 생성
+    updatedQuests[id] = {
+      ...quest, // 기존 필드 복사
+      id, // id 추가
+      reward:
+        typeof quest.reward === "number"
+          ? { credit: quest.reward, ticket1: 0 }
+          : {
+              credit: quest.reward.credit ?? 0,
+              ticket1: quest.reward.ticket1 ?? 0,
+            },
+      maxCount: quest.maxCount ?? 1,
+      isApiRequired: quest.isApiRequired ?? false,
+      isDisabled: false,
+    };
   }
 
-  return quests;
+  return updatedQuests;
 };
 
 /**
@@ -86,11 +71,11 @@ export const buildQuests = (
 export const completeQuest = async (
   userId: Types.ObjectId | string,
   timestamp: number | Date,
-  quest: Quest
+  quest: Required<Quest>
 ): Promise<{
   quest: Quest;
   questCount: number;
-  transactionsId: string[]; // ObjectId를 가져오기 때문에 number[]가 아닌 string[]로 저장장
+  transactionsId: string[]; // ObjectId를 가져오기 때문에 number[]가 아닌 string[]로 저장.
 } | null> => {
   try {
     // 1단계: 유저의 EventStatus를 가져옵니다. 블록드리스트인지도 확인합니다.
