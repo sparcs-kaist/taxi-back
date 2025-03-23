@@ -308,11 +308,11 @@ export const createFavoriteHandler: RequestHandler = async (
     if (!from || !to) {
       return res
         .status(400)
-        .json({ error: "FavoriteRoutes/create: Wrong location" });
+        .json({ error: "Users/createFavorite: Wrong location" });
     } else if (from === to) {
       return res
-        .status(200)
-        .json({ error: "FavoriteRoutes/create: Same location" });
+        .status(400)
+        .json({ error: "Users/createFavorite: Same location" });
     }
 
     const fromlocation = await locationModel.findOne({ _id: from });
@@ -321,7 +321,7 @@ export const createFavoriteHandler: RequestHandler = async (
     if (!fromlocation || !tolocation) {
       return res
         .status(400)
-        .json({ error: "FavoriteRoutes/create: Location not found" });
+        .json({ error: "Users/createFavorite: Location not found" });
     }
 
     const existingRoute = await favoriteRouteModel.findOne({
@@ -332,7 +332,7 @@ export const createFavoriteHandler: RequestHandler = async (
     if (existingRoute) {
       return res
         .status(400)
-        .json({ error: "FavoriteRoutes/create: route already exists" });
+        .json({ error: "Users/createFavorite: route already exists" });
     }
 
     const newRoute = new favoriteRouteModel({
@@ -342,11 +342,11 @@ export const createFavoriteHandler: RequestHandler = async (
     });
     await newRoute.save();
 
-    return res.status(201).json(newRoute);
+    return res.status(200).json(newRoute);
   } catch (error) {
     return res
       .status(500)
-      .json({ error: "FavoriteRoutes/create: internal server error" });
+      .json({ error: "Users/createFavorite: internal server error" });
   }
 };
 
@@ -367,7 +367,7 @@ export const getFavoriteHandler: RequestHandler = async (
   } catch (error) {
     return res
       .status(500)
-      .json({ error: "FavoriteRoutes/get: internal server error" });
+      .json({ error: "Users/getFavorite: internal server error" });
   }
 };
 
@@ -379,19 +379,13 @@ export const deleteFavoriteHandler: RequestHandler = async (
   try {
     const user = getLoginInfo(req);
 
-    if (!user.oid) {
-      return res
-        .status(401)
-        .json({ error: "Unauthorized: No valid session found" });
-    }
-
     const userId = user.oid;
     const { id } = req.params;
 
     if (!id || !Types.ObjectId.isValid(id)) {
       return res
         .status(400)
-        .json({ error: "Invalid request: Missing or invalid route ID" });
+        .json({ error: "Users/deleteFavorite: Missing or invalid route ID" });
     }
 
     const route = await favoriteRouteModel.findOneAndDelete({
@@ -402,13 +396,13 @@ export const deleteFavoriteHandler: RequestHandler = async (
     if (!route) {
       return res
         .status(400)
-        .json({ error: "FavoriteRoutes/delete: no corresponding route" });
+        .json({ error: "Users/deleteFavorite: no corresponding route" });
     }
 
     return res.status(200).json(route);
   } catch (error) {
     return res
       .status(500)
-      .json({ error: "FavoriteRoutes/delete: internal server error" });
+      .json({ error: "Users/deleteFavorite: internal server error" });
   }
 };
