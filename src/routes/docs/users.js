@@ -207,7 +207,7 @@ usersDocs[`${apiPrefix}/createPhoneNumber`] = {
             properties: {
               phonenumber: {
                 type: "string",
-                description: "유저의 새 계좌 번호",
+                description: "유저의 전화 번호",
               },
             },
           },
@@ -253,7 +253,7 @@ usersDocs[`${apiPrefix}/badge`] = {
             properties: {
                badge: {
                 type: "string",
-                description: "유저의 새 계좌 번호",
+                description: "뱃지 상태",
               },
             },
           },
