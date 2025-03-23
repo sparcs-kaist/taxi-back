@@ -194,6 +194,105 @@ usersDocs[`${apiPrefix}/editAccount`] = {
   },
 };
 
+usersDocs[`${apiPrefix}/createPhoneNumber`] = {
+  post: {
+    tags: [tag],
+    summary: "유저의 전화 번호 등록",
+    description: "유저의 전화 번호를 요청한 전화 번호로 등록합니다.",
+    requestBody: {
+      content: {
+        "application/json": {
+          schema: {
+            type: "object",
+            properties: {
+              phonenumber: {
+                type: "string",
+                description: "유저의 새 계좌 번호",
+              },
+            },
+          },
+        },
+      },
+    },
+    responses: {
+      200: {
+        content: {
+          "text/html": {
+            example: "Users/createPhoneNumber : create user phoneNumber successful",
+          },
+        },
+      },
+      400: {
+        content: {
+          "text/html": {
+            example: "Users/createPhoneNumber : such user id does not exist",
+          },
+        },
+      },
+      500: {
+        content: {
+          "text/html": {
+            example: "Users/createPhoneNumber : internal server error",
+          },
+        },
+      },
+    },
+  },
+};
+
+usersDocs[`${apiPrefix}/badge`] = {
+  post: {
+    tags: [tag],
+    summary: "유저의 뱃지 적용 상태 변경",
+    description: "유저의 뱃지를 탈부착합니다.",
+    requestBody: {
+      content: {
+        "application/json": {
+          schema: {
+            type: "object",
+            properties: {
+               badge: {
+                type: "string",
+                description: "유저의 새 계좌 번호",
+              },
+            },
+          },
+        },
+      },
+    },
+    responses: {
+      200: {
+        content: {
+          "text/html": {
+            example: "Users/badge : badge successfully applied",
+          },
+        },
+      },
+      400: {
+        content: {
+          "text/html": {
+            example: "Users/badge : invalid request for badge",
+          },
+        },
+      },
+      400: {
+        content: {
+          "text/html": {
+            example: "Users/badge : Unauthorized user",
+          },
+        },
+      },
+      500: {
+        content: {
+          "text/html": {
+            example: "Users/badge : internal server error",
+          },
+        },
+      },
+    },
+  },
+};
+
 usersDocs[`${apiPrefix}/editProfileImg/getPUrl`] = {
   post: {
     tags: [tag],

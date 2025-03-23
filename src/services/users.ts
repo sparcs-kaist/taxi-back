@@ -148,49 +148,39 @@ export const createPhoneNumberHandler: RequestHandler = async (req, res) => {
   }
 };
 
-export const badgeOn: RequestHandler = async (req, res) => {
+export const badge: RequestHandler = async (req, res) => {
   try {
-    const result = await userModel.findOneAndUpdate(
-      {
-        _id: req.userOid,
-        withdraw: false,
-        phoneNumber: { $exists: true, $ne: null },
-      },
-      { badge: true }
-    );
+    let result;
 
-    if (result) {
-      return res.status(200).send("Users/badgeOn : badge successfully applied");
+    if (req.body.badge == "true") {
+      result = await userModel.findOneAndUpdate(
+        {
+          _id: req.userOid,
+          withdraw: false,
+          phoneNumber: { $exists: true, $ne: null },
+        },
+        { badge: true }
+      );
+    } else if (req.body.badge == "false") {
+      result = await userModel.findOneAndUpdate(
+        { _id: req.userOid, withdraw: false },
+        { badge: false }
+      );
     } else {
-      return res.status(400).send("Users/badgeOn : Unauthorized user");
+      return res.status(400).send("Users/badge : invalid request for badge")
+    }
+    
+    if (result) {
+      return res.status(200).send("Users/badge : badge successfully applied");
+    } else {
+      return res.status(400).send("Users/badge : Unauthorized user");
     }
   } catch (err) {
     logger.error(err);
-    return res.status(500).send("Users/badgeOn : internal server error");
+    return res.status(500).send("Users/badge : internal server error");
   }
 };
 
-export const badgeOff: RequestHandler = async (req, res) => {
-  try {
-    const result = await userModel.findOneAndUpdate(
-      { _id: req.userOid, withdraw: false },
-      { badge: false }
-    );
-
-    if (result) {
-      return res
-        .status(200)
-        .send("Users/badgeOff : badge successfully deleted");
-    } else {
-      return res
-        .status(400)
-        .send("Users/badgeOff : such user id does not exist");
-    }
-  } catch (err) {
-    logger.error(err);
-    return res.status(500).send("Users/badgeOff : internal server error");
-  }
-};
 
 export const editProfileImgGetPUrlHandler: RequestHandler = async (
   req,
