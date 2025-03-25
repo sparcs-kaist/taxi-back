@@ -31,7 +31,7 @@ describe("[rooms] 1.createHandler", () => {
         time: Date.now() + 60 * 1000,
         maxPartLength: 4,
       },
-      userId: testUser1.id,
+      userOid: testUser1._id,
       app,
       session: {
         loginInfo: {
@@ -59,7 +59,7 @@ describe("[rooms] 2.infoHandler", () => {
     const testRoom = await roomModel.findOne({ name: "test-room" });
     let req = httpMocks.createRequest({
       query: { id: testRoom._id },
-      userId: testUser1.id,
+      userOid: testUser1._id,
     });
     let res = httpMocks.createResponse();
     await roomsHandlers.infoHandler(req, res);
@@ -95,7 +95,7 @@ describe("[rooms] 4.joinHandler", () => {
       body: {
         roomId: testRoom._id,
       },
-      userId: testUser2.id,
+      userOid: testUser2._id,
       app,
       session: {
         loginInfo: {
@@ -145,7 +145,7 @@ describe("[rooms] 6.searchByUserHandler", () => {
   it("should return information of searching room", async () => {
     const testUser1 = await userModel.findOne({ id: "test1" });
     let req = httpMocks.createRequest({
-      userId: testUser1.id,
+      userOid: testUser1._id,
     });
     let res = httpMocks.createResponse();
     await roomsHandlers.searchByUserHandler(req, res);
@@ -163,7 +163,8 @@ describe("[rooms] 7.commitSettlementHandler", () => {
     const testRoom = await roomModel.findOne({ name: "test-room" });
     let req = httpMocks.createRequest({
       body: { roomId: testRoom._id },
-      userId: testUser1.id,
+      userOid: testUser1._id,
+      timestamp: Date.now() + 60 * 1000,
       app,
       session: {
         loginInfo: {
@@ -191,7 +192,7 @@ describe("[rooms] 8.commitPaymentHandler", () => {
     const testRoom = await roomModel.findOne({ name: "test-room" });
     let req = httpMocks.createRequest({
       body: { roomId: testRoom._id },
-      userId: testUser2.id,
+      userOid: testUser2._id,
       app,
       session: {
         loginInfo: {
@@ -219,7 +220,7 @@ describe("[rooms] 9.abortHandler", () => {
     const testRoom = await roomModel.findOne({ name: "test-room" });
     let req = httpMocks.createRequest({
       body: { roomId: testRoom._id },
-      userId: testUser2.id,
+      userOid: testUser2._id,
       session: {},
       app,
       session: {

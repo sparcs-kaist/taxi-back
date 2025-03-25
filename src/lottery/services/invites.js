@@ -1,8 +1,8 @@
 const { eventStatusModel } = require("../modules/stores/mongo");
 const { userModel } = require("../../modules/stores/mongo");
-const logger = require("../../modules/logger");
+const logger = require("@/modules/logger").default;
 
-const { eventConfig } = require("../../../loadenv");
+const { eventConfig } = require("@/loadenv");
 const { validateServiceBanRecord } = require("../../modules/ban");
 
 const searchInviterHandler = async (req, res) => {
@@ -31,7 +31,10 @@ const searchInviterHandler = async (req, res) => {
 
     // 해당되는 유저의 닉네임과 프로필 이미지를 가져옵니다.
     const inviter = await userModel
-      .findById(inviterStatus.userId, "nickname profileImageUrl")
+      .findOne(
+        { _id: inviterStatus.userId, withdraw: false },
+        "nickname profileImageUrl"
+      )
       .lean();
     if (!inviter)
       return res

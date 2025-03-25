@@ -1,5 +1,5 @@
 const { completeQuest } = require("../modules/quests");
-const logger = require("../../modules/logger");
+const logger = require("@/modules/logger").default;
 
 const contracts = require("../modules/contracts");
 

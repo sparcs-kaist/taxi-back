@@ -1,4 +1,4 @@
-const { eventConfig } = require("../../../../loadenv");
+const { eventConfig } = require("@/loadenv");
 const apiPrefix = `/events/${eventConfig?.mode}/items`;
 
 const itemsDocs = {};
@@ -276,7 +276,7 @@ itemsDocs[`${apiPrefix}/purchase/{itemId}`] = {
         in: "path",
         name: "itemId",
         required: true,
-        description: "리더보드를 조회할 상품의 ObjectId",
+        description: "구입할 상품의 ObjectId",
         example: "ITEM ID",
       },
     ],
@@ -307,6 +307,46 @@ itemsDocs[`${apiPrefix}/purchase/{itemId}`] = {
                   description:
                     "대박 여부. 랜덤박스를 구입한 경우에만 포함됩니다.",
                   example: true,
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+  },
+};
+itemsDocs[`${apiPrefix}/useCoupon/{couponCode}`] = {
+  post: {
+    tags: [`${apiPrefix}`],
+    summary: "쿠폰 사용",
+    description: "쿠폰을 사용합니다.",
+    parameters: [
+      {
+        in: "path",
+        name: "couponCode",
+        required: true,
+        description: "사용할 쿠폰의 코드",
+        example: "COUPON CODE",
+      },
+    ],
+    responses: {
+      200: {
+        content: {
+          "application/json": {
+            schema: {
+              type: "object",
+              required: ["result", "reward"],
+              properties: {
+                result: {
+                  type: "boolean",
+                  description: "성공 여부. 항상 true입니다.",
+                  example: true,
+                },
+                reward: {
+                  type: "number",
+                  description: "쿠폰의 사용 보상. 0 이상의 정수입니다.",
+                  example: 500,
                 },
               },
             },

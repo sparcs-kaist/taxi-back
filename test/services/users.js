@@ -17,7 +17,7 @@ describe("[users] 1.agreeOnTermsOfServiceHandler", () => {
     const msg =
       "Users/agreeOnTermsOfService : agree on Terms of Service successful";
     let req = httpMocks.createRequest({
-      userId: testUser1.id,
+      userOid: testUser1._id,
     });
     let res = httpMocks.createResponse();
     await usersHandlers.agreeOnTermsOfServiceHandler(req, res);
@@ -33,7 +33,7 @@ describe("[users] 2.getAgreeOnTermsOfServiceHandler", () => {
   it("should return AgreeOnTermsOfService of user", async () => {
     const testUser1 = await userModel.findOne({ id: "test1" });
     let req = httpMocks.createRequest({
-      userId: testUser1.id,
+      userOid: testUser1._id,
     });
     let res = httpMocks.createResponse();
     await usersHandlers.getAgreeOnTermsOfServiceHandler(req, res);
@@ -52,7 +52,7 @@ describe("[users] 3.editNicknameHandler", () => {
     const testUser1 = await userModel.findOne({ id: "test1" });
     const msg = "Users/editNickname : edit user nickname successful";
     let req = httpMocks.createRequest({
-      userId: testUser1.id,
+      userOid: testUser1._id,
       body: {
         nickname: testNickname,
       },
@@ -87,7 +87,7 @@ describe("[users] 4.editAccountHandler", () => {
     const testUser1 = await userModel.findOne({ id: "test1" });
     const msg = "Users/editAccount : edit user account successful";
     let req = httpMocks.createRequest({
-      userId: testUser1.id,
+      userOid: testUser1._id,
       body: {
         account: testAccount,
       },
@@ -121,7 +121,7 @@ describe("[users] 5.editProfileImgGetPUrlHandler", () => {
     const testUser1 = await userModel.findOne({ id: "test1" });
     const testImgType = "image/jpg";
     let req = httpMocks.createRequest({
-      userId: testUser1.id,
+      userOid: testUser1._id,
       body: {
         type: testImgType,
       },
@@ -145,7 +145,7 @@ describe("[users] 6.editProfileImgDoneHandler", () => {
   it("should return correct result and new profileImageUrl", async () => {
     const testUser1 = await userModel.findOne({ id: "test1" });
     let req = httpMocks.createRequest({
-      userId: testUser1.id,
+      userOid: testUser1._id,
     });
     let res = httpMocks.createResponse();
     await usersHandlers.editProfileImgDoneHandler(req, res);

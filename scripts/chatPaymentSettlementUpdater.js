@@ -3,7 +3,7 @@
 // https://github.com/sparcs-kaist/taxi-back/issues/449
 
 const { MongoClient } = require("mongodb");
-const { mongo: mongoUrl } = require("../loadenv");
+const { mongo: mongoUrl } = require("@/loadenv");
 
 const client = new MongoClient(mongoUrl);
 const db = client.db("taxi");

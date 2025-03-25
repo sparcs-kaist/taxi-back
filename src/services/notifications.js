@@ -1,11 +1,11 @@
-const { userModel } = require("../modules/stores/mongo");
-const { notificationOptionModel } = require("../modules/stores/mongo");
-const logger = require("../modules/logger");
+const { userModel } = require("@/modules/stores/mongo");
+const { notificationOptionModel } = require("@/modules/stores/mongo");
+const logger = require("@/modules/logger").default;
 
-const { registerDeviceToken, validateDeviceToken } = require("../modules/fcm");
+const { registerDeviceToken, validateDeviceToken } = require("@/modules/fcm");
 
 // 이벤트 코드입니다.
-const { contracts } = require("../lottery");
+import { contracts } from "@/lottery";
 
 const registerDeviceTokenHandler = async (req, res) => {
   try {
@@ -19,7 +19,10 @@ const registerDeviceTokenHandler = async (req, res) => {
     }
 
     // 데이터베이스에 deviceToken 레코드를 추가합니다.
-    const user = await userModel.findOne({ id: req.userId }, "_id");
+    const user = await userModel.findOne(
+      { _id: req.userOid, withdraw: false },
+      "_id"
+    );
     const newDeviceToken = await registerDeviceToken(user._id, deviceToken);
 
     // 세션에 현재 사용자 기기의 deviceToken을 저장합니다.

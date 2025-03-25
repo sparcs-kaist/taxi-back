@@ -1,6 +1,6 @@
 const { z } = require("zod");
 const { zodToSchemaObject } = require("../utils");
-const { objectId } = require("../../../modules/patterns");
+const { objectId } = require("../../../modules/patterns").default;
 
 const fareZod = {
   getTaxiFareHandler: z.object({
