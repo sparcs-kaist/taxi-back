@@ -123,9 +123,9 @@ export const editAccountHandler: RequestHandler = async (req, res) => {
   }
 };
 
-export const createPhoneNumberHandler: RequestHandler = async (req, res) => {
+export const registerPhoneNumberHandler: RequestHandler = async (req, res) => {
   try {
-    const newphoneNumber = req.body.phonenumber;
+    const newphoneNumber = req.body.phoneNumber;
     const result = await userModel.findOneAndUpdate(
       { _id: req.userOid, withdraw: false },
       { phoneNumber: newphoneNumber }
@@ -134,25 +134,25 @@ export const createPhoneNumberHandler: RequestHandler = async (req, res) => {
     if (result) {
       return res
         .status(200)
-        .send("Users/createPhoneNumber : create user phoneNumber successful");
+        .send("Users/registerPhoneNumber : create user phoneNumber successful");
     } else {
       return res
         .status(400)
-        .send("Users/createPhoneNumber : such user id does not exist");
+        .send("Users/registerPhoneNumber : such user id does not exist");
     }
   } catch (err) {
     logger.error(err);
     return res
       .status(500)
-      .send("Users/createPhoneNumber : internal server error");
+      .send("Users/registerPhoneNumber : internal server error");
   }
 };
 
-export const badge: RequestHandler = async (req, res) => {
+export const editBadgeHandler: RequestHandler = async (req, res) => {
   try {
     let result;
 
-    if (req.body.badge == "true") {
+    if (req.body.badge === "true") {
       result = await userModel.findOneAndUpdate(
         {
           _id: req.userOid,
@@ -161,23 +161,23 @@ export const badge: RequestHandler = async (req, res) => {
         },
         { badge: true }
       );
-    } else if (req.body.badge == "false") {
+    } else if (req.body.badge === "false") {
       result = await userModel.findOneAndUpdate(
         { _id: req.userOid, withdraw: false },
         { badge: false }
       );
     } else {
-      return res.status(400).send("Users/badge : invalid request for badge")
+      return res.status(400).send("Users/editBadge : invalid request for badge")
     }
     
     if (result) {
-      return res.status(200).send("Users/badge : badge successfully applied");
+      return res.status(200).send("Users/editBadge : badge successfully applied");
     } else {
-      return res.status(400).send("Users/badge : Unauthorized user");
+      return res.status(400).send("Users/editBadge : Unauthorized user");
     }
   } catch (err) {
     logger.error(err);
-    return res.status(500).send("Users/badge : internal server error");
+    return res.status(500).send("Users/editBadge : internal server error");
   }
 };
 

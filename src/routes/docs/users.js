@@ -194,7 +194,7 @@ usersDocs[`${apiPrefix}/editAccount`] = {
   },
 };
 
-usersDocs[`${apiPrefix}/createPhoneNumber`] = {
+usersDocs[`${apiPrefix}/registerPhoneNumber`] = {
   post: {
     tags: [tag],
     summary: "유저의 전화 번호 등록",
@@ -205,7 +205,7 @@ usersDocs[`${apiPrefix}/createPhoneNumber`] = {
           schema: {
             type: "object",
             properties: {
-              phonenumber: {
+              phoneNumber: {
                 type: "string",
                 description: "유저의 전화 번호",
               },
@@ -218,21 +218,21 @@ usersDocs[`${apiPrefix}/createPhoneNumber`] = {
       200: {
         content: {
           "text/html": {
-            example: "Users/createPhoneNumber : create user phoneNumber successful",
+            example: "Users/registerPhoneNumber : create user phoneNumber successful",
           },
         },
       },
       400: {
         content: {
           "text/html": {
-            example: "Users/createPhoneNumber : such user id does not exist",
+            example: "Users/registerPhoneNumber : such user id does not exist",
           },
         },
       },
       500: {
         content: {
           "text/html": {
-            example: "Users/createPhoneNumber : internal server error",
+            example: "Users/registerPhoneNumber : internal server error",
           },
         },
       },
@@ -240,7 +240,7 @@ usersDocs[`${apiPrefix}/createPhoneNumber`] = {
   },
 };
 
-usersDocs[`${apiPrefix}/badge`] = {
+usersDocs[`${apiPrefix}/editBadge`] = {
   post: {
     tags: [tag],
     summary: "유저의 뱃지 적용 상태 변경",
@@ -264,28 +264,28 @@ usersDocs[`${apiPrefix}/badge`] = {
       200: {
         content: {
           "text/html": {
-            example: "Users/badge : badge successfully applied",
+            example: "Users/editBadge : badge successfully applied",
           },
         },
       },
       400: {
         content: {
           "text/html": {
-            example: "Users/badge : invalid request for badge",
+            example: "Users/editBadge : invalid request for badge",
           },
         },
       },
       400: {
         content: {
           "text/html": {
-            example: "Users/badge : Unauthorized user",
+            example: "Users/editBadge : Unauthorized user",
           },
         },
       },
       500: {
         content: {
           "text/html": {
-            example: "Users/badge : internal server error",
+            example: "Users/editBadge : internal server error",
           },
         },
       },
