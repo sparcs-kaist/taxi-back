@@ -1,9 +1,9 @@
 import { buildQuests, completeQuest } from "./quests";
-import mongoose, { Types } from "mongoose";
 import logger from "@/modules/logger";
 import { eventConfig } from "@/loadenv";
-import { Quest } from "../types";
-import { Room } from "@/types/mongo";
+import type { Quest } from "../types";
+import type { Room } from "@/types/mongo";
+import type { Types } from "mongoose";
 
 const eventPeriod = eventConfig && {
   startAt: new Date(eventConfig.period.startAt),

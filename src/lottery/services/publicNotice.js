@@ -1,15 +1,11 @@
-const {
-  eventStatusModel,
-  transactionModel,
-} = require("../modules/stores/mongo");
-const { userModel } = require("../../modules/stores/mongo");
-const { isLogin, getLoginInfo } = require("../../modules/auths/login");
-const logger = require("@/modules/logger").default;
-const {
-  publicNoticePopulateOption,
-} = require("../modules/populates/transactions");
+import { eventStatusModel, transactionModel } from "../modules/stores/mongo";
+import { userModel } from "../../modules/stores/mongo";
+import { isLogin, getLoginInfo } from "../../modules/auths/login";
+import logger from "@/modules/logger";
+import { publicNoticePopulateOption } from "../modules/populates/transactions";
+import { eventConfig } from "@/loadenv";
 
-const { eventConfig } = require("@/loadenv");
+// import type { Request, Response } from "express";
 
 /**
  * getValueRank 사용자의 상품 구매 내역 또는 경품 추첨 내역의 순위 결정을 위한 가치를 평가하는 함수

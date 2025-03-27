@@ -26,7 +26,7 @@ export const contracts = eventConfig
 eventConfig && require("./routes/docs")();
 
 // [Schedule] 스케줄러 시작
-eventConfig && require("./schedules")();
+// eventConfig && require("./schedules")();
 
 export const lotteryRouter: Router = express.Router();
 

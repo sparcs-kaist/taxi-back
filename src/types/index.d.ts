@@ -1,6 +1,8 @@
 // to make the file a module and avoid the TypeScript error
 export {};
 
+import { EventStatus } from "@/lottery/types";
+
 declare global {
   namespace Express {
     export interface Request {
@@ -12,6 +14,10 @@ declare global {
       clientIP?: string;
       /** 요청의 timestamp. */
       timestamp?: number;
+
+      eventStatus?: EventStatus;
+
+      params?;
     }
   }
 }

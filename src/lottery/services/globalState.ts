@@ -11,7 +11,7 @@ import {
   quests,
 } from "../modules/contracts";
 
-import type { EventStatus } from "../types";
+import type { EventStatus, Quest } from "../types";
 import { User } from "@/types/mongo";
 import type { Types } from "mongoose";
 // 아래의 함수는 2025 봄 이벤트에서 사용되지 않습니다.
@@ -25,10 +25,12 @@ import type { Types } from "mongoose";
 //   return 20240001 <= kaistId && kaistId <= 20241500;
 // };
 
+const quests_: Required<Quest>[] = Object.values(quests!);
+
 export const getUserGlobalStateHandler = async (
   req: Request,
   res: Response
-) => {
+): Promise<Response> => {
   try {
     const userId = isLogin(req) ? getLoginInfo(req).oid : null;
     const eventStatus: EventStatus | null = userId
@@ -42,7 +44,7 @@ export const getUserGlobalStateHandler = async (
         isAgreeOnTermsOfEvent: false,
         isBanned: false,
         creditAmount: 0,
-        quests,
+        quests: quests_,
         completedQuests: [],
       });
     }
@@ -50,11 +52,13 @@ export const getUserGlobalStateHandler = async (
     return res.json({
       ...eventStatus,
       isAgreeOnTermsOfEvent: true,
-      quests,
+      quests: quests_,
     });
   } catch (err) {
     logger.error(err);
-    res.status(500).json({ error: "GlobalState/ : internal server error" });
+    return res
+      .status(500)
+      .json({ error: "GlobalState/ : internal server error" });
   }
 };
 

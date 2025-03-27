@@ -1,9 +1,9 @@
-const express = require("express");
+import express from "express";
 const router = express.Router();
 
 const { validateParams } = require("../../middlewares/zod");
 const { questsZod } = require("./docs/schemas/questsSchema");
-const questsHandlers = require("../services/quests");
+import { completeQuestHandler } from "../services/quests";
 
 import authMiddleware from "../../middlewares/auth";
 import checkBannedMiddleware from "../middlewares/checkBanned";
@@ -17,7 +17,7 @@ router.use(timestampValidatorMiddleware);
 router.post(
   "/complete/:questId",
   validateParams(questsZod.completeQuestHandler),
-  questsHandlers.completeQuestHandler
+  completeQuestHandler
 );
 
 export default router;
