@@ -11,6 +11,7 @@ import { userModel, banModel } from "@/modules/stores/mongo";
 import { favoriteRouteModel, locationModel } from "@/modules/stores/mongo";
 import { Types } from "mongoose";
 import { favoriteRoutesPopulateOption } from "@/modules/populates/favoriteRoutes";
+import { CreateHandlerSchema, DeleteHandlerSchema } from "@/routes/docs/schemas/favoriteRoutesSchema";
 
 // 이벤트 코드입니다.
 // const { contracts } = require("@/lottery");
@@ -298,12 +299,10 @@ export const withdrawHandler: RequestHandler = async (req, res) => {
 export const createFavoriteHandler: RequestHandler = async (
   req,
   res
-): Promise<void> => {
+) => {
   try {
-    const user = getLoginInfo(req);
-
-    const userId = user.oid;
-    const { from, to } = req.body;
+    const userId = req.userOid;
+    const { from, to }: CreateHandlerSchema = req.body;
 
     if (!from || !to) {
       return res
@@ -315,10 +314,10 @@ export const createFavoriteHandler: RequestHandler = async (
         .json({ error: "Users/createFavorite: Same location" });
     }
 
-    const fromlocation = await locationModel.findOne({ _id: from });
-    const tolocation = await locationModel.findOne({ _id: to });
+    const fromLocation = await locationModel.findOne({ _id: from });
+    const toLocation = await locationModel.findOne({ _id: to });
 
-    if (!fromlocation || !tolocation) {
+    if (!fromLocation || !toLocation) {
       return res
         .status(400)
         .json({ error: "Users/createFavorite: Location not found" });
@@ -354,11 +353,9 @@ export const createFavoriteHandler: RequestHandler = async (
 export const getFavoriteHandler: RequestHandler = async (
   req,
   res
-): Promise<void> => {
+) => {
   try {
-    const user = getLoginInfo(req);
-
-    const userId = user.oid;
+    const userId = req.userOid;
     const routes = await favoriteRouteModel
       .find({ user: userId })
       .populate(favoriteRoutesPopulateOption);
@@ -375,18 +372,10 @@ export const getFavoriteHandler: RequestHandler = async (
 export const deleteFavoriteHandler: RequestHandler = async (
   req,
   res
-): Promise<void> => {
+) => {
   try {
-    const user = getLoginInfo(req);
-
-    const userId = user.oid;
-    const { id } = req.params;
-
-    if (!id || !Types.ObjectId.isValid(id)) {
-      return res
-        .status(400)
-        .json({ error: "Users/deleteFavorite: Missing or invalid route ID" });
-    }
+    const userId = req.userOid;
+    const { id } = req.params as DeleteHandlerSchema;
 
     const route = await favoriteRouteModel.findOneAndDelete({
       _id: id,
