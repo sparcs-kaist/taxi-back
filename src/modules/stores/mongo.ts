@@ -44,7 +44,7 @@ export const userModel = model("User", userSchema);
 
 const banSchema = new Schema<Ban>({
   // 정지 시킬 사용자를 기제함.
-  userSid: { type: String, required: true },
+  userId: { type: String, required: true },
   // 정지 사유
   reason: { type: String, required: true },
   bannedAt: { type: Date, required: true }, // 정지 당한 시각
@@ -56,7 +56,7 @@ const banSchema = new Schema<Ban>({
     // 필요시 이곳에 정지를 시킬 서비스를 추가함.
     enum: [
       "service", // service: 방 생성/참여 제한
-      "2024fall", // 2024fall: 가을학기 추석 이벤트 참여 제한
+      "2025-spring-event", // xxxx-xxxx-event: 특정 이벤트 참여 제한
     ],
   },
 });

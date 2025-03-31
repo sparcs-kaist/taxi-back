@@ -42,7 +42,7 @@ export interface User extends Document<Types.ObjectId> {
 
 export interface Ban extends Document<Types.ObjectId> {
   /** 정지된 사용자의 ID. */
-  userSid: string;
+  userId: string;
   /** 정지 사유. */
   reason: string;
   /** 정지 시각. */
