@@ -1,28 +1,23 @@
-const {
-  roomModel,
-  locationModel,
-  userModel,
-} = require("@/modules/stores/mongo");
-const { emitChatEvent } = require("@/modules/socket");
-const logger = require("@/modules/logger").default;
-const {
+import { RequestHandler } from "express";
+import { roomModel, locationModel, userModel } from "@/modules/stores/mongo";
+import { emitChatEvent } from "@/modules/socket";
+import logger from "@/modules/logger";
+import {
   roomPopulateOption,
   formatSettlement,
   getIsOver,
-} = require("@/modules/populates/rooms");
-const {
-  notifyRoomCreationAbuseToReportChannel,
-} = require("@/modules/slackNotification");
+} from "@/modules/populates/rooms";
+import { notifyRoomCreationAbuseToReportChannel } from "@/modules/slackNotification";
+import { contracts } from "@/lottery";
 
 // 이벤트 코드입니다.
-const { eventConfig } = require("@/loadenv");
+import { eventConfig } from "@/loadenv";
 const eventPeriod = eventConfig && {
   startAt: new Date(eventConfig.period.startAt),
   endAt: new Date(eventConfig.period.endAt),
 };
-import { contracts } from "@/lottery";
 
-const createHandler = async (req, res) => {
+export const createHandler: RequestHandler = async (req, res) => {
   const { name, from, to, time, maxPartLength } = req.body;
 
   try {
@@ -32,7 +27,7 @@ const createHandler = async (req, res) => {
       });
     }
 
-    if (req.timestamp > Date.parse(req.body.time)) {
+    if (req.timestamp! > Date.parse(req.body.time)) {
       return res.status(400).json({
         error: "Rooms/create : invalid timestamp",
       });
@@ -122,7 +117,7 @@ const createHandler = async (req, res) => {
   }
 };
 
-const createTestHandler = async (req, res) => {
+export const createTestHandler = async (req, res) => {
   // 이 Handler에서는 Parameter에 대해 추가적인 Validation을 하지 않습니다.
   const { time } = req.body;
 
@@ -189,7 +184,7 @@ const createTestHandler = async (req, res) => {
   }
 };
 
-const publicInfoHandler = async (req, res) => {
+export const publicInfoHandler = async (req, res) => {
   try {
     const roomObject = await roomModel
       .findOne({ _id: req.query.id })
@@ -211,7 +206,7 @@ const publicInfoHandler = async (req, res) => {
   }
 };
 
-const infoHandler = async (req, res) => {
+export const infoHandler = async (req, res) => {
   try {
     const user = await userModel.findOne({ _id: req.userOid, withdraw: false });
     const roomObject = await roomModel
@@ -234,7 +229,7 @@ const infoHandler = async (req, res) => {
   }
 };
 
-const joinHandler = async (req, res) => {
+export const joinHandler = async (req, res) => {
   try {
     const user = await userModel
       .findOne({ _id: req.userOid, withdraw: false })
@@ -313,7 +308,7 @@ const joinHandler = async (req, res) => {
   }
 };
 
-const abortHandler = async (req, res) => {
+export const abortHandler = async (req, res) => {
   const isOvertime = (room, time) => {
     if (new Date(room.time) <= time) return true;
     else return false;
@@ -402,7 +397,7 @@ const abortHandler = async (req, res) => {
   }
 };
 
-const searchHandler = async (req, res) => {
+export const searchHandler = async (req, res) => {
   try {
     const { name, from, to, time, withTime, maxPartLength, isHome } = req.query;
 
@@ -485,7 +480,7 @@ const searchHandler = async (req, res) => {
   }
 };
 
-const searchByUserHandler = async (req, res) => {
+export const searchByUserHandler = async (req, res) => {
   try {
     // lean()이 적용된 user를 response에 반환해줘야 하기 때문에 user를 한 번 더 지정한다.
     const user = await userModel
@@ -527,7 +522,7 @@ const searchByUserHandler = async (req, res) => {
   }
 };
 
-const commitSettlementHandler = async (req, res) => {
+export const commitSettlementHandler = async (req, res) => {
   try {
     const user = await userModel.findOne({ _id: req.userOid, withdraw: false });
     const { roomId } = req.body;
@@ -606,7 +601,7 @@ const commitSettlementHandler = async (req, res) => {
   }
 };
 
-const commitPaymentHandler = async (req, res) => {
+export const commitPaymentHandler = async (req, res) => {
   try {
     const { roomId } = req.body;
     const user = await userModel.findOne({ _id: req.userOid, withdraw: false });
@@ -756,7 +751,7 @@ const checkIsSendRequired = (userObject) => {
 /**
  * @todo Unused -> Maybe used in the future?
  */
-// const editHandler = async (req, res) => {
+// export const editHandler = async (req, res) => {
 //   const { roomId, name, from, to, time, maxPartLength } = req.body;
 //   // 수정할 값이 주어지지 않은 경우
 //   if (!name && !from && !to && !time && !maxPartLength) {
@@ -832,17 +827,3 @@ const checkIsSendRequired = (userObject) => {
 //     });
 //   }
 // };
-
-module.exports = {
-  publicInfoHandler,
-  infoHandler,
-  createHandler,
-  createTestHandler,
-  joinHandler,
-  abortHandler,
-  searchHandler,
-  searchByUserHandler,
-  commitPaymentHandler,
-  commitSettlementHandler,
-  // editHandler,
-};
