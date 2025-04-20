@@ -1,4 +1,5 @@
 import { RequestHandler } from "express";
+import { z } from "zod";
 import { roomModel, locationModel, userModel } from "@/modules/stores/mongo";
 import { emitChatEvent } from "@/modules/socket";
 import logger from "@/modules/logger";
@@ -9,16 +10,23 @@ import {
 } from "@/modules/populates/rooms";
 import { notifyRoomCreationAbuseToReportChannel } from "@/modules/slackNotification";
 import { contracts } from "@/lottery";
+import { roomsZod } from "@/routes/docs/schemas/roomsSchema"
 
 // 이벤트 코드입니다.
 import { eventConfig } from "@/loadenv";
+import { Search } from "aws-sdk/clients/kendra";
 const eventPeriod = eventConfig && {
   startAt: new Date(eventConfig.period.startAt),
   endAt: new Date(eventConfig.period.endAt),
 };
 
+type CreateRoomBody = z.infer<typeof roomsZod.createRoom>;
+type RoomIdQueryParams = z.infer<typeof roomsZod.roomIdQuery>;
+type RoomIdBody = z.infer<typeof roomsZod.roomIdBody>;
+type SearchRoomsParams = z.infer<typeof roomsZod.searchRooms>;
+
 export const createHandler: RequestHandler = async (req, res) => {
-  const { name, from, to, time, maxPartLength } = req.body;
+  const { name, from, to, time, maxPartLength } = req.body as CreateRoomBody;
 
   try {
     if (from === to) {
@@ -117,21 +125,21 @@ export const createHandler: RequestHandler = async (req, res) => {
   }
 };
 
-export const createTestHandler = async (req, res) => {
+export const createTestHandler: RequestHandler = async (req, res) => {
   // 이 Handler에서는 Parameter에 대해 추가적인 Validation을 하지 않습니다.
-  const { time } = req.body;
+  const { time } = req.body as CreateRoomBody;
 
   try {
     // 이벤트 코드입니다.
     if (
       !eventPeriod ||
-      req.timestamp >= eventPeriod.endAt ||
-      req.timestamp < eventPeriod.startAt
+      req.timestamp! >= eventPeriod.endAt ||
+      req.timestamp! < eventPeriod.startAt
     )
       return res.json({ result: true });
 
     const countRecentlyMadeRooms = await roomModel.countDocuments({
-      madeat: { $gte: new Date(req.timestamp - 86400000) }, // 밀리초 단위로 24시간을 나타냅니다.
+      madeat: { $gte: new Date(req.timestamp! - 86400000) }, // 밀리초 단위로 24시간을 나타냅니다.
       "part.0.user": req.userOid, // 방 최초 생성자를 저장하는 필드가 없으므로, 첫 번째 참여자를 생성자로 간주합니다.
     });
     if (!countRecentlyMadeRooms && countRecentlyMadeRooms !== 0)
@@ -168,14 +176,13 @@ export const createTestHandler = async (req, res) => {
         .findOne({ _id: req.userOid, withdraw: false })
         .lean();
       notifyRoomCreationAbuseToReportChannel(
-        req.userOid,
-        user?.nickname ?? req.userOid,
+        req.userOid!,
+        user?.nickname ?? req.userOid!,
         req.body
       );
     }
 
     return res.json({ result: !isAbusing });
-    return res.json({ result: true });
   } catch (err) {
     logger.error(err);
     res.status(500).json({
@@ -184,7 +191,7 @@ export const createTestHandler = async (req, res) => {
   }
 };
 
-export const publicInfoHandler = async (req, res) => {
+export const publicInfoHandler: RequestHandler = async (req, res) => {
   try {
     const roomObject = await roomModel
       .findOne({ _id: req.query.id })
@@ -206,7 +213,7 @@ export const publicInfoHandler = async (req, res) => {
   }
 };
 
-export const infoHandler = async (req, res) => {
+export const infoHandler: RequestHandler = async (req, res) => {
   try {
     const user = await userModel.findOne({ _id: req.userOid, withdraw: false });
     const roomObject = await roomModel
@@ -229,7 +236,7 @@ export const infoHandler = async (req, res) => {
   }
 };
 
-export const joinHandler = async (req, res) => {
+export const joinHandler: RequestHandler = async (req, res) => {
   try {
     const user = await userModel
       .findOne({ _id: req.userOid, withdraw: false })
@@ -270,7 +277,7 @@ export const joinHandler = async (req, res) => {
     }
 
     // 방이 이미 출발한 경우, 400 오류를 반환합니다.
-    if (req.timestamp >= room.time) {
+    if (req.timestamp! >= room.time) {
       res.status(400).json({
         error: "Rooms/join : The room has already departed",
       });
@@ -308,8 +315,8 @@ export const joinHandler = async (req, res) => {
   }
 };
 
-export const abortHandler = async (req, res) => {
-  const isOvertime = (room, time) => {
+export const abortHandler: RequestHandler = async (req, res) => {
+  const isOvertime = (room: any, time: any) => {
     if (new Date(room.time) <= time) return true;
     else return false;
   };
@@ -397,9 +404,9 @@ export const abortHandler = async (req, res) => {
   }
 };
 
-export const searchHandler = async (req, res) => {
+export const searchHandler: RequestHandler = async (req, res) => {
   try {
-    const { name, from, to, time, withTime, maxPartLength, isHome } = req.query;
+    const { name, from, to, time, withTime, maxPartLength, isHome } = req.query as SearchRoomsParams;
 
     // 출발지와 도착지가 같은 경우
     if (from && to && from === to) {
@@ -480,7 +487,7 @@ export const searchHandler = async (req, res) => {
   }
 };
 
-export const searchByUserHandler = async (req, res) => {
+export const searchByUserHandler: RequestHandler = async (req, res) => {
   try {
     // lean()이 적용된 user를 response에 반환해줘야 하기 때문에 user를 한 번 더 지정한다.
     const user = await userModel
@@ -522,7 +529,7 @@ export const searchByUserHandler = async (req, res) => {
   }
 };
 
-export const commitSettlementHandler = async (req, res) => {
+export const commitSettlementHandler: RequestHandler = async (req, res) => {
   try {
     const user = await userModel.findOne({ _id: req.userOid, withdraw: false });
     const { roomId } = req.body;
@@ -601,7 +608,7 @@ export const commitSettlementHandler = async (req, res) => {
   }
 };
 
-export const commitPaymentHandler = async (req, res) => {
+export const commitPaymentHandler: RequestHandler = async (req, res) => {
   try {
     const { roomId } = req.body;
     const user = await userModel.findOne({ _id: req.userOid, withdraw: false });
@@ -751,7 +758,7 @@ const checkIsSendRequired = (userObject) => {
 /**
  * @todo Unused -> Maybe used in the future?
  */
-// export const editHandler = async (req, res) => {
+// export const editHandler: RequestHandler = async (req, res) => {
 //   const { roomId, name, from, to, time, maxPartLength } = req.body;
 //   // 수정할 값이 주어지지 않은 경우
 //   if (!name && !from && !to && !time && !maxPartLength) {
