@@ -1,13 +1,15 @@
-const { userModel, reportModel, roomModel } = require("@/modules/stores/mongo");
-const { reportPopulateOption } = require("@/modules/populates/reports");
-const { sendReportEmail } = require("@/modules/email");
-const logger = require("@/modules/logger").default;
-const reportEmailPage = require("@/views/reportEmailPage").default;
-const { notifyReportToReportChannel } = require("@/modules/slackNotification");
+import { RequestHandler } from "express";
+import { userModel, reportModel, roomModel } from "@/modules/stores/mongo";
+import { reportPopulateOption } from "@/modules/populates/reports";
+import { sendReportEmail } from "@/modules/email";
+import logger from "@/modules/logger";
+import reportEmailPage from "@/views/reportEmailPage";
+import { notifyReportToReportChannel } from "@/modules/slackNotification";
+import { ReportsCreate } from "@/routes/docs/schemas/reportsSchema";
 
-const createHandler = async (req, res) => {
+export const createHandler: RequestHandler = async (req, res) => {
   try {
-    const { reportedId, type, etcDetail, time, roomId } = req.body;
+    const { reportedId, type, etcDetail, time, roomId } = req.body as ReportsCreate;
     const user = await userModel.findOne({ _id: req.userOid, withdraw: false });
     const creatorId = user._id;
 
@@ -64,7 +66,7 @@ const createHandler = async (req, res) => {
   }
 };
 
-const searchByUserHandler = async (req, res) => {
+export const searchByUserHandler: RequestHandler = async (req, res) => {
   try {
     // 해당 user가 신고한 사람인지, 신고 받은 사람인지 기준으로 신고를 분리해서 응답을 전송합니다.
     const user = await userModel.findOne({ _id: req.userOid, withdraw: false });
@@ -85,9 +87,4 @@ const searchByUserHandler = async (req, res) => {
       error: "report/searchByUser : internal server error",
     });
   }
-};
-
-module.exports = {
-  createHandler,
-  searchByUserHandler,
 };
