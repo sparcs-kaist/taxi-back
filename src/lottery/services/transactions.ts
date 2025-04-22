@@ -5,9 +5,7 @@ import logger from "@/modules/logger";
 import type { Transaction } from "../types";
 import type { LeanDocument } from "mongoose";
 
-const formatTransaction = (
-  transaction: LeanDocument<Transaction>
-): LeanDocument<Transaction> => {
+const formatTransaction = (transaction: LeanDocument<Transaction>) => {
   if (transaction.itemId) {
     transaction.item = transaction.itemId;
     delete transaction.itemId;

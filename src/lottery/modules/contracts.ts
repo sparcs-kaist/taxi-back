@@ -11,7 +11,7 @@ const eventPeriod = eventConfig && {
 };
 
 /** 전체 퀘스트 목록입니다. */
-export const quests: Record<string, Required<Quest>> | null = buildQuests({
+export const quests = buildQuests({
   firstLogin: {
     name: "첫 발걸음",
     description:
@@ -128,19 +128,11 @@ export const quests: Record<string, Required<Quest>> | null = buildQuests({
 
 /**
  * firstLogin 퀘스트의 완료를 요청합니다.
- * @param userId - 퀘스트를 완료한 사용자의 ObjectId입니다.
- * @param timestamp - 퀘스트 완료를 요청한 시각입니다.
- * @returns
- * @usage lottery/globalState - createUserGlobalStateHandler
  */
 export const completeFirstLoginQuest = async (
   userId: string | Types.ObjectId,
   timestamp: number | Date
-): Promise<{
-  quest: Quest;
-  questCount: number;
-  transactionsId: string[];
-} | null> => {
+) => {
   if (!quests) {
     logger.info("Quest is empty");
     return null;
@@ -151,20 +143,12 @@ export const completeFirstLoginQuest = async (
 
 /**
  * firstRoomCreation 퀘스트의 완료를 요청합니다.
- * @param {string|mongoose.Types.ObjectId} userId - 퀘스트를 완료한 사용자의 ObjectId입니다.
- * @param {number|Date} timestamp - 퀘스트 완료를 요청한 시각입니다.
- * @returns {Promise}
  * @description 방을 만들 때마다 호출해 주세요.
- * @usage rooms - createHandler
  */
 export const completeFirstRoomCreationQuest = async (
   userId: string | Types.ObjectId,
   timestamp: number | Date
-): Promise<{
-  quest: Quest;
-  questCount: number;
-  transactionsId: string[];
-} | null> => {
+) => {
   if (!quests) {
     logger.info("quests is empty");
     return null;
@@ -175,25 +159,13 @@ export const completeFirstRoomCreationQuest = async (
 
 /**
  * fareSettlement 퀘스트의 완료를 요청합니다. 방의 참가자 수가 2명 미만이면 요청하지 않습니다.
- * @param {string|mongoose.Types.ObjectId} userId - 퀘스트를 완료한 사용자의 ObjectId입니다.
- * @param {number|Date} timestamp - 퀘스트 완료를 요청한 시각입니다.
- * @param {Object} roomObject - 방의 정보입니다.
- * @param {mongoose.Types.ObjectId} roomObject._id - 방의 ObjectId입니다.
- * @param {Array<{ user: mongoose.Types.ObjectId }>} roomObject.part - 참여자 목록입니다.
- * @param {Date} roomObject.time - 출발 시각입니다.
- * @returns {Promise}
  * @description 정산 요청이 이루어질 때마다 호출해 주세요.
- * @usage rooms - commitSettlementHandler
  */
 export const completeFareSettlementQuest = async (
   userId: string | Types.ObjectId,
   timestamp: number | Date,
   roomObject: Room
-): Promise<{
-  quest: Quest;
-  questCount: number;
-  transactionsId: string[];
-} | null> => {
+) => {
   logger.info(
     `User ${userId} requested to complete fareSettlementQuest in Room ${roomObject._id}`
   );
@@ -216,25 +188,13 @@ export const completeFareSettlementQuest = async (
 
 /**
  * farePayment 퀘스트의 완료를 요청합니다. 방의 참가자 수가 2명 미만이면 요청하지 않습니다.
- * @param {string|mongoose.Types.ObjectId} userId - 퀘스트를 완료한 사용자의 ObjectId입니다.
- * @param {number|Date} timestamp - 퀘스트 완료를 요청한 시각입니다.
- * @param {Object} roomObject - 방의 정보입니다.
- * @param roomObject._id - 방의 ObjectId입니다.
- * @param roomObject.part - 참여자 목록입니다.
- * @param roomObject.time - 출발 시각입니다.
- * @returns
  * @description 송금이 이루어질 때마다 호출해 주세요.
- * @usage rooms - commitPaymentHandler
  */
 export const completeFarePaymentQuest = async (
   userId: string | Types.ObjectId,
   timestamp: number | Date,
   roomObject: Room
-): Promise<{
-  quest: Quest;
-  questCount: number;
-  transactionsId: string[];
-} | null> => {
+) => {
   logger.info(
     `User ${userId} requested to complete farePaymentQuest in Room ${roomObject._id}`
   );
@@ -257,20 +217,12 @@ export const completeFarePaymentQuest = async (
 
 /**
  * nicknameChanging 퀘스트의 완료를 요청합니다.
- * @param userId - 퀘스트를 완료한 사용자의 ObjectId입니다.
- * @param timestamp - 퀘스트 완료를 요청한 시각입니다.
- * @returns
  * @description 닉네임을 변경할 때마다 호출해 주세요.
- * @usage users - editNicknameHandler
  */
 export const completeNicknameChangingQuest = async (
   userId: string | Types.ObjectId,
   timestamp: number | Date
-): Promise<{
-  quest: Quest;
-  questCount: number;
-  transactionsId: string[];
-} | null> => {
+) => {
   if (!quests) {
     logger.info("quests is empty");
     return null;
@@ -281,22 +233,13 @@ export const completeNicknameChangingQuest = async (
 
 /**
  * accountChanging 퀘스트의 완료를 요청합니다.
- * @param userId - 퀘스트를 완료한 사용자의 ObjectId입니다.
- * @param timestamp - 퀘스트 완료를 요청한 시각입니다.
- * @param newAccount - 변경된 계좌입니다.
- * @returns
  * @description 계좌를 변경할 때마다 호출해 주세요.
- * @usage users - editAccountHandler
  */
 export const completeAccountChangingQuest = async (
   userId: string | Types.ObjectId,
   timestamp: number | Date,
   newAccount: string
-): Promise<{
-  quest: Quest;
-  questCount: number;
-  transactionsId: string[];
-} | null> => {
+) => {
   if (newAccount === "") return null;
   if (!quests) {
     logger.info("quests is empty");
@@ -308,22 +251,13 @@ export const completeAccountChangingQuest = async (
 
 /**
  * adPushAgreement 퀘스트의 완료를 요청합니다.
- * @param {string|mongoose.Types.ObjectId} userId - 퀘스트를 완료한 사용자의 ObjectId입니다.
- * @param {number|Date} timestamp - 퀘스트 완료를 요청한 시각입니다.
- * @param {boolean} advertisement - 변경된 광고성 알림 수신 동의 여부입니다.
- * @returns {Promise}
  * @description 알림 옵션을 변경할 때마다 호출해 주세요.
- * @usage notifications - editOptionsHandler
  */
 export const completeAdPushAgreementQuest = async (
   userId: string | Types.ObjectId,
   timestamp: number | Date,
   advertisement: boolean
-): Promise<{
-  quest: Quest;
-  questCount: number;
-  transactionsId: string[];
-} | null> => {
+) => {
   if (!advertisement) return null;
   if (!quests) {
     logger.info("quests is empty");
@@ -335,19 +269,12 @@ export const completeAdPushAgreementQuest = async (
 
 /**
  * eventSharing 퀘스트의 완료를 요청합니다.
- * @param userId - 퀘스트를 완료한 사용자의 ObjectId입니다.
- * @param timestamp - 퀘스트 완료를 요청한 시각입니다.
  * @returns
- * @usage lottery/globalState - createUserGlobalStateHandler
  */
 export const completeEventSharingQuest = async (
   userId: string | Types.ObjectId,
   timestamp: number | Date
-): Promise<{
-  quest: Quest;
-  questCount: number;
-  transactionsId: string[];
-} | null> => {
+) => {
   if (!quests) {
     logger.info("quests.eventSharing is empty");
     return null;
@@ -357,19 +284,11 @@ export const completeEventSharingQuest = async (
 
 /**
  * indirectEventSharing 퀘스트의 완료를 요청합니다.
- * @param userId - 퀘스트를 완료한 사용자의 ObjectId입니다.
- * @param timestamp - 퀘스트 완료를 요청한 시각입니다.
- * @returns
- * @usage lottery/globalState - createUserGlobalStateHandler
  */
 export const completeIndirectEventSharingQuest = async (
   userId: string | Types.ObjectId,
   timestamp: number | Date
-): Promise<{
-  quest: Quest;
-  questCount: number;
-  transactionsId: string[];
-} | null> => {
+) => {
   if (!quests) {
     logger.info("quests.indirectEventSharing is empty");
     return null;
@@ -379,19 +298,11 @@ export const completeIndirectEventSharingQuest = async (
 
 /**
  * completeAnswerCorrectlyQuest 퀘스트의 완료를 요청합니다.
- * @param userId - 퀘스트를 완료한 사용자의 ObjectId입니다.
- * @param timestamp - 퀘스트 완료를 요청한 시각입니다.
- * @returns
- * @usage lottery/schedules/dailyQuiz - determineQuizResult
  */
 export const completeAnswerCorrectlyQuest = async (
   userId: string | Types.ObjectId,
   timestamp: number | Date
-): Promise<{
-  quest: Quest;
-  questCount: number;
-  transactionsId: string[];
-} | null> => {
+) => {
   if (!quests) {
     logger.info("quests.answerCorrectly is empty");
     return null;
@@ -401,19 +312,12 @@ export const completeAnswerCorrectlyQuest = async (
 
 /**
  * itemPurchase 퀘스트의 완료를 요청합니다.
- * @param userId - 퀘스트를 완료한 사용자의 ObjectId입니다.
- * @param timestamp - 퀘스트 완료를 요청한 시각입니다.
- * @returns
  * @description 상품을 구입할 때마다 호출해 주세요.
  */
 export const completeItemPurchaseQuest = async (
   userId: string | Types.ObjectId,
   timestamp: number | Date
-): Promise<{
-  quest: Quest;
-  questCount: number;
-  transactionsId: string[];
-} | null> => {
+) => {
   if (!quests) {
     logger.info("quests.itemPurchase is empty");
     return null;

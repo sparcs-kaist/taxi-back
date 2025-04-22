@@ -23,11 +23,9 @@ import schedules from "./schedules";
 export const contracts = eventConfig ? contractsModule : null;
 
 // [Routes] 기존 docs 라우터의 docs extend
-// eventConfig && require("./routes/docs")();
 appendEventDocs();
 
 // [Schedule] 스케줄러 시작
-// eventConfig && require("./schedules")();
 if (eventConfig) {
   schedules();
 }

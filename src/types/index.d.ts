@@ -1,7 +1,7 @@
 // to make the file a module and avoid the TypeScript error
 export {};
 
-import { EventStatus } from "@/lottery/types";
+import type { EventStatus } from "@/lottery/types";
 
 declare global {
   namespace Express {
