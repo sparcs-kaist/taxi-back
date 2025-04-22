@@ -1,6 +1,6 @@
 const tag = "users";
 const apiPrefix = "/users";
-const { objectId } = require("../../modules/patterns");
+const { objectId } = require("../../modules/patterns").default;
 
 const usersDocs = {};
 usersDocs[`${apiPrefix}/agreeOnTermsOfService`] = {
@@ -386,6 +386,45 @@ usersDocs[`${apiPrefix}/getBanRecord`] = {
         content: {
           "text/html": {
             example: "Users/getBanRecord : internal server error",
+          },
+        },
+      },
+    },
+  },
+};
+
+usersDocs[`${apiPrefix}/withdraw`] = {
+  post: {
+    tags: [tag],
+    summary: "회원 탈퇴",
+    description: "회원 탈퇴를 요청합니다.",
+    responses: {
+      200: {
+        content: {
+          "application/json": {
+            schema: {
+              type: "object",
+              properties: {
+                ssoLogoutUrl: {
+                  type: "string",
+                  description: "SSO 로그아웃 URL",
+                },
+              },
+            },
+          },
+        },
+      },
+      400: {
+        content: {
+          "text/html": {
+            example: "Users/withdraw : ongoing room exists",
+          },
+        },
+      },
+      500: {
+        content: {
+          "text/html": {
+            example: "Users/withdraw : internal server error",
           },
         },
       },

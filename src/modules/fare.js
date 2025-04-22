@@ -1,7 +1,7 @@
 const axios = require("axios");
-const logger = require("./logger");
+const logger = require("./logger").default;
 
-const { naverMap } = require("../../loadenv");
+const { naverMap } = require("@/loadenv");
 const { taxiFareModel, locationModel } = require("./stores/mongo");
 
 const naverMapApi = {

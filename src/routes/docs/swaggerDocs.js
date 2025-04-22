@@ -12,7 +12,7 @@ const roomsDocs = require("./rooms");
 const chatsDocs = require("./chats");
 const fareDocs = require("./fare");
 const noticeDocs = require("./notice");
-const { port, nodeEnv } = require("../../../loadenv");
+const { port, nodeEnv } = require("@/loadenv");
 
 const serverList = [
   {

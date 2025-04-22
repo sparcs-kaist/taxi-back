@@ -1,6 +1,6 @@
 const { z } = require("zod");
 const { zodToSchemaObject } = require("../utils");
-const { objectId, room } = require("../../../modules/patterns");
+const { objectId, room } = require("../../../modules/patterns").default;
 
 const roomsZod = {};
 roomsZod["part"] = z

@@ -18,7 +18,7 @@ describe("[reports] 1.createHandler", () => {
     const testRoom = await roomGenerator("test1", testData);
     const msg = "User/report : report successful";
     let req = httpMocks.createRequest({
-      userId: testUser1.id,
+      userOid: testUser1._id,
       body: {
         reportedId: testUser2._id,
         type: "etc-reason",
@@ -41,7 +41,7 @@ describe("[reports] 2.searchByUserHandler", () => {
   it("should return correct reporting/reported reports of users", async () => {
     const testUser1 = await userModel.findOne({ id: "test1" });
     let req = httpMocks.createRequest({
-      userId: testUser1.id,
+      userOid: testUser1._id,
     });
     let res = httpMocks.createResponse();
     await reportHandlers.searchByUserHandler(req, res);
