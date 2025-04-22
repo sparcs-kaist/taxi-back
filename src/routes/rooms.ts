@@ -1,10 +1,11 @@
 import express from "express";
 import { validateBody, validateQuery } from "../middlewares/zod";
 import { roomsZod } from "./docs/schemas/roomsSchema";
-const router = express.Router();
-
 import * as roomHandlers from "@/services/rooms";
 import { authMiddleware, banMiddleware } from "@/middlewares";
+
+const router = express.Router();
+
 
 // 조건(이름, 출발지, 도착지, 날짜)에 맞는 방들을 모두 반환한다.
 router.get(

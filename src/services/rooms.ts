@@ -10,7 +10,7 @@ import {
 } from "@/modules/populates/rooms";
 import { notifyRoomCreationAbuseToReportChannel } from "@/modules/slackNotification";
 import { contracts } from "@/lottery";
-import { roomsZod } from "@/routes/docs/schemas/roomsSchema"
+import { CreateRoomBody, SearchRoomsParams, roomsZod } from "@/routes/docs/schemas/roomsSchema"
 
 // 이벤트 코드입니다.
 import { eventConfig } from "@/loadenv";
@@ -19,11 +19,6 @@ const eventPeriod = eventConfig && {
   startAt: new Date(eventConfig.period.startAt),
   endAt: new Date(eventConfig.period.endAt),
 };
-
-type CreateRoomBody = z.infer<typeof roomsZod.createRoom>;
-type RoomIdQueryParams = z.infer<typeof roomsZod.roomIdQuery>;
-type RoomIdBody = z.infer<typeof roomsZod.roomIdBody>;
-type SearchRoomsParams = z.infer<typeof roomsZod.searchRooms>;
 
 export const createHandler: RequestHandler = async (req, res) => {
   const { name, from, to, time, maxPartLength } = req.body as CreateRoomBody;

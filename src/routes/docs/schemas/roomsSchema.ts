@@ -1,15 +1,11 @@
-// src/schemas/roomsSchema.ts
-
 import { z } from "zod";
 import patterns from "@/modules/patterns";
-
-const mongoId = /^[0-9a-fA-F]{24}$/;
 
 export const roomsZod = {
   searchRooms: z.object({
     name: z.string().regex(patterns.room.name),
-    from: z.string().regex(mongoId),
-    to: z.string().regex(mongoId),
+    from: z.string().regex(patterns.objectId),
+    to: z.string().regex(patterns.objectId),
     time: z.string().refine((val) => !isNaN(Date.parse(val)), {
       message: "Invalid ISO date format",
     }),
@@ -19,13 +15,13 @@ export const roomsZod = {
   }).partial(),
 
   roomIdQuery: z.object({
-    id: z.string().regex(mongoId),
+    id: z.string().regex(patterns.objectId),
   }),
 
   createRoom: z.object({
     name: z.string().regex(patterns.room.name),
-    from: z.string().regex(mongoId),
-    to: z.string().regex(mongoId),
+    from: z.string().regex(patterns.objectId),
+    to: z.string().regex(patterns.objectId),
     time: z.string().refine((val) => !isNaN(Date.parse(val)), {
       message: "Invalid ISO date format",
     }),
@@ -33,15 +29,15 @@ export const roomsZod = {
   }),
 
   roomIdBody: z.object({
-    roomId: z.string().regex(mongoId),
+    roomId: z.string().regex(patterns.objectId),
   }),
 
   commitSettlement: z.object({
-    roomId: z.string().regex(mongoId),
+    roomId: z.string().regex(patterns.objectId),
   }),
 
   commitPayment: z.object({
-    roomId: z.string().regex(mongoId),
+    roomId: z.string().regex(patterns.objectId),
   }),
 };
 
