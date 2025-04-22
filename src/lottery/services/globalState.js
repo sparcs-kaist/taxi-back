@@ -6,7 +6,6 @@ const { nodeEnv } = require("@/loadenv");
 
 const { eventConfig } = require("@/loadenv");
 const contracts = require("../modules/contracts");
-const { validateServiceBanRecord } = require("../../modules/ban");
 const quests = Object.values(contracts.quests);
 
 // 아래의 함수는 2025 봄 이벤트에서 사용되지 않습니다.
@@ -86,15 +85,9 @@ const createUserGlobalStateHandler = async (req, res) => {
     const inviterStatus =
       req.body.inviter &&
       (await eventStatusModel.findById(req.body.inviter).lean());
-    const banErrorMessage = await validateServiceBanRecord(
-      req.session.loginInfo.sid,
-      req.timestamp,
-      req.originalUrl,
-      eventConfig.mode
-    );
     if (
       req.body.inviter &&
-      (!inviterStatus || !!banErrorMessage || !inviterStatus.isInviteUrlEnabled)
+      (!inviterStatus || !inviterStatus.isInviteUrlEnabled)
     )
       return res.status(400).json({
         error: "GlobalState/create : invalid inviter",
@@ -133,24 +126,12 @@ const createUserGlobalStateHandler = async (req, res) => {
     await eventStatus.save();
 
     // 퀘스트를 완료 처리합니다.
-    await contracts.completeFirstLoginQuest(
-      req.session.loginInfo.sid,
-      req.timestamp,
-      req.originalUrl,
-      req.userOid
-    );
+    await contracts.completeFirstLoginQuest(req.timestamp, req.userOid);
 
     if (inviterStatus) {
+      await contracts.completeEventSharingQuest(req.timestamp, req.userOid);
       await contracts.completeEventSharingQuest(
-        req.session.loginInfo.sid,
         req.timestamp,
-        req.originalUrl,
-        req.userOid
-      );
-      await contracts.completeEventSharingQuest(
-        req.session.loginInfo.sid,
-        req.timestamp,
-        req.originalUrl,
         inviterStatus.userId
       );
       let currentInviter = inviterStatus;
@@ -167,7 +148,7 @@ const createUserGlobalStateHandler = async (req, res) => {
       }
       await Promise.all(
         ancestorIds.map((ancestorId) =>
-          contracts.completeIndirectEventSharingQuest(ancestorId, req.timestamp)
+          contracts.completeIndirectEventSharingQuest(req.timestamp, ancestorId)
         )
       );
     }

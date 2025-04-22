@@ -110,12 +110,7 @@ const createHandler = async (req, res) => {
     const roomObjectFormated = formatSettlement(roomObject);
 
     // 이벤트 코드입니다.
-    await contracts?.completeFirstRoomCreationQuest(
-      req.session.loginInfo.sid,
-      req.timestamp,
-      req.originalUrl,
-      req.userOid
-    );
+    await contracts?.completeFirstRoomCreationQuest(req.timestamp, req.userOid);
 
     return res.send(roomObjectFormated);
   } catch (err) {
@@ -596,9 +591,7 @@ const commitSettlementHandler = async (req, res) => {
 
     // 이벤트 코드입니다.
     await contracts?.completeFareSettlementQuest(
-      req.session.loginInfo.sid,
       req.timestamp,
-      req.originalUrl,
       req.userOid,
       roomObject
     );
@@ -671,9 +664,7 @@ const commitPaymentHandler = async (req, res) => {
 
     // 이벤트 코드입니다.
     await contracts?.completeFarePaymentQuest(
-      req.session.loginInfo.sid,
       req.timestamp,
-      req.originalUrl,
       req.userOid,
       roomObject
     );

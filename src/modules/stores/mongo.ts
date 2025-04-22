@@ -57,6 +57,7 @@ const banSchema = new Schema<Ban>({
     enum: [
       "service", // service: 방 생성/참여 제한
       "2025-spring-event", // xxxx-xxxx-event: 특정 이벤트 참여 제한
+      "2024-fall-event"
     ],
   },
 });

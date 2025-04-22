@@ -27,7 +27,7 @@ const completeQuestHandler = async (req, res) => {
       if (completedQuest) return res.json({ result: false });
     }
 
-    const result = await completeQuest(req.userOid, req.timestamp, quest);
+    const result = await completeQuest(req.timestamp, req.userOid, quest);
     res.json({ result: !!result }); // boolean으로 변환하기 위해 !!를 사용합니다.
   } catch (err) {
     logger.error(err);

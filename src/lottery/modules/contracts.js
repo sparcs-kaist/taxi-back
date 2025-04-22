@@ -133,8 +133,8 @@ const quests = buildQuests({
  * @returns {Promise}
  * @usage lottery/globalState - createUserGlobalStateHandler
  */
-const completeFirstLoginQuest = async (sid, timestamp, url, userId) => {
-  return await completeQuest(sid, timestamp, url, userId, quests.firstLogin);
+const completeFirstLoginQuest = async (timestamp, userId) => {
+  return await completeQuest(timestamp, userId, quests.firstLogin);
 };
 
 /**
@@ -147,14 +147,8 @@ const completeFirstLoginQuest = async (sid, timestamp, url, userId) => {
  * @description 방을 만들 때마다 호출해 주세요.
  * @usage rooms - createHandler
  */
-const completeFirstRoomCreationQuest = async (sid, timestamp, url, userId) => {
-  return await completeQuest(
-    sid,
-    timestamp,
-    url,
-    userId,
-    quests.firstRoomCreation
-  );
+const completeFirstRoomCreationQuest = async (timestamp, userId) => {
+  return await completeQuest(timestamp, userId, quests.firstRoomCreation);
 };
 
 /**
@@ -171,13 +165,7 @@ const completeFirstRoomCreationQuest = async (sid, timestamp, url, userId) => {
  * @description 정산 요청이 이루어질 때마다 호출해 주세요.
  * @usage rooms - commitSettlementHandler
  */
-const completeFareSettlementQuest = async (
-  sid,
-  timestamp,
-  url,
-  userId,
-  roomObject
-) => {
+const completeFareSettlementQuest = async (timestamp, userId, roomObject) => {
   logger.info(
     `User ${userId} requested to complete fareSettlementQuest in Room ${roomObject._id}`
   );
@@ -190,13 +178,7 @@ const completeFareSettlementQuest = async (
   )
     return null; // 택시 출발 시각이 이벤트 기간 내에 포함되지 않는 경우 퀘스트 완료 요청을 하지 않습니다.
 
-  return await completeQuest(
-    sid,
-    timestamp,
-    url,
-    userId,
-    quests.fareSettlement
-  );
+  return await completeQuest(timestamp, userId, quests.fareSettlement);
 };
 
 /**
@@ -213,13 +195,7 @@ const completeFareSettlementQuest = async (
  * @description 송금이 이루어질 때마다 호출해 주세요.
  * @usage rooms - commitPaymentHandler
  */
-const completeFarePaymentQuest = async (
-  sid,
-  timestamp,
-  url,
-  userId,
-  roomObject
-) => {
+const completeFarePaymentQuest = async (timestamp, userId, roomObject) => {
   logger.info(
     `User ${userId} requested to complete farePaymentQuest in Room ${roomObject._id}`
   );
@@ -232,7 +208,7 @@ const completeFarePaymentQuest = async (
   )
     return null; // 택시 출발 시각이 이벤트 기간 내에 포함되지 않는 경우 퀘스트 완료 요청을 하지 않습니다.
 
-  return await completeQuest(sid, timestamp, url, userId, quests.farePayment);
+  return await completeQuest(timestamp, userId, quests.farePayment);
 };
 
 /**
@@ -245,14 +221,8 @@ const completeFarePaymentQuest = async (
  * @description 닉네임을 변경할 때마다 호출해 주세요.
  * @usage users - editNicknameHandler
  */
-const completeNicknameChangingQuest = async (sid, timestamp, url, userId) => {
-  return await completeQuest(
-    sid,
-    timestamp,
-    url,
-    userId,
-    quests.nicknameChanging
-  );
+const completeNicknameChangingQuest = async (timestamp, userId) => {
+  return await completeQuest(timestamp, userId, quests.nicknameChanging);
 };
 
 /**
@@ -266,22 +236,10 @@ const completeNicknameChangingQuest = async (sid, timestamp, url, userId) => {
  * @description 계좌를 변경할 때마다 호출해 주세요.
  * @usage users - editAccountHandler
  */
-const completeAccountChangingQuest = async (
-  sid,
-  timestamp,
-  url,
-  userId,
-  newAccount
-) => {
+const completeAccountChangingQuest = async (timestamp, userId, newAccount) => {
   if (newAccount === "") return null;
 
-  return await completeQuest(
-    sid,
-    timestamp,
-    url,
-    userId,
-    quests.accountChanging
-  );
+  return await completeQuest(timestamp, userId, quests.accountChanging);
 };
 
 /**
@@ -296,21 +254,13 @@ const completeAccountChangingQuest = async (
  * @usage notifications - editOptionsHandler
  */
 const completeAdPushAgreementQuest = async (
-  sid,
   timestamp,
-  url,
   userId,
   advertisement
 ) => {
   if (!advertisement) return null;
 
-  return await completeQuest(
-    sid,
-    timestamp,
-    url,
-    userId,
-    quests.adPushAgreement
-  );
+  return await completeQuest(timestamp, userId, quests.adPushAgreement);
 };
 
 /**
@@ -322,8 +272,8 @@ const completeAdPushAgreementQuest = async (
  * @returns {Promise}
  * @usage lottery/globalState - createUserGlobalStateHandler
  */
-const completeEventSharingQuest = async (sid, timestamp, url, userId) => {
-  return await completeQuest(sid, timestamp, url, userId, quests.eventSharing);
+const completeEventSharingQuest = async (timestamp, userId) => {
+  return await completeQuest(timestamp, userId, quests.eventSharing);
 };
 
 /**
@@ -333,8 +283,8 @@ const completeEventSharingQuest = async (sid, timestamp, url, userId) => {
  * @returns {Promise}
  * @usage lottery/globalState - createUserGlobalStateHandler
  */
-const completeIndirectEventSharingQuest = async (userId, timestamp) => {
-  return await completeQuest(userId, timestamp, quests.indirectEventSharing);
+const completeIndirectEventSharingQuest = async (timestamp, userId) => {
+  return await completeQuest(timestamp, userId, quests.indirectEventSharing);
 };
 
 /**
@@ -345,7 +295,7 @@ const completeIndirectEventSharingQuest = async (userId, timestamp) => {
  * @usage lottery/schedules/dailyQuiz - determineQuizResult
  */
 export const completeAnswerCorrectlyQuest = async (userId, timestamp) => {
-  return await completeQuest(userId, timestamp, quests.answerCorrectly);
+  return await completeQuest(timestamp, userId, quests.answerCorrectly);
 };
 
 /**
@@ -357,8 +307,8 @@ export const completeAnswerCorrectlyQuest = async (userId, timestamp) => {
  * @returns {Promise}
  * @description 상품을 구입할 때마다 호출해 주세요.
  */
-const completeItemPurchaseQuest = async (sid, timestamp, url, userId) => {
-  return await completeQuest(sid, timestamp, url, userId, quests.itemPurchase);
+const completeItemPurchaseQuest = async (timestamp, userId) => {
+  return await completeQuest(timestamp, userId, quests.itemPurchase);
 };
 
 module.exports = {

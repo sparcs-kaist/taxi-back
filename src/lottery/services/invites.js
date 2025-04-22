@@ -3,7 +3,6 @@ const { userModel } = require("../../modules/stores/mongo");
 const logger = require("@/modules/logger").default;
 
 const { eventConfig } = require("@/loadenv");
-const { validateServiceBanRecord } = require("../../modules/ban");
 
 const searchInviterHandler = async (req, res) => {
   try {
@@ -14,15 +13,9 @@ const searchInviterHandler = async (req, res) => {
     const inviterStatus = await eventStatusModel
       .findById(req.params.inviter)
       .lean();
-    const banErrorMessage = await validateServiceBanRecord(
-      req.session.loginInfo.sid,
-      req.timestamp,
-      req.originalUrl,
-      eventConfig.mode
-    );
     if (
       !inviterStatus ||
-      !!banErrorMessage ||
+      // !!banErrorMessage ||
       !inviterStatus.isInviteUrlEnabled
     )
       return res

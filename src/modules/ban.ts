@@ -19,6 +19,8 @@ export const validateServiceBanRecord = async (
         serviceName: service,
       })
       .sort({ expireAt: -1 });
+
+    console.log(`ban.ts/bans: ${bans}`);
     if (bans.length > 0) {
       // 가장 expireAt이 큰 정지 기록만 반환함.
       banRecord = bans[0];
