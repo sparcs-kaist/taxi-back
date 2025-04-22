@@ -7,16 +7,16 @@ const mongoId = /^[0-9a-fA-F]{24}$/;
 
 export const roomsZod = {
   searchRooms: z.object({
-    name: z.string().regex(patterns.room.name).optional(),
-    from: z.string().regex(mongoId).optional(),
-    to: z.string().regex(mongoId).optional(),
+    name: z.string().regex(patterns.room.name),
+    from: z.string().regex(mongoId),
+    to: z.string().regex(mongoId),
     time: z.string().refine((val) => !isNaN(Date.parse(val)), {
       message: "Invalid ISO date format",
-    }).optional(),
-    withTime: z.coerce.boolean().optional(),
-    maxPartLength: z.coerce.number().int().min(2).max(4).optional(),
-    isHome: z.coerce.boolean().optional(),
-  }),
+    }),
+    withTime: z.coerce.boolean(),
+    maxPartLength: z.coerce.number().int().min(2).max(4),
+    isHome: z.coerce.boolean(),
+  }).partial(),
 
   roomIdQuery: z.object({
     id: z.string().regex(mongoId),
