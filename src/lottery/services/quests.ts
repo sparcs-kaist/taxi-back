@@ -2,11 +2,10 @@ import { completeQuest } from "../modules/quests";
 import logger from "@/modules/logger";
 import { quests } from "../modules/contracts";
 
-import { z } from "zod";
 import { questsZod } from "@/lottery/routes/docs/schemas/questsSchema";
-import type { Request, Response } from "express";
+import type { RequestHandler } from "express";
 
-export const completeQuestHandler = async (req: Request, res: Response) => {
+export const completeQuestHandler: RequestHandler = async (req, res) => {
   try {
     if (!quests) {
       return res
@@ -15,9 +14,6 @@ export const completeQuestHandler = async (req: Request, res: Response) => {
     }
 
     const RequestParams = questsZod.completeQuestHandler.parse(req.params);
-
-    // const RequestParams: z.infer<typeof questsZod.completeQuestHandler> =
-    //   req.params;
     const quest = quests[RequestParams.questId];
 
     if (!quest || !quest.isApiRequired) {

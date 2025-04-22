@@ -8,13 +8,11 @@ import { isLogin, getLoginInfo } from "../../modules/auths/login";
 import logger from "@/modules/logger";
 import { eventConfig } from "@/loadenv";
 import { completeItemPurchaseQuest } from "../modules/contracts";
-import type { Request, Response } from "express";
+import type { RequestHandler, Request } from "express";
 import type { EventStatus, Item, Transaction } from "../types";
-import type { ObjectId, Types } from "mongoose";
-import { z } from "zod";
-import { itemsZod } from "@/lottery/routes/docs/schemas/itemsSchema";
+import type { LeanDocument, Types } from "mongoose";
 
-export const getItemsHandler = async (req: Request, res: Response) => {
+export const getItemsHandler: RequestHandler = async (req, res) => {
   try {
     const items = await itemModel
       .find(
@@ -29,7 +27,7 @@ export const getItemsHandler = async (req: Request, res: Response) => {
   }
 };
 
-export const getItemHandler = async (req: Request, res: Response) => {
+export const getItemHandler: RequestHandler = async (req, res) => {
   try {
     const { itemId } = req.params;
     const item = await itemModel
@@ -63,10 +61,7 @@ export const calculateWinProbability = (
   return 1 - Math.pow(base, amount);
 };
 
-export const getItemLeaderboardHandler = async (
-  req: Request,
-  res: Response
-) => {
+export const getItemLeaderboardHandler: RequestHandler = async (req, res) => {
   try {
     // 상품 정보를 가져옵니다.
     const { itemId } = req.params;
@@ -281,7 +276,7 @@ export const updateEventStatus = async (
 // };
 export const purchaseItem = async (
   req: Request,
-  item: Item & { _id: Types.ObjectId },
+  item: LeanDocument<Item & { _id: Types.ObjectId }>,
   amount: number
 ) => {
   const totalPrice = item.price * amount;
@@ -418,7 +413,7 @@ export const purchaseItem = async (
   // }
 };
 
-export const purchaseItemHandler = async (req: Request, res: Response) => {
+export const purchaseItemHandler: RequestHandler = async (req, res) => {
   try {
     const { itemId } = req.params;
     const item = await itemModel
@@ -438,7 +433,7 @@ export const purchaseItemHandler = async (req: Request, res: Response) => {
   }
 };
 
-export const useCouponHandler = async (req: Request, res: Response) => {
+export const useCouponHandler: RequestHandler = async (req, res) => {
   try {
     const { couponCode } = req.params;
     const coupon = await itemModel.findOne({ couponCode, itemType: 4 }).lean();

@@ -1,4 +1,4 @@
-import { Request, Response } from "express";
+import { RequestHandler } from "express";
 import { eventStatusModel } from "../modules/stores/mongo";
 import { userModel } from "../../modules/stores/mongo";
 import logger from "@/modules/logger";
@@ -11,7 +11,7 @@ import {
   quests,
 } from "../modules/contracts";
 
-import type { EventStatus, Quest } from "../types";
+import type { Quest } from "../types";
 import { User } from "@/types/mongo";
 import type { Types } from "mongoose";
 // 아래의 함수는 2025 봄 이벤트에서 사용되지 않습니다.
@@ -27,13 +27,10 @@ import type { Types } from "mongoose";
 
 const quests_: Required<Quest>[] = Object.values(quests!);
 
-export const getUserGlobalStateHandler = async (
-  req: Request,
-  res: Response
-): Promise<Response> => {
+export const getUserGlobalStateHandler: RequestHandler = async (req, res) => {
   try {
     const userId = isLogin(req) ? getLoginInfo(req).oid : null;
-    const eventStatus: EventStatus | null = userId
+    const eventStatus = userId
       ? await eventStatusModel
           .findOne({ userId }, "completedQuests creditAmount isBanned")
           .lean()
@@ -82,9 +79,9 @@ export const getUserGlobalStateHandler = async (
 //     .status(500)
 //     .json({ error: "GlobalState/ : internal server error" });
 
-export const createUserGlobalStateHandler = async (
-  req: Request,
-  res: Response
+export const createUserGlobalStateHandler: RequestHandler = async (
+  req,
+  res
 ) => {
   try {
     let userOid = req.userOid as string;
@@ -103,7 +100,7 @@ export const createUserGlobalStateHandler = async (
        2. 해당되는 유저의 이벤트 참여가 제한된 상태이거나,
        3. 해당되는 유저의 초대 링크가 활성화되지 않았으면,
        에러를 발생시킵니다. 개인정보 보호를 위해 오류 메세지는 하나로 통일하였습니다. */
-    const inviterStatus: EventStatus | null = req.body.inviter
+    const inviterStatus = req.body.inviter
       ? await eventStatusModel.findById(req.body.inviter).lean()
       : null;
 

@@ -152,40 +152,39 @@ const detectLessChatUsers = async (
     },
   ]);
 
-  interface tmp {
-
-  }
   const lessChatRooms: {
     roomId: Types.ObjectId;
     parts: Types.ObjectId[];
-  }[] = (await Promise.all(
-    chats.map(async ({ _id, count }) => {
-      const room = await roomModel.findById(_id).lean();
-      if (
-        room == null ||
-        room.part == null ||
-        period.startAt > room!.time ||
-        period.endAt <= room!.time ||
-        room.part.length < 2 ||
-        room.settlementTotal === 0
-      )
-        return null;
+  }[] = (
+    await Promise.all(
+      chats.map(async ({ _id, count }) => {
+        const room = await roomModel.findById(_id).lean();
+        if (
+          room == null ||
+          room.part == null ||
+          period.startAt > room!.time ||
+          period.endAt <= room!.time ||
+          room.part.length < 2 ||
+          room.settlementTotal === 0
+        )
+          return null;
 
-      const parts = room.part
-        .map((part) => part.user)
-        .filter((userId) => candidateUserIds.some(equalsObjectId(userId)));
-      if (parts.length === 0) return null;
+        const parts = room.part
+          .map((part) => part.user)
+          .filter((userId) => candidateUserIds.some(equalsObjectId(userId)));
+        if (parts.length === 0) return null;
 
-      return {
-        roomId: _id,
-        parts,
-      };
-    })
-  )).filter(
+        return {
+          roomId: _id,
+          parts,
+        };
+      })
+    )
+  ).filter(
     (room): room is { roomId: Types.ObjectId; parts: Types.ObjectId[] } =>
       room !== null
   );
-  
+
   // 방 정보에 기반하여 추가적으로 필터링
 
   const lessChatUserIds = removeObjectIdDuplicates(

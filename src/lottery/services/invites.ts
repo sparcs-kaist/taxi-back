@@ -3,14 +3,11 @@ import { userModel } from "../../modules/stores/mongo";
 import logger from "@/modules/logger";
 import { eventConfig } from "@/loadenv";
 
-import type { Request, Response } from "express";
+import type { RequestHandler } from "express";
 import type { EventStatus } from "../types";
 import { User } from "@/types/mongo";
 
-export const searchInviterHandler = async (
-  req: Request<{ inviter: string }>,
-  res: Response
-): Promise<Response> => {
+export const searchInviterHandler: RequestHandler = async (req, res) => {
   try {
     const inviterStatus: EventStatus | null = await eventStatusModel
       .findById(req.params.inviter)
@@ -46,19 +43,14 @@ export const searchInviterHandler = async (
   }
 };
 
-export const createInviteUrlHandler = async (
-  req: Request,
-  res: Response
-): Promise<Response> => {
+export const createInviteUrlHandler: RequestHandler = async (req, res) => {
   try {
-    const eventstatus = (req as any).eventStatus;
+    const eventstatus = req.eventStatus;
 
-    // 1. eventStatus ???? ???
     if (!eventstatus) {
       return res.status(500).json({ error: "Missing eventStatus in request" });
     }
 
-    // 2. _id?? isInviteUrlEnabled ????? ????? ???
     if (
       !eventstatus._id ||
       typeof eventstatus.isInviteUrlEnabled !== "boolean"

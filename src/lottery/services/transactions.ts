@@ -1,10 +1,13 @@
-import type { Request, Response } from "express";
+import type { RequestHandler } from "express";
 import { transactionModel } from "../modules/stores/mongo";
 import { transactionPopulateOption } from "../modules/populates/transactions";
 import logger from "@/modules/logger";
 import type { Transaction } from "../types";
+import type { LeanDocument } from "mongoose";
 
-const formatTransaction = (transaction: Transaction): Transaction => {
+const formatTransaction = (
+  transaction: LeanDocument<Transaction>
+): LeanDocument<Transaction> => {
   if (transaction.itemId) {
     transaction.item = transaction.itemId;
     delete transaction.itemId;
@@ -12,10 +15,7 @@ const formatTransaction = (transaction: Transaction): Transaction => {
   return transaction;
 };
 
-const getUserTransactionsHandler = async (
-  req: Request,
-  res: Response
-): Promise<void> => {
+const getUserTransactionsHandler: RequestHandler = async (req, res) => {
   try {
     const transactions = await transactionModel
       .find(

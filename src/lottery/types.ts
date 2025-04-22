@@ -1,4 +1,4 @@
-import mongoose, { Types } from "mongoose";
+import { Document, Types } from "mongoose";
 
 export interface EventPeriod {
   startAt: Date;
@@ -10,14 +10,14 @@ export interface CompletedQuest {
   completedAt: Date;
 }
 
-export interface EventStatus extends Document {
-  userId: mongoose.Types.ObjectId;
+export interface EventStatus extends Document<Types.ObjectId> {
+  userId: Types.ObjectId;
   completedQuests: CompletedQuest[];
   creditAmount: number;
   ticket1Amount: number;
   ticket2Amount: number;
   isBanned: boolean;
-  inviter?: mongoose.Types.ObjectId;
+  inviter?: Types.ObjectId;
   isInviteUrlEnabled: boolean;
 }
 
@@ -37,7 +37,7 @@ export interface Quest {
   isDisabled?: boolean;
 }
 
-export interface Item extends Document {
+export interface Item extends Document<Types.ObjectId> {
   name: string;
   imageUrl: string;
   instagramStoryStickerImageUrl?: string;
@@ -53,26 +53,26 @@ export interface Item extends Document {
   couponReward?: number;
 }
 
-export interface Transaction extends Document {
+export interface Transaction extends Document<Types.ObjectId> {
   type: "get" | "use";
   amount: number;
-  userId: mongoose.Types.ObjectId;
+  userId: Types.ObjectId;
   questId?: string;
-  itemId?: mongoose.Types.ObjectId;
+  itemId?: Types.ObjectId;
   itemAmount?: number;
   comment: string;
   createdAt: Date;
-  item?: mongoose.Types.ObjectId;
+  item?: Types.ObjectId;
 }
 
 export interface QuizAnswer {
-  userId: mongoose.Types.ObjectId;
+  userId: Types.ObjectId;
   answer: "A" | "B";
   submittedAt: Date;
   status: "correct" | "wrong" | "unknown" | "draw";
 }
 
-export interface Quiz extends Document {
+export interface Quiz extends Document<Types.ObjectId> {
   quizDate: Date;
   title: string;
   content: string;

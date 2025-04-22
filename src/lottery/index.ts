@@ -3,7 +3,6 @@ import type { Router } from "express";
 import {
   eventStatusModel,
   questModel,
-  itemModel,
   transactionModel,
   quizModel,
 } from "./modules/stores/mongo";
@@ -17,16 +16,21 @@ import itemsRouter from "./routes/items";
 import questsRouter from "./routes/quests";
 import quizzesRouter from "./routes/quizzes";
 import originValidator from "../middlewares/originValidator";
+import * as contractsModule from "./modules/contracts";
+import appendEventDocs from "./routes/docs";
+import schedules from "./schedules";
 
-export const contracts = eventConfig
-  ? require("./modules/contracts")
-  : undefined;
+export const contracts = eventConfig ? contractsModule : null;
 
 // [Routes] 기존 docs 라우터의 docs extend
-eventConfig && require("./routes/docs")();
+// eventConfig && require("./routes/docs")();
+appendEventDocs();
 
 // [Schedule] 스케줄러 시작
 // eventConfig && require("./schedules")();
+if (eventConfig) {
+  schedules();
+}
 
 export const lotteryRouter: Router = express.Router();
 

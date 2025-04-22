@@ -6,7 +6,6 @@ import { getQuizByDate } from "../modules/quizzes";
 export const getTodayQuizHandler: RequestHandler = async (req, res) => {
   try {
     const quiz = await getQuizByDate(new Date(req.timestamp!));
-    console.log("Hello");
     if (!quiz) {
       return res.status(404).json({ message: "No quiz found for today" });
     }

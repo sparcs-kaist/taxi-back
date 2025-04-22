@@ -16,8 +16,6 @@ declare global {
       timestamp?: number;
 
       eventStatus?: EventStatus;
-
-      params?;
     }
   }
 }
