@@ -1,9 +1,10 @@
-import type { RequestHandler } from "express";
 import { transactionModel } from "../modules/stores/mongo";
 import { transactionPopulateOption } from "../modules/populates/transactions";
 import logger from "@/modules/logger";
+
 import type { Transaction } from "../types";
 import type { LeanDocument } from "mongoose";
+import type { RequestHandler } from "express";
 
 const formatTransaction = (transaction: LeanDocument<Transaction>) => {
   if (transaction.itemId) {

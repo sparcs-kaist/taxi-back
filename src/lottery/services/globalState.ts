@@ -12,7 +12,7 @@ import {
 } from "../modules/contracts";
 
 import type { Quest } from "../types";
-import { User } from "@/types/mongo";
+import type { User } from "@/types/mongo";
 import type { Types } from "mongoose";
 // 아래의 함수는 2025 봄 이벤트에서 사용되지 않습니다.
 //

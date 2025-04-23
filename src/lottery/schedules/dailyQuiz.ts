@@ -1,7 +1,6 @@
 import logger from "@/modules/logger";
 import { completeAnswerCorrectlyQuest } from "../modules/contracts";
 import { getQuizByDate } from "../modules/quizzes";
-import { Quiz } from "../types";
 
 type CorrectAnswer = "A" | "B" | "draw";
 

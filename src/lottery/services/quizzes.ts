@@ -1,7 +1,8 @@
-import { RequestHandler } from "express";
 import { quizModel } from "../modules/stores/mongo";
 import logger from "@/modules/logger";
 import { getQuizByDate } from "../modules/quizzes";
+
+import type { RequestHandler } from "express";
 
 export const getTodayQuizHandler: RequestHandler = async (req, res) => {
   try {

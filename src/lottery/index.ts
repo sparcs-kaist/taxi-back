@@ -1,5 +1,4 @@
 import express from "express";
-import type { Router } from "express";
 import {
   eventStatusModel,
   questModel,
@@ -30,7 +29,7 @@ if (eventConfig) {
   schedules();
 }
 
-export const lotteryRouter: Router = express.Router();
+export const lotteryRouter = express.Router();
 
 // [Middleware] 모든 API 요청에 대하여 origin 검증
 lotteryRouter.use(originValidator);

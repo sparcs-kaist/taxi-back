@@ -5,7 +5,7 @@ import { eventConfig } from "@/loadenv";
 
 import type { RequestHandler } from "express";
 import type { EventStatus } from "../types";
-import { User } from "@/types/mongo";
+import type { User } from "@/types/mongo";
 
 export const searchInviterHandler: RequestHandler = async (req, res) => {
   try {

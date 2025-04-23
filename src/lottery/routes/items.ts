@@ -11,9 +11,8 @@ import {
 import authMiddleware from "../../middlewares/auth";
 import checkBanned from "../middlewares/checkBanned";
 import timestampValidator from "../middlewares/timestampValidator";
-import type { Router } from "express";
 
-const router: Router = express.Router();
+const router = express.Router();
 
 router.get("/", getItemsHandler);
 router.get("/:itemId", validateParams(itemsZod.getItemHandler), getItemHandler);

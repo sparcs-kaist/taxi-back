@@ -1,5 +1,5 @@
 import { eventConfig } from "@/loadenv";
-import type { Request, Response, NextFunction } from "express";
+import type { RequestHandler } from "express";
 import type { EventPeriod } from "../types";
 
 const eventPeriod: EventPeriod | null = eventConfig
@@ -9,12 +9,8 @@ const eventPeriod: EventPeriod | null = eventConfig
     }
   : null;
 
-const timestampValidator = (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
-  if (req.timestamp == undefined || req.timestamp == null) {
+const timestampValidator: RequestHandler = (req, res, next) => {
+  if (!req.timestamp) {
     return res.status(400).json({ error: "timestamp is missing" });
   }
 

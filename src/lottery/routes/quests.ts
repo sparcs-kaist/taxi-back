@@ -1,8 +1,8 @@
 import express from "express";
 const router = express.Router();
 
-const { validateParams } = require("../../middlewares/zod");
-const { questsZod } = require("./docs/schemas/questsSchema");
+import { validateParams } from "../../middlewares/zod";
+import { questsZod } from "./docs/schemas/questsSchema";
 import { completeQuestHandler } from "../services/quests";
 
 import authMiddleware from "../../middlewares/auth";

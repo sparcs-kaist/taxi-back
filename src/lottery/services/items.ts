@@ -8,6 +8,7 @@ import { isLogin, getLoginInfo } from "../../modules/auths/login";
 import logger from "@/modules/logger";
 import { eventConfig } from "@/loadenv";
 import { completeItemPurchaseQuest } from "../modules/contracts";
+
 import type { RequestHandler, Request } from "express";
 import type { EventStatus, Item, Transaction } from "../types";
 import type { LeanDocument, Types } from "mongoose";
@@ -292,7 +293,7 @@ export const purchaseItem = async (
   if (RequestEventStatus.creditAmount < totalPrice)
     return { error: "not enough credit" };
   if (item.stock < amount) return { error: "out of stock" };
-  if (req.userOid == null) return { error: "userOid does not exist" };
+  if (!req.userOid) return { error: "userOid does not exist" };
 
   // 1단계: 재고를 차감합니다.
   const { modifiedCount } = await itemModel.updateOne(

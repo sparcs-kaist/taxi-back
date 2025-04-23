@@ -1,5 +1,4 @@
 import express from "express";
-import type { Router } from "express";
 import { validateBody } from "../../middlewares/zod";
 import { globalStateZod } from "./docs/schemas/globalStateSchema";
 import {
@@ -9,7 +8,7 @@ import {
 import authMiddleware from "../../middlewares/auth";
 import timestampValidator from "../middlewares/timestampValidator";
 
-const router: Router = express.Router();
+const router = express.Router();
 
 router.get("/", getUserGlobalStateHandler);
 

@@ -1,4 +1,4 @@
-import { Document, Types } from "mongoose";
+import type { Document, Types } from "mongoose";
 
 export interface EventPeriod {
   startAt: Date;
@@ -19,6 +19,7 @@ export interface EventStatus extends Document<Types.ObjectId> {
   isBanned: boolean;
   inviter?: Types.ObjectId;
   isInviteUrlEnabled: boolean;
+  group?: string;
 }
 
 export interface Reward {

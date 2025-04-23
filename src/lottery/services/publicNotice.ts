@@ -4,6 +4,10 @@ import { isLogin, getLoginInfo } from "../../modules/auths/login";
 import logger from "@/modules/logger";
 import { publicNoticePopulateOption } from "../modules/populates/transactions";
 import { eventConfig } from "@/loadenv";
+import type { RequestHandler } from "express";
+
+import type { EventStatus, Item } from "../types";
+import type { LeanDocument } from "mongoose";
 
 // import type { Request, Response } from "express";
 
@@ -18,54 +22,63 @@ import { eventConfig } from "@/loadenv";
  * Tau = t_1/2 / ln(2) 로 구할 수 있습니다.
  * Tau = 249297703
  * N_0(초기값)는 item.price를 사용합니다.
- * @param {Object} item
- * @param {number|Date} createAt
- * @param {number|Date} timestamp
- * @returns {Promise}
  * @description 가치를 기준으로 정렬하기 위해 사용됨
  */
-const getValueRank = (item, createAt, timestamp) => {
-  const t = timestamp - new Date(createAt).getTime(); // millisecond
-  const Tau = 249297703;
-  return item.price * Math.exp(-t / Tau);
-};
+// const getValueRank = (
+//   item: LeanDocument<Item>,
+//   createAt: number | Date,
+//   timestamp: number
+// ) => {
+//   const t = timestamp - new Date(createAt).getTime(); // millisecond
+//   const Tau = 249297703;
+//   return item.price * Math.exp(-t / Tau);
+// };
 
-const getRecentPurchaceItemListHandler = async (req, res) => {
-  try {
-    const transactions = (
-      await transactionModel
-        .find({ type: "use", itemType: 0 })
-        .sort({ createAt: -1 })
-        .limit(1000)
-        .populate(publicNoticePopulateOption) // TODO: 회원 탈퇴 핸들링
-        .lean()
-    )
-      .sort(
-        (x, y) =>
-          getValueRank(y.item, y.createAt, req.timestamp) -
-          getValueRank(x.item, x.createAt, req.timestamp)
-      )
-      .slice(0, 5)
-      .map(({ userId, item, comment, createAt }) => ({
-        text: `${userId.nickname}님께서 ${item.name}${
-          comment.startsWith(eventConfig?.credit.name)
-            ? "을(를) 구입하셨습니다."
-            : comment.startsWith("랜덤박스")
-            ? "을(를) 뽑았습니다."
-            : "을(를) 획득하셨습니다."
-        }`,
-        createAt,
-      }));
-    res.json({ transactions });
-  } catch (err) {
-    logger.error(err);
-    res.status(500).json({
-      error: "PublicNotice/RecentTransactions : internal server error",
-    });
-  }
-};
+// export const getRecentPurchaceItemListHandler: RequestHandler = async (
+//   req,
+//   res
+// ) => {
+//   try {
+//     const transactions = (
+//       await transactionModel
+//         .find({ type: "use", itemType: 0 })
+//         .sort({ createAt: -1 })
+//         .limit(1000)
+//         .populate(publicNoticePopulateOption) // TODO: 회원 탈퇴 핸들링
+//         .lean()
+//     )
+//       .sort((x, y) => {
+//         if (!x.item || !y.item) return 0; // or some other logic
+//         return (
+//           getValueRank(y.item, y.createdAt, req.timestamp!) -
+//           getValueRank(x.item, x.createdAt, req.timestamp!)
+//         );
+//       })
+//       .slice(0, 5)
+//       .map(({ userId, item, comment, createdAt }) => ({
+//         text: `${userId.nickname}님께서 ${item.name}${
+//           comment.startsWith(eventConfig?.credit.name)
+//             ? "을(를) 구입하셨습니다."
+//             : comment.startsWith("랜덤박스")
+//             ? "을(를) 뽑았습니다."
+//             : "을(를) 획득하셨습니다."
+//         }`,
+//         createdAt,
+//       }));
+//     res.json({ transactions });
+//   } catch (err) {
+//     logger.error(err);
+//     res.status(500).json({
+//       error: "PublicNotice/RecentTransactions : internal server error",
+//     });
+//   }
+// };
 
-const calculateProbabilityV2 = (users, weightSum, weight) => {
+const calculateProbabilityV2 = (
+  users: LeanDocument<EventStatus>[],
+  weightSum: number,
+  weight: number
+) => {
   // 유저 수가 상품 수보다 적거나 같으면 무조건 상품을 받게된다.
   if (users.length <= 15) return 1;
 
@@ -89,7 +102,7 @@ const calculateProbabilityV2 = (users, weightSum, weight) => {
 };
 
 // 2023 가을 이벤트를 위한 리더보드 API 핸들러입니다.
-const getTicketLeaderboardHandler = async (req, res) => {
+export const getTicketLeaderboardHandler: RequestHandler = async (req, res) => {
   try {
     const users = await eventStatusModel
       .find({
@@ -177,7 +190,7 @@ const getTicketLeaderboardHandler = async (req, res) => {
 };
 
 // 2024 봄 이벤트를 위한 리더보드 API 핸들러입니다.
-const getGroupLeaderboardHandler = async (req, res) => {
+export const getGroupLeaderboardHandler: RequestHandler = async (req, res) => {
   try {
     const leaderboardWithoutMvp = await eventStatusModel.aggregate([
       {
@@ -240,10 +253,4 @@ const getGroupLeaderboardHandler = async (req, res) => {
       .status(500)
       .json({ error: "PublicNotice/Leaderboard : internal server error" });
   }
-};
-
-module.exports = {
-  getRecentPurchaceItemListHandler,
-  getTicketLeaderboardHandler,
-  getGroupLeaderboardHandler,
 };

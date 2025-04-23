@@ -1,4 +1,5 @@
-import mongoose, { Schema, Model } from "mongoose";
+import mongoose, { Schema } from "mongoose";
+import type { Model } from "mongoose";
 import { eventConfig } from "@/loadenv";
 import type {
   CompletedQuest,

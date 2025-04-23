@@ -1,8 +1,8 @@
 import express from "express";
-import {
-  getGroupLeaderboardHandler,
-  getRecentPurchaceItemListHandler,
-} from "../services/publicNotice";
+// import {
+//   getGroupLeaderboardHandler,
+//   getRecentPurchaceItemListHandler,
+// } from "../services/publicNotice";
 
 import type { Router } from "express";
 

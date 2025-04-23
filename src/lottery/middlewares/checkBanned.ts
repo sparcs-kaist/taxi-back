@@ -1,7 +1,7 @@
 import { eventStatusModel } from "../modules/stores/mongo";
 import logger from "@/modules/logger";
-import { RequestHandler } from "express";
-import { EventStatus } from "../types";
+import type { RequestHandler } from "express";
+import type { EventStatus } from "../types";
 
 /**
  * 사용자가 차단 되었는지 여부를 판단합니다.

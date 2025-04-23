@@ -57,16 +57,6 @@ export const buildQuests = (
 
 /**
  * 퀘스트 완료를 요청합니다.
- * @param userId - 퀘스트를 완료한 사용자의 ObjectId입니다.
- * @param timestamp - 퀘스트 완료를 요청한 시각입니다.
- * @param quest - 퀘스트의 정보입니다.
- * @param quest.id - 퀘스트의 Id입니다.
- * @param quest.name - 퀘스트의 이름입니다.
- * @param quest.reward - 퀘스트의 완료 보상입니다.
- * @param quest.reward.credit - 퀘스트의 완료 보상 중 재화의 양입니다.
- * @param quest.reward.ticket1 - 퀘스트의 완료 보상 중 일반 티켓의 개수입니다.
- * @param quest.maxCount - 퀘스트의 최대 완료 가능 횟수입니다.
- * @returns 성공한 경우 Object를, 실패한 경우 null을 반환합니다. 이미 최대 완료 횟수에 도달했거나, 퀘스트가 원격으로 비활성화된 경우에도 실패로 처리됩니다.
  */
 export const completeQuest = async (
   userId: Types.ObjectId | string,
