@@ -1,8 +1,8 @@
-const logger = require("@/modules/logger").default;
+import logger from "@/modules/logger";
 
-const { naverMap } = require("@/loadenv");
-const { taxiFareModel, locationModel } = require("@/modules/stores/mongo");
-const { scaledTime, callTaxiFare } = require("@/modules/fare");
+import { naverMap } from "@/loadenv";
+import { taxiFareModel, locationModel } from "@/modules/stores/mongo";
+import { scaledTime, callTaxiFare } from "@/modules/fare";
 
 const naverMapApi = {
   "X-NCP-APIGW-API-KEY-ID": naverMap.apiId,
@@ -95,4 +95,4 @@ const getTaxiFareHandler = async (req, res) => {
   }
 };
 
-module.exports = { getTaxiFareHandler };
+export default getTaxiFareHandler;
