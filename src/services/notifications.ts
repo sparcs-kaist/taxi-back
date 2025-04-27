@@ -1,13 +1,14 @@
-const { userModel } = require("@/modules/stores/mongo");
-const { notificationOptionModel } = require("@/modules/stores/mongo");
-const logger = require("@/modules/logger").default;
+import { userModel } from "@/modules/stores/mongo";
+import { notificationOptionModel } from "@/modules/stores/mongo";
+import logger from "@/modules/logger";
+import type { RequestHandler } from "express";
 
-const { registerDeviceToken, validateDeviceToken } = require("@/modules/fcm");
+import { registerDeviceToken, validateDeviceToken } from "@/modules/fcm";
 
 // 이벤트 코드입니다.
 import { contracts } from "@/lottery";
 
-const registerDeviceTokenHandler = async (req, res) => {
+export const registerDeviceTokenHandler: RequestHandler = async (req, res) => {
   try {
     // 해당 FCM device token이 유효한지 검사합니다.
     const { deviceToken } = req.body;
@@ -39,7 +40,7 @@ const registerDeviceTokenHandler = async (req, res) => {
   }
 };
 
-const optionsHandler = async (req, res) => {
+export const optionsHandler: RequestHandler = async (req, res) => {
   try {
     // 세션에 deviceToken이 저장되어 있는지 검사합니다.
     const { deviceToken } = req.session;
@@ -71,7 +72,7 @@ const optionsHandler = async (req, res) => {
   }
 };
 
-const editOptionsHandler = async (req, res) => {
+export const editOptionsHandler: RequestHandler = async (req, res) => {
   try {
     const { options } = req.body;
 
@@ -124,10 +125,4 @@ const editOptionsHandler = async (req, res) => {
       .status(500)
       .send("Notification/editOptions: internal server error");
   }
-};
-
-module.exports = {
-  registerDeviceTokenHandler,
-  optionsHandler,
-  editOptionsHandler,
 };
