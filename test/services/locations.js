@@ -1,5 +1,5 @@
 const expect = require("chai").expect;
-const locationHandlers = require("../../src/services/locations");
+const getAllLocationsHandler = require("../../src/services/locations").default;
 const httpMocks = require("node-mocks-http");
 
 // locations.js 관련 1개의 handler을 테스트
@@ -8,7 +8,7 @@ describe("[locations] 1.getAllLocationsHandler", () => {
   it("should return information of locations correctly", async () => {
     let req = httpMocks.createRequest({});
     let res = httpMocks.createResponse();
-    await locationHandlers.getAllLocationsHandler(req, res);
+    await getAllLocationsHandler(req, res);
 
     expect(res._getJSONData().locations).not.to.have.lengthOf(0);
   });
