@@ -1,6 +1,6 @@
-const { userModel } = require("@/modules/stores/mongo");
-const { getLoginInfo } = require("@/modules/auths/login");
-const logger = require("@/modules/logger").default;
+import { userModel } from "@/modules/stores/mongo";
+import { getLoginInfo } from "@/modules/auths/login";
+import logger from "@/modules/logger";
 
 const logininfoHandler = async (req, res) => {
   try {
@@ -37,6 +37,4 @@ const logininfoHandler = async (req, res) => {
   }
 };
 
-module.exports = {
-  logininfoHandler,
-};
+export default logininfoHandler;

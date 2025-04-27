@@ -1,5 +1,5 @@
 const expect = require("chai").expect;
-const logininfoHandlers = require("../../src/services/logininfo");
+const logininfoHandler = require("../../src/services/logininfo").default;
 const { userModel } = require("../../src/modules/stores/mongo");
 
 // 1-1. 로그인 한 유저가 없을 시 undefined를 return 하는지 확인
@@ -15,7 +15,7 @@ describe("[logininfo] 1.logininfoHandler", () => {
         });
       },
     };
-    logininfoHandlers.logininfoHandler(req, res);
+    logininfoHandler(req, res);
   });
 
   it("should return correct information as same as user's when user is logged in", async () => {
@@ -55,7 +55,7 @@ describe("[logininfo] 1.logininfoHandler", () => {
         });
       },
     };
-    logininfoHandlers.logininfoHandler(req, res);
+    logininfoHandler(req, res);
   });
 
   it("should return {id: undefined} when the session is expired", () => {
@@ -76,6 +76,6 @@ describe("[logininfo] 1.logininfoHandler", () => {
         });
       },
     };
-    logininfoHandlers.logininfoHandler(req, res);
+    logininfoHandler(req, res);
   });
 });
