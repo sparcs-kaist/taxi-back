@@ -11,6 +11,11 @@ export const createHandler: RequestHandler = async (req, res) => {
   try {
     const { reportedId, type, etcDetail, time, roomId } = req.body as ReportsCreate;
     const user = await userModel.findOne({ _id: req.userOid, withdraw: false });
+
+    if (!user) {
+      return res.status(400).json({ error: "User/report: no corresponding user" });
+    }
+
     const creatorId = user._id;
 
     const reported = await userModel.findOne({
@@ -45,9 +50,9 @@ export const createHandler: RequestHandler = async (req, res) => {
 
     if (report.type === "no-settlement" || report.type === "no-show") {
       const emailRoomName = room ? room.name : "";
-      const emailRoomId = room ? room._id : "";
+      const emailRoomId = room ? room._id.toString() : "";
       const emailHtml = reportEmailPage[report.type](
-        req.origin,
+        req.origin ?? "",
         reported.name,
         reported.nickname,
         emailRoomName,
@@ -70,6 +75,11 @@ export const searchByUserHandler: RequestHandler = async (req, res) => {
   try {
     // 해당 user가 신고한 사람인지, 신고 받은 사람인지 기준으로 신고를 분리해서 응답을 전송합니다.
     const user = await userModel.findOne({ _id: req.userOid, withdraw: false });
+
+    if (!user) {
+      return res.status(400).json({ error: "User/report: no corresponding user" });
+    }
+
     const response = {
       reporting: await reportModel
         .find({ creatorId: user._id })
