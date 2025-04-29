@@ -1,9 +1,10 @@
 import express from "express";
 import { validateBody } from "@/middlewares/zod";
 import { reportsZod } from "./docs/schemas/reportsSchema";
-const router = express.Router();
 import * as reportHandlers from "@/services/reports";
 import { authMiddleware } from "@/middlewares";
+
+const router = express.Router();
 
 // 라우터 접근 시 로그인 필요
 router.use(authMiddleware);

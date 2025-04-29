@@ -9,11 +9,14 @@ import { ReportsCreate } from "@/routes/docs/schemas/reportsSchema";
 
 export const createHandler: RequestHandler = async (req, res) => {
   try {
-    const { reportedId, type, etcDetail, time, roomId } = req.body as ReportsCreate;
+    const { reportedId, type, etcDetail, time, roomId }: ReportsCreate =
+      req.body;
     const user = await userModel.findOne({ _id: req.userOid, withdraw: false });
 
     if (!user) {
-      return res.status(400).json({ error: "User/report: no corresponding user" });
+      return res
+        .status(400)
+        .json({ error: "User/report: no corresponding user" });
     }
 
     const creatorId = user._id;
@@ -52,7 +55,7 @@ export const createHandler: RequestHandler = async (req, res) => {
       const emailRoomName = room ? room.name : "";
       const emailRoomId = room ? room._id.toString() : "";
       const emailHtml = reportEmailPage[report.type](
-        req.origin ?? "",
+        req.origin ?? "https://taxi.sparcs.org",
         reported.name,
         reported.nickname,
         emailRoomName,
@@ -77,7 +80,9 @@ export const searchByUserHandler: RequestHandler = async (req, res) => {
     const user = await userModel.findOne({ _id: req.userOid, withdraw: false });
 
     if (!user) {
-      return res.status(400).json({ error: "User/report: no corresponding user" });
+      return res
+        .status(400)
+        .json({ error: "User/report: no corresponding user" });
     }
 
     const response = {
