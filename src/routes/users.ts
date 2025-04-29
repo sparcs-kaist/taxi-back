@@ -73,7 +73,7 @@ router.post(
 router.get("/getFavorite", userHandlers.getFavoriteHandler);
 
 // 즐겨찾기 삭제
-router.delete(
+router.post(
   "/deleteFavorite/:id",
   validateParams(favoriteRoutesZod.deleteFavoriteHandler),
   userHandlers.deleteFavoriteHandler
