@@ -17,7 +17,7 @@ export const roomPopulateOption = [
     select: "-_id user settlementStatus readAt",
     populate: {
       path: "user",
-      select: "_id id name nickname profileImageUrl withdraw badge",
+      select: "_id id name nickname profileImageUrl withdraw",
     },
   },
 ];
