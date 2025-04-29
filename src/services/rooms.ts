@@ -11,7 +11,11 @@ import {
 } from "@/modules/populates/rooms";
 import { notifyRoomCreationAbuseToReportChannel } from "@/modules/slackNotification";
 import { contracts } from "@/lottery";
-import { CreateRoomBody, SearchRoomsParams, roomsZod } from "@/routes/docs/schemas/roomsSchema"
+import {
+  CreateRoomBody,
+  SearchRoomsParams,
+  roomsZod,
+} from "@/routes/docs/schemas/roomsSchema";
 
 // 이벤트 코드입니다.
 import { eventConfig } from "@/loadenv";
@@ -91,10 +95,14 @@ export const createHandler: RequestHandler = async (req, res) => {
     }
 
     // 사용자가 참여한 진행중인 방 중 송금을 아직 완료하지 않은 방이 있다면 오류를 반환합니다.
-    const isSendRequired = checkIsSendRequired(user as {
-      _id: Types.ObjectId;
-      ongoingRoom?: { part: { user: Types.ObjectId; settlementStatus: string }[] }[];
-    });
+    const isSendRequired = checkIsSendRequired(
+      user as {
+        _id: Types.ObjectId;
+        ongoingRoom?: {
+          part: { user: Types.ObjectId; settlementStatus: string }[];
+        }[];
+      }
+    );
     if (isSendRequired) {
       return res.status(400).json({
         error: "Rooms/create : user has send-required rooms",
@@ -128,7 +136,9 @@ export const createHandler: RequestHandler = async (req, res) => {
       time: null,
     });
 
-    const roomObject = (await room.populate(roomPopulateOption)).toObject<PopulatedRoom>();
+    const roomObject = (
+      await room.populate(roomPopulateOption)
+    ).toObject<PopulatedRoom>();
     const roomObjectFormated = formatSettlement(roomObject);
 
     // 이벤트 코드입니다.
@@ -265,7 +275,7 @@ export const joinHandler: RequestHandler = async (req, res) => {
     const user = await userModel
       .findOne({ _id: req.userOid, withdraw: false })
       .populate("ongoingRoom");
-      
+
     if (!user) {
       return res.status(400).json({ error: "Rooms/join : User not found" });
     }
@@ -278,10 +288,14 @@ export const joinHandler: RequestHandler = async (req, res) => {
     }
 
     // 사용자가 참여한 진행중인 방 중 송금을 아직 완료하지 않은 방이 있다면 오류를 반환합니다.
-    const isSendRequired = checkIsSendRequired(user as {
-      _id: Types.ObjectId;
-      ongoingRoom?: { part: { user: Types.ObjectId; settlementStatus: string }[] }[];
-    });
+    const isSendRequired = checkIsSendRequired(
+      user as {
+        _id: Types.ObjectId;
+        ongoingRoom?: {
+          part: { user: Types.ObjectId; settlementStatus: string }[];
+        }[];
+      }
+    );
     if (isSendRequired) {
       return res.status(400).json({
         error: "Rooms/join : user has send-required rooms",
@@ -343,7 +357,9 @@ export const joinHandler: RequestHandler = async (req, res) => {
       time: null,
     });
 
-    const roomObject = (await room.populate(roomPopulateOption)).toObject<PopulatedRoom>();
+    const roomObject = (
+      await room.populate(roomPopulateOption)
+    ).toObject<PopulatedRoom>();
     res.send(formatSettlement(roomObject));
   } catch (err) {
     logger.error(err);
@@ -405,7 +421,8 @@ export const abortHandler: RequestHandler = async (req, res) => {
     // 사용자가 참여중인 방 목록에서 방을 제거합니다.
     // 제거할 방이 없는 경우, 500 오류를 발생시킵니다.
     if (userOngoingRoomIndex !== -1) {
-      if (userOngoingRoomIndex) user.ongoingRoom?.splice(userOngoingRoomIndex, 1);
+      if (userOngoingRoomIndex)
+        user.ongoingRoom?.splice(userOngoingRoomIndex, 1);
     } else if (userDoneRoomIndex !== -1) {
       if (userDoneRoomIndex) user.doneRoom?.splice(userDoneRoomIndex, 1);
     } else {
@@ -437,7 +454,9 @@ export const abortHandler: RequestHandler = async (req, res) => {
       time: null,
     });
 
-    const roomObject = (await room.populate(roomPopulateOption)).toObject<PopulatedRoom>();
+    const roomObject = (
+      await room.populate(roomPopulateOption)
+    ).toObject<PopulatedRoom>();
     const isOver = getIsOver(roomObject, user._id.toString());
 
     res.send(formatSettlement(roomObject, { isOver }));
@@ -451,7 +470,8 @@ export const abortHandler: RequestHandler = async (req, res) => {
 
 export const searchHandler: RequestHandler = async (req, res) => {
   try {
-    const { name, from, to, time, withTime, maxPartLength, isHome } = req.query as SearchRoomsParams;
+    const { name, from, to, time, withTime, maxPartLength, isHome } =
+      req.query as SearchRoomsParams;
 
     // 출발지와 도착지가 같은 경우
     if (from && to && from === to) {
@@ -557,14 +577,16 @@ export const searchByUserHandler: RequestHandler = async (req, res) => {
       })
       .lean();
 
-      if (!user) {
-        return res.status(400).json({ error: "Rooms/searchByUser : User not found" });
-      }
+    if (!user) {
+      return res
+        .status(400)
+        .json({ error: "Rooms/searchByUser : User not found" });
+    }
 
     // 정산완료여부 기준으로 진행중인 방과 완료된 방을 분리해서 응답을 전송합니다.
     const response: Record<string, any> = {};
-    response.ongoing = (user.ongoingRoom as unknown as PopulatedRoom[])?.map((room) =>
-      formatSettlement(room, { isOver: false })
+    response.ongoing = (user.ongoingRoom as unknown as PopulatedRoom[])?.map(
+      (room) => formatSettlement(room, { isOver: false })
     );
     response.done = (user.doneRoom as unknown as PopulatedRoom[])?.map((room) =>
       formatSettlement(room, { isOver: true })
@@ -581,11 +603,13 @@ export const searchByUserHandler: RequestHandler = async (req, res) => {
 export const commitSettlementHandler: RequestHandler = async (req, res) => {
   try {
     const user = await userModel.findOne({ _id: req.userOid, withdraw: false });
-    
+
     if (!user) {
-      return res.status(400).json({ error: "Rooms/:id/commitSettlement : User not found" });
+      return res
+        .status(400)
+        .json({ error: "Rooms/:id/commitSettlement : User not found" });
     }
-    
+
     const { roomId } = req.body;
     const roomObject = await roomModel
       .findOneAndUpdate(
@@ -654,7 +678,9 @@ export const commitSettlementHandler: RequestHandler = async (req, res) => {
     );
 
     // 수정한 방 정보를 반환합니다.
-    res.send(formatSettlement(roomObject as unknown as PopulatedRoom, { isOver: true }));
+    res.send(
+      formatSettlement(roomObject as unknown as PopulatedRoom, { isOver: true })
+    );
   } catch (err) {
     logger.error(err);
     res.status(500).json({
@@ -669,7 +695,9 @@ export const commitPaymentHandler: RequestHandler = async (req, res) => {
     const user = await userModel.findOne({ _id: req.userOid, withdraw: false });
 
     if (!user) {
-      return res.status(400).json({ error: "Rooms/:id/commitPayment : User not found" });
+      return res
+        .status(400)
+        .json({ error: "Rooms/:id/commitPayment : User not found" });
     }
 
     let roomObject = await roomModel
@@ -742,8 +770,6 @@ export const commitPaymentHandler: RequestHandler = async (req, res) => {
   }
 };
 
-
-
 const checkIsAbusing = (
   { from, to, time, maxPartLength }: checkIsAbusingInput,
   countRecentlyMadeRooms: number,
@@ -783,7 +809,11 @@ const checkIsAbusing = (
     [firstRoom, secondRoom] = [secondRoom, firstRoom];
   }
 
-  if (new Date(secondRoom.time).getTime() - new Date(firstRoom.time).getTime() <= 3600000) return true; // 조건 2-a
+  if (
+    new Date(secondRoom.time).getTime() - new Date(firstRoom.time).getTime() <=
+    3600000
+  )
+    return true; // 조건 2-a
   if (
     firstRoom.from === secondRoom.from ||
     firstRoom.to === secondRoom.to ||
@@ -801,13 +831,18 @@ const checkIsAbusing = (
  * @param {Object} userObject - userObject입니다. ongoingRoom 정보를 포함한 형태의 object여야 합니다.
  * @return {Boolean} 송금해야 하는 방이 있는지 여부를 반환합니다.
  */
-const checkIsSendRequired = (userObject: { _id: Types.ObjectId; ongoingRoom?: { part: { user: Types.ObjectId; settlementStatus: string }[] }[] }) => {
+const checkIsSendRequired = (userObject: {
+  _id: Types.ObjectId;
+  ongoingRoom?: {
+    part: { user: Types.ObjectId; settlementStatus: string }[];
+  }[];
+}) => {
   // user의 참여중인 방의 part 정보만 가져오기
   const ongoingRoomParts = userObject.ongoingRoom?.map((room) => room.part);
   // part에서 자신의 id에 해당하는 part만 가져오기
-  if (!ongoingRoomParts) { 
-    return false
-  } 
+  if (!ongoingRoomParts) {
+    return false;
+  }
   const userParts = ongoingRoomParts
     .map((partList) =>
       partList.filter((part) => part.user.equals(userObject._id))

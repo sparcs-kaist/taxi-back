@@ -2,17 +2,19 @@ import { z } from "zod";
 import patterns from "@/modules/patterns";
 
 export const roomsZod = {
-  searchRooms: z.object({
-    name: z.string().regex(patterns.room.name),
-    from: z.string().regex(patterns.objectId),
-    to: z.string().regex(patterns.objectId),
-    time: z.string().refine((val) => !isNaN(Date.parse(val)), {
-      message: "Invalid ISO date format",
-    }),
-    withTime: z.coerce.boolean(),
-    maxPartLength: z.coerce.number().int().min(2).max(4),
-    isHome: z.coerce.boolean(),
-  }).partial(),
+  searchRooms: z
+    .object({
+      name: z.string().regex(patterns.room.name),
+      from: z.string().regex(patterns.objectId),
+      to: z.string().regex(patterns.objectId),
+      time: z.string().refine((val) => !isNaN(Date.parse(val)), {
+        message: "Invalid ISO date format",
+      }),
+      withTime: z.coerce.boolean(),
+      maxPartLength: z.coerce.number().int().min(2).max(4),
+      isHome: z.coerce.boolean(),
+    })
+    .partial(),
 
   roomIdQuery: z.object({
     id: z.string().regex(patterns.objectId),

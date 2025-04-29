@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { zodToSchemaObject } from "../utils";
-import patterns from "@/modules/patterns"; 
+import patterns from "@/modules/patterns";
 
 export const reportsZod = {
   createHandler: z
@@ -16,5 +16,4 @@ export const reportsZod = {
 
 export const reportsSchema = zodToSchemaObject(reportsZod);
 
-export type ReportsCreate = z.infer<typeof reportsZod.createHandler>
-
+export type ReportsCreate = z.infer<typeof reportsZod.createHandler>;
