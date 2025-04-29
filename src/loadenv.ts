@@ -2,7 +2,7 @@
 import dotenv from "dotenv";
 import type { ServiceAccount } from "firebase-admin";
 import type { Algorithm } from "jsonwebtoken";
-import { EventConfig } from "./types";
+import type { EventConfig } from "./types";
 
 if (process.env.NODE_ENV === undefined) {
   // logger.ts가 아직 초기화되지 않았으므로 console.error를 사용합니다.
