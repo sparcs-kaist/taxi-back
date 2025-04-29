@@ -19,3 +19,15 @@ declare global {
     }
   }
 }
+
+export type EventConfig = {
+  mode: string;
+  credit: {
+    name: string;
+    initialAmount: number;
+  };
+  period: {
+    startAt: string;
+    endAt: string;
+  };
+};
