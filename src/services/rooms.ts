@@ -16,6 +16,7 @@ import { CreateRoomBody, SearchRoomsParams, roomsZod } from "@/routes/docs/schem
 // 이벤트 코드입니다.
 import { eventConfig } from "@/loadenv";
 import { Search } from "aws-sdk/clients/kendra";
+import { Types } from "mongoose";
 const eventPeriod = eventConfig && {
   startAt: new Date(eventConfig.period.startAt),
   endAt: new Date(eventConfig.period.endAt),
@@ -90,7 +91,10 @@ export const createHandler: RequestHandler = async (req, res) => {
     }
 
     // 사용자가 참여한 진행중인 방 중 송금을 아직 완료하지 않은 방이 있다면 오류를 반환합니다.
-    const isSendRequired = checkIsSendRequired(user);
+    const isSendRequired = checkIsSendRequired(user as {
+      _id: Types.ObjectId;
+      ongoingRoom?: { part: { user: Types.ObjectId; settlementStatus: string }[] }[];
+    });
     if (isSendRequired) {
       return res.status(400).json({
         error: "Rooms/create : user has send-required rooms",
@@ -274,7 +278,10 @@ export const joinHandler: RequestHandler = async (req, res) => {
     }
 
     // 사용자가 참여한 진행중인 방 중 송금을 아직 완료하지 않은 방이 있다면 오류를 반환합니다.
-    const isSendRequired = checkIsSendRequired(user);
+    const isSendRequired = checkIsSendRequired(user as {
+      _id: Types.ObjectId;
+      ongoingRoom?: { part: { user: Types.ObjectId; settlementStatus: string }[] }[];
+    });
     if (isSendRequired) {
       return res.status(400).json({
         error: "Rooms/join : user has send-required rooms",
@@ -794,10 +801,13 @@ const checkIsAbusing = (
  * @param {Object} userObject - userObject입니다. ongoingRoom 정보를 포함한 형태의 object여야 합니다.
  * @return {Boolean} 송금해야 하는 방이 있는지 여부를 반환합니다.
  */
-const checkIsSendRequired = (userObject) => {
+const checkIsSendRequired = (userObject: { _id: Types.ObjectId; ongoingRoom?: { part: { user: Types.ObjectId; settlementStatus: string }[] }[] }) => {
   // user의 참여중인 방의 part 정보만 가져오기
   const ongoingRoomParts = userObject.ongoingRoom?.map((room) => room.part);
   // part에서 자신의 id에 해당하는 part만 가져오기
+  if (!ongoingRoomParts) { 
+    return false
+  } 
   const userParts = ongoingRoomParts
     .map((partList) =>
       partList.filter((part) => part.user.equals(userObject._id))
