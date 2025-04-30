@@ -4,29 +4,32 @@ import {
   questModel,
   transactionModel,
   quizModel,
+  itemModel,
 } from "./modules/stores/mongo";
 import { buildResource } from "../modules/adminResource";
 import { eventConfig } from "@/loadenv";
 
-import globalStateRouter from "./routes/globalState";
-import invitesRouter from "./routes/invites";
-import transactionsRouter from "./routes/transactions";
-import itemsRouter from "./routes/items";
-import questsRouter from "./routes/quests";
-import quizzesRouter from "./routes/quizzes";
-import originValidator from "../middlewares/originValidator";
+import {
+  appendEventDocs,
+  globalStateRouter,
+  invitesRouter,
+  itemsRouter,
+  questsRouter,
+  quizzesRouter,
+  transactionsRouter,
+} from "./routes";
+import { originValidatorMiddleware as originValidator } from "../middlewares/originValidator";
+import { registerSchedules } from "./schedules";
 import * as contractsModule from "./modules/contracts";
-import appendEventDocs from "./routes/docs";
-import schedules from "./schedules";
 
 export const contracts = eventConfig ? contractsModule : null;
 
-// [Routes] 기존 docs 라우터의 docs extend
-appendEventDocs();
-
-// [Schedule] 스케줄러 시작
 if (eventConfig) {
-  schedules();
+  // [Routes] 기존 docs 라우터의 docs extend
+  appendEventDocs();
+
+  // [Schedule] 스케줄러 시작
+  registerSchedules();
 }
 
 export const lotteryRouter = express.Router();
@@ -50,5 +53,6 @@ export const resources = eventConfig
       buildResource()(questModel),
       buildResource()(transactionModel),
       buildResource()(quizModel),
+      buildResource()(itemModel),
     ]
   : [];

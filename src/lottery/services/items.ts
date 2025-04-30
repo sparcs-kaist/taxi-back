@@ -3,8 +3,8 @@ import {
   itemModel,
   transactionModel,
 } from "../modules/stores/mongo";
-import { userModel } from "../../modules/stores/mongo";
-import { isLogin, getLoginInfo } from "../../modules/auths/login";
+import { userModel } from "@/modules/stores/mongo";
+import { isLogin, getLoginInfo } from "@/modules/auths/login";
 import logger from "@/modules/logger";
 import { eventConfig } from "@/loadenv";
 import { completeItemPurchaseQuest } from "../modules/contracts";
@@ -281,16 +281,12 @@ export const purchaseItem = async (
   amount: number
 ) => {
   const totalPrice = item.price * amount;
-  // const RequestBody: z.infer<typeof itemsZod.purchaseItemHandlerBody> =
-  //   req.body;
-  // const RequestParams: z.infer<typeof itemsZod.purchaseItemHandlerParams> =
-  //   req.params;
   if (!req.eventStatus) return { error: "no eventStatus" };
-  const RequestEventStatus: EventStatus = req.eventStatus;
+  const requestEventStatus: EventStatus = req.eventStatus;
 
   // 구매 가능 조건: 재화가 충분하며, 재고가 남아있으며, 판매 중인 상품이어야 합니다.
   if (item.isDisabled) return { error: "disabled item" };
-  if (RequestEventStatus.creditAmount < totalPrice)
+  if (requestEventStatus.creditAmount < totalPrice)
     return { error: "not enough credit" };
   if (item.stock < amount) return { error: "out of stock" };
   if (!req.userOid) return { error: "userOid does not exist" };

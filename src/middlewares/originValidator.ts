@@ -1,6 +1,6 @@
 import type { RequestHandler } from "express";
 
-const originValidatorMiddleware: RequestHandler = (req, res, next) => {
+export const originValidatorMiddleware: RequestHandler = (req, res, next) => {
   req.origin =
     req.headers.origin ||
     req.headers.referer ||
@@ -13,5 +13,3 @@ const originValidatorMiddleware: RequestHandler = (req, res, next) => {
 
   next();
 };
-
-export default originValidatorMiddleware;

@@ -1,7 +1,6 @@
 import { buildQuests, completeQuest } from "./quests";
 import logger from "@/modules/logger";
 import { eventConfig } from "@/loadenv";
-import type { Quest } from "../types";
 import type { Room } from "@/types/mongo";
 import type { Types } from "mongoose";
 

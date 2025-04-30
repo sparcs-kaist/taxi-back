@@ -84,10 +84,10 @@ export const createUserGlobalStateHandler: RequestHandler = async (
   res
 ) => {
   try {
-    let userOid = req.userOid as string;
-    let timestamp = req.timestamp as number;
+    const userOid = req.userOid as string;
+    const timestamp = req.timestamp as number;
 
-    let eventStatus = await eventStatusModel
+    const eventStatus = await eventStatusModel
       .findOne({ userId: userOid })
       .lean();
     if (eventStatus)
@@ -142,7 +142,7 @@ export const createUserGlobalStateHandler: RequestHandler = async (
     }
 
     // EventStatus Document를 생성합니다.
-    let neweventStatus = new eventStatusModel({
+    const neweventStatus = new eventStatusModel({
       userId: userOid,
       creditAmount: eventConfig?.credit.initialAmount ?? 0,
       inviter: inviterStatus?.userId ?? undefined,
@@ -165,7 +165,7 @@ export const createUserGlobalStateHandler: RequestHandler = async (
         if (!higherInviter) break;
 
         ancestorIds.push(higherInviter.userId);
-        currentInviter = higherInviter;
+        currentInviter = { ...higherInviter };
       }
       await Promise.all(
         ancestorIds.map((ancestorId) =>
