@@ -364,8 +364,8 @@ const purchaseItem = async (req, item, amount) => {
 
     // 4단계: 퀘스트를 완료 처리합니다.
     await contracts.completeItemPurchaseQuest(
-      transaction.createdAt,
-      req.userOid
+      req.userOid,
+      transaction.createdAt
     );
 
     return { result: { result: true } };

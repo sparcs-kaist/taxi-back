@@ -240,8 +240,8 @@ const completeAccountChangingQuest = async (userId, timestamp, newAccount) => {
  * @usage notifications - editOptionsHandler
  */
 const completeAdPushAgreementQuest = async (
-  timestamp,
   userId,
+  timestamp,
   advertisement
 ) => {
   if (!advertisement) return null;

@@ -126,13 +126,13 @@ const createUserGlobalStateHandler = async (req, res) => {
     await eventStatus.save();
 
     // 퀘스트를 완료 처리합니다.
-    await contracts.completeFirstLoginQuest(req.timestamp, req.userOid);
+    await contracts.completeFirstLoginQuest(req.userOid, req.timestamp);
 
     if (inviterStatus) {
-      await contracts.completeEventSharingQuest(req.timestamp, req.userOid);
+      await contracts.completeEventSharingQuest(req.userOid, req.timestamp);
       await contracts.completeEventSharingQuest(
-        req.timestamp,
-        inviterStatus.userId
+        inviterStatus.userId,
+        req.timestamp
       );
       let currentInviter = inviterStatus;
       const ancestorIds = [];
@@ -148,7 +148,7 @@ const createUserGlobalStateHandler = async (req, res) => {
       }
       await Promise.all(
         ancestorIds.map((ancestorId) =>
-          contracts.completeIndirectEventSharingQuest(req.timestamp, ancestorId)
+          contracts.completeIndirectEventSharingQuest(ancestorId, req.timestamp)
         )
       );
     }

@@ -32,4 +32,4 @@ const eventBanMiddleware: RequestHandler = async (req, res, next) => {
   }
 };
 
-// export default eventBanMiddleware;
+export default eventBanMiddleware;
