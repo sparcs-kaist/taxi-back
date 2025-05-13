@@ -1,8 +1,10 @@
-import logger from "@/modules/logger";
-
 import { naverMap } from "@/loadenv";
 import { taxiFareModel, locationModel } from "@/modules/stores/mongo";
 import { scaledTime, callTaxiFare } from "@/modules/fare";
+import { Request, Response } from "express";
+import { LeanDocument } from "mongoose";
+import type { Location } from "@/types/mongo";
+import logger from "@/modules/logger";
 
 const naverMapApi = {
   "X-NCP-APIGW-API-KEY-ID": naverMap.apiId,
@@ -18,7 +20,7 @@ const naverMapApi = {
  *  - @param {mongoose.Schema.Types.ObjectId} to - 도착지
  *  - @param {Date} time - 출발 시간 (ISO 8601)
  */
-const getTaxiFareHandler = async (req, res) => {
+export const getTaxiFareHandler = async (req: Request, res: Response) => {
   try {
     if (
       !naverMapApi["X-NCP-APIGW-API-KEY"] ||
@@ -29,15 +31,15 @@ const getTaxiFareHandler = async (req, res) => {
       });
     }
 
-    const from = await locationModel
+    const from: LeanDocument<Location> = await locationModel
       .findOne({
         _id: { $eq: req.query.from },
       })
       .lean();
-    const to = await locationModel
+    const to: LeanDocument<Location> = await locationModel
       .findOne({ _id: { $eq: req.query.to } })
       .lean();
-    const sTime = scaledTime(new Date(req.query.time));
+    const sTime = scaledTime(new Date(req.query.time as string));
 
     if (!from || !to) {
       return res
@@ -60,7 +62,7 @@ const getTaxiFareHandler = async (req, res) => {
             res.status(200).json({ fare: fare });
           })
           .catch((err) => {
-            logger.error(err.message);
+            logger.error(err);
           });
       } else {
         res.status(200).json({ fare: fare.fare });
@@ -70,7 +72,7 @@ const getTaxiFareHandler = async (req, res) => {
         .findOne({
           from: from._id,
           to: to._id,
-          time: 48 * new Date(req.query.time).getDay() + 0,
+          time: 48 * new Date(req.query.time as string).getDay() + 0,
         })
         .lean();
 
@@ -81,18 +83,16 @@ const getTaxiFareHandler = async (req, res) => {
             res.status(200).json({ fare: fare });
           })
           .catch((err) => {
-            logger.error(err.message);
+            logger.error(err);
           });
       } else {
         res.status(200).json({ fare: minorTaxiFare.fare });
       }
     }
   } catch (err) {
-    logger.error(err.message);
+    logger.error(err);
     res
       .status(500)
-      .json({ error: "fare/getTaxiFareHandler: Failed to load Taxi Fare" });
+      .json({ err: "fare/getTaxiFareHandler: Failed to load Taxi Fare" });
   }
 };
-
-export default getTaxiFareHandler;

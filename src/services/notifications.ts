@@ -1,14 +1,17 @@
 import { userModel } from "@/modules/stores/mongo";
 import { notificationOptionModel } from "@/modules/stores/mongo";
 import logger from "@/modules/logger";
-import type { RequestHandler } from "express";
+import type { Request, Response } from "express";
 
 import { registerDeviceToken, validateDeviceToken } from "@/modules/fcm";
 
 // 이벤트 코드입니다.
 import { contracts } from "@/lottery";
 
-export const registerDeviceTokenHandler: RequestHandler = async (req, res) => {
+export const registerDeviceTokenHandler = async (
+  req: Request,
+  res: Response
+) => {
   try {
     // 해당 FCM device token이 유효한지 검사합니다.
     const { deviceToken } = req.body;
@@ -24,7 +27,12 @@ export const registerDeviceTokenHandler: RequestHandler = async (req, res) => {
       { _id: req.userOid, withdraw: false },
       "_id"
     );
-    const newDeviceToken = await registerDeviceToken(user._id, deviceToken);
+    if (!user)
+      return res.status(400).send("Notifications/userModel : user is invalid");
+    const newDeviceToken = await registerDeviceToken(
+      user._id.toString(),
+      deviceToken
+    );
 
     // 세션에 현재 사용자 기기의 deviceToken을 저장합니다.
     req.session.deviceToken = deviceToken;
@@ -40,7 +48,7 @@ export const registerDeviceTokenHandler: RequestHandler = async (req, res) => {
   }
 };
 
-export const optionsHandler: RequestHandler = async (req, res) => {
+export const optionsHandler = async (req: Request, res: Response) => {
   try {
     // 세션에 deviceToken이 저장되어 있는지 검사합니다.
     const { deviceToken } = req.session;
@@ -72,7 +80,7 @@ export const optionsHandler: RequestHandler = async (req, res) => {
   }
 };
 
-export const editOptionsHandler: RequestHandler = async (req, res) => {
+export const editOptionsHandler = async (req: Request, res: Response) => {
   try {
     const { options } = req.body;
 
@@ -85,14 +93,17 @@ export const editOptionsHandler: RequestHandler = async (req, res) => {
     }
 
     // FIXME : can refactor with using reduce
-    const newOptions = {};
+    type newOptionsSignature = {
+      [key: string]: string;
+    };
+    const newOptions: newOptionsSignature = {};
     const booleanFields = [
       "chatting",
       "beforeDepart",
       "notice",
       "advertisement",
     ];
-    booleanFields.map((field) => {
+    booleanFields.map((field: string) => {
       if (options[field] === true || options[field] === false) {
         newOptions[field] = options[field];
       }

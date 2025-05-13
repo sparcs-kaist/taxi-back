@@ -1,6 +1,6 @@
-const expect = require("chai").expect;
-const getAllLocationsHandler = require("../../src/services/locations").default;
-const httpMocks = require("node-mocks-http");
+import { expect } from "chai";
+import { getAllLocationsHandler } from "../../src/services/locations";
+import httpMocks from "node-mocks-http";
 
 // locations.js 관련 1개의 handler을 테스트
 // 1. 모든 location 정보를 잘 가져오는지 확인

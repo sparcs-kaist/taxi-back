@@ -42,7 +42,7 @@ export const initializeDatabase = async () => {
       );
       return;
     }
-    const location: Location[] = await locationModel
+    const location: LeanDocument<Location>[] = await locationModel
       .find({ isValid: { $eq: true } })
       .lean();
 
@@ -143,8 +143,12 @@ export const updateTaxiFare = async (sTime: number, isMajor: Boolean) => {
     })
     .lean();
   await prevFares.reduce(async (acc, item) => {
-    const from = await locationModel.findOne({ _id: item.from });
-    const to = await locationModel.findOne({ _id: item.to });
+    const from: LeanDocument<Location> = await locationModel
+      .findOne({ _id: item.from })
+      .lean();
+    const to: LeanDocument<Location> = await locationModel
+      .findOne({ _id: item.to })
+      .lean();
 
     await acc;
     await callTaxiFare(from, to)
@@ -165,11 +169,14 @@ export const updateTaxiFare = async (sTime: number, isMajor: Boolean) => {
 };
 
 /**
- * @param {Location} from : 출발지 (longitude, latitude)
- * @param {Location} to : 도착지 (longitude, latitude)
+ * @param {LeanDocument<Location>} from : 출발지 (longitude, latitude)
+ * @param {LeanDocument<Location>} to : 도착지 (longitude, latitude)
  * @returns naver map api call을 통해 받아온 예상 택시 요금
  */
-export const callTaxiFare = async (from: Location, to: Location) => {
+export const callTaxiFare = async (
+  from: LeanDocument<Location>,
+  to: LeanDocument<Location>
+) => {
   if (
     !naverMapApi["X-NCP-APIGW-API-KEY"] ||
     !naverMapApi["X-NCP-APIGW-API-KEY-ID"]

@@ -1,9 +1,9 @@
 import { userModel } from "@/modules/stores/mongo";
 import { getLoginInfo } from "@/modules/auths/login";
 import logger from "@/modules/logger";
-import type { RequestHandler } from "express";
+import type { Request, Response } from "express";
 
-const logininfoHandler: RequestHandler = async (req, res) => {
+export const logininfoHandler = async (req: Request, res: Response) => {
   try {
     const user = getLoginInfo(req);
     if (!user.oid) return res.json({ id: undefined });
@@ -12,6 +12,11 @@ const logininfoHandler: RequestHandler = async (req, res) => {
       { _id: user.oid, withdraw: false },
       "_id name nickname id withdraw phoneNumber ban joinat agreeOnTermsOfService subinfo email profileImageUrl account"
     );
+
+    if (!userDetail)
+      return res
+        .status(400)
+        .send("Notifications/userModel : userDetail is invalid");
 
     res.json({
       oid: userDetail._id,
@@ -37,5 +42,3 @@ const logininfoHandler: RequestHandler = async (req, res) => {
     res.json({ err: true });
   }
 };
-
-export default logininfoHandler;

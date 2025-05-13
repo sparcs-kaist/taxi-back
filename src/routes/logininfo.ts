@@ -1,5 +1,5 @@
 import express from "express";
-import logininfoHandler from "@/services/logininfo";
+import { logininfoHandler } from "@/services/logininfo";
 
 const router = express.Router();
 

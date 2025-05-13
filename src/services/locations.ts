@@ -1,8 +1,8 @@
 import { locationModel } from "@/modules/stores/mongo";
 import logger from "@/modules/logger";
-import type { RequestHandler } from "express";
+import type { Request, Response } from "express";
 
-const getAllLocationsHandler: RequestHandler = async (_, res) => {
+export const getAllLocationsHandler = async (_: Request, res: Response) => {
   try {
     const locations = await locationModel
       .find(
@@ -19,5 +19,3 @@ const getAllLocationsHandler: RequestHandler = async (_, res) => {
     res.status(500).json({ error: "Locations/ : internal server error" });
   }
 };
-
-export default getAllLocationsHandler;

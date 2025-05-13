@@ -1,5 +1,5 @@
 import express from "express";
-import getAllLocationsHandler from "@/services/locations";
+import { getAllLocationsHandler } from "@/services/locations";
 
 const router = express.Router();
 
