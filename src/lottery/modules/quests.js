@@ -64,7 +64,7 @@ const buildQuests = (quests) => {
  * @param {number} quest.maxCount - 퀘스트의 최대 완료 가능 횟수입니다.
  * @returns {Object|null} 성공한 경우 Object를, 실패한 경우 null을 반환합니다. 이미 최대 완료 횟수에 도달했거나, 퀘스트가 원격으로 비활성화된 경우에도 실패로 처리됩니다.
  */
-const completeQuest = async (timestamp, userId, quest) => {
+const completeQuest = async (userId, timestamp, quest) => {
   try {
     // 이벤트(2025spring) 기간을 하루 더 연장하여 넙죽코인 소비기한을 보장할 때, completeQuest 함수를 비활성화합니다.
     // 추후 이벤트에서는 아래 코드를 지워주시길 바랍니다.
@@ -73,7 +73,7 @@ const completeQuest = async (timestamp, userId, quest) => {
     // 1단계: 유저의 EventStatus를 가져옵니다. 블록드리스트인지도 확인합니다.
     const eventStatus = await eventStatusModel.findOne({ userId }).lean();
 
-    if (!eventStatus) return null; //
+    if (!eventStatus) return null;
 
     // 2단계: 이벤트 기간인지 확인합니다.
     if (

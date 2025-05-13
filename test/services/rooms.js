@@ -33,11 +33,6 @@ describe("[rooms] 1.createHandler", () => {
       },
       userOid: testUser1._id,
       app,
-      session: {
-        loginInfo: {
-          sid: testUser1.id,
-        },
-      },
       timestamp: Date.now(),
       originalUrl: "test-url/rooms/create",
       userOid: testUser1._id,

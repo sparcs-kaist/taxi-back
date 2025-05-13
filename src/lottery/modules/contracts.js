@@ -126,37 +126,31 @@ const quests = buildQuests({
 
 /**
  * firstLogin 퀘스트의 완료를 요청합니다.
- * @param {string} sid - user의 sid입니다.
- * @param {number|Date} timestamp - 퀘스트 완료를 요청한 시각입니다.
- * @param {string} url - 요청한 url입니다.
  * @param {string|mongoose.Types.ObjectId} userId - 퀘스트를 완료한 사용자의 ObjectId입니다.
+ * @param {number|Date} timestamp - 퀘스트 완료를 요청한 시각입니다.
  * @returns {Promise}
  * @usage lottery/globalState - createUserGlobalStateHandler
  */
-const completeFirstLoginQuest = async (timestamp, userId) => {
-  return await completeQuest(timestamp, userId, quests.firstLogin);
+const completeFirstLoginQuest = async (userId, timestamp) => {
+  return await completeQuest(userId, timestamp, quests.firstLogin);
 };
 
 /**
  * firstRoomCreation 퀘스트의 완료를 요청합니다.
- * @param {string} sid - user의 sid입니다.
- * @param {number|Date} timestamp - 퀘스트 완료를 요청한 시각입니다.
- * @param {string} url - 요청한 url입니다.
  * @param {string|mongoose.Types.ObjectId} userId - 퀘스트를 완료한 사용자의 ObjectId입니다.
+ * @param {number|Date} timestamp - 퀘스트 완료를 요청한 시각입니다.
  * @returns {Promise}
  * @description 방을 만들 때마다 호출해 주세요.
  * @usage rooms - createHandler
  */
-const completeFirstRoomCreationQuest = async (timestamp, userId) => {
-  return await completeQuest(timestamp, userId, quests.firstRoomCreation);
+const completeFirstRoomCreationQuest = async (userId, timestamp) => {
+  return await completeQuest(userId, timestamp, quests.firstRoomCreation);
 };
 
 /**
  * fareSettlement 퀘스트의 완료를 요청합니다. 방의 참가자 수가 2명 미만이면 요청하지 않습니다.
- * @param {string} sid - user의 sid입니다.
- * @param {number|Date} timestamp - 퀘스트 완료를 요청한 시각입니다.
- * @param {string} url - 요청한 url입니다.
  * @param {string|mongoose.Types.ObjectId} userId - 퀘스트를 완료한 사용자의 ObjectId입니다.
+ * @param {number|Date} timestamp - 퀘스트 완료를 요청한 시각입니다.
  * @param {Object} roomObject - 방의 정보입니다.
  * @param {mongoose.Types.ObjectId} roomObject._id - 방의 ObjectId입니다.
  * @param {Array<{ user: mongoose.Types.ObjectId }>} roomObject.part - 참여자 목록입니다.
@@ -165,7 +159,7 @@ const completeFirstRoomCreationQuest = async (timestamp, userId) => {
  * @description 정산 요청이 이루어질 때마다 호출해 주세요.
  * @usage rooms - commitSettlementHandler
  */
-const completeFareSettlementQuest = async (timestamp, userId, roomObject) => {
+const completeFareSettlementQuest = async (userId, timestamp, roomObject) => {
   logger.info(
     `User ${userId} requested to complete fareSettlementQuest in Room ${roomObject._id}`
   );
@@ -178,15 +172,13 @@ const completeFareSettlementQuest = async (timestamp, userId, roomObject) => {
   )
     return null; // 택시 출발 시각이 이벤트 기간 내에 포함되지 않는 경우 퀘스트 완료 요청을 하지 않습니다.
 
-  return await completeQuest(timestamp, userId, quests.fareSettlement);
+  return await completeQuest(userId, timestamp, quests.fareSettlement);
 };
 
 /**
  * farePayment 퀘스트의 완료를 요청합니다. 방의 참가자 수가 2명 미만이면 요청하지 않습니다.
- * @param {string} sid - user의 sid입니다.
- * @param {number|Date} timestamp - 퀘스트 완료를 요청한 시각입니다.
- * @param {string} url - 요청한 url입니다.
  * @param {string|mongoose.Types.ObjectId} userId - 퀘스트를 완료한 사용자의 ObjectId입니다.
+ * @param {number|Date} timestamp - 퀘스트 완료를 요청한 시각입니다.
  * @param {Object} roomObject - 방의 정보입니다.
  * @param {mongoose.Types.ObjectId} roomObject._id - 방의 ObjectId입니다.
  * @param {Array<{ user: mongoose.Types.ObjectId }>} roomObject.part - 참여자 목록입니다.
@@ -195,7 +187,7 @@ const completeFareSettlementQuest = async (timestamp, userId, roomObject) => {
  * @description 송금이 이루어질 때마다 호출해 주세요.
  * @usage rooms - commitPaymentHandler
  */
-const completeFarePaymentQuest = async (timestamp, userId, roomObject) => {
+const completeFarePaymentQuest = async (userId, timestamp, roomObject) => {
   logger.info(
     `User ${userId} requested to complete farePaymentQuest in Room ${roomObject._id}`
   );
@@ -208,46 +200,40 @@ const completeFarePaymentQuest = async (timestamp, userId, roomObject) => {
   )
     return null; // 택시 출발 시각이 이벤트 기간 내에 포함되지 않는 경우 퀘스트 완료 요청을 하지 않습니다.
 
-  return await completeQuest(timestamp, userId, quests.farePayment);
+  return await completeQuest(userId, timestamp, quests.farePayment);
 };
 
 /**
  * nicknameChanging 퀘스트의 완료를 요청합니다.
- * @param {string} sid - user의 sid입니다.
- * @param {number|Date} timestamp - 퀘스트 완료를 요청한 시각입니다.
- * @param {string} url - 요청한 url입니다.
  * @param {string|mongoose.Types.ObjectId} userId - 퀘스트를 완료한 사용자의 ObjectId입니다.
+ * @param {number|Date} timestamp - 퀘스트 완료를 요청한 시각입니다.
  * @returns {Promise}
  * @description 닉네임을 변경할 때마다 호출해 주세요.
  * @usage users - editNicknameHandler
  */
-const completeNicknameChangingQuest = async (timestamp, userId) => {
-  return await completeQuest(timestamp, userId, quests.nicknameChanging);
+const completeNicknameChangingQuest = async (userId, timestamp) => {
+  return await completeQuest(userId, timestamp, quests.nicknameChanging);
 };
 
 /**
  * accountChanging 퀘스트의 완료를 요청합니다.
- * @param {string} sid - user의 sid입니다.
- * @param {number|Date} timestamp - 퀘스트 완료를 요청한 시각입니다.
- * @param {string} url - 요청한 url입니다.
  * @param {string|mongoose.Types.ObjectId} userId - 퀘스트를 완료한 사용자의 ObjectId입니다.
+ * @param {number|Date} timestamp - 퀘스트 완료를 요청한 시각입니다.
  * @param {string} newAccount - 변경된 계좌입니다.
  * @returns {Promise}
  * @description 계좌를 변경할 때마다 호출해 주세요.
  * @usage users - editAccountHandler
  */
-const completeAccountChangingQuest = async (timestamp, userId, newAccount) => {
+const completeAccountChangingQuest = async (userId, timestamp, newAccount) => {
   if (newAccount === "") return null;
 
-  return await completeQuest(timestamp, userId, quests.accountChanging);
+  return await completeQuest(userId, timestamp, quests.accountChanging);
 };
 
 /**
  * adPushAgreement 퀘스트의 완료를 요청합니다.
- * @param {string} sid - user의 sid입니다.
- * @param {number|Date} timestamp - 퀘스트 완료를 요청한 시각입니다.
- * @param {string} url - 요청한 url입니다.
  * @param {string|mongoose.Types.ObjectId} userId - 퀘스트를 완료한 사용자의 ObjectId입니다.
+ * @param {number|Date} timestamp - 퀘스트 완료를 요청한 시각입니다.
  * @param {boolean} advertisement - 변경된 광고성 알림 수신 동의 여부입니다.
  * @returns {Promise}
  * @description 알림 옵션을 변경할 때마다 호출해 주세요.
@@ -260,20 +246,18 @@ const completeAdPushAgreementQuest = async (
 ) => {
   if (!advertisement) return null;
 
-  return await completeQuest(timestamp, userId, quests.adPushAgreement);
+  return await completeQuest(userId, timestamp, quests.adPushAgreement);
 };
 
 /**
  * eventSharing 퀘스트의 완료를 요청합니다.
- * @param {string} sid - user의 sid입니다.
- * @param {number|Date} timestamp - 퀘스트 완료를 요청한 시각입니다.
- * @param {string} url - 요청한 url입니다.
  * @param {string|mongoose.Types.ObjectId} userId - 퀘스트를 완료한 사용자의 ObjectId입니다.
+ * @param {number|Date} timestamp - 퀘스트 완료를 요청한 시각입니다.
  * @returns {Promise}
  * @usage lottery/globalState - createUserGlobalStateHandler
  */
-const completeEventSharingQuest = async (timestamp, userId) => {
-  return await completeQuest(timestamp, userId, quests.eventSharing);
+const completeEventSharingQuest = async (userId, timestamp) => {
+  return await completeQuest(userId, timestamp, quests.eventSharing);
 };
 
 /**
@@ -283,8 +267,8 @@ const completeEventSharingQuest = async (timestamp, userId) => {
  * @returns {Promise}
  * @usage lottery/globalState - createUserGlobalStateHandler
  */
-const completeIndirectEventSharingQuest = async (timestamp, userId) => {
-  return await completeQuest(timestamp, userId, quests.indirectEventSharing);
+const completeIndirectEventSharingQuest = async (userId, timestamp) => {
+  return await completeQuest(userId, timestamp, quests.indirectEventSharing);
 };
 
 /**
@@ -295,20 +279,18 @@ const completeIndirectEventSharingQuest = async (timestamp, userId) => {
  * @usage lottery/schedules/dailyQuiz - determineQuizResult
  */
 export const completeAnswerCorrectlyQuest = async (userId, timestamp) => {
-  return await completeQuest(timestamp, userId, quests.answerCorrectly);
+  return await completeQuest(userId, timestamp, quests.answerCorrectly);
 };
 
 /**
  * itemPurchase 퀘스트의 완료를 요청합니다.
- * @param {string} sid - user의 sid입니다.
- * @param {number|Date} timestamp - 퀘스트 완료를 요청한 시각입니다.
- * @param {string} url - 요청한 url입니다.
  * @param {string|mongoose.Types.ObjectId} userId - 퀘스트를 완료한 사용자의 ObjectId입니다.
+ * @param {number|Date} timestamp - 퀘스트 완료를 요청한 시각입니다.
  * @returns {Promise}
  * @description 상품을 구입할 때마다 호출해 주세요.
  */
-const completeItemPurchaseQuest = async (timestamp, userId) => {
-  return await completeQuest(timestamp, userId, quests.itemPurchase);
+const completeItemPurchaseQuest = async (userId, timestamp) => {
+  return await completeQuest(userId, timestamp, quests.itemPurchase);
 };
 
 module.exports = {

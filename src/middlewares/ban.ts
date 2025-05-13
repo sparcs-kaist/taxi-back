@@ -3,10 +3,10 @@ import type { RequestHandler } from "express";
 import { validateServiceBanRecord } from "@/modules/ban";
 
 const serviceMapper = new Map([
-  ["/rooms/create", "service"], // checked
-  ["/rooms/join", "service"], // checked
+  ["/rooms/create", "service"],
+  ["/rooms/join", "service"],
   ["/events/2025spring/globalState/create", "2025-spring-event"],
-  ["/events/2025spring/invites/create", "2025-spring-event"], // checked
+  ["/events/2025spring/invites/create", "2025-spring-event"],
   ["/events/2025spring/items/purchase", "2025-spring-event"],
   ["/events/2025spring/items/useCoupon", "2025-spring-event"],
   ["/events/2025spring/quests", "2025-spring-event"],

@@ -1,18 +1,16 @@
 import type { RequestHandler } from "express";
 import { eventStatusModel } from "../modules/stores/mongo";
-import logger from "../../modules/logger";
-
+import logger from "@/modules/logger";
 
 /**
  * 사용자가 차단 되었는지 여부를 판단합니다.
  * 차단된 사용자는 이벤트에 한하여 서비스 이용에 제재를 받습니다.
- *
  * @param req  eventStatus가 성공적일 경우 req.eventStatus = eventStatus로 들어갑니다.
  * @param res
  * @param next
  * @returns
  */
-const eventValidator: RequestHandler = async ( req, res, next ) => {
+const eventBanMiddleware: RequestHandler = async (req, res, next) => {
   try {
     const eventStatus = await eventStatusModel
       .findOne({ userId: req.userOid })
@@ -34,4 +32,4 @@ const eventValidator: RequestHandler = async ( req, res, next ) => {
   }
 };
 
-export default eventValidator;
+// export default eventBanMiddleware;

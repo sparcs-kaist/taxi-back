@@ -10,6 +10,7 @@ import {
   eventConfig,
 } from "@/loadenv";
 import {
+  banMiddleware,
   corsMiddleware,
   errorHandler,
   informationMiddleware,
@@ -17,7 +18,6 @@ import {
   originValidatorMiddleware,
   responseTimeMiddleware,
   sessionMiddleware,
-  banMiddleware,
 } from "@/middlewares";
 import {
   adminRouter,
@@ -81,6 +81,8 @@ app.use("/docs", docsRouter);
 
 // [Middleware] 모든 API 요청에 대하여 origin 검증
 app.use(originValidatorMiddleware);
+
+// [Middleware] Event 관련 API 요청에 대하여 Ban 여부 검증
 app.use(banMiddleware);
 
 // [Router] 이벤트 전용 라우터입니다.
