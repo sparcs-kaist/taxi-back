@@ -93,6 +93,6 @@ export const getTaxiFareHandler = async (req: Request, res: Response) => {
     logger.error(err);
     res
       .status(500)
-      .json({ err: "fare/getTaxiFareHandler: Failed to load Taxi Fare" });
+      .json({ error: "fare/getTaxiFareHandler: Failed to load Taxi Fare" });
   }
 };
