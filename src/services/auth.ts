@@ -1,23 +1,52 @@
-const { nodeEnv, testAccounts } = require("@/loadenv");
-const { userModel } = require("@/modules/stores/mongo");
-const { user: userPattern } = require("@/modules/patterns").default;
-const {
-  ssoClient,
-  getLoginInfo,
-  logout,
-  login,
-} = require("@/modules/auths/login");
+import { Request, Response } from "express";
+import { nodeEnv, testAccounts } from "@/loadenv";
+import { userModel } from "@/modules/stores/mongo";
 
-const { unregisterDeviceToken } = require("@/modules/fcm");
-const {
+import patterns from "@/modules/patterns";
+const { user: userPattern } = patterns;
+
+import { ssoClient, getLoginInfo, logout, login } from "@/modules/auths/login";
+
+import { unregisterDeviceToken } from "@/modules/fcm";
+import {
   generateNickname,
   generateProfileImageUrl,
   getFullUsername,
-} = require("@/modules/modifyProfile");
-const jwt = require("@/modules/auths/jwt");
-const logger = require("@/modules/logger").default;
+} from "@/modules/modifyProfile";
+import * as jwt from "@/modules/auths/jwt";
+import logger from "@/modules/logger";
 
-const transUserData = (userData) => {
+type userDataType = {
+  email: any;
+  id: string;
+  sid: any;
+  uid?: any;
+  name?: any;
+  nickname?: string;
+  kaist?: any;
+  kaistType?: any;
+  kaist_info?: string;
+  sparcs?: any;
+  sparcs_id?: any;
+  facebook?: any;
+  facebook_id?: any;
+  twitter?: any;
+  twitter_id?: any;
+  first_name?: string;
+  last_name?: string;
+  isEligible?: boolean;
+};
+const transUserData = (userData: {
+  kaist_info: string;
+  uid: any;
+  sid: any;
+  first_name: string;
+  last_name: string;
+  facebook_id?: any;
+  twitter_id?: any;
+  sparcs_id?: any;
+  email?: any;
+}) => {
   const kaistInfo = userData.kaist_info ? JSON.parse(userData.kaist_info) : {};
 
   // info.ku_std_no: 학번
@@ -37,7 +66,10 @@ const transUserData = (userData) => {
   return info;
 };
 
-const joinus = async (req, userData) => {
+const joinus = async (
+  req: Request,
+  userData: userDataType & { name: any; kaist: any }
+) => {
   const oldUser = await userModel
     .findOne(
       {
@@ -50,6 +82,9 @@ const joinus = async (req, userData) => {
     .lean();
   if (oldUser && oldUser.withdrewAt) {
     // 탈퇴 후 7일이 지나지 않았을 경우, 가입을 거부합니다.
+    if (typeof req.timestamp === "undefined") {
+      return false;
+    }
     const diff = req.timestamp - oldUser.withdrewAt.getTime();
     if (diff < 7 * 24 * 60 * 60 * 1000) {
       return false;
@@ -74,7 +109,12 @@ const joinus = async (req, userData) => {
   return true;
 };
 
-const update = async (userData) => {
+const update = async (userData: {
+  name: any;
+  email: any;
+  kaist: any;
+  id: any;
+}) => {
   const updateInfo = {
     name: userData.name,
     email: userData.email,
@@ -86,7 +126,13 @@ const update = async (userData) => {
   );
 };
 
-const tryLogin = async (req, res, userData, redirectOrigin, redirectPath) => {
+const tryLogin = async (
+  req: Request,
+  res: Response,
+  userData: userDataType & { name: any; kaist: any },
+  redirectOrigin: string | URL | undefined,
+  redirectPath: string | URL
+) => {
   try {
     const user = await userModel.findOne(
       { id: userData.id, withdraw: false }, // NOTE: SSO uid 쓰는 곳
@@ -104,29 +150,31 @@ const tryLogin = async (req, res, userData, redirectOrigin, redirectPath) => {
     if (
       user.name !== userData.name ||
       user.email !== userData.email ||
-      user.subinfo.kaist !== userData.kaist
+      user.subinfo!.kaist !== userData.kaist
     ) {
       await update(userData);
       logger.info(
-        `Past user info: ${user.id} ${user.name} ${user.email} ${user.subinfo.kaist}`
+        `Past user info: ${user.id} ${user.name} ${user.email} ${
+          user.subinfo!.kaist
+        }`
       );
       return tryLogin(req, res, userData, redirectOrigin, redirectPath);
     }
 
     if (req.session.isApp) {
       const { token: accessToken } = await jwt.sign({
-        id: user._id,
+        id: user._id.toString(),
         type: "access",
       });
       const { token: refreshToken } = await jwt.sign({
-        id: user._id,
+        id: user._id.toString(),
         type: "refresh",
       });
       req.session.accessToken = accessToken;
       req.session.refreshToken = refreshToken;
     }
 
-    login(req, userData.sid, user.id, user._id, user.name);
+    login(req, userData.sid, user.id, user._id.toString(), user.name);
 
     res.redirect(new URL(redirectPath, redirectOrigin).href);
   } catch (err) {
@@ -136,10 +184,12 @@ const tryLogin = async (req, res, userData, redirectOrigin, redirectPath) => {
   }
 };
 
-const sparcsssoHandler = (req, res) => {
-  const redirectPath = decodeURIComponent(req.query?.redirect || "%2F");
+const sparcsssoHandler = (req: Request, res: Response) => {
+  const redirectPath = decodeURIComponent(
+    (req.query?.redirect as string) || "%2F"
+  );
   const isApp = !!req.query.isApp;
-  const { url, state } = ssoClient.getLoginParams();
+  const { url, state } = ssoClient!.getLoginParams();
 
   req.session.loginAfterState = {
     state: state,
@@ -150,7 +200,7 @@ const sparcsssoHandler = (req, res) => {
   res.redirect(url + "&social_enabled=0&show_disabled_button=0");
 };
 
-const sparcsssoCallbackHandler = (req, res) => {
+const sparcsssoCallbackHandler = (req: Request, res: Response) => {
   const loginAfterState = req.session?.loginAfterState;
   const { state: stateForCmp, code } = req.query;
 
@@ -171,8 +221,9 @@ const sparcsssoCallbackHandler = (req, res) => {
     return res.redirect(redirectUrl);
   }
 
-  ssoClient.getUserInfo(code).then((userDataBefore) => {
-    const userData = transUserData(userDataBefore);
+  ssoClient!.getUserInfo(code).then((userDataBefore) => {
+    const userData: userDataType & { name: any; kaist: any } =
+      transUserData(userDataBefore);
     const isTestAccount = testAccounts?.includes(userData.email);
     if (userData.isEligible || nodeEnv !== "production" || isTestAccount) {
       tryLogin(req, res, userData, redirectOrigin, redirectPath);
@@ -184,20 +235,22 @@ const sparcsssoCallbackHandler = (req, res) => {
       );
 
       const redirectUrl = new URL("/login/fail", redirectOrigin).href;
-      const ssoLogoutUrl = ssoClient.getLogoutUrl(sid, redirectUrl);
+      const ssoLogoutUrl = ssoClient!.getLogoutUrl(sid, redirectUrl);
       res.redirect(ssoLogoutUrl);
     }
   });
 };
 
-const loginReplaceHandler = (req, res) => {
+const loginReplaceHandler = (req: Request, res: Response) => {
   res.status(400).json({
     error: "Auth/login/replace : Bad Request",
   });
 };
 
-const logoutHandler = async (req, res) => {
-  const redirectPath = decodeURIComponent(req.query?.redirect || "%2F");
+const logoutHandler = async (req: Request, res: Response) => {
+  const redirectPath = decodeURIComponent(
+    (req.query?.redirect as string) || "%2F"
+  );
 
   try {
     const { sid } = getLoginInfo(req);
@@ -210,15 +263,15 @@ const logoutHandler = async (req, res) => {
 
     // 로그아웃 URL을 생성 및 반환
     const redirectUrl = new URL(redirectPath, req.origin).href;
-    const ssoLogoutUrl = ssoClient.getLogoutUrl(sid, redirectUrl);
-    logout(req, res);
+    const ssoLogoutUrl = ssoClient!.getLogoutUrl(sid, redirectUrl);
+    logout(req);
     res.json({ ssoLogoutUrl });
   } catch (e) {
     res.status(500).send("Auth/logout : internal server error");
   }
 };
 
-module.exports = {
+export {
   tryLogin,
   sparcsssoHandler,
   sparcsssoCallbackHandler,

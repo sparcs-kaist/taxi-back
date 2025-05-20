@@ -1,16 +1,17 @@
-const { chatModel, userModel, roomModel } = require("@/modules/stores/mongo");
-const { chatPopulateOption } = require("@/modules/populates/chats");
-const aws = require("@/modules/stores/aws");
-const {
+import { Request, Response } from "express";
+import { chatModel, userModel, roomModel } from "@/modules/stores/mongo";
+import { chatPopulateOption } from "@/modules/populates/chats";
+import * as aws from "@/modules/stores/aws";
+import {
   transformChatsForRoom,
   emitChatEvent,
   emitUpdateEvent,
-} = require("@/modules/socket");
-const logger = require("@/modules/logger").default;
+} from "@/modules/socket";
+import logger from "@/modules/logger";
 
 const chatCount = 60;
 
-const loadRecentChatHandler = async (req, res) => {
+const loadRecentChatHandler = async (req: Request, res: Response) => {
   try {
     const io = req.app.get("io");
     const { userOid } = req;
@@ -52,7 +53,7 @@ const loadRecentChatHandler = async (req, res) => {
   }
 };
 
-const loadBeforeChatHandler = async (req, res) => {
+const loadBeforeChatHandler = async (req: Request, res: Response) => {
   try {
     const io = req.app.get("io");
     const { userOid } = req;
@@ -96,7 +97,7 @@ const loadBeforeChatHandler = async (req, res) => {
   }
 };
 
-const loadAfterChatHandler = async (req, res) => {
+const loadAfterChatHandler = async (req: Request, res: Response) => {
   try {
     const io = req.app.get("io");
     const { userOid } = req;
@@ -137,11 +138,15 @@ const loadAfterChatHandler = async (req, res) => {
   }
 };
 
-const sendChatHandler = async (req, res) => {
+const sendChatHandler = async (req: Request, res: Response) => {
   try {
     const io = req.app.get("io");
     const { userOid } = req;
-    const { roomId, type, content } = req.body;
+    const { roomId, type, content } = req.body as {
+      roomId: string;
+      type: string;
+      content: string;
+    };
     const user = await userModel.findOne({ _id: userOid, withdraw: false });
 
     if (!userOid || !user) {
@@ -163,7 +168,8 @@ const sendChatHandler = async (req, res) => {
         roomId,
         type,
         content,
-        authorId: user._id,
+        authorId: user._id.toString(),
+        time: null,
       })
     )
       res.json({ result: true });
@@ -174,7 +180,7 @@ const sendChatHandler = async (req, res) => {
   }
 };
 
-const readChatHandler = async (req, res) => {
+const readChatHandler = async (req: Request, res: Response) => {
   try {
     const io = req.app.get("io");
     const { userOid } = req;
@@ -219,7 +225,7 @@ const readChatHandler = async (req, res) => {
   }
 };
 
-const uploadChatImgGetPUrlHandler = async (req, res) => {
+const uploadChatImgGetPUrlHandler = async (req: Request, res: Response) => {
   try {
     const { type, roomId } = req.body;
     const user = await userModel.findOne({ _id: req.userOid, withdraw: false });
@@ -262,7 +268,7 @@ const uploadChatImgGetPUrlHandler = async (req, res) => {
   }
 };
 
-const uploadChatImgDoneHandler = async (req, res) => {
+const uploadChatImgDoneHandler = async (req: Request, res: Response) => {
   try {
     const user = await userModel.findOne(
       { _id: req.userOid, withdraw: false },
@@ -282,7 +288,7 @@ const uploadChatImgDoneHandler = async (req, res) => {
     if (
       chat.type != "s3img" ||
       chat.isValid != false ||
-      chat.authorId.toString() != user._id.toString()
+      chat.authorId!.toString() != user._id.toString()
     ) {
       return res.status(404).json({
         error: "Chat/uploadChatImg/done : no corresponding chat",
@@ -296,8 +302,14 @@ const uploadChatImgDoneHandler = async (req, res) => {
           .send("Chat/uploadChatImg/done : internal server error");
       }
 
-      chat.content = chat._id;
-      emitChatEvent(req.app.get("io"), chat);
+      chat.content = chat._id.toString();
+      emitChatEvent(req.app.get("io"), {
+        roomId: chat.roomId.toString(),
+        type: chat.type!,
+        content: chat.content,
+        authorId: chat.authorId!.toString(),
+        time: chat.time,
+      });
 
       res.json({
         result: true,
@@ -316,8 +328,11 @@ const uploadChatImgDoneHandler = async (req, res) => {
  * @param {string} roomId - 참여하는지 확인하고픈 방의 objectId 입니다.
  * @return {Promise<Boolean>} userId가 방에 포함되어 있다면 true, 그 외의 경우 false를 반환합니다.
  */
-const isUserInRoom = async (userOid, roomId) => {
-  const { part } = await roomModel.findById(roomId);
+const isUserInRoom = async (userOid: string, roomId: string) => {
+  const result = await roomModel.findById(roomId);
+  if (!result) return false;
+
+  const { part } = result;
 
   if (!part) return false;
   return part
@@ -325,7 +340,7 @@ const isUserInRoom = async (userOid, roomId) => {
     .some((user) => user.equals(userOid));
 };
 
-module.exports = {
+export {
   loadRecentChatHandler,
   loadBeforeChatHandler,
   loadAfterChatHandler,
