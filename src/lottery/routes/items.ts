@@ -8,10 +8,8 @@ import {
   useCouponHandler,
   purchaseItemHandler,
 } from "../services/items";
-import authMiddleware from "../../middlewares/auth";
-import checkBanned from "../middlewares/checkBanned";
-import timestampValidator from "../middlewares/timestampValidator";
-
+import { banMiddleware, timestampValidator } from "../middlewares";
+import { authMiddleware } from "@/middlewares";
 const router = express.Router();
 
 router.get("/", getItemsHandler);
@@ -24,7 +22,7 @@ router.get(
 
 // 아래의 Endpoint 접근 시 로그인, 차단 여부 및 시각 체크 필요
 router.use(authMiddleware);
-router.use(checkBanned);
+router.use(banMiddleware);
 router.use(timestampValidator);
 
 router.post(

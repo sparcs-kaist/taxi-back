@@ -5,9 +5,8 @@ import {
   searchInviterHandler,
   createInviteUrlHandler,
 } from "../services/invites";
-import authMiddleware from "../../middlewares/auth";
-import timestampValidator from "../middlewares/timestampValidator";
-import banMiddleware from "../middlewares/checkBanned";
+import { timestampValidator, banMiddleware } from "../middlewares";
+import { authMiddleware } from "@/middlewares";
 
 const router = express.Router();
 

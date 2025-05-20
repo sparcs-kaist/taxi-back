@@ -6,7 +6,7 @@ import {
   getUserGlobalStateHandler,
 } from "../services/globalState";
 import { authMiddleware } from "@/middlewares";
-import timestampValidator from "../middlewares/timestampValidator";
+import { timestampValidator } from "../middlewares";
 
 const router = express.Router();
 

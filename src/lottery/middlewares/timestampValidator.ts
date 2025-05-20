@@ -9,7 +9,7 @@ const eventPeriod: EventPeriod | null = eventConfig
     }
   : null;
 
-const timestampValidator: RequestHandler = (req, res, next) => {
+export const timestampValidator: RequestHandler = (req, res, next) => {
   if (!req.timestamp) {
     return res.status(400).json({ error: "timestamp is missing" });
   }
@@ -29,5 +29,3 @@ const timestampValidator: RequestHandler = (req, res, next) => {
 
   next();
 };
-
-export default timestampValidator;

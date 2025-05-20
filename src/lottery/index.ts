@@ -18,9 +18,9 @@ import {
   quizzesRouter,
   transactionsRouter,
 } from "./routes";
-import { originValidatorMiddleware as originValidator } from "../middlewares/originValidator";
 import { registerSchedules } from "./schedules";
 import * as contractsModule from "./modules/contracts";
+import { originValidatorMiddleware } from "@/middlewares";
 
 export const contracts = eventConfig ? contractsModule : null;
 
@@ -35,7 +35,7 @@ if (eventConfig) {
 export const lotteryRouter = express.Router();
 
 // [Middleware] 모든 API 요청에 대하여 origin 검증
-lotteryRouter.use(originValidator);
+lotteryRouter.use(originValidatorMiddleware);
 
 // [Router] APIs
 lotteryRouter.use("/globalState", globalStateRouter);

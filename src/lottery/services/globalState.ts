@@ -1,8 +1,7 @@
-import { RequestHandler } from "express";
 import { eventStatusModel } from "../modules/stores/mongo";
 import { userModel } from "../../modules/stores/mongo";
 import logger from "@/modules/logger";
-import { isLogin, getLoginInfo } from "../../modules/auths/login";
+import { isLogin, getLoginInfo } from "@/modules/auths/login";
 import { nodeEnv, eventConfig } from "@/loadenv";
 import {
   completeEventSharingQuest,
@@ -14,6 +13,8 @@ import {
 import type { Quest } from "../types";
 import type { User } from "@/types/mongo";
 import type { Types } from "mongoose";
+import type { RequestHandler } from "express";
+
 // 아래의 함수는 2025 봄 이벤트에서 사용되지 않습니다.
 //
 // // 유저가 이벤트에 참여할 수 있는지 확인하는 함수입니다.

@@ -7,7 +7,7 @@ import type { EventStatus } from "../types";
  * 사용자가 차단 되었는지 여부를 판단합니다.
  * 차단된 사용자는 이벤트에 한하여 서비스 이용에 제재를 받습니다.
  */
-const checkBanned: RequestHandler = async (req, res, next) => {
+export const banMiddleware: RequestHandler = async (req, res, next) => {
   try {
     const eventStatus = await eventStatusModel
       .findOne({ userId: req.userOid })
@@ -29,5 +29,3 @@ const checkBanned: RequestHandler = async (req, res, next) => {
     });
   }
 };
-
-export default checkBanned;

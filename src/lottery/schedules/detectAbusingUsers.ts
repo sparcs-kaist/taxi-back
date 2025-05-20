@@ -1,5 +1,5 @@
 import { eventStatusModel } from "../modules/stores/mongo";
-import { roomModel, chatModel, reportModel } from "../../modules/stores/mongo";
+import { roomModel, chatModel, reportModel } from "@/modules/stores/mongo";
 import { notifyAbuseDetectionResultToReportChannel } from "../modules/slackNotification";
 import logger from "@/modules/logger";
 import { eventConfig } from "@/loadenv";

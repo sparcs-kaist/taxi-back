@@ -133,7 +133,7 @@ export const completeFirstLoginQuest = async (
   timestamp: number | Date
 ) => {
   if (!quests) {
-    logger.info("Quest is empty");
+    logger.error("Quest is empty");
     return null;
   } else {
     return await completeQuest(userId, timestamp, quests.firstLogin);

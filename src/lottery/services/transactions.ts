@@ -14,7 +14,7 @@ const formatTransaction = (transaction: LeanDocument<Transaction>) => {
   return transaction;
 };
 
-const getUserTransactionsHandler: RequestHandler = async (req, res) => {
+export const getUserTransactionsHandler: RequestHandler = async (req, res) => {
   try {
     const transactions = await transactionModel
       .find(
@@ -36,5 +36,3 @@ const getUserTransactionsHandler: RequestHandler = async (req, res) => {
     res.status(500).json({ error: "Transactions/ : internal server error" });
   }
 };
-
-export default getUserTransactionsHandler;
