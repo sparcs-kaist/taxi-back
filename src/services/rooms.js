@@ -527,6 +527,76 @@ const searchByUserHandler = async (req, res) => {
   }
 };
 
+const searchByTimeGapHandler = async (req, res) => {
+  try {
+    // timeGap(단위: 분)은 기본적으로 20분으로 설정되어 있습니다.
+    const { from, to, time, timeGap = 20 } = req.query;
+
+    // Validate required parameters
+    if (!from || !to || !time) {
+      return res.status(400).json({
+        error: "Rooms/searchByTimeTermHandler : Bad request",
+      });
+    }
+
+    // Check if from and to are different
+    if (from === to) {
+      return res.status(400).json({
+        error: "Rooms/searchByTimeTermHandler : Bad request",
+      });
+    }
+
+    // Validate locations exist
+    const fromLocation = await locationModel.findById(from);
+    if (!fromLocation || fromLocation?.isValid === false) {
+      return res.status(400).json({
+        error: "Rooms/searchByTimeTermHandler : Invalid 'from' location",
+      });
+    }
+
+    const toLocation = await locationModel.findById(to);
+    if (!toLocation || toLocation?.isValid === false) {
+      return res.status(400).json({
+        error: "Rooms/searchByTimeTermHandler : Invalid 'to' location",
+      });
+    }
+
+    // Parse the time and create time range (±20 minutes)
+    const targetTime = new Date(time);
+    const currentTime = new Date();
+
+    const _minTime = new Date(targetTime.getTime() - timeGap * 60 * 1000); // 20 minutes before
+    const minTime =
+      _minTime.getTime() >= currentTime.getTime() ? _minTime : currentTime; // If the time is in the past, use current time
+    const maxTime = new Date(targetTime.getTime() + timeGap * 60 * 1000); // 20 minutes after
+
+    // Build query
+    const query = {
+      from: from,
+      to: to,
+      time: { $gte: minTime, $lte: maxTime },
+      "part.0": { $exists: true }, // Ensure at least one participant exists
+    };
+
+    // Find rooms matching the criteria
+    const rooms = await roomModel
+      .find(query)
+      .sort({ time: 1 })
+      .limit(10) // Limit results to a reasonable number
+      .populate(roomPopulateOption)
+      .lean();
+
+    res.json(
+      rooms.map((room) => formatSettlement(room, { includeSettlement: false }))
+    );
+  } catch (err) {
+    logger.error(err);
+    res.status(500).json({
+      error: "Rooms/searchExactLocationWithTimeRange : Internal server error",
+    });
+  }
+};
+
 const commitSettlementHandler = async (req, res) => {
   try {
     const user = await userModel.findOne({ _id: req.userOid, withdraw: false });
@@ -844,5 +914,6 @@ module.exports = {
   searchByUserHandler,
   commitPaymentHandler,
   commitSettlementHandler,
+  searchByTimeGapHandler,
   // editHandler,
 };
