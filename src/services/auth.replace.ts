@@ -1,18 +1,21 @@
-const { userModel } = require("@/modules/stores/mongo");
-const { logout, login } = require("@/modules/auths/login");
+//auth.replace.ts
+import { Request, Response } from "express";
+import { userModel } from "@/modules/stores/mongo";
+import { logout, login } from "@/modules/auths/login";
 
-const { unregisterDeviceToken } = require("@/modules/fcm");
-const {
+import { unregisterDeviceToken } from "@/modules/fcm";
+import {
   generateNickname,
   generateProfileImageUrl,
-} = require("@/modules/modifyProfile");
-const logger = require("@/modules/logger").default;
-const jwt = require("@/modules/auths/jwt");
+} from "@/modules/modifyProfile";
+import logger from "@/modules/logger";
+import * as jwt from "@/modules/auths/jwt";
 
-const { registerDeviceTokenHandler, tryLogin } = require("@/services/auth");
-const loginReplacePage = require("@/views/loginReplacePage").default;
+import { tryLogin } from "@/services/auth";
+import { registerDeviceTokenHandler } from "@/services/auth.mobile";
+import loginReplacePage from "@/views/loginReplacePage";
 
-const createUserData = (id) => {
+const createUserData = (id: string) => {
   const info = {
     id: id,
     sid: id + "-sid",
@@ -28,18 +31,20 @@ const createUserData = (id) => {
   return info;
 };
 
-const loginReplaceHandler = (req, res) => {
+const loginReplaceHandler = (req: Request, res: Response) => {
   const { id } = req.body;
   const loginAfterState = req.session?.loginAfterState;
   if (!loginAfterState)
     return res.status(400).send("Auth/login/replace : invalid request");
   const { redirectOrigin, redirectPath } = loginAfterState;
   req.session.loginAfterState = undefined;
-  tryLogin(req, res, createUserData(id), redirectOrigin, redirectPath);
+  tryLogin(req, res, createUserData(id), redirectOrigin, redirectPath!);
 };
 
-const sparcsssoHandler = (req, res) => {
-  const redirectPath = decodeURIComponent(req.query?.redirect || "%2F");
+const sparcsssoHandler = (req: Request, res: Response) => {
+  const redirectPath = decodeURIComponent(
+    (req.query?.redirect as string) || "%2F"
+  );
   const isApp = !!req.query.isApp;
 
   req.session.loginAfterState = {
@@ -50,8 +55,20 @@ const sparcsssoHandler = (req, res) => {
   res.end(loginReplacePage);
 };
 
-const logoutHandler = async (req, res) => {
-  const redirectPath = decodeURIComponent(req.query?.redirect || "%2F");
+const logoutHandler = async (
+  req: Request,
+  res: {
+    json: (arg0: { ssoLogoutUrl: string }) => void;
+    status: (arg0: number) => {
+      (): any;
+      new (): any;
+      send: { (arg0: string): void; new (): any };
+    };
+  }
+) => {
+  const redirectPath = decodeURIComponent(
+    (req.query?.redirect as string) || "%2F"
+  );
 
   try {
     // DB에서 deviceToken 레코드를 삭제합니다.
@@ -62,14 +79,14 @@ const logoutHandler = async (req, res) => {
 
     // sparcs-sso 로그아웃 URL을 생성 및 반환
     const ssoLogoutUrl = new URL(redirectPath, req.origin).href;
-    logout(req, res);
+    logout(req);
     res.json({ ssoLogoutUrl });
   } catch (e) {
     res.status(500).send("Auth/logout : internal server error");
   }
 };
 
-module.exports = {
+export {
   loginReplaceHandler,
   sparcsssoHandler,
   logoutHandler,
