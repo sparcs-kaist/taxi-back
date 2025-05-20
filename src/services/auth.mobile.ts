@@ -46,11 +46,7 @@ const tokenLoginHandler = async (req: Request, res: Response) => {
       return res.status(401).json({ message: "No corresponding user" });
     }
 
-    // What the fuck?
-    // Problem: sid does not exist at ../modules/stores/mongo.ts (userSchema) (or mongo.d.ts)
-    // Is sid not used?
-    // Origin: login(req, user.sid, user.id, user._id.toString(), user.name);
-    login(req, "", user.id, user._id.toString(), user.name);
+    login(req, user.id, user._id.toString(), user.name, undefined);
     req.session.isApp = true;
     req.session.deviceToken = deviceToken;
 

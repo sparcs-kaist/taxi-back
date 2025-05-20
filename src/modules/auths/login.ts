@@ -11,7 +11,7 @@ export const ssoClient = !isAuthReplace
 
 export interface LoginInfo {
   id: string;
-  sid: string;
+  sid?: string;
   oid: string;
   name: string;
   time: number;
@@ -39,10 +39,10 @@ export const isLogin = (req: Request) => {
 
 export const login = (
   req: Request,
-  sid: string,
   id: string,
   oid: string,
-  name: string
+  name: string,
+  sid?: string
 ) => {
   req.session.loginInfo = { sid, id, oid, name, time: Date.now() };
 };
