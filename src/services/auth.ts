@@ -1,4 +1,3 @@
-//auth.ts
 import { Request, Response } from "express";
 import { nodeEnv, testAccounts } from "@/loadenv";
 import { userModel } from "@/modules/stores/mongo";
@@ -128,13 +127,13 @@ const update = async (userData: {
   );
 };
 
-const tryLogin = async (
+export const tryLogin = async (
   req: Request,
   res: Response,
   userData: userDataType & { name: any; kaist: any },
   redirectOrigin: string | URL | undefined,
   redirectPath: string | URL
-) => {
+): Promise<void> => {
   try {
     const user = await userModel.findOne(
       { id: userData.id, withdraw: false }, // NOTE: SSO uid 쓰는 곳
@@ -186,7 +185,7 @@ const tryLogin = async (
   }
 };
 
-const sparcsssoHandler = (req: Request, res: Response) => {
+export const sparcsssoHandler = (req: Request, res: Response) => {
   const redirectPath = decodeURIComponent(
     (req.query?.redirect as string) || "%2F"
   );
@@ -202,7 +201,7 @@ const sparcsssoHandler = (req: Request, res: Response) => {
   res.redirect(url + "&social_enabled=0&show_disabled_button=0");
 };
 
-const sparcsssoCallbackHandler = (req: Request, res: Response) => {
+export const sparcsssoCallbackHandler = (req: Request, res: Response) => {
   const loginAfterState = req.session?.loginAfterState;
   const { state: stateForCmp, code } = req.query;
 
@@ -243,13 +242,13 @@ const sparcsssoCallbackHandler = (req: Request, res: Response) => {
   });
 };
 
-const loginReplaceHandler = (req: Request, res: Response) => {
+export const loginReplaceHandler = (req: Request, res: Response) => {
   res.status(400).json({
     error: "Auth/login/replace : Bad Request",
   });
 };
 
-const logoutHandler = async (req: Request, res: Response) => {
+export const logoutHandler = async (req: Request, res: Response) => {
   const redirectPath = decodeURIComponent(
     (req.query?.redirect as string) || "%2F"
   );
@@ -271,12 +270,4 @@ const logoutHandler = async (req: Request, res: Response) => {
   } catch (e) {
     res.status(500).send("Auth/logout : internal server error");
   }
-};
-
-export {
-  tryLogin,
-  sparcsssoHandler,
-  sparcsssoCallbackHandler,
-  loginReplaceHandler,
-  logoutHandler,
 };

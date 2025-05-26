@@ -1,5 +1,4 @@
-//auth.mobile.ts
-import { Request, Response } from "express";
+import type { Request, Response, RequestHandler } from "express";
 
 import { userModel } from "@/modules/stores/mongo";
 import { login } from "@/modules/auths/login";
@@ -13,7 +12,10 @@ import { jwt as jwtValue } from "@/loadenv";
 import { JwtPayload } from "jsonwebtoken";
 const { TOKEN_EXPIRED, TOKEN_INVALID } = jwtValue;
 
-const tokenLoginHandler = async (req: Request, res: Response) => {
+export const tokenLoginHandler: RequestHandler = async (
+  req: Request,
+  res: Response
+) => {
   const { accessToken, deviceToken } = req.query as {
     accessToken: string;
     deviceToken: string;
@@ -57,7 +59,7 @@ const tokenLoginHandler = async (req: Request, res: Response) => {
   }
 };
 
-const tokenRefreshHandler = async (req: Request, res: Response) => {
+export const tokenRefreshHandler = async (req: Request, res: Response) => {
   try {
     const { accessToken, refreshToken } = req.query as {
       accessToken: string;
@@ -101,7 +103,10 @@ const tokenRefreshHandler = async (req: Request, res: Response) => {
   }
 };
 
-const registerDeviceTokenHandler = async (req: Request, res: Response) => {
+export const registerDeviceTokenHandler = async (
+  req: Request,
+  res: Response
+) => {
   try {
     const { accessToken, deviceToken } = req.body;
     const accessTokenStatus = (await jwt.verify(accessToken)) as
@@ -123,14 +128,14 @@ const registerDeviceTokenHandler = async (req: Request, res: Response) => {
     }
 
     await registerDeviceToken(accessTokenStatus.id, deviceToken);
-    res.status(200).send("success");
+    return res.status(200).send("success");
   } catch (e) {
     logger.error(e);
-    res.status(500).send("server error");
+    return res.status(500).send("server error");
   }
 };
 
-const removeDeviceTokenHandler = async (req: Request, res: Response) => {
+export const removeDeviceTokenHandler = async (req: Request, res: Response) => {
   try {
     const { accessToken, deviceToken } = req.body;
     const accessTokenStatus = await jwt.verify(accessToken);
@@ -145,16 +150,9 @@ const removeDeviceTokenHandler = async (req: Request, res: Response) => {
     }
 
     await unregisterDeviceToken(deviceToken);
-    res.status(200).send("success");
+    return res.status(200).send("success");
   } catch (e) {
     logger.error(e);
-    res.status(500).send("server error");
+    return res.status(500).send("server error");
   }
-};
-
-export {
-  tokenLoginHandler,
-  tokenRefreshHandler,
-  registerDeviceTokenHandler,
-  removeDeviceTokenHandler,
 };

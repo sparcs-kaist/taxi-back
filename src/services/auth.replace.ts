@@ -1,7 +1,5 @@
-//auth.replace.ts
-import { Request, Response } from "express";
-import { userModel } from "@/modules/stores/mongo";
-import { logout, login } from "@/modules/auths/login";
+import type { Request, Response } from "express";
+import { logout } from "@/modules/auths/login";
 
 import { unregisterDeviceToken } from "@/modules/fcm";
 import {
@@ -31,7 +29,7 @@ const createUserData = (id: string) => {
   return info;
 };
 
-const loginReplaceHandler = (req: Request, res: Response) => {
+export const loginReplaceHandler = (req: Request, res: Response) => {
   const { id } = req.body;
   const loginAfterState = req.session?.loginAfterState;
   if (!loginAfterState)
@@ -41,7 +39,7 @@ const loginReplaceHandler = (req: Request, res: Response) => {
   tryLogin(req, res, createUserData(id), redirectOrigin, redirectPath!);
 };
 
-const sparcsssoHandler = (req: Request, res: Response) => {
+export const sparcsssoHandler = (req: Request, res: Response) => {
   const redirectPath = decodeURIComponent(
     (req.query?.redirect as string) || "%2F"
   );
@@ -55,7 +53,7 @@ const sparcsssoHandler = (req: Request, res: Response) => {
   res.end(loginReplacePage);
 };
 
-const logoutHandler = async (
+export const logoutHandler = async (
   req: Request,
   res: {
     json: (arg0: { ssoLogoutUrl: string }) => void;
@@ -86,9 +84,4 @@ const logoutHandler = async (
   }
 };
 
-export {
-  loginReplaceHandler,
-  sparcsssoHandler,
-  logoutHandler,
-  registerDeviceTokenHandler,
-};
+export { registerDeviceTokenHandler };
