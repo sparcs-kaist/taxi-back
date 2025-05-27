@@ -125,10 +125,10 @@ export const editAccountHandler: RequestHandler = async (req, res) => {
 
 export const registerPhoneNumberHandler: RequestHandler = async (req, res) => {
   try {
-    const newphoneNumber = req.body.phoneNumber;
+    const newPhoneNumber = req.body.phoneNumber;
     const result = await userModel.findOneAndUpdate(
       { _id: req.userOid, withdraw: false },
-      { phoneNumber: newphoneNumber, badge: true }
+      { phoneNumber: newPhoneNumber, badge: true }
     );
 
     if (result) {
@@ -151,27 +151,25 @@ export const registerPhoneNumberHandler: RequestHandler = async (req, res) => {
 export const editBadgeHandler: RequestHandler = async (req, res) => {
   try {
     let result;
-
-    if (req.body.badge === "true") {
+    if (req.body.badge === "true" || req.body.badge === "false") {
       result = await userModel.findOneAndUpdate(
         {
           _id: req.userOid,
           withdraw: false,
           phoneNumber: { $exists: true, $ne: null },
         },
-        { badge: true }
-      );
-    } else if (req.body.badge === "false") {
-      result = await userModel.findOneAndUpdate(
-        { _id: req.userOid, withdraw: false },
-        { badge: false }
+        { badge: req.body.badge === "true" ? true : false }
       );
     } else {
-      return res.status(400).send("Users/editBadge : invalid request for badge")
+      return res
+        .status(400)
+        .send("Users/editBadge : invalid request for badge");
     }
-    
+
     if (result) {
-      return res.status(200).send("Users/editBadge : badge successfully applied");
+      return res
+        .status(200)
+        .send("Users/editBadge : badge successfully applied");
     } else {
       return res.status(400).send("Users/editBadge : Unauthorized user");
     }
@@ -180,7 +178,6 @@ export const editBadgeHandler: RequestHandler = async (req, res) => {
     return res.status(500).send("Users/editBadge : internal server error");
   }
 };
-
 
 export const editProfileImgGetPUrlHandler: RequestHandler = async (
   req,
