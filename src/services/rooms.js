@@ -21,6 +21,7 @@ const eventPeriod = eventConfig && {
   endAt: new Date(eventConfig.period.endAt),
 };
 import { contracts } from "@/lottery";
+const mongoose = require("mongoose");
 
 const createHandler = async (req, res) => {
   const { name, from, to, time, maxPartLength } = req.body;
@@ -475,7 +476,7 @@ const searchHandler = async (req, res) => {
       .limit(1000)
       .populate(roomPopulateOption)
       .lean();
-    res.json(
+    return res.json(
       rooms.map((room) => formatSettlement(room, { includeSettlement: false }))
     );
   } catch (err) {
@@ -532,13 +533,6 @@ const searchByTimeGapHandler = async (req, res) => {
     // timeGap(단위: 분)은 기본적으로 20분으로 설정되어 있습니다.
     const { from, to, time, timeGap = 25 } = req.query;
 
-    // Validate required parameters
-    if (!from || !to || !time) {
-      return res.status(400).json({
-        error: "Rooms/searchByTimeGap : Bad request",
-      });
-    }
-
     // Check if from and to are different
     if (from === to) {
       return res.status(400).json({
@@ -572,21 +566,32 @@ const searchByTimeGapHandler = async (req, res) => {
 
     // Build query
     const query = {
-      from: from,
-      to: to,
+      from: mongoose.Types.ObjectId(from),
+      to: mongoose.Types.ObjectId(to),
       time: { $gte: minTime, $lte: maxTime },
       "part.0": { $exists: true }, // Ensure at least one participant exists
     };
 
-    // Find rooms matching the criteria
-    const rooms = await roomModel
-      .find(query)
-      .sort({ time: 1 })
-      .limit(3) // Limit results to a reasonable number
-      .populate(roomPopulateOption)
-      .lean();
+    const agg = [
+      { $match: query },
+      {
+        $addFields: {
+          diff: {
+            $abs: {
+              $subtract: ["$time", targetTime],
+            },
+          },
+        },
+      },
+      { $sort: { diff: 1 } },
+      { $limit: 3 },
+    ];
 
-    res.json(
+    const rawRooms = await roomModel.aggregate(agg);
+    // Mongoose 6.x 이상이라면, aggregate 결과에도 populate 가능
+    const rooms = await roomModel.populate(rawRooms, roomPopulateOption);
+
+    return res.json(
       rooms.map((room) => formatSettlement(room, { includeSettlement: false }))
     );
   } catch (err) {

@@ -27,10 +27,10 @@ router.get(
 router.get(
   "/searchByTimeGap",
   [
-    query("from").optional().isMongoId(),
-    query("to").optional().isMongoId(),
-    query("time").optional().isISO8601(),
-    query("timeGap").optional().isInt({ min: 0 }),
+    query("from").isMongoId(),
+    query("to").isMongoId(),
+    query("time").isISO8601(),
+    query("timeGap").optional().isInt({ min: 0, max: 60 }),
   ],
   validator,
   roomHandlers.searchByTimeGapHandler

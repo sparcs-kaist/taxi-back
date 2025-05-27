@@ -708,7 +708,7 @@ roomsDocs[`${apiPrefix}/searchByUser`] = {
 roomsDocs[`${apiPrefix}/searchByTimeGap`] = {
   get: {
     tags: [tag],
-    summary: "검색하려는 시간 범위에 따른 방 검색색",
+    summary: "검색하려는 시간 범위에 따른 방 검색",
     description: `출발지/도착지/날짜를 받아 조건에 맞는 방을 검색합니다.<br/>
     조건에 맞는 방이 있을 경우, 방들의 정보를 반환하고 없다면 빈 배열을 반환합니다.<br/>
     로그인을 하지 않아도 접근 가능합니다.`,
@@ -793,12 +793,11 @@ roomsDocs[`${apiPrefix}/searchByTimeGap`] = {
               },
             },
             examples: {
-              "출발지나 도착지, 시간이 주어지지 않거나 출발지와 도착지가 같음":
-                {
-                  value: {
-                    error: "Rooms/searchByTimeGap : Bad request",
-                  },
+              "출발지와 도착지가 같음": {
+                value: {
+                  error: "Rooms/searchByTimeGap : Bad request",
                 },
+              },
               "출발/도착지가 존재하지 않는 장소": {
                 value: {
                   error: "Rooms/searchByTimeGap : Invalid 'from/to' location",
