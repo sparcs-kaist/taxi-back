@@ -530,7 +530,7 @@ const searchByUserHandler = async (req, res) => {
 const searchByTimeGapHandler = async (req, res) => {
   try {
     // timeGap(단위: 분)은 기본적으로 20분으로 설정되어 있습니다.
-    const { from, to, time, timeGap = 20 } = req.query;
+    const { from, to, time, timeGap = 25 } = req.query;
 
     // Validate required parameters
     if (!from || !to || !time) {
@@ -565,10 +565,10 @@ const searchByTimeGapHandler = async (req, res) => {
     const targetTime = new Date(time);
     const currentTime = new Date();
 
-    const _minTime = new Date(targetTime.getTime() - timeGap * 60 * 1000); // 20 minutes before
+    const _minTime = new Date(targetTime.getTime() - timeGap * 60 * 1000); // timegap minutes before
     const minTime =
       _minTime.getTime() >= currentTime.getTime() ? _minTime : currentTime; // If the time is in the past, use current time
-    const maxTime = new Date(targetTime.getTime() + timeGap * 60 * 1000); // 20 minutes after
+    const maxTime = new Date(targetTime.getTime() + timeGap * 60 * 1000); // timegap minutes after
 
     // Build query
     const query = {
@@ -582,7 +582,7 @@ const searchByTimeGapHandler = async (req, res) => {
     const rooms = await roomModel
       .find(query)
       .sort({ time: 1 })
-      .limit(10) // Limit results to a reasonable number
+      .limit(3) // Limit results to a reasonable number
       .populate(roomPopulateOption)
       .lean();
 
