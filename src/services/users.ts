@@ -123,6 +123,56 @@ export const editAccountHandler: RequestHandler = async (req, res) => {
   }
 };
 
+export const registerPhoneNumberHandler: RequestHandler = async (req, res) => {
+  try {
+    const newPhoneNumber = req.body.phoneNumber;
+    const result = await userModel.findOneAndUpdate(
+      { _id: req.userOid, withdraw: false },
+      { phoneNumber: newPhoneNumber, badge: true }
+    );
+
+    if (result) {
+      return res
+        .status(200)
+        .send("Users/registerPhoneNumber : create user phoneNumber successful");
+    } else {
+      return res
+        .status(400)
+        .send("Users/registerPhoneNumber : such user id does not exist");
+    }
+  } catch (err) {
+    logger.error(err);
+    return res
+      .status(500)
+      .send("Users/registerPhoneNumber : internal server error");
+  }
+};
+
+export const editBadgeHandler: RequestHandler = async (req, res) => {
+  try {
+    if (req.body.badge === "true" || req.body.badge === "false") {
+      await userModel.findOneAndUpdate(
+        {
+          _id: req.userOid,
+          withdraw: false,
+          phoneNumber: { $exists: true, $ne: null },
+        },
+        { badge: req.body.badge === "true" ? true : false }
+      );
+      return res
+        .status(200)
+        .send("Users/editBadge : badge successfully applied");
+    } else {
+      return res
+        .status(400)
+        .send("Users/editBadge : invalid request for badge");
+    }
+  } catch (err) {
+    logger.error(err);
+    return res.status(500).send("Users/editBadge : internal server error");
+  }
+};
+
 export const editProfileImgGetPUrlHandler: RequestHandler = async (
   req,
   res
