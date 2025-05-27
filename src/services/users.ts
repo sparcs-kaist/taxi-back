@@ -150,9 +150,8 @@ export const registerPhoneNumberHandler: RequestHandler = async (req, res) => {
 
 export const editBadgeHandler: RequestHandler = async (req, res) => {
   try {
-    let result;
     if (req.body.badge === "true" || req.body.badge === "false") {
-      result = await userModel.findOneAndUpdate(
+      await userModel.findOneAndUpdate(
         {
           _id: req.userOid,
           withdraw: false,
@@ -160,18 +159,13 @@ export const editBadgeHandler: RequestHandler = async (req, res) => {
         },
         { badge: req.body.badge === "true" ? true : false }
       );
-    } else {
-      return res
-        .status(400)
-        .send("Users/editBadge : invalid request for badge");
-    }
-
-    if (result) {
       return res
         .status(200)
         .send("Users/editBadge : badge successfully applied");
     } else {
-      return res.status(400).send("Users/editBadge : Unauthorized user");
+      return res
+        .status(400)
+        .send("Users/editBadge : invalid request for badge");
     }
   } catch (err) {
     logger.error(err);
