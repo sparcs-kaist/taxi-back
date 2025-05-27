@@ -535,14 +535,14 @@ const searchByTimeGapHandler = async (req, res) => {
     // Validate required parameters
     if (!from || !to || !time) {
       return res.status(400).json({
-        error: "Rooms/searchByTimeTermHandler : Bad request",
+        error: "Rooms/searchByTimeGap : Bad request",
       });
     }
 
     // Check if from and to are different
     if (from === to) {
       return res.status(400).json({
-        error: "Rooms/searchByTimeTermHandler : Bad request",
+        error: "Rooms/searchByTimeGap : Bad request",
       });
     }
 
@@ -550,14 +550,14 @@ const searchByTimeGapHandler = async (req, res) => {
     const fromLocation = await locationModel.findById(from);
     if (!fromLocation || fromLocation?.isValid === false) {
       return res.status(400).json({
-        error: "Rooms/searchByTimeTermHandler : Invalid 'from' location",
+        error: "Rooms/searchByTimeGap : Invalid 'from' location",
       });
     }
 
     const toLocation = await locationModel.findById(to);
     if (!toLocation || toLocation?.isValid === false) {
       return res.status(400).json({
-        error: "Rooms/searchByTimeTermHandler : Invalid 'to' location",
+        error: "Rooms/searchByTimeGap : Invalid 'to' location",
       });
     }
 
@@ -592,7 +592,7 @@ const searchByTimeGapHandler = async (req, res) => {
   } catch (err) {
     logger.error(err);
     res.status(500).json({
-      error: "Rooms/searchExactLocationWithTimeRange : Internal server error",
+      error: "Rooms/searchByTimeGap : Internal server error",
     });
   }
 };
