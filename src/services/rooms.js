@@ -20,7 +20,7 @@ const eventPeriod = eventConfig && {
   startAt: new Date(eventConfig.period.startAt),
   endAt: new Date(eventConfig.period.endAt),
 };
-import { contracts } from "@/lottery";
+const { contracts } = require("@/lottery");
 const mongoose = require("mongoose");
 
 const createHandler = async (req, res) => {
@@ -116,7 +116,7 @@ const createHandler = async (req, res) => {
     return res.send(roomObjectFormated);
   } catch (err) {
     logger.error(err);
-    res.status(500).json({
+    return res.status(500).json({
       error: "Rooms/create : internal server error",
     });
     return;
@@ -184,7 +184,7 @@ const createTestHandler = async (req, res) => {
     return res.json({ result: true });
   } catch (err) {
     logger.error(err);
-    res.status(500).json({
+    return res.status(500).json({
       error: "Rooms/create/test : internal server error",
     });
   }
@@ -206,7 +206,7 @@ const publicInfoHandler = async (req, res) => {
     }
   } catch (err) {
     logger.error(err);
-    res.status(500).json({
+    return res.status(500).json({
       error: "Rooms/publicInfo : internal server error",
     });
   }
@@ -229,7 +229,7 @@ const infoHandler = async (req, res) => {
     }
   } catch (err) {
     logger.error(err);
-    res.status(500).json({
+    return res.status(500).json({
       error: "Rooms/info : internal server error",
     });
   }
@@ -308,7 +308,7 @@ const joinHandler = async (req, res) => {
     res.send(formatSettlement(roomObject));
   } catch (err) {
     logger.error(err);
-    res.status(500).json({
+    return res.status(500).json({
       error: "Rooms/join : internal server error",
     });
   }
@@ -397,7 +397,7 @@ const abortHandler = async (req, res) => {
     res.send(formatSettlement(roomObject, { isOver }));
   } catch (err) {
     logger.error(err);
-    res.status(500).json({
+    return res.status(500).json({
       error: "Rooms/abort : internal server error",
     });
   }
@@ -480,7 +480,7 @@ const searchHandler = async (req, res) => {
       rooms.map((room) => formatSettlement(room, { includeSettlement: false }))
     );
   } catch (err) {
-    res.status(500).json({
+    return res.status(500).json({
       error: "Rooms/search : Internal server error",
     });
   }
@@ -522,7 +522,7 @@ const searchByUserHandler = async (req, res) => {
     res.json(response);
   } catch (err) {
     logger.error(err);
-    res.status(500).json({
+    return res.status(500).json({
       error: "Rooms/searchByUser : internal server error",
     });
   }
@@ -530,7 +530,7 @@ const searchByUserHandler = async (req, res) => {
 
 const searchByTimeGapHandler = async (req, res) => {
   try {
-    // timeGap(단위: 분)은 기본적으로 20분으로 설정되어 있습니다.
+    // timeGap(단위: 분)은 기본적으로 25분으로 설정되어 있습니다.
     const { from, to, time, timeGap = 25 } = req.query;
 
     // Check if from and to are different
@@ -596,7 +596,7 @@ const searchByTimeGapHandler = async (req, res) => {
     );
   } catch (err) {
     logger.error(err);
-    res.status(500).json({
+    return res.status(500).json({
       error: "Rooms/searchByTimeGap : Internal server error",
     });
   }
@@ -675,7 +675,7 @@ const commitSettlementHandler = async (req, res) => {
     res.send(formatSettlement(roomObject, { isOver: true }));
   } catch (err) {
     logger.error(err);
-    res.status(500).json({
+    return res.status(500).json({
       error: "Rooms/:id/commitSettlement : internal server error",
     });
   }
@@ -748,7 +748,7 @@ const commitPaymentHandler = async (req, res) => {
     res.send(formatSettlement(roomObject, { isOver: true }));
   } catch (err) {
     logger.error(err);
-    res.status(500).json({
+    return res.status(500).json({
       error: "Rooms/:id/commitPayment : internal server error",
     });
   }
