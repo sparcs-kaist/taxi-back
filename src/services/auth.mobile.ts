@@ -59,7 +59,10 @@ export const tokenLoginHandler: RequestHandler = async (
   }
 };
 
-export const tokenRefreshHandler = async (req: Request, res: Response) => {
+export const tokenRefreshHandler: RequestHandler = async (
+  req: Request,
+  res: Response
+) => {
   try {
     const { accessToken, refreshToken } = req.query as {
       accessToken: string;
@@ -103,7 +106,7 @@ export const tokenRefreshHandler = async (req: Request, res: Response) => {
   }
 };
 
-export const registerDeviceTokenHandler = async (
+export const registerDeviceTokenHandler: RequestHandler = async (
   req: Request,
   res: Response
 ) => {
@@ -135,7 +138,10 @@ export const registerDeviceTokenHandler = async (
   }
 };
 
-export const removeDeviceTokenHandler = async (req: Request, res: Response) => {
+export const removeDeviceTokenHandler: RequestHandler = async (
+  req: Request,
+  res: Response
+) => {
   try {
     const { accessToken, deviceToken } = req.body;
     const accessTokenStatus = await jwt.verify(accessToken);

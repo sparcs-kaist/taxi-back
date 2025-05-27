@@ -1,4 +1,4 @@
-import { Request, Response } from "express";
+import type { Request, Response, RequestHandler } from "express";
 import { nodeEnv, testAccounts } from "@/loadenv";
 import { userModel } from "@/modules/stores/mongo";
 
@@ -185,7 +185,10 @@ export const tryLogin = async (
   }
 };
 
-export const sparcsssoHandler = (req: Request, res: Response) => {
+export const sparcsssoHandler: RequestHandler = (
+  req: Request,
+  res: Response
+) => {
   const redirectPath = decodeURIComponent(
     (req.query?.redirect as string) || "%2F"
   );
@@ -201,7 +204,10 @@ export const sparcsssoHandler = (req: Request, res: Response) => {
   res.redirect(url + "&social_enabled=0&show_disabled_button=0");
 };
 
-export const sparcsssoCallbackHandler = (req: Request, res: Response) => {
+export const sparcsssoCallbackHandler: RequestHandler = (
+  req: Request,
+  res: Response
+) => {
   const loginAfterState = req.session?.loginAfterState;
   const { state: stateForCmp, code } = req.query;
 
@@ -242,13 +248,19 @@ export const sparcsssoCallbackHandler = (req: Request, res: Response) => {
   });
 };
 
-export const loginReplaceHandler = (req: Request, res: Response) => {
+export const loginReplaceHandler: RequestHandler = (
+  req: Request,
+  res: Response
+) => {
   res.status(400).json({
     error: "Auth/login/replace : Bad Request",
   });
 };
 
-export const logoutHandler = async (req: Request, res: Response) => {
+export const logoutHandler: RequestHandler = async (
+  req: Request,
+  res: Response
+) => {
   const redirectPath = decodeURIComponent(
     (req.query?.redirect as string) || "%2F"
   );

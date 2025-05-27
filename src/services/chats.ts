@@ -1,4 +1,4 @@
-import type { Request, Response } from "express";
+import type { Request, Response, RequestHandler } from "express";
 import { chatModel, userModel, roomModel } from "@/modules/stores/mongo";
 import { chatPopulateOption } from "@/modules/populates/chats";
 import * as aws from "@/modules/stores/aws";

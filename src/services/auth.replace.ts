@@ -1,4 +1,4 @@
-import type { Request, Response } from "express";
+import type { Request, Response, RequestHandler } from "express";
 import { logout } from "@/modules/auths/login";
 
 import { unregisterDeviceToken } from "@/modules/fcm";
@@ -29,7 +29,10 @@ const createUserData = (id: string) => {
   return info;
 };
 
-export const loginReplaceHandler = (req: Request, res: Response) => {
+export const loginReplaceHandler: RequestHandler = (
+  req: Request,
+  res: Response
+) => {
   const { id } = req.body;
   const loginAfterState = req.session?.loginAfterState;
   if (!loginAfterState)
@@ -53,16 +56,9 @@ export const sparcsssoHandler = (req: Request, res: Response) => {
   res.end(loginReplacePage);
 };
 
-export const logoutHandler = async (
+export const logoutHandler: RequestHandler = async (
   req: Request,
-  res: {
-    json: (arg0: { ssoLogoutUrl: string }) => void;
-    status: (arg0: number) => {
-      (): any;
-      new (): any;
-      send: { (arg0: string): void; new (): any };
-    };
-  }
+  res: Response
 ) => {
   const redirectPath = decodeURIComponent(
     (req.query?.redirect as string) || "%2F"
