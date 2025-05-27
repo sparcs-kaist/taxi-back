@@ -173,7 +173,7 @@ const sparcsssoCallbackHandler = (req, res) => {
 
   ssoClient.getUserInfo(code).then((userDataBefore) => {
     const userData = transUserData(userDataBefore);
-    logger.info(`Login requested: userData=${JSON.stringify(userData)}`);
+    logger.info(`Login requested: ${JSON.stringify(userData)}`);
 
     const isTestAccount = testAccounts?.includes(userData.email);
     if (userData.isEligible || nodeEnv !== "production" || isTestAccount) {
