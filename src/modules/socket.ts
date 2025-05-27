@@ -1,13 +1,21 @@
-const { Server } = require("socket.io");
+import http from "http";
 
-const sessionMiddleware = require("@/middlewares/session").default;
-const logger = require("@/modules/logger").default;
-const { getLoginInfo } = require("@/modules/auths/login");
-const { roomModel, userModel, chatModel } = require("@/modules/stores/mongo");
-const { getTokensOfUsers, sendMessageByTokens } = require("@/modules/fcm");
+import { Server, Socket } from "socket.io";
+import type { Request } from "express";
+import type { LeanDocument, Types } from "mongoose";
 
-const { corsWhiteList } = require("@/loadenv");
-const { chatPopulateOption } = require("@/modules/populates/chats");
+import sessionMiddleware from "@/middlewares/session";
+import logger from "@/modules/logger";
+import { getLoginInfo } from "@/modules/auths/login";
+import { roomModel, userModel, chatModel } from "@/modules/stores/mongo";
+import { getTokensOfUsers, sendMessageByTokens } from "@/modules/fcm";
+import { corsWhiteList } from "@/loadenv";
+import { chatPopulateOption } from "@/modules/populates/chats";
+import type { Chat, ChatType } from "@/types/mongo";
+
+interface SessionSocket extends Socket {
+  request: Request;
+}
 
 /**
  * emitChatEvent의 필수 파라미터가 주어지지 않은 경우 발생하는 예외를 정의하는 클래스입니다.
@@ -20,12 +28,22 @@ class IllegalArgumentsException {
   }
 }
 
+export type ChatArrayObject = Omit<LeanDocument<Chat>, "authorId"> & {
+  inOutNames?: (string | undefined)[];
+  authorId?: {
+    _id?: Types.ObjectId | undefined;
+    nickname: string;
+    profileImageUrl: string;
+    withdraw: boolean;
+  };
+};
+
 /**
  * Chat Object의 array가 주어졌을 때 클라이언트에서 처리하기 편한 형태로 Chat Object를 가공합니다.
  * @param {Object[]} chats - Chats Document에 lean과 populate(chatPopulateOption)을 차례로 적용한 Chat Object의 배열입니다.
  * @return {Promise<Array>} {type: String, authorId: String, authorName: String, authorProfileUrl: String, content: string, time: Date}로 이루어진 chat 객체의 배열입니다.
  */
-const transformChatsForRoom = async (chats) => {
+export const transformChatsForRoom = async (chats: ChatArrayObject[]) => {
   const chatsToSend = [];
 
   for (const chat of chats) {
@@ -61,7 +79,7 @@ const transformChatsForRoom = async (chats) => {
  * FCM 알림으로 보내는 content는 채팅 type에 따라 달라집니다.
  * 예를 들어, type이 "text"인 경우 `${nickname}: ${content}`를 보냅니다.
  */
-const getMessageBody = (type, nickname = "", content = "") => {
+const getMessageBody = (type: string, nickname = "", content = "") => {
   // 닉네임이 9글자를 넘어가면 "..."으로 표시합니다.
   const ellipsisedNickname =
     nickname.length > 9 ? nickname.slice(0, 7) + "..." : nickname;
@@ -91,7 +109,7 @@ const getMessageBody = (type, nickname = "", content = "") => {
       const suffix = "님이 송금을 완료하였습니다";
       return `${ellipsisedNickname} ${suffix}`;
     }
-    case type === "account": {
+    case "account": {
       const suffix = "님이 계좌번호를 전송하였습니다";
       return `${ellipsisedNickname} ${suffix}`;
     }
@@ -111,13 +129,22 @@ const getMessageBody = (type, nickname = "", content = "") => {
  * @param {Server<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, any>} io - Socket.io 서버 인스턴스입니다. req.app.get("io")를 통해 접근할 수 있습니다.
  * @param {Object} chat - 채팅 메시지 내용입니다.
  * @param {string} chat.roomId - 채팅 및 채팅 알림을 보낼 방의 ObjectId입니다.
- * @param {string} chat.type - 채팅 메시지의 유형입니다. "text" | "s3img" | "in" | "out" | "payment" | "settlement" | "account" | "departure" | "arrival" 입니다.
+ * @param {ChatType} chat.type - 채팅 메시지의 유형입니다. "text" | "s3img" | "in" | "out" | "payment" | "settlement" | "account" | "departure" | "arrival" 입니다.
  * @param {string} chat.content - 채팅 메시지의 본문입니다. chat.type이 "s3img"인 경우에는 채팅의 objectId입니다. chat.type이 "in"이거나 "out"인 경우 입퇴장한 사용자의 oid입니다.
- * @param {string} chat.authorId - optional. 채팅을 보낸 사용자의 ObjectId입니다.
- * @param {Date?} chat.time - optional. 채팅 메시지 전송 시각입니다.
+ * @param {Types.ObjectId | string} chat.authorId - optional. 채팅을 보낸 사용자의 ObjectId입니다.
+ * @param {Date | null} chat.time - optional. 채팅 메시지 전송 시각입니다.
  * @return {Promise<Boolean>} 채팅 및 알림 전송에 성공하면 true, 중간에 오류가 발생하면 false를 반환합니다.
  */
-const emitChatEvent = async (io, chat) => {
+export const emitChatEvent = async (
+  io: Server,
+  chat: {
+    roomId: string;
+    type: ChatType;
+    content: string;
+    authorId?: Types.ObjectId | string;
+    time?: Date | null;
+  }
+) => {
   try {
     const { roomId, type, content, authorId } = chat;
 
@@ -130,21 +157,21 @@ const emitChatEvent = async (io, chat) => {
     const time = chat?.time || Date.now();
 
     // roomId must be valid
-    const { name, part } = await roomModel.findById(roomId, "name part");
-    if (!name || !part) {
+    const roomResult = await roomModel.findById(roomId, "name part");
+    if (!roomResult?.name || !roomResult.part) {
       throw new IllegalArgumentsException();
     }
+    const { name, part } = roomResult;
 
     // chat optionally contains authorId
-    const { nickname, profileImageUrl } = authorId
-      ? await userModel.findOne(
-          { _id: authorId, withdraw: false },
-          "nickname profileImageUrl"
-        )
-      : {};
-    if (authorId && (!nickname || !profileImageUrl)) {
+    const author = await userModel.findOne(
+      { _id: authorId, withdraw: false },
+      "nickname profileImageUrl"
+    );
+    if (!author?.nickname || !author.profileImageUrl) {
       throw new IllegalArgumentsException();
     }
+    const { nickname, profileImageUrl } = author;
 
     const chatDocument = await chatModel
       .findOneAndUpdate(
@@ -164,13 +191,14 @@ const emitChatEvent = async (io, chat) => {
         },
         { upsert: true, new: true }
       )
-      .lean()
-      .populate(chatPopulateOption);
+      .populate(chatPopulateOption)
+      .lean<ChatArrayObject>()
+      .exec();
 
-    const userIds = part.map((participant) => participant.user);
+    const userIds = part.map((participant) => participant.user.toString());
     const userIdsExceptAuthor = authorId
       ? part
-          .map((participant) => participant.user)
+          .map((participant) => participant.user.toString())
           .filter((userId) => userId.toString() !== authorId.toString())
       : userIds;
 
@@ -206,18 +234,18 @@ const emitChatEvent = async (io, chat) => {
   }
 };
 
-const emitUpdateEvent = async (io, roomId) => {
+export const emitUpdateEvent = async (io: Server, roomId: string) => {
   try {
     // 방의 모든 사용자에게 socket 메세지 업데이트 이벤트를 발생시킵니다.
     if (!io || !roomId) {
       throw new IllegalArgumentsException();
     }
 
-    const { name, part } = await roomModel.findById(roomId, "name part");
-
-    if (!name || !part) {
+    const roomResult = await roomModel.findById(roomId, "name part");
+    if (!roomResult?.name || !roomResult.part) {
       throw new IllegalArgumentsException();
     }
+    const { name, part } = roomResult;
 
     part.forEach(({ user }) =>
       io.in(`user-${user}`).emit("chat_update", {
@@ -233,7 +261,7 @@ const emitUpdateEvent = async (io, roomId) => {
 };
 
 // https://socket.io/how-to/use-with-express-session 참고
-const startSocketServer = (server) => {
+export const startSocketServer = (server: http.Server) => {
   const io = new Server(server, {
     cors: {
       origin: corsWhiteList,
@@ -243,8 +271,9 @@ const startSocketServer = (server) => {
   });
   io.engine.use(sessionMiddleware);
 
-  io.on("connection", (socket) => {
+  io.on("connection", (defaultsocket) => {
     try {
+      const socket = <SessionSocket>defaultsocket;
       const req = socket.request;
       req.session.reload((err) => {
         if (err) {
@@ -265,11 +294,4 @@ const startSocketServer = (server) => {
   });
 
   return io;
-};
-
-module.exports = {
-  transformChatsForRoom,
-  emitChatEvent,
-  emitUpdateEvent,
-  startSocketServer,
 };

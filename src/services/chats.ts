@@ -6,12 +6,17 @@ import {
   transformChatsForRoom,
   emitChatEvent,
   emitUpdateEvent,
+  ChatArrayObject,
 } from "@/modules/socket";
+import { Chat, ChatType } from "@/types/mongo";
 import logger from "@/modules/logger";
 
 const chatCount = 60;
 
-const loadRecentChatHandler = async (req: Request, res: Response) => {
+export const loadRecentChatHandler: RequestHandler = async (
+  req: Request,
+  res: Response
+) => {
   try {
     const io = req.app.get("io");
     const { userOid } = req;
@@ -35,8 +40,8 @@ const loadRecentChatHandler = async (req: Request, res: Response) => {
       .find({ roomId, isValid: true })
       .sort({ time: -1 })
       .limit(chatCount)
-      .lean()
-      .populate(chatPopulateOption);
+      .populate(chatPopulateOption)
+      .lean<ChatArrayObject[]>();
 
     if (chats) {
       chats.reverse();
@@ -53,7 +58,10 @@ const loadRecentChatHandler = async (req: Request, res: Response) => {
   }
 };
 
-const loadBeforeChatHandler = async (req: Request, res: Response) => {
+export const loadBeforeChatHandler: RequestHandler = async (
+  req: Request,
+  res: Response
+) => {
   try {
     const io = req.app.get("io");
     const { userOid } = req;
@@ -79,8 +87,8 @@ const loadBeforeChatHandler = async (req: Request, res: Response) => {
       .find({ roomId, time: { $lt: lastMsgDate }, isValid: true })
       .sort({ time: -1 })
       .limit(chatCount)
-      .lean()
-      .populate(chatPopulateOption);
+      .populate(chatPopulateOption)
+      .lean<ChatArrayObject[]>();
 
     if (chats) {
       chats.reverse();
@@ -97,7 +105,10 @@ const loadBeforeChatHandler = async (req: Request, res: Response) => {
   }
 };
 
-const loadAfterChatHandler = async (req: Request, res: Response) => {
+export const loadAfterChatHandler: RequestHandler = async (
+  req: Request,
+  res: Response
+) => {
   try {
     const io = req.app.get("io");
     const { userOid } = req;
@@ -121,8 +132,8 @@ const loadAfterChatHandler = async (req: Request, res: Response) => {
       .find({ roomId, time: { $gt: lastMsgDate }, isValid: true })
       .sort({ time: 1 })
       .limit(chatCount)
-      .lean()
-      .populate(chatPopulateOption);
+      .populate(chatPopulateOption)
+      .lean<ChatArrayObject[]>();
 
     if (chats) {
       io.in(`session-${sessionId}`).emit("chat_push_back", {
@@ -138,7 +149,25 @@ const loadAfterChatHandler = async (req: Request, res: Response) => {
   }
 };
 
-const sendChatHandler = async (req: Request, res: Response) => {
+function isChatType(x: unknown): x is ChatType {
+  const chatTypeValues = [
+    "text",
+    "in",
+    "out",
+    "s3img",
+    "payment",
+    "settlement",
+    "account",
+    "account",
+    "arrival",
+  ];
+  return typeof x === "string" && chatTypeValues.includes(x as string);
+}
+
+export const sendChatHandler: RequestHandler = async (
+  req: Request,
+  res: Response
+) => {
   try {
     const io = req.app.get("io");
     const { userOid } = req;
@@ -163,13 +192,18 @@ const sendChatHandler = async (req: Request, res: Response) => {
         .send("Chat/send : user did not participated in the room");
     }
 
+    if (!isChatType(type)) {
+      return res.status(403).send("Chat/send : Invalid ChatType");
+    }
+    const convertedType = type;
+
     if (
       await emitChatEvent(io, {
         roomId,
-        type,
+        type: convertedType,
         content,
-        authorId: user._id.toString(),
-        time: null,
+        authorId: user._id,
+        time: undefined,
       })
     )
       res.json({ result: true });
@@ -180,7 +214,10 @@ const sendChatHandler = async (req: Request, res: Response) => {
   }
 };
 
-const readChatHandler = async (req: Request, res: Response) => {
+export const readChatHandler: RequestHandler = async (
+  req: Request,
+  res: Response
+) => {
   try {
     const io = req.app.get("io");
     const { userOid } = req;
@@ -225,7 +262,10 @@ const readChatHandler = async (req: Request, res: Response) => {
   }
 };
 
-const uploadChatImgGetPUrlHandler = async (req: Request, res: Response) => {
+export const uploadChatImgGetPUrlHandler: RequestHandler = async (
+  req: Request,
+  res: Response
+) => {
   try {
     const { type, roomId } = req.body;
     const user = await userModel.findOne({ _id: req.userOid, withdraw: false });
@@ -268,7 +308,10 @@ const uploadChatImgGetPUrlHandler = async (req: Request, res: Response) => {
   }
 };
 
-const uploadChatImgDoneHandler = async (req: Request, res: Response) => {
+export const uploadChatImgDoneHandler: RequestHandler = async (
+  req: Request,
+  res: Response
+) => {
   try {
     const user = await userModel.findOne(
       { _id: req.userOid, withdraw: false },
@@ -307,7 +350,7 @@ const uploadChatImgDoneHandler = async (req: Request, res: Response) => {
         roomId: chat.roomId.toString(),
         type: chat.type!,
         content: chat.content,
-        authorId: chat.authorId!.toString(),
+        authorId: chat.authorId!,
         time: chat.time,
       });
 
@@ -338,14 +381,4 @@ const isUserInRoom = async (userOid: string, roomId: string) => {
   return part
     .map((participant) => participant.user)
     .some((user) => user.equals(userOid));
-};
-
-export {
-  loadRecentChatHandler,
-  loadBeforeChatHandler,
-  loadAfterChatHandler,
-  sendChatHandler,
-  uploadChatImgGetPUrlHandler,
-  uploadChatImgDoneHandler,
-  readChatHandler,
 };
