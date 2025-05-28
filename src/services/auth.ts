@@ -229,6 +229,8 @@ export const sparcsssoCallbackHandler: RequestHandler = (
   }
 
   ssoClient!.getUserInfo(code).then((userDataBefore) => {
+    logger.info(`Login requested: ${JSON.stringify(userDataBefore)}`);
+
     const userData: userDataType & { name: any; kaist: any } =
       transUserData(userDataBefore);
     const isTestAccount = testAccounts?.includes(userData.email);
