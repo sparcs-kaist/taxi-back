@@ -555,7 +555,7 @@ const searchByTimeGapHandler = async (req, res) => {
       });
     }
 
-    // Parse the time and create time range (±20 minutes)
+    // Parse the time and create time range (±25 minutes)
     const targetTime = new Date(time);
     const currentTime = new Date();
 

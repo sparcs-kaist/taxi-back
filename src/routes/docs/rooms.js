@@ -751,10 +751,11 @@ roomsDocs[`${apiPrefix}/searchByTimeGap`] = {
         schema: {
           type: "integer",
           minimum: 0,
+          maximum: 60,
         },
         description: `검색하려는 시간 범위<br/>
         주어진 경우 현재 시각부터 \`timeGap\` 시간 이후까지의 방들을 검색.<br/>
-        주어지지 않은 경우 앞뒤로 20분 범위의 방들을 검색.`,
+        주어지지 않은 경우 앞뒤로 25분 범위의 방들을 검색.`,
       },
     ],
     responses: {
