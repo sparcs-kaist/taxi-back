@@ -17,40 +17,65 @@ import * as jwt from "@/modules/auths/jwt";
 import logger from "@/modules/logger";
 
 type userDataType = {
-  email: any;
+  email: string;
   id: string;
-  sid: any;
-  uid?: any;
-  name?: any;
+  sid: string;
+  uid?: string;
+  name: string;
   nickname?: string;
-  kaist?: any;
-  kaistType?: any;
+  kaist: string;
+  kaistType?: string;
   kaist_info?: string;
-  sparcs?: any;
-  sparcs_id?: any;
-  facebook?: any;
-  facebook_id?: any;
-  twitter?: any;
-  twitter_id?: any;
+  sparcs: string;
+  facebook: string;
+  twitter: string;
   first_name?: string;
   last_name?: string;
   isEligible?: boolean;
 };
 
-const transUserData = (userData: {
-  kaist_info: string;
-  uid: any;
-  sid: any;
+type rawType = {
+  uid: string;
+  sid: string;
+  kaist_info?: string;
+  kaist_v2_info?: string;
   first_name: string;
   last_name: string;
-  facebook_id?: any;
-  twitter_id?: any;
-  sparcs_id?: any;
-  email?: any;
-}) => {
-  const kaistInfo = userData.kaist_info ? JSON.parse(userData.kaist_info) : {};
+  facebook_id?: string;
+  twitter_id?: string;
+  sparcs_id?: string;
+  email?: string;
+};
 
-  // info.ku_std_no: 학번
+type kaistInfoV1 = {
+  ku_std_no?: string;
+  employeeType?: string;
+  mail?: string;
+};
+
+type kaistInfoV2 = {
+  std_no?: string;
+  socps_cd?: string;
+  email?: string;
+};
+
+const transKaistInfo = (userData: rawType) => {
+  const kaistInfo = userData.kaist_info
+    ? (JSON.parse(userData.kaist_info) as kaistInfoV1)
+    : {};
+  const kaistInfoV2 = userData.kaist_v2_info
+    ? (JSON.parse(userData.kaist_v2_info) as kaistInfoV2)
+    : {};
+  return {
+    kaist: kaistInfoV2.std_no || kaistInfo.ku_std_no || "", // 학번 (직원인 경우 빈 문자열)
+    kaistType: kaistInfoV2.socps_cd || kaistInfo.employeeType || "", // 구성원 유형
+    email: kaistInfoV2.email || kaistInfo.mail || "", // 학교 이메일 주소
+  };
+};
+
+const transUserData = (userData: rawType) => {
+  const kaistInfo = transKaistInfo(userData);
+
   // info.isEligible: 카이스트 구성원인지 여부
   const info = {
     id: userData.uid,
@@ -58,19 +83,16 @@ const transUserData = (userData: {
     name: getFullUsername(userData.first_name, userData.last_name),
     facebook: userData.facebook_id || "",
     twitter: userData.twitter_id || "",
-    kaist: kaistInfo?.ku_std_no || "",
-    kaistType: kaistInfo?.employeeType || "", // DB에 저장하지 않음
+    kaist: kaistInfo.kaist,
+    kaistType: kaistInfo.kaistType, // DB에 저장하지 않음
     sparcs: userData.sparcs_id || "",
-    email: kaistInfo?.mail || userData.email,
-    isEligible: userPattern.allowedEmployeeTypes.test(kaistInfo?.employeeType), // DB에 저장하지 않음
+    email: kaistInfo.email || userData.email || "",
+    isEligible: userPattern.allowedEmployeeTypes.test(kaistInfo.kaistType), // DB에 저장하지 않음
   };
   return info;
 };
 
-const joinus = async (
-  req: Request,
-  userData: userDataType & { name: any; kaist: any }
-) => {
+const joinus = async (req: Request, userData: userDataType) => {
   const oldUser = await userModel
     .findOne(
       {
@@ -111,8 +133,8 @@ const joinus = async (
 };
 
 const update = async (userData: {
-  name: any;
-  email: any;
+  name: string;
+  email: string;
   kaist: any;
   id: any;
 }) => {
@@ -130,7 +152,7 @@ const update = async (userData: {
 export const tryLogin = async (
   req: Request,
   res: Response,
-  userData: userDataType & { name: any; kaist: any },
+  userData: userDataType,
   redirectOrigin: string | URL | undefined,
   redirectPath: string | URL
 ): Promise<void> => {
@@ -231,8 +253,7 @@ export const sparcsssoCallbackHandler: RequestHandler = (
   ssoClient!.getUserInfo(code).then((userDataBefore) => {
     logger.info(`Login requested: ${JSON.stringify(userDataBefore)}`);
 
-    const userData: userDataType & { name: any; kaist: any } =
-      transUserData(userDataBefore);
+    const userData = transUserData(userDataBefore);
     const isTestAccount = testAccounts?.includes(userData.email);
     if (userData.isEligible || nodeEnv !== "production" || isTestAccount) {
       tryLogin(req, res, userData, redirectOrigin, redirectPath);
