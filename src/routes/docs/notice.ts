@@ -3,7 +3,40 @@ const { objectIdPattern } = require("./utils");
 const tag = "notice";
 const apiPrefix = "/notice";
 
-const noticeDocs = {};
+interface ApiResponseSchema {
+  type: string;
+  pattern?: string;
+}
+
+interface ApiResponse {
+  description: string;
+  content: {
+    [contentType: string]: {
+      schema?: {
+        type: string;
+        properties: {
+          [key: string]: ApiResponseSchema | { type: string };
+        };
+      };
+      example?: string;
+    };
+  };
+}
+
+interface NoticeDocsType {
+  [endpoint: string]: {
+    get: {
+      tags: string[];
+      summary: string;
+      description: string;
+      responses: {
+        [statusCode: number]: ApiResponse;
+      };
+    };
+  };
+}
+
+const noticeDocs: NoticeDocsType = {};
 
 noticeDocs[`${apiPrefix}/list`] = {
   get: {
@@ -40,4 +73,4 @@ noticeDocs[`${apiPrefix}/list`] = {
   },
 };
 
-module.exports = noticeDocs;
+export default noticeDocs;
