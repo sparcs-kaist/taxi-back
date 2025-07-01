@@ -53,6 +53,17 @@ router.post(
 // 뱃지를 부여하거나 회수합니다.
 router.post("/editBadge", userHandlers.editBadgeHandler);
 
+// 거주지 정보를 등록합니다.
+router.post(
+  "/registerResidence",
+  body("residence"),
+  validatorMiddleware,
+  userHandlers.registerResidenceHandler
+);
+
+// 거주지 정보를 삭제합니다.
+router.post("/deleteResidence", userHandlers.deleteResidenceHandler);
+
 // 프로필 이미지를 업로드할 수 있는 Presigned-url을 발급합니다.
 router.post(
   "/editProfileImg/getPUrl",

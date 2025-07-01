@@ -173,6 +173,46 @@ export const editBadgeHandler: RequestHandler = async (req, res) => {
   }
 };
 
+export const registerResidenceHandler: RequestHandler = async (req, res) => {
+  try {
+    const userId = req.userOid;
+    const { newResidence } = req.params;
+
+    await userModel.findOneAndUpdate(
+      { _id: req.userOid, withdraw: false },
+      { residence: newResidence }
+    );
+
+    const residenceInfo = {
+      userId: userId,
+      residence: newResidence,
+    };
+
+    return res.status(200).json(residenceInfo);
+  } catch (err) {
+    logger.error(err);
+    return res
+      .status(500)
+      .send("Users/registerPhoneNumber : internal server error");
+  }
+};
+
+export const deleteResidenceHandler: RequestHandler = async (req, res) => {
+  try {
+    const userId = req.userOid;
+
+    await userModel.findOneAndDelete({
+      user: userId,
+    });
+
+    return res
+      .status(200)
+      .send("Users/deleteResidence: residenceInfo deleted successfully");
+  } catch (error) {
+    return res.status(500).send("Users/deleteResidence: internal server error");
+  }
+};
+
 export const editProfileImgGetPUrlHandler: RequestHandler = async (
   req,
   res
