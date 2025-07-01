@@ -105,7 +105,7 @@ const joinus = async (req: Request, userData: userDataType) => {
     .lean();
   if (oldUser && oldUser.withdrewAt) {
     // 탈퇴 후 7일이 지나지 않았을 경우, 가입을 거부합니다.
-    if (typeof req.timestamp === "undefined") {
+    if (req.timestamp === undefined) {
       return false;
     }
     const diff = req.timestamp - oldUser.withdrewAt.getTime();
@@ -135,8 +135,8 @@ const joinus = async (req: Request, userData: userDataType) => {
 const update = async (userData: {
   name: string;
   email: string;
-  kaist: any;
-  id: any;
+  kaist: string;
+  id: string;
 }) => {
   const updateInfo = {
     name: userData.name,

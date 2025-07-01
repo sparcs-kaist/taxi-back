@@ -13,10 +13,7 @@ import logger from "@/modules/logger";
 
 const chatCount = 60;
 
-export const loadRecentChatHandler: RequestHandler = async (
-  req: Request,
-  res: Response
-) => {
+export const loadRecentChatHandler: RequestHandler = async (req, res) => {
   try {
     const io = req.app.get("io");
     const { userOid } = req;
@@ -58,10 +55,7 @@ export const loadRecentChatHandler: RequestHandler = async (
   }
 };
 
-export const loadBeforeChatHandler: RequestHandler = async (
-  req: Request,
-  res: Response
-) => {
+export const loadBeforeChatHandler: RequestHandler = async (req, res) => {
   try {
     const io = req.app.get("io");
     const { userOid } = req;
@@ -105,10 +99,7 @@ export const loadBeforeChatHandler: RequestHandler = async (
   }
 };
 
-export const loadAfterChatHandler: RequestHandler = async (
-  req: Request,
-  res: Response
-) => {
+export const loadAfterChatHandler: RequestHandler = async (req, res) => {
   try {
     const io = req.app.get("io");
     const { userOid } = req;
@@ -164,10 +155,7 @@ function isChatType(x: unknown): x is ChatType {
   return typeof x === "string" && chatTypeValues.includes(x as string);
 }
 
-export const sendChatHandler: RequestHandler = async (
-  req: Request,
-  res: Response
-) => {
+export const sendChatHandler: RequestHandler = async (req, res) => {
   try {
     const io = req.app.get("io");
     const { userOid } = req;
@@ -214,10 +202,7 @@ export const sendChatHandler: RequestHandler = async (
   }
 };
 
-export const readChatHandler: RequestHandler = async (
-  req: Request,
-  res: Response
-) => {
+export const readChatHandler: RequestHandler = async (req, res) => {
   try {
     const io = req.app.get("io");
     const { userOid } = req;
@@ -262,10 +247,7 @@ export const readChatHandler: RequestHandler = async (
   }
 };
 
-export const uploadChatImgGetPUrlHandler: RequestHandler = async (
-  req: Request,
-  res: Response
-) => {
+export const uploadChatImgGetPUrlHandler: RequestHandler = async (req, res) => {
   try {
     const { type, roomId } = req.body;
     const user = await userModel.findOne({ _id: req.userOid, withdraw: false });
@@ -308,10 +290,7 @@ export const uploadChatImgGetPUrlHandler: RequestHandler = async (
   }
 };
 
-export const uploadChatImgDoneHandler: RequestHandler = async (
-  req: Request,
-  res: Response
-) => {
+export const uploadChatImgDoneHandler: RequestHandler = async (req, res) => {
   try {
     const user = await userModel.findOne(
       { _id: req.userOid, withdraw: false },

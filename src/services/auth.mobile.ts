@@ -12,16 +12,12 @@ import { jwt as jwtValue } from "@/loadenv";
 import { JwtPayload } from "jsonwebtoken";
 const { TOKEN_EXPIRED, TOKEN_INVALID } = jwtValue;
 
-export const tokenLoginHandler: RequestHandler = async (
-  req: Request,
-  res: Response
-) => {
+export const tokenLoginHandler: RequestHandler = async (req, res) => {
   const { accessToken, deviceToken } = req.query as {
     accessToken: string;
     deviceToken: string;
   };
-  // const accessToken = req.query.accessToken as string;
-  // const { deviceToken } = req.query;
+
   try {
     if (!accessToken || !deviceToken) {
       return res.status(400).send("invalid request");
@@ -34,12 +30,12 @@ export const tokenLoginHandler: RequestHandler = async (
       } else if (data === TOKEN_EXPIRED) {
         return res.status(401).json({ message: "Expired token" });
       } else {
-        // 정상 작동시 accessTokenStatus는 TOKEN_EXPIRED, TOKEN_INVALID이거나 / JwtPayload임
+        // 정상 작동시 accessTokenStatus는 TOKEN_EXPIRED, TOKEN_INVALID이거나 / JwtPayload
         return res.status(401).json({ message: "Invalid output" });
       }
     }
 
-    if (typeof data !== "number" && data.type !== "access") {
+    if (data.type !== "access") {
       return res.status(401).json({ message: "Not Access token" });
     }
 
@@ -59,10 +55,7 @@ export const tokenLoginHandler: RequestHandler = async (
   }
 };
 
-export const tokenRefreshHandler: RequestHandler = async (
-  req: Request,
-  res: Response
-) => {
+export const tokenRefreshHandler: RequestHandler = async (req, res) => {
   try {
     const { accessToken, refreshToken } = req.query as {
       accessToken: string;
@@ -96,22 +89,22 @@ export const tokenRefreshHandler: RequestHandler = async (
       id: data.id,
       type: "refresh",
     });
-    res.json({
+    return res.json({
       accessToken: newAccessToken,
       refreshToken: newRefreshToken,
     });
   } catch (e) {
     logger.error(e);
-    res.status(501).send("server error");
+    return res.status(501).send("server error");
   }
 };
 
-export const registerDeviceTokenHandler: RequestHandler = async (
-  req: Request,
-  res: Response
-) => {
+export const registerDeviceTokenHandler: RequestHandler = async (req, res) => {
   try {
-    const { accessToken, deviceToken } = req.body;
+    const { accessToken, deviceToken } = req.body as {
+      accessToken: string;
+      deviceToken: string;
+    };
     const accessTokenStatus = (await jwt.verify(accessToken)) as
       | JwtPayload
       | number;
@@ -125,7 +118,7 @@ export const registerDeviceTokenHandler: RequestHandler = async (
       ) {
         return res.status(401).send("unauthorized");
       } else {
-        // 정상 작동시 accessTokenStatus는 TOKEN_EXPIRED, TOKEN_INVALID이거나 / JwtPayload임
+        // 정상 작동시 accessTokenStatus는 TOKEN_EXPIRED, TOKEN_INVALID이거나 / JwtPayload
         return res.status(401).send("invalid output");
       }
     }
@@ -138,12 +131,12 @@ export const registerDeviceTokenHandler: RequestHandler = async (
   }
 };
 
-export const removeDeviceTokenHandler: RequestHandler = async (
-  req: Request,
-  res: Response
-) => {
+export const removeDeviceTokenHandler: RequestHandler = async (req, res) => {
   try {
-    const { accessToken, deviceToken } = req.body;
+    const { accessToken, deviceToken } = req.body as {
+      accessToken: string;
+      deviceToken: string;
+    };
     const accessTokenStatus = await jwt.verify(accessToken);
     if (!deviceToken) {
       return res.status(400).send("invalid request");

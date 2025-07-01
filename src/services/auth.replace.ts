@@ -10,7 +10,7 @@ import logger from "@/modules/logger";
 import * as jwt from "@/modules/auths/jwt";
 
 import { tryLogin } from "@/services/auth";
-import { registerDeviceTokenHandler } from "@/services/auth.mobile";
+// import { registerDeviceTokenHandler } from "@/services/auth.mobile";
 import loginReplacePage from "@/views/loginReplacePage";
 
 const createUserData = (id: string) => {
@@ -29,10 +29,7 @@ const createUserData = (id: string) => {
   return info;
 };
 
-export const loginReplaceHandler: RequestHandler = (
-  req: Request,
-  res: Response
-) => {
+export const loginReplaceHandler: RequestHandler = (req, res) => {
   const { id } = req.body;
   const loginAfterState = req.session?.loginAfterState;
   if (!loginAfterState)
@@ -42,7 +39,7 @@ export const loginReplaceHandler: RequestHandler = (
   tryLogin(req, res, createUserData(id), redirectOrigin, redirectPath!);
 };
 
-export const sparcsssoHandler = (req: Request, res: Response) => {
+export const sparcsssoHandler: RequestHandler = (req, res) => {
   const redirectPath = decodeURIComponent(
     (req.query?.redirect as string) || "%2F"
   );
@@ -80,4 +77,4 @@ export const logoutHandler: RequestHandler = async (
   }
 };
 
-export { registerDeviceTokenHandler };
+// export { registerDeviceTokenHandler };
