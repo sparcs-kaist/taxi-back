@@ -3,7 +3,7 @@ import { noticeModel } from "../modules/stores/mongo";
 
 export const getNoticesHandler: RequestHandler = async (req, res) => {
   try {
-    const pinnedNotice = await noticeModel.findOne({
+    const pinnedNotice = await noticeModel.find({
       is_active: true,
       is_pinned: true,
     });
