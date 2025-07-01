@@ -4,7 +4,7 @@ import logger from "./logger";
 import { naverMap } from "@/loadenv";
 import { taxiFareModel, locationModel } from "./stores/mongo";
 import type { UpdateOneModel } from "mongodb";
-import type { TaxiFare, Location } from "@/types/mongo";
+import type { TaxiFare, LocationLean } from "@/types/mongo";
 
 const naverMapApi = {
   "X-NCP-APIGW-API-KEY-ID": naverMap.apiId,
@@ -42,7 +42,7 @@ export const initializeDatabase = async () => {
       );
       return;
     }
-    const location: LeanDocument<Location>[] = await locationModel
+    const location: LocationLean[] = await locationModel
       .find({ isValid: { $eq: true } })
       .lean();
 
@@ -143,10 +143,10 @@ export const updateTaxiFare = async (sTime: number, isMajor: Boolean) => {
     })
     .lean();
   await prevFares.reduce(async (acc, item) => {
-    const from: LeanDocument<Location> = await locationModel
+    const from: LocationLean = await locationModel
       .findOne({ _id: item.from })
       .lean();
-    const to: LeanDocument<Location> = await locationModel
+    const to: LocationLean = await locationModel
       .findOne({ _id: item.to })
       .lean();
 
@@ -169,14 +169,11 @@ export const updateTaxiFare = async (sTime: number, isMajor: Boolean) => {
 };
 
 /**
- * @param {LeanDocument<Location>} from : 출발지 (longitude, latitude)
- * @param {LeanDocument<Location>} to : 도착지 (longitude, latitude)
+ * @param {LocationLean} from : 출발지 (longitude, latitude)
+ * @param {LocationLean} to : 도착지 (longitude, latitude)
  * @returns naver map api call을 통해 받아온 예상 택시 요금
  */
-export const callTaxiFare = async (
-  from: LeanDocument<Location>,
-  to: LeanDocument<Location>
-) => {
+export const callTaxiFare = async (from: LocationLean, to: LocationLean) => {
   if (
     !naverMapApi["X-NCP-APIGW-API-KEY"] ||
     !naverMapApi["X-NCP-APIGW-API-KEY-ID"]

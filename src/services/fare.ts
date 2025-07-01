@@ -2,8 +2,7 @@ import { naverMap } from "@/loadenv";
 import { taxiFareModel, locationModel } from "@/modules/stores/mongo";
 import { scaledTime, callTaxiFare } from "@/modules/fare";
 import { Request, Response } from "express";
-import { LeanDocument } from "mongoose";
-import type { Location } from "@/types/mongo";
+import type { LocationLean } from "@/types/mongo";
 import logger from "@/modules/logger";
 
 const naverMapApi = {
@@ -31,12 +30,12 @@ export const getTaxiFareHandler = async (req: Request, res: Response) => {
       });
     }
 
-    const from: LeanDocument<Location> = await locationModel
+    const from: LocationLean = await locationModel
       .findOne({
         _id: { $eq: req.query.from },
       })
       .lean();
-    const to: LeanDocument<Location> = await locationModel
+    const to: LocationLean = await locationModel
       .findOne({ _id: { $eq: req.query.to } })
       .lean();
     const sTime = scaledTime(new Date(req.query.time as string));
