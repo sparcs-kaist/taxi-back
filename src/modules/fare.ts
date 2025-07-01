@@ -3,8 +3,8 @@ import logger from "./logger";
 
 import { naverMap } from "@/loadenv";
 import { taxiFareModel, locationModel } from "./stores/mongo";
-import type { UpdateOneModel } from "mongodb";
-import type { TaxiFare, LocationLean } from "@/types/mongo";
+import type { AnyBulkWriteOperation } from "mongodb";
+import type { LocationLean } from "@/types/mongo";
 
 const naverMapApi = {
   "X-NCP-APIGW-API-KEY-ID": naverMap.apiId,
@@ -51,7 +51,7 @@ export const initializeDatabase = async () => {
         return Promise.all(
           location.map(async (to) => {
             if (from._id === to._id) return;
-            let tableFare: UpdateOneModel<TaxiFare>[] = [];
+            let tableFare: AnyBulkWriteOperation[] = [];
             const prevTaxiFare = (
               await taxiFareModel
                 .findOne(
@@ -72,7 +72,7 @@ export const initializeDatabase = async () => {
             ) {
               [...Array(timeConstants * 7)].map((_, i) => {
                 tableFare.push({
-                  update: {
+                  updateOne: {
                     filter: {
                       from: from._id,
                       to: to._id,
@@ -91,7 +91,7 @@ export const initializeDatabase = async () => {
             } else {
               [...Array(7)].map((_, i) => {
                 tableFare.push({
-                  update: {
+                  updateOne: {
                     filter: {
                       from: from._id,
                       to: to._id,
@@ -115,7 +115,7 @@ export const initializeDatabase = async () => {
       })
     );
   } catch (err) {
-    logger.error("Error occured while initializing database: " + err.message);
+    logger.error("Error occured while initializing database: " + err);
   }
 };
 
