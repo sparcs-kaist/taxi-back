@@ -176,7 +176,8 @@ export const editBadgeHandler: RequestHandler = async (req, res) => {
 export const registerResidenceHandler: RequestHandler = async (req, res) => {
   try {
     const userId = req.userOid;
-    const { newResidence } = req.params;
+    const newResidence = req.body.residence;
+    console.log(newResidence);
 
     await userModel.findOneAndUpdate(
       { _id: req.userOid, withdraw: false },
@@ -193,7 +194,7 @@ export const registerResidenceHandler: RequestHandler = async (req, res) => {
     logger.error(err);
     return res
       .status(500)
-      .send("Users/registerPhoneNumber : internal server error");
+      .send("Users/registerResidence : internal server error");
   }
 };
 
@@ -201,9 +202,10 @@ export const deleteResidenceHandler: RequestHandler = async (req, res) => {
   try {
     const userId = req.userOid;
 
-    await userModel.findOneAndDelete({
-      user: userId,
-    });
+    await userModel.findOneAndUpdate(
+      { _id: req.userOid, withdraw: false },
+      { residence: null }
+    );
 
     return res
       .status(200)
