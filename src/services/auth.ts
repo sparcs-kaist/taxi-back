@@ -167,7 +167,6 @@ export const tryLogin = async (
       } else {
         const redirectUrl = new URL("/login/fail", redirectOrigin).href;
         return res.redirect(redirectUrl);
-        // return;
       }
     }
     if (
