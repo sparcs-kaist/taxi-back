@@ -17,6 +17,9 @@ const {
 const jwt = require("@/modules/auths/jwt");
 const logger = require("@/modules/logger").default;
 
+const uuidv4 = require("uuid").v4;
+const tokenStore = require("@/modules/stores/tokenStore").default;
+
 const transKaistInfo = (userData) => {
   const kaistInfo = userData.kaist_info ? JSON.parse(userData.kaist_info) : {};
   const kaistInfoV2 = userData.kaist_v2_info
@@ -146,21 +149,22 @@ const tryLogin = async (
     }
 
     if (req.session.isOneApp) {
-      const { accessToken } = jwt.signForOneApp({
-        oid: user._id.toString(),
-        uid: user.id,
-      });
+      const payload = { oid: user._id.toString(), uid: user.id };
+      const { accessToken } = jwt.signForOneApp(payload);
+      const refreshToken = uuidv4();
       const params = new URLSearchParams({
-        accessToken: encodeURIComponent(accessToken),
-        // TODO: refreshToken 추가
+        accesstoken: encodeURIComponent(accessToken),
+        refreshtoken: encodeURIComponent(refreshToken),
       });
       if (userDataBefore?.kaistInfoV2) {
         params.append(
-          "kaistInfoV2",
+          "kaistinfo",
           encodeURIComponent(userDataBefore.kaistInfoV2)
         );
       }
-      return res.redirect("sparcsapp://?" + params.toString());
+
+      await tokenStore.insert(refreshToken, payload);
+      return res.redirect("sparcsapp://authorize?" + params.toString());
     }
 
     if (req.session.isApp) {
@@ -279,10 +283,32 @@ const logoutHandler = async (req, res) => {
   }
 };
 
+const refreshTokenHandler = async (req, res) => {
+  try {
+    const { refreshToken: oldRefreshToken } = req.body;
+    const newRefreshToken = uuidv4();
+    const { oid, uid } = await tokenStore.update(
+      oldRefreshToken,
+      newRefreshToken
+    );
+    if (!oid || !uid) {
+      return res.status(400).json({
+        error: "Auth/refreshToken : invalid refresh token",
+      });
+    }
+
+    const accessToken = jwt.signForOneApp({ oid, uid });
+    return res.json({ accessToken, refreshToken: newRefreshToken });
+  } catch (e) {
+    return res.status(500).send("Auth/refreshToken : internal server error");
+  }
+};
+
 module.exports = {
   tryLogin,
   sparcsssoHandler,
   sparcsssoCallbackHandler,
   loginReplaceHandler,
   logoutHandler,
+  refreshTokenHandler,
 };

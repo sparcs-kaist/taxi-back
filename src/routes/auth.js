@@ -38,6 +38,14 @@ router.get(
   (isAuthReplace ? authReplaceHandlers : authHandlers).logoutHandler
 );
 
+// 원앱을 위한 token refresh
+router.post(
+  "/refreshToken",
+  body("refreshToken").isString().isUUID(),
+  validator,
+  authHandlers.refreshTokenHandler
+);
+
 router.get("/app/token/login", mobileAuthHandlers.tokenLoginHandler);
 // FIXME: accessToken, deviceToken validation 추가
 router.get("/app/token/refresh", mobileAuthHandlers.tokenRefreshHandler);
