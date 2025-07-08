@@ -1,4 +1,4 @@
-import type { Request, Response, RequestHandler } from "express";
+import type { RequestHandler } from "express";
 import { chatModel, userModel, roomModel } from "@/modules/stores/mongo";
 import { chatPopulateOption } from "@/modules/populates/chats";
 import * as aws from "@/modules/stores/aws";
@@ -308,9 +308,9 @@ export const uploadChatImgDoneHandler: RequestHandler = async (req, res) => {
       });
     }
     if (
-      chat.type != "s3img" ||
-      chat.isValid != false ||
-      chat.authorId!.toString() != user._id.toString()
+      chat.type !== "s3img" ||
+      chat.isValid !== false ||
+      chat.authorId!.toString() !== user._id.toString()
     ) {
       return res.status(404).json({
         error: "Chat/uploadChatImg/done : no corresponding chat",

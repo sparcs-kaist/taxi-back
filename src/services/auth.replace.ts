@@ -1,4 +1,4 @@
-import type { Request, Response, RequestHandler } from "express";
+import type { RequestHandler } from "express";
 import { logout } from "@/modules/auths/login";
 
 import { unregisterDeviceToken } from "@/modules/fcm";
@@ -10,7 +10,6 @@ import logger from "@/modules/logger";
 import * as jwt from "@/modules/auths/jwt";
 
 import { tryLogin } from "@/services/auth";
-// import { registerDeviceTokenHandler } from "@/services/auth.mobile";
 import loginReplacePage from "@/views/loginReplacePage";
 
 const createUserData = (id: string) => {
@@ -53,10 +52,7 @@ export const sparcsssoHandler: RequestHandler = (req, res) => {
   res.end(loginReplacePage);
 };
 
-export const logoutHandler: RequestHandler = async (
-  req: Request,
-  res: Response
-) => {
+export const logoutHandler: RequestHandler = async (req, res) => {
   const redirectPath = decodeURIComponent(
     (req.query?.redirect as string) || "%2F"
   );
@@ -76,5 +72,3 @@ export const logoutHandler: RequestHandler = async (
     res.status(500).send("Auth/logout : internal server error");
   }
 };
-
-// export { registerDeviceTokenHandler };

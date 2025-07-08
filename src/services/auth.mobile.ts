@@ -1,4 +1,4 @@
-import type { Request, Response, RequestHandler } from "express";
+import type { RequestHandler } from "express";
 
 import { userModel } from "@/modules/stores/mongo";
 import { login } from "@/modules/auths/login";

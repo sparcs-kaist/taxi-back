@@ -16,7 +16,7 @@ import {
 import * as jwt from "@/modules/auths/jwt";
 import logger from "@/modules/logger";
 
-type userDataType = {
+interface UserDataType {
   email: string;
   id: string;
   sid: string;
@@ -32,9 +32,9 @@ type userDataType = {
   first_name?: string;
   last_name?: string;
   isEligible?: boolean;
-};
+}
 
-type rawType = {
+interface RawUserType {
   uid: string;
   sid: string;
   kaist_info?: string;
@@ -45,26 +45,26 @@ type rawType = {
   twitter_id?: string;
   sparcs_id?: string;
   email?: string;
-};
+}
 
-type kaistInfoV1 = {
+interface KaistInfoV1 {
   ku_std_no?: string;
   employeeType?: string;
   mail?: string;
-};
+}
 
-type kaistInfoV2 = {
+interface KaistInfoV2 {
   std_no?: string;
   socps_cd?: string;
   email?: string;
-};
+}
 
-const transKaistInfo = (userData: rawType) => {
+const transKaistInfo = (userData: RawUserType) => {
   const kaistInfo = userData.kaist_info
-    ? (JSON.parse(userData.kaist_info) as kaistInfoV1)
+    ? (JSON.parse(userData.kaist_info) as KaistInfoV1)
     : {};
   const kaistInfoV2 = userData.kaist_v2_info
-    ? (JSON.parse(userData.kaist_v2_info) as kaistInfoV2)
+    ? (JSON.parse(userData.kaist_v2_info) as KaistInfoV2)
     : {};
   return {
     kaist: kaistInfoV2.std_no || kaistInfo.ku_std_no || "", // 학번 (직원인 경우 빈 문자열)
@@ -73,7 +73,7 @@ const transKaistInfo = (userData: rawType) => {
   };
 };
 
-const transUserData = (userData: rawType) => {
+const transUserData = (userData: RawUserType) => {
   const kaistInfo = transKaistInfo(userData);
 
   // info.isEligible: 카이스트 구성원인지 여부
@@ -92,7 +92,7 @@ const transUserData = (userData: rawType) => {
   return info;
 };
 
-const joinus = async (req: Request, userData: userDataType) => {
+const joinus = async (req: Request, userData: UserDataType) => {
   const oldUser = await userModel
     .findOne(
       {
@@ -152,7 +152,7 @@ const update = async (userData: {
 export const tryLogin = async (
   req: Request,
   res: Response,
-  userData: userDataType,
+  userData: UserDataType,
   redirectOrigin: string | URL | undefined,
   redirectPath: string | URL
 ): Promise<void> => {
@@ -166,8 +166,8 @@ export const tryLogin = async (
         return tryLogin(req, res, userData, redirectOrigin, redirectPath);
       } else {
         const redirectUrl = new URL("/login/fail", redirectOrigin).href;
-        res.redirect(redirectUrl);
-        return;
+        return res.redirect(redirectUrl);
+        // return;
       }
     }
     if (
@@ -197,7 +197,7 @@ export const tryLogin = async (
       req.session.refreshToken = refreshToken;
     }
 
-    login(req, userData.sid, user.id, user._id.toString(), user.name);
+    login(req, user.id, user._id.toString(), user.name, userData.sid);
 
     res.redirect(new URL(redirectPath, redirectOrigin).href);
   } catch (err) {
@@ -207,10 +207,7 @@ export const tryLogin = async (
   }
 };
 
-export const sparcsssoHandler: RequestHandler = (
-  req: Request,
-  res: Response
-) => {
+export const sparcsssoHandler: RequestHandler = (req, res) => {
   const redirectPath = decodeURIComponent(
     (req.query?.redirect as string) || "%2F"
   );
@@ -226,10 +223,7 @@ export const sparcsssoHandler: RequestHandler = (
   res.redirect(url + "&social_enabled=0&show_disabled_button=0");
 };
 
-export const sparcsssoCallbackHandler: RequestHandler = (
-  req: Request,
-  res: Response
-) => {
+export const sparcsssoCallbackHandler: RequestHandler = (req, res) => {
   const loginAfterState = req.session?.loginAfterState;
   const { state: stateForCmp, code } = req.query;
 
@@ -271,19 +265,13 @@ export const sparcsssoCallbackHandler: RequestHandler = (
   });
 };
 
-export const loginReplaceHandler: RequestHandler = (
-  req: Request,
-  res: Response
-) => {
+export const loginReplaceHandler: RequestHandler = (req, res) => {
   res.status(400).json({
     error: "Auth/login/replace : Bad Request",
   });
 };
 
-export const logoutHandler: RequestHandler = async (
-  req: Request,
-  res: Response
-) => {
+export const logoutHandler: RequestHandler = async (req, res) => {
   const redirectPath = decodeURIComponent(
     (req.query?.redirect as string) || "%2F"
   );
