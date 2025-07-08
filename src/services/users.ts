@@ -177,19 +177,15 @@ export const registerResidenceHandler: RequestHandler = async (req, res) => {
   try {
     const userId = req.userOid;
     const newResidence = req.body.residence;
-    console.log(newResidence);
 
     await userModel.findOneAndUpdate(
-      { _id: req.userOid, withdraw: false },
+      { _id: userId, withdraw: false },
       { residence: newResidence }
     );
 
-    const residenceInfo = {
-      userId: userId,
-      residence: newResidence,
-    };
-
-    return res.status(200).json(residenceInfo);
+    return res
+      .status(200)
+      .send("Users/registerResidence: residenceInfo registered successfully");
   } catch (err) {
     logger.error(err);
     return res
@@ -203,7 +199,7 @@ export const deleteResidenceHandler: RequestHandler = async (req, res) => {
     const userId = req.userOid;
 
     await userModel.findOneAndUpdate(
-      { _id: req.userOid, withdraw: false },
+      { _id: userId, withdraw: false },
       { residence: null }
     );
 

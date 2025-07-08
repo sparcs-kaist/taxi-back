@@ -22,7 +22,7 @@ export interface User extends Document<Types.ObjectId> {
   /** 인증 뱃지 사용 여부 */
   badge?: boolean;
   /** 선호하는 장소 정보 */
-  residence?: string;
+  residence?: string | null;
   /** 계정 정지 여부. */
   ban: boolean;
   /** 계정 가입 시각. */
