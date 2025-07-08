@@ -6,6 +6,11 @@ const originValidatorMiddleware: RequestHandler = (req, res, next) => {
     req.headers.referer ||
     req.session?.loginAfterState?.redirectOrigin; // sparcssso/callback 요청은 헤더에 origin이 없음
 
+  // 원앱에서 보내는 sparcsso 요청은 헤더에 origin이 없음
+  if (req.path === "/auth/sparcssso" && req.query.isSPARCSApp === "true") {
+    req.origin = "https://taxi.sparcs.org";
+  }
+
   if (!req.origin)
     return res.status(400).json({
       error: "Bad Request : request must have origin in header",
