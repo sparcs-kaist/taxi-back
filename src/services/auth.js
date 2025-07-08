@@ -97,7 +97,14 @@ const update = async (userData) => {
   );
 };
 
-const tryLogin = async (req, res, userData, redirectOrigin, redirectPath) => {
+const tryLogin = async (
+  req,
+  res,
+  userDataBefore,
+  userData,
+  redirectOrigin,
+  redirectPath
+) => {
   try {
     const user = await userModel.findOne(
       { id: userData.id, withdraw: false }, // NOTE: SSO uid 쓰는 곳
@@ -105,7 +112,14 @@ const tryLogin = async (req, res, userData, redirectOrigin, redirectPath) => {
     );
     if (!user) {
       if (await joinus(req, userData)) {
-        return tryLogin(req, res, userData, redirectOrigin, redirectPath);
+        return tryLogin(
+          req,
+          res,
+          userDataBefore,
+          userData,
+          redirectOrigin,
+          redirectPath
+        );
       } else {
         const redirectUrl = new URL("/login/fail", redirectOrigin).href;
         res.redirect(redirectUrl);
@@ -121,7 +135,32 @@ const tryLogin = async (req, res, userData, redirectOrigin, redirectPath) => {
       logger.info(
         `Past user info: ${user.id} ${user.name} ${user.email} ${user.subinfo.kaist}`
       );
-      return tryLogin(req, res, userData, redirectOrigin, redirectPath);
+      return tryLogin(
+        req,
+        res,
+        userDataBefore,
+        userData,
+        redirectOrigin,
+        redirectPath
+      );
+    }
+
+    if (req.session.isOneApp) {
+      const { accessToken } = jwt.signForOneApp({
+        oid: user._id.toString(),
+        uid: user.id,
+      });
+      const params = new URLSearchParams({
+        accessToken: encodeURIComponent(accessToken),
+        // TODO: refreshToken 추가
+      });
+      if (userDataBefore?.kaistInfoV2) {
+        params.append(
+          "kaistInfoV2",
+          encodeURIComponent(userDataBefore.kaistInfoV2)
+        );
+      }
+      return res.redirect("sparcsapp://?" + params.toString());
     }
 
     if (req.session.isApp) {
@@ -150,6 +189,7 @@ const tryLogin = async (req, res, userData, redirectOrigin, redirectPath) => {
 const sparcsssoHandler = (req, res) => {
   const redirectPath = decodeURIComponent(req.query?.redirect || "%2F");
   const isApp = !!req.query.isApp;
+  const isOneApp = !!req.query.isOneApp;
   const { url, state } = ssoClient.getLoginParams();
 
   req.session.loginAfterState = {
@@ -158,6 +198,7 @@ const sparcsssoHandler = (req, res) => {
     redirectPath: redirectPath,
   };
   req.session.isApp = isApp;
+  req.session.isOneApp = isOneApp;
   res.redirect(url + "&social_enabled=0&show_disabled_button=0");
 };
 
@@ -188,7 +229,14 @@ const sparcsssoCallbackHandler = (req, res) => {
     const userData = transUserData(userDataBefore);
     const isTestAccount = testAccounts?.includes(userData.email);
     if (userData.isEligible || nodeEnv !== "production" || isTestAccount) {
-      tryLogin(req, res, userData, redirectOrigin, redirectPath);
+      tryLogin(
+        req,
+        res,
+        userDataBefore,
+        userData,
+        redirectOrigin,
+        redirectPath
+      );
     } else {
       // 카이스트 구성원이 아닌 경우, SSO 로그아웃 이후, 로그인 실패 URI 로 이동합니다
       const { id, sid, kaist, kaistType } = userData;

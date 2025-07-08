@@ -10,6 +10,8 @@ declare module "express-session" {
     loginInfo?: LoginInfo;
     /** 현재 로그인된 사용자가 앱으로 접속했는지 여부 */
     isApp?: boolean;
+    /** 현재 로그인 요청한 사용자가 원앱 사용자인지 여부 */
+    isOneApp?: boolean;
     /** SPARCS SSO 로그인 시 state와 로그인 후 redirect 주소를 저장할 object. 타입 수정 필요. */
     loginAfterState?: {
       state?: string;

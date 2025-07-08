@@ -42,6 +42,7 @@ export const aws = {
 };
 export const jwt = {
   secretKey: process.env.JWT_SECRET_KEY || "TAXI_JWT_KEY", // optional
+  secretKeyForOneApp: process.env.JWT_SECRET_KEY_FOR_ONE_APP || "TAXI_JWT_KEY", // optional
   option: {
     algorithm: "HS256" as Algorithm,
     // FIXME: remove FRONT_URL from issuer. 단, issuer를 변경하면 이전에 발급했던 모든 JWT가 무효화됩니다.

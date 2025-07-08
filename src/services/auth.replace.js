@@ -35,7 +35,14 @@ const loginReplaceHandler = (req, res) => {
     return res.status(400).send("Auth/login/replace : invalid request");
   const { redirectOrigin, redirectPath } = loginAfterState;
   req.session.loginAfterState = undefined;
-  tryLogin(req, res, createUserData(id), redirectOrigin, redirectPath);
+  tryLogin(
+    req,
+    res,
+    undefined,
+    createUserData(id),
+    redirectOrigin,
+    redirectPath
+  );
 };
 
 const sparcsssoHandler = (req, res) => {

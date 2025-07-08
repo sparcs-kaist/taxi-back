@@ -13,6 +13,7 @@ router.get(
   "/sparcssso",
   query("redirect").optional().isString(),
   query("isApp").optional().isBoolean(),
+  query("isOneApp").optional().isBoolean(),
   validator,
   (isAuthReplace ? authReplaceHandlers : authHandlers).sparcsssoHandler
 );
