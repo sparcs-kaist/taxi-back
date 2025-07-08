@@ -48,12 +48,14 @@ const loginReplaceHandler = (req, res) => {
 const sparcsssoHandler = (req, res) => {
   const redirectPath = decodeURIComponent(req.query?.redirect || "%2F");
   const isApp = !!req.query.isApp;
+  const isOneApp = !!req.query.isSPARCSApp;
 
   req.session.loginAfterState = {
     redirectOrigin: req.origin,
     redirectPath: redirectPath,
   };
   req.session.isApp = isApp;
+  req.session.isOneApp = isOneApp;
   res.end(loginReplacePage);
 };
 
