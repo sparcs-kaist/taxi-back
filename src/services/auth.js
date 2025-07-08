@@ -193,7 +193,7 @@ const tryLogin = async (
 const sparcsssoHandler = (req, res) => {
   const redirectPath = decodeURIComponent(req.query?.redirect || "%2F");
   const isApp = !!req.query.isApp;
-  const isOneApp = !!req.query.isOneApp;
+  const isOneApp = !!req.query.isSPARCSApp;
   const { url, state } = ssoClient.getLoginParams();
 
   req.session.loginAfterState = {

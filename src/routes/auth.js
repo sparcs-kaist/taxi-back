@@ -13,7 +13,7 @@ router.get(
   "/sparcssso",
   query("redirect").optional().isString(),
   query("isApp").optional().isBoolean(),
-  query("isOneApp").optional().isBoolean(),
+  query("isSPARCSApp").optional().isBoolean(),
   validator,
   (isAuthReplace ? authReplaceHandlers : authHandlers).sparcsssoHandler
 );
@@ -41,7 +41,7 @@ router.get(
 // 원앱을 위한 token refresh
 router.post(
   "/refreshToken",
-  body("refreshToken").isString().isUUID(),
+  body("refreshToken").isUUID(),
   validator,
   authHandlers.refreshTokenHandler
 );
