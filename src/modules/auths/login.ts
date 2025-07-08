@@ -1,7 +1,14 @@
 import type { Request } from "express";
-import { session as sessionConfig, sparcssso as sparcsssoEnv } from "@/loadenv";
+import {
+  session as sessionConfig,
+  sparcssso as sparcsssoEnv,
+  jwt as jwtConfig,
+} from "@/loadenv";
 import logger from "@/modules/logger";
+import * as jwt from "@/modules/auths/jwt";
 import SsoClient from "./sparcssso";
+
+const { TOKEN_EXPIRED, TOKEN_INVALID } = jwtConfig;
 
 // 환경변수 SPARCSSSO_CLIENT_ID 유무에 따라 로그인 방식이 변경됩니다.
 export const isAuthReplace = !sparcsssoEnv.id;
@@ -17,8 +24,25 @@ export interface LoginInfo {
   time: number;
 }
 
+const getBearerToken = (req: Request) => {
+  const parts = req.headers.authorization?.split(" ");
+  if (parts && parts.length === 2 && parts[0] === "Bearer") {
+    return parts[1];
+  } else {
+    return undefined;
+  }
+};
+
 export const getLoginInfo = (req: Request) => {
-  if (req.session.loginInfo) {
+  const accessTokenForOneApp = getBearerToken(req);
+  if (accessTokenForOneApp) {
+    const decoded = jwt.verifyForOneApp(accessTokenForOneApp);
+    if (decoded === TOKEN_EXPIRED || decoded === TOKEN_INVALID) {
+      return { id: undefined, sid: undefined, oid: undefined, name: undefined };
+    }
+    const { oid, uid } = decoded as { oid: string; uid: string }; // TODO: FIXME
+    return { id: uid, sid: undefined, oid, name: undefined }; // TODO: name?
+  } else if (req.session.loginInfo) {
     const { id, sid, oid, name, time } = req.session.loginInfo;
     const timeFlow = Date.now() - time;
     // 14일이 지난 세션에 대해서는 로그인 정보를 반환하지 않습니다.
