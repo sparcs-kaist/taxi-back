@@ -297,7 +297,7 @@ const refreshTokenHandler = async (req, res) => {
       });
     }
 
-    const accessToken = jwt.signForOneApp({ oid, uid });
+    const { accessToken } = jwt.signForOneApp({ oid, uid });
     return res.json({ accessToken, refreshToken: newRefreshToken });
   } catch (e) {
     return res.status(500).send("Auth/refreshToken : internal server error");
