@@ -41,7 +41,7 @@ router.get(
 // 원앱을 위한 token refresh
 router.post(
   "/refreshToken",
-  body("refreshToken").isUUID(),
+  body("refreshToken").isString(),
   validator,
   authHandlers.refreshTokenHandler
 );

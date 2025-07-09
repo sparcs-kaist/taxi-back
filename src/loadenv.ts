@@ -42,7 +42,6 @@ export const aws = {
 };
 export const jwt = {
   secretKey: process.env.JWT_SECRET_KEY || "TAXI_JWT_KEY", // optional
-  secretKeyForOneApp: process.env.JWT_SECRET_KEY_FOR_ONE_APP || "TAXI_JWT_KEY", // optional
   option: {
     algorithm: "HS256" as Algorithm,
     // FIXME: remove FRONT_URL from issuer. 단, issuer를 변경하면 이전에 발급했던 모든 JWT가 무효화됩니다.
@@ -74,4 +73,9 @@ export const eventConfig = (process.env.EVENT_CONFIG &&
 export const naverMap = {
   apiId: process.env.NAVER_MAP_API_ID || "", // optional
   apiKey: process.env.NAVER_MAP_API_KEY || "", // optional
+};
+export const oneApp = {
+  tokenSecretKey: process.env.ONEAPP_TOKEN_SECRET || "SPARCS_APP", // optional
+  accessTokenExpiry: "1h", // 1시간
+  refreshTokenExpiry: 30 * 24 * 3600 * 1000, // 30일, ms 단위입니다.
 };

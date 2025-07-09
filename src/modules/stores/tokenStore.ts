@@ -1,38 +1,33 @@
 import { model, Schema } from "mongoose";
 import pLimit from "p-limit";
+import { oneApp as oneAppConfig } from "@/loadenv";
+import type { PayloadForOneApp } from "@/types/jwt";
 import redisClient from "./redis";
-
-type TokenPayload = { oid: string; uid: string };
-
-const TOKEN_AGE = 30 * 24 * 60 * 60; // 30일
 
 const getTokenStore = () => {
   const limit = pLimit(1);
 
   // 환경변수 REDIS_PATH 유무에 따라 token 저장 방식이 변경됩니다.
   if (redisClient) {
+    const expiry = oneAppConfig.refreshTokenExpiry / 1000; // redis는 초 단위로 만료 시간을 설정합니다.
     return {
-      insert: async (token: string, payload: TokenPayload) => {
-        await redisClient!.set(`token:${token}`, JSON.stringify(payload), {
-          EX: TOKEN_AGE,
+      insert: async (tokenId: string, payload: PayloadForOneApp) => {
+        await redisClient!.set(`token:${tokenId}`, JSON.stringify(payload), {
+          EX: expiry,
         });
       },
-      update: (oldToken: string, newToken: string) =>
-        limit(
-          async (oldToken: string, newToken: string) => {
-            const payload = await redisClient!.get(`token:${oldToken}`);
-            if (!payload) {
-              return {};
-            }
-            await Promise.all([
-              redisClient!.del(`token:${oldToken}`),
-              redisClient!.set(`token:${newToken}`, payload, { EX: TOKEN_AGE }),
-            ]);
-            return JSON.parse(payload) as TokenPayload;
-          },
-          oldToken,
-          newToken
-        ),
+      update: (oldTokenId: string, newTokenId: string) =>
+        limit(async () => {
+          const payload = await redisClient!.get(`token:${oldTokenId}`);
+          if (!payload) {
+            return {};
+          }
+          await Promise.all([
+            redisClient!.del(`token:${oldTokenId}`),
+            redisClient!.set(`token:${newTokenId}`, payload, { EX: expiry }),
+          ]);
+          return JSON.parse(payload) as PayloadForOneApp;
+        }),
     };
   } else {
     const tokenSchema = new Schema({
@@ -42,34 +37,41 @@ const getTokenStore = () => {
       uid: { type: String, required: true },
     });
     tokenSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });
+
     const tokenModel = model("Token", tokenSchema);
     return {
-      insert: async (token: string, { oid, uid }: TokenPayload) => {
-        const expiresAt = new Date(Date.now() + TOKEN_AGE * 1000);
-        await tokenModel.create({ _id: token, expiresAt, oid, uid });
+      insert: async (tokenId: string, { oid, uid }: PayloadForOneApp) => {
+        const newToken = new tokenModel({
+          _id: tokenId,
+          expiresAt: Date.now() + oneAppConfig.refreshTokenExpiry,
+          oid,
+          uid,
+        });
+        await newToken.save();
       },
-      update: (oldToken: string, newToken: string) =>
-        limit(
-          async (oldToken: string, newToken: string) => {
-            const payload = await tokenModel.findById(oldToken).lean();
-            if (!payload) {
-              return {};
-            }
-            const { oid, uid } = payload;
-            const expiresAt = new Date(Date.now() + TOKEN_AGE * 1000);
+      update: (oldTokenId: string, newTokenId: string) =>
+        limit(async () => {
+          const payload = await tokenModel
+            .findById(oldTokenId, "oid uid")
+            .lean();
+          if (!payload) {
+            return {};
+          }
 
-            await tokenModel.deleteOne({ _id: oldToken });
-            await tokenModel.create({
-              _id: newToken,
-              expiresAt,
-              oid: payload.oid,
-              uid: payload.uid,
-            });
-            return { oid, uid } satisfies TokenPayload;
-          },
-          oldToken,
-          newToken
-        ),
+          const { oid, uid } = payload;
+          const newToken = new tokenModel({
+            _id: newTokenId,
+            expiresAt: Date.now() + oneAppConfig.refreshTokenExpiry,
+            oid,
+            uid,
+          });
+
+          await Promise.all([
+            tokenModel.deleteOne({ _id: oldTokenId }),
+            newToken.save(),
+          ]);
+          return { oid, uid } satisfies PayloadForOneApp;
+        }),
     };
   }
 };

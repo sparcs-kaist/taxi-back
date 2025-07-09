@@ -1,8 +1,9 @@
 import jwt, { type SignOptions } from "jsonwebtoken";
-import { jwt as jwtConfig } from "@/loadenv";
+import { jwt as jwtConfig, oneApp as oneAppConfig } from "@/loadenv";
+import type { PayloadForOneApp } from "@/types/jwt";
 
-const { secretKey, secretKeyForOneApp, option, TOKEN_EXPIRED, TOKEN_INVALID } =
-  jwtConfig;
+const { secretKey, option, TOKEN_EXPIRED, TOKEN_INVALID } = jwtConfig;
+const { tokenSecretKey: secretKeyForOneApp, accessTokenExpiry } = oneAppConfig;
 
 type TokenType = "access" | "refresh";
 
@@ -47,10 +48,10 @@ export const verify = async (token: string) => {
   return decoded;
 };
 
-export const signForOneApp = (payload: { oid: string; uid: string }) => {
+export const signForOneApp = (payload: PayloadForOneApp) => {
   const options: SignOptions = {
     ...option,
-    expiresIn: "1h",
+    expiresIn: accessTokenExpiry,
   };
   const result = {
     accessToken: jwt.sign(payload, secretKeyForOneApp, options),
@@ -59,16 +60,12 @@ export const signForOneApp = (payload: { oid: string; uid: string }) => {
 };
 
 export const verifyForOneApp = (accessToken: string) => {
-  let decoded;
   try {
-    decoded = jwt.verify(accessToken, secretKeyForOneApp);
+    return jwt.verify(accessToken, secretKeyForOneApp) as PayloadForOneApp;
   } catch (err) {
-    if (err instanceof Error) {
-      if (err.message === "jwt expired") {
-        return TOKEN_EXPIRED;
-      }
+    if (err instanceof Error && err.message === "jwt expired") {
+      return TOKEN_EXPIRED;
     }
     return TOKEN_INVALID;
   }
-  return decoded;
 };

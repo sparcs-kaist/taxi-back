@@ -1,4 +1,4 @@
-const { nodeEnv, testAccounts } = require("@/loadenv");
+const { nodeEnv, testAccounts, oneApp: oneAppConfig } = require("@/loadenv");
 const { userModel } = require("@/modules/stores/mongo");
 const { user: userPattern } = require("@/modules/patterns").default;
 const {
@@ -18,6 +18,7 @@ const jwt = require("@/modules/auths/jwt");
 const logger = require("@/modules/logger").default;
 
 const uuidv4 = require("uuid").v4;
+const { sign, unsign } = require("cookie-signature");
 const tokenStore = require("@/modules/stores/tokenStore").default;
 
 const transKaistInfo = (userData) => {
@@ -151,19 +152,16 @@ const tryLogin = async (
     if (req.session.isOneApp) {
       const payload = { oid: user._id.toString(), uid: user.id };
       const { accessToken } = jwt.signForOneApp(payload);
-      const refreshToken = uuidv4();
+      const { refreshTokenId, refreshToken } = signRefreshToken();
       const params = new URLSearchParams({
-        accesstoken: encodeURIComponent(accessToken),
-        refreshtoken: encodeURIComponent(refreshToken),
+        accesstoken: accessToken,
+        refreshtoken: refreshToken,
       });
       if (userDataBefore?.kaistInfoV2) {
-        params.append(
-          "kaistinfo",
-          encodeURIComponent(userDataBefore.kaistInfoV2)
-        );
+        params.append("kaistinfo", userDataBefore.kaistInfoV2);
       }
 
-      await tokenStore.insert(refreshToken, payload);
+      await tokenStore.insert(refreshTokenId, payload);
       return res.redirect("sparcsapp://authorize?" + params.toString());
     }
 
@@ -285,23 +283,39 @@ const logoutHandler = async (req, res) => {
 
 const refreshTokenHandler = async (req, res) => {
   try {
-    const { refreshToken: oldRefreshToken } = req.body;
-    const newRefreshToken = uuidv4();
+    const { refreshTokenId: oldRefreshTokenId } = verifyRefreshToken(
+      req.body.refreshToken
+    );
+    if (!oldRefreshTokenId) {
+      return res.status(400).send("Auth/refreshToken : invalid refresh token");
+    }
+
+    const { refreshTokenId, refreshToken } = signRefreshToken();
     const { oid, uid } = await tokenStore.update(
-      oldRefreshToken,
-      newRefreshToken
+      oldRefreshTokenId,
+      refreshTokenId
     );
     if (!oid || !uid) {
-      return res.status(400).json({
-        error: "Auth/refreshToken : invalid refresh token",
-      });
+      return res.status(403).send("Auth/refreshToken : invalid refresh token");
     }
 
     const { accessToken } = jwt.signForOneApp({ oid, uid });
-    return res.json({ accessToken, refreshToken: newRefreshToken });
+    return res.json({ accessToken, refreshToken });
   } catch (e) {
     return res.status(500).send("Auth/refreshToken : internal server error");
   }
+};
+
+const signRefreshToken = () => {
+  const refreshTokenId = uuidv4();
+  const refreshToken = sign(refreshTokenId, oneAppConfig.tokenSecretKey);
+  return { refreshTokenId, refreshToken };
+};
+
+const verifyRefreshToken = (refreshToken) => {
+  const decoded = unsign(refreshToken, oneAppConfig.tokenSecretKey);
+  if (decoded === false) return {};
+  else return { refreshTokenId: decoded };
 };
 
 module.exports = {
