@@ -1,9 +1,9 @@
 import { naverMap } from "@/loadenv";
 import { taxiFareModel, locationModel } from "@/modules/stores/mongo";
 import { scaledTime, callTaxiFare } from "@/modules/fare";
-import { Request, Response } from "express";
-import type { LocationLean } from "@/types/mongo";
 import logger from "@/modules/logger";
+import type { RequestHandler } from "express";
+import type { LocationLean } from "@/types/mongo";
 
 const naverMapApi = {
   "X-NCP-APIGW-API-KEY-ID": naverMap.apiId,
@@ -19,7 +19,7 @@ const naverMapApi = {
  *  - @param {mongoose.Schema.Types.ObjectId} to - 도착지
  *  - @param {Date} time - 출발 시간 (ISO 8601)
  */
-export const getTaxiFareHandler = async (req: Request, res: Response) => {
+export const getTaxiFareHandler: RequestHandler = async (req, res) => {
   try {
     if (
       !naverMapApi["X-NCP-APIGW-API-KEY"] ||

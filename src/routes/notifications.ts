@@ -1,9 +1,12 @@
 import express from "express";
-import { body } from "express-validator";
-
-import { registerDeviceTokenHandler, optionsHandler, editOptionsHandler } from "@/services/notifications";
-import validator from "@/middlewares/validator";
-import authMiddleware from "@/middlewares/auth";
+import { validateBody } from "@/middlewares/zod";
+import { notificationZod } from "@/routes/docs/schemas/notificationSchema";
+import {
+  registerDeviceTokenHandler,
+  optionsHandler,
+  editOptionsHandler,
+} from "@/services/notifications";
+import { validatorMiddleware, authMiddleware } from "@/middlewares";
 
 const router = express.Router();
 
@@ -13,8 +16,8 @@ router.use(authMiddleware);
 // FCM 토큰 등록
 router.post(
   "/registerDeviceToken",
-  [body("deviceToken").isString().isLength({ min: 1, max: 1024 })],
-  validator,
+  validateBody(notificationZod.registerDeviceTokenHandler),
+  validatorMiddleware,
   registerDeviceTokenHandler
 );
 
@@ -22,14 +25,8 @@ router.get("/options", optionsHandler);
 
 router.post(
   "/editOptions",
-  body("options").isObject(),
-  body("options.chatting").optional().isBoolean(),
-  body("options.keywords").optional().isArray(),
-  body("options.keywords.*").optional().isString(),
-  body("options.beforeDepart").optional().isBoolean(),
-  body("options.notice").optional().isBoolean(),
-  body("options.advertisement").optional().isBoolean(),
-  validator,
+  validateBody(notificationZod.editOptionsHandler),
+  validatorMiddleware,
   editOptionsHandler
 );
 

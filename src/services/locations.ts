@@ -1,8 +1,8 @@
 import { locationModel } from "@/modules/stores/mongo";
 import logger from "@/modules/logger";
-import type { Request, Response } from "express";
+import type { RequestHandler } from "express";
 
-export const getAllLocationsHandler = async (_: Request, res: Response) => {
+export const getAllLocationsHandler: RequestHandler = async (_, res) => {
   try {
     const locations = await locationModel
       .find(

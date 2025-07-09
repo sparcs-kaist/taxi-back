@@ -1,9 +1,9 @@
 import { userModel } from "@/modules/stores/mongo";
 import { getLoginInfo } from "@/modules/auths/login";
 import logger from "@/modules/logger";
-import type { Request, Response } from "express";
+import type { RequestHandler } from "express";
 
-export const logininfoHandler = async (req: Request, res: Response) => {
+export const logininfoHandler: RequestHandler = async (req, res) => {
   try {
     const user = getLoginInfo(req);
     if (!user.oid) return res.json({ id: undefined });

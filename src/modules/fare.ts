@@ -1,6 +1,5 @@
 import axios from "axios";
 import logger from "./logger";
-
 import { naverMap } from "@/loadenv";
 import { taxiFareModel, locationModel } from "./stores/mongo";
 import type { AnyBulkWriteOperation } from "mongodb";

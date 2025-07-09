@@ -1,17 +1,14 @@
 import { userModel } from "@/modules/stores/mongo";
 import { notificationOptionModel } from "@/modules/stores/mongo";
 import logger from "@/modules/logger";
-import type { Request, Response } from "express";
+import type { RequestHandler } from "express";
 
 import { registerDeviceToken, validateDeviceToken } from "@/modules/fcm";
 
 // 이벤트 코드입니다.
 import { contracts } from "@/lottery";
 
-export const registerDeviceTokenHandler = async (
-  req: Request,
-  res: Response
-) => {
+export const registerDeviceTokenHandler: RequestHandler = async (req, res) => {
   try {
     // 해당 FCM device token이 유효한지 검사합니다.
     const { deviceToken } = req.body;
@@ -48,7 +45,7 @@ export const registerDeviceTokenHandler = async (
   }
 };
 
-export const optionsHandler = async (req: Request, res: Response) => {
+export const optionsHandler: RequestHandler = async (req, res) => {
   try {
     // 세션에 deviceToken이 저장되어 있는지 검사합니다.
     const { deviceToken } = req.session;
@@ -80,7 +77,7 @@ export const optionsHandler = async (req: Request, res: Response) => {
   }
 };
 
-export const editOptionsHandler = async (req: Request, res: Response) => {
+export const editOptionsHandler: RequestHandler = async (req, res) => {
   try {
     const { options } = req.body;
 
