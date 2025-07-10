@@ -13,7 +13,6 @@ router.get(
   "/sparcssso",
   query("redirect").optional().isString(),
   query("isApp").optional().isBoolean(),
-  query("isSPARCSApp").optional().isBoolean(),
   validator,
   (isAuthReplace ? authReplaceHandlers : authHandlers).sparcsssoHandler
 );
@@ -38,14 +37,6 @@ router.get(
   (isAuthReplace ? authReplaceHandlers : authHandlers).logoutHandler
 );
 
-// 원앱을 위한 token refresh
-router.post(
-  "/refreshToken",
-  body("refreshToken").isString(),
-  validator,
-  authHandlers.refreshTokenHandler
-);
-
 router.get("/app/token/login", mobileAuthHandlers.tokenLoginHandler);
 // FIXME: accessToken, deviceToken validation 추가
 router.get("/app/token/refresh", mobileAuthHandlers.tokenRefreshHandler);
@@ -54,5 +45,19 @@ router.post("/app/device", mobileAuthHandlers.registerDeviceTokenHandler);
 // FIXME: accessToken, deviceToken validation 추가
 router.delete("/app/device", mobileAuthHandlers.removeDeviceTokenHandler);
 // FIXME: accessToken, deviceToken validation 추가
+
+// (원앱 전용) 로그인 페이지로 redirect합니다.
+router.get(
+  "/sparcsapp/login",
+  (isAuthReplace ? authReplaceHandlers : authHandlers).oneAppLoginHandler
+);
+
+// (원앱 전용) 토큰을 refresh합니다.
+router.post(
+  "/sparcsapp/token/refresh",
+  body("refreshToken").isString(),
+  validator,
+  authHandlers.oneAppTokenRefreshHandler
+);
 
 module.exports = router;

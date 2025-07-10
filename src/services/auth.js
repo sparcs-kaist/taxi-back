@@ -191,7 +191,6 @@ const tryLogin = async (
 const sparcsssoHandler = (req, res) => {
   const redirectPath = decodeURIComponent(req.query?.redirect || "%2F");
   const isApp = !!req.query.isApp;
-  const isOneApp = !!req.query.isSPARCSApp;
   const { url, state } = ssoClient.getLoginParams();
 
   req.session.loginAfterState = {
@@ -200,7 +199,7 @@ const sparcsssoHandler = (req, res) => {
     redirectPath: redirectPath,
   };
   req.session.isApp = isApp;
-  req.session.isOneApp = isOneApp;
+  req.session.isOneApp = false;
   res.redirect(url + "&social_enabled=0&show_disabled_button=0");
 };
 
@@ -281,7 +280,18 @@ const logoutHandler = async (req, res) => {
   }
 };
 
-const refreshTokenHandler = async (req, res) => {
+const oneAppLoginHandler = (req, res) => {
+  const { url, state } = ssoClient.getLoginParams();
+  req.session.loginAfterState = {
+    state,
+    redirectOrigin: "https://taxi.sparcs.org", // TODO: 원앱 전용 에러 핸들링 로직 추가 후 삭제
+  };
+  req.session.isApp = false;
+  req.session.isOneApp = true;
+  res.redirect(url + "&social_enabled=0&show_disabled_button=0");
+};
+
+const oneAppTokenRefreshHandler = async (req, res) => {
   try {
     const { refreshTokenId: oldRefreshTokenId } = verifyRefreshToken(
       req.body.refreshToken
@@ -324,5 +334,6 @@ module.exports = {
   sparcsssoCallbackHandler,
   loginReplaceHandler,
   logoutHandler,
-  refreshTokenHandler,
+  oneAppLoginHandler,
+  oneAppTokenRefreshHandler,
 };

@@ -48,14 +48,13 @@ const loginReplaceHandler = (req, res) => {
 const sparcsssoHandler = (req, res) => {
   const redirectPath = decodeURIComponent(req.query?.redirect || "%2F");
   const isApp = !!req.query.isApp;
-  const isOneApp = !!req.query.isSPARCSApp;
 
   req.session.loginAfterState = {
     redirectOrigin: req.origin,
     redirectPath: redirectPath,
   };
   req.session.isApp = isApp;
-  req.session.isOneApp = isOneApp;
+  req.session.isOneApp = false;
   res.end(loginReplacePage);
 };
 
@@ -78,9 +77,18 @@ const logoutHandler = async (req, res) => {
   }
 };
 
+const oneAppLoginHandler = (req, res) => {
+  req.session.loginAfterState = {
+    redirectOrigin: "https://taxi.sparcs.org", // TODO: 원앱 전용 에러 핸들링 로직 추가 후 삭제
+  };
+  req.session.isApp = false;
+  req.session.isOneApp = true;
+  res.end(loginReplacePage);
+};
+
 module.exports = {
   loginReplaceHandler,
   sparcsssoHandler,
   logoutHandler,
-  registerDeviceTokenHandler,
+  oneAppLoginHandler,
 };
