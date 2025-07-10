@@ -49,13 +49,23 @@ router.delete("/app/device", mobileAuthHandlers.removeDeviceTokenHandler);
 // (원앱 전용) 로그인 페이지로 redirect합니다.
 router.get(
   "/sparcsapp/login",
+  query("codeChallenge").isBase64().notEmpty(),
+  validator,
   (isAuthReplace ? authReplaceHandlers : authHandlers).oneAppLoginHandler
+);
+
+// (원앱 전용) 토큰을 issue합니다.
+router.post(
+  "/sparcsapp/token/issue",
+  body("codeVerifier").isBase64().notEmpty(),
+  validator,
+  authHandlers.oneAppTokenIssueHandler
 );
 
 // (원앱 전용) 토큰을 refresh합니다.
 router.post(
   "/sparcsapp/token/refresh",
-  body("refreshToken").isString(),
+  body("refreshToken").isString().notEmpty(),
   validator,
   authHandlers.oneAppTokenRefreshHandler
 );

@@ -17,6 +17,7 @@ const {
 const jwt = require("@/modules/auths/jwt");
 const logger = require("@/modules/logger").default;
 
+const crypto = require("crypto");
 const uuidv4 = require("uuid").v4;
 const { sign, unsign } = require("cookie-signature");
 const tokenStore = require("@/modules/stores/tokenStore").default;
@@ -150,19 +151,16 @@ const tryLogin = async (
     }
 
     if (req.session.isOneApp) {
-      const payload = { oid: user._id.toString(), uid: user.id };
-      const { accessToken } = jwt.signForOneApp(payload);
-      const { refreshTokenId, refreshToken } = signRefreshToken();
-      const params = new URLSearchParams({
-        accesstoken: accessToken,
-        refreshtoken: refreshToken,
-      });
-      if (userDataBefore?.kaistInfoV2) {
-        params.append("kaistinfo", userDataBefore.kaistInfoV2);
-      }
-
-      await tokenStore.insert(refreshTokenId, payload);
-      return res.redirect("sparcsapp://authorize?" + params.toString());
+      req.session.oneAppState = {
+        ...req.session.oneAppState,
+        oid: user._id.toString(),
+        uid: user.id,
+        kaistInfoV2: userDataBefore?.kaistInfoV2,
+      };
+      return res.redirect(
+        "sparcsapp://authorize?session=" +
+          encodeURIComponent(req.cookies["connect.sid"])
+      );
     }
 
     if (req.session.isApp) {
@@ -281,14 +279,48 @@ const logoutHandler = async (req, res) => {
 };
 
 const oneAppLoginHandler = (req, res) => {
+  const { codeChallenge } = req.query;
   const { url, state } = ssoClient.getLoginParams();
+
   req.session.loginAfterState = {
     state,
     redirectOrigin: "https://taxi.sparcs.org", // TODO: 원앱 전용 에러 핸들링 로직 추가 후 삭제
   };
   req.session.isApp = false;
-  req.session.isOneApp = true;
+  req.session.oneAppState = {
+    codeChallenge,
+  };
   res.redirect(url + "&social_enabled=0&show_disabled_button=0");
+};
+
+const oneAppTokenIssueHandler = async (req, res) => {
+  try {
+    const { codeVerifier } = req.body;
+    if (!req.session.oneAppState) {
+      return res.status(400).send("Auth/token/issue : invalid request");
+    } else if (
+      crypto
+        .createHash("sha256")
+        .update(Buffer.from(codeVerifier, "base64"))
+        .digest("base64") !== req.session.oneAppState.codeChallenge
+    ) {
+      return res.status(400).send("Auth/token/issue : invalid request");
+    }
+
+    const { oid, uid, kaistInfoV2 } = req.session.oneAppState;
+    req.session.oneAppState = undefined;
+    req.session.destroy(logger.error);
+
+    const tokenPayload = { oid, uid };
+    const { accessToken } = jwt.signForOneApp(tokenPayload);
+    const { refreshTokenId, refreshToken } = signRefreshToken();
+
+    await tokenStore.insert(refreshTokenId, tokenPayload);
+    return res.json({ accessToken, refreshToken, kaistInfoV2 });
+  } catch (e) {
+    logger.error(e);
+    return res.status(500).send("Auth/token/issue : internal server error");
+  }
 };
 
 const oneAppTokenRefreshHandler = async (req, res) => {
@@ -297,7 +329,7 @@ const oneAppTokenRefreshHandler = async (req, res) => {
       req.body.refreshToken
     );
     if (!oldRefreshTokenId) {
-      return res.status(400).send("Auth/refreshToken : invalid refresh token");
+      return res.status(400).send("Auth/token/refresh : invalid refresh token");
     }
 
     const { refreshTokenId, refreshToken } = signRefreshToken();
@@ -306,13 +338,13 @@ const oneAppTokenRefreshHandler = async (req, res) => {
       refreshTokenId
     );
     if (!oid || !uid) {
-      return res.status(403).send("Auth/refreshToken : invalid refresh token");
+      return res.status(403).send("Auth/token/refresh : invalid refresh token");
     }
 
     const { accessToken } = jwt.signForOneApp({ oid, uid });
     return res.json({ accessToken, refreshToken });
   } catch (e) {
-    return res.status(500).send("Auth/refreshToken : internal server error");
+    return res.status(500).send("Auth/token/refresh : internal server error");
   }
 };
 
@@ -335,5 +367,6 @@ module.exports = {
   loginReplaceHandler,
   logoutHandler,
   oneAppLoginHandler,
+  oneAppTokenIssueHandler,
   oneAppTokenRefreshHandler,
 };

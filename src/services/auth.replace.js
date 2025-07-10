@@ -78,11 +78,15 @@ const logoutHandler = async (req, res) => {
 };
 
 const oneAppLoginHandler = (req, res) => {
+  const { codeChallenge } = req.query;
+
   req.session.loginAfterState = {
     redirectOrigin: "https://taxi.sparcs.org", // TODO: 원앱 전용 에러 핸들링 로직 추가 후 삭제
   };
   req.session.isApp = false;
-  req.session.isOneApp = true;
+  req.session.oneAppState = {
+    codeChallenge,
+  };
   res.end(loginReplacePage);
 };
 
