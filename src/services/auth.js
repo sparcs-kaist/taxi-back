@@ -300,7 +300,10 @@ const oneAppTokenIssueHandler = async (req, res) => {
       return res.status(400).send("Auth/token/issue : invalid request");
     } else if (
       !crypto.timingSafeEqual(
-        crypto.createHash("sha256").update(base64url.toBuffer(codeVerifier)),
+        crypto
+          .createHash("sha256")
+          .update(base64url.toBuffer(codeVerifier))
+          .digest(),
         base64url.toBuffer(req.session.oneAppState.codeChallenge)
       )
     ) {
