@@ -13,11 +13,7 @@ export const getNoticesHandler: RequestHandler = async (req, res) => {
       is_pinned: false,
     });
 
-    if (pinnedNotice) {
-      return res.status(200).json({ notices: [...pinnedNotice, ...notices] });
-    }
-
-    return res.status(200).json({ notices });
+    return res.status(200).json({ notices: [...pinnedNotice, ...notices] });
   } catch (e) {
     return res.status(500).send("notice/list: Failed to load notices");
   }
