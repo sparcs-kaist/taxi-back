@@ -17,6 +17,7 @@ const {
 const jwt = require("@/modules/auths/jwt");
 const logger = require("@/modules/logger").default;
 
+const base64url = require("base64url");
 const crypto = require("crypto");
 const uuidv4 = require("uuid").v4;
 const { sign, unsign } = require("cookie-signature");
@@ -298,10 +299,10 @@ const oneAppTokenIssueHandler = async (req, res) => {
     if (!req.session.oneAppState) {
       return res.status(400).send("Auth/token/issue : invalid request");
     } else if (
-      crypto
-        .createHash("sha256")
-        .update(Buffer.from(codeVerifier, "base64"))
-        .digest("base64") !== req.session.oneAppState.codeChallenge
+      !crypto.timingSafeEqual(
+        crypto.createHash("sha256").update(base64url.toBuffer(codeVerifier)),
+        base64url.toBuffer(req.session.oneAppState.codeChallenge)
+      )
     ) {
       return res.status(400).send("Auth/token/issue : invalid request");
     }

@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const { body, query } = require("express-validator");
 const validator = require("@/middlewares/validator").default;
+const patterns = require("@/modules/patterns");
 
 const authHandlers = require("@/services/auth");
 const authReplaceHandlers = require("@/services/auth.replace");
@@ -49,7 +50,9 @@ router.delete("/app/device", mobileAuthHandlers.removeDeviceTokenHandler);
 // (원앱 전용) 로그인 페이지로 redirect합니다.
 router.get(
   "/sparcsapp/login",
-  query("codeChallenge").isBase64().notEmpty(),
+  query("codeChallenge")
+    .matches(patterns.base64url)
+    .isLength({ min: 1, max: 128 }),
   validator,
   (isAuthReplace ? authReplaceHandlers : authHandlers).oneAppLoginHandler
 );
@@ -57,7 +60,7 @@ router.get(
 // (원앱 전용) 토큰을 issue합니다.
 router.post(
   "/sparcsapp/token/issue",
-  body("codeVerifier").isBase64().notEmpty(),
+  body("codeVerifier").matches(base64url).isLength({ min: 1, max: 128 }),
   validator,
   authHandlers.oneAppTokenIssueHandler
 );
