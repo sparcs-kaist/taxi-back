@@ -56,7 +56,7 @@ router.post("/editBadge", userHandlers.editBadgeHandler);
 // 거주지 정보를 등록합니다.
 router.post(
   "/registerResidence",
-  body("residence"),
+  body("residence").isString().notEmpty(),
   validatorMiddleware,
   userHandlers.registerResidenceHandler
 );

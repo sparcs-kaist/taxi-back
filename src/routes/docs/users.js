@@ -218,7 +218,8 @@ usersDocs[`${apiPrefix}/registerPhoneNumber`] = {
       200: {
         content: {
           "text/html": {
-            example: "Users/registerPhoneNumber : create user phoneNumber successful",
+            example:
+              "Users/registerPhoneNumber : create user phoneNumber successful",
           },
         },
       },
@@ -251,7 +252,7 @@ usersDocs[`${apiPrefix}/editBadge`] = {
           schema: {
             type: "object",
             properties: {
-               badge: {
+              badge: {
                 type: "string",
                 description: "뱃지 상태",
               },
@@ -286,6 +287,78 @@ usersDocs[`${apiPrefix}/editBadge`] = {
         content: {
           "text/html": {
             example: "Users/editBadge : internal server error",
+          },
+        },
+      },
+    },
+  },
+};
+
+usersDocs[`${apiPrefix}/registerResidence`] = {
+  post: {
+    tags: [tag],
+    summary: "유저의 승하차 선호 장소 등록",
+    description: "유저의 승하차 선호 장소를 등록합니다.",
+    requestBody: {
+      content: {
+        "application/json": {
+          schema: {
+            type: "object",
+            properties: {
+              residence: {
+                type: "string",
+                description: "유저의 승하차 선호 장소",
+              },
+            },
+          },
+        },
+      },
+    },
+    responses: {
+      200: {
+        content: {
+          "text/html": {
+            example:
+              "Users/registerResidence: residenceInfo registered successfully",
+          },
+        },
+      },
+      400: {
+        content: {
+          "text/html": {
+            example: "Users/registerResidence: user not found or update failed",
+          },
+        },
+      },
+      500: {
+        content: {
+          "text/html": {
+            example: "Users/registerResidence : internal server error",
+          },
+        },
+      },
+    },
+  },
+};
+
+usersDocs[`${apiPrefix}/deleteResidence`] = {
+  get: {
+    tags: [tag],
+    summary: "유저의 승하차 선호 장소 정보 삭제",
+    description: "유저의 승하차 선호 장소 정보를 삭제합니다.",
+    responses: {
+      200: {
+        content: {
+          "text/html": {
+            example:
+              "Users/deleteResidence: residenceInfo deleted successfully",
+          },
+        },
+      },
+      500: {
+        content: {
+          "text/html": {
+            example: "Users/deleteResidence: internal server error",
           },
         },
       },

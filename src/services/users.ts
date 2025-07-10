@@ -178,14 +178,20 @@ export const registerResidenceHandler: RequestHandler = async (req, res) => {
     const userId = req.userOid;
     const newResidence = req.body.residence;
 
-    await userModel.findOneAndUpdate(
+    const result = await userModel.findOneAndUpdate(
       { _id: userId, withdraw: false },
       { residence: newResidence }
     );
 
-    return res
-      .status(200)
-      .send("Users/registerResidence: residenceInfo registered successfully");
+    if (result) {
+      return res
+        .status(200)
+        .send("Users/registerResidence: residenceInfo registered successfully");
+    } else {
+      return res
+        .status(400)
+        .send("Users/registerResidence: user not found or update failed");
+    }
   } catch (err) {
     logger.error(err);
     return res
@@ -206,7 +212,8 @@ export const deleteResidenceHandler: RequestHandler = async (req, res) => {
     return res
       .status(200)
       .send("Users/deleteResidence: residenceInfo deleted successfully");
-  } catch (error) {
+  } catch (err) {
+    logger.error(err);
     return res.status(500).send("Users/deleteResidence: internal server error");
   }
 };
