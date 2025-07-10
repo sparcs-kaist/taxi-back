@@ -150,7 +150,7 @@ const tryLogin = async (
       );
     }
 
-    if (req.session.isOneApp) {
+    if (req.session.oneAppState) {
       req.session.oneAppState = {
         ...req.session.oneAppState,
         oid: user._id.toString(),
@@ -197,7 +197,6 @@ const sparcsssoHandler = (req, res) => {
     redirectPath: redirectPath,
   };
   req.session.isApp = isApp;
-  req.session.isOneApp = false;
   res.redirect(url + "&social_enabled=0&show_disabled_button=0");
 };
 
