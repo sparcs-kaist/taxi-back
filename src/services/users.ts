@@ -200,7 +200,7 @@ export const deleteResidenceHandler: RequestHandler = async (req, res) => {
 
     await userModel.findOneAndUpdate(
       { _id: userId, withdraw: false },
-      { residence: null }
+      { $unset: { residence: "" } }
     );
 
     return res
