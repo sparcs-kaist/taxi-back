@@ -2,7 +2,7 @@ const express = require("express");
 const router = express.Router();
 const { body, query } = require("express-validator");
 const validator = require("@/middlewares/validator").default;
-const patterns = require("@/modules/patterns");
+const patterns = require("@/modules/patterns").default;
 
 const authHandlers = require("@/services/auth");
 const authReplaceHandlers = require("@/services/auth.replace");
@@ -60,7 +60,9 @@ router.get(
 // (원앱 전용) 토큰을 issue합니다.
 router.post(
   "/sparcsapp/token/issue",
-  body("codeVerifier").matches(base64url).isLength({ min: 1, max: 128 }),
+  body("codeVerifier")
+    .matches(patterns.base64url)
+    .isLength({ min: 1, max: 128 }),
   validator,
   authHandlers.oneAppTokenIssueHandler
 );
