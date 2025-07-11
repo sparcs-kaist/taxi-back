@@ -15,12 +15,13 @@ const {
 } = require("@/modules/slackNotification");
 
 // 이벤트 코드입니다.
-// const { eventConfig } = require("@/loadenv");
-// const eventPeriod = eventConfig && {
-//   startAt: new Date(eventConfig.period.startAt),
-//   endAt: new Date(eventConfig.period.endAt),
-// };
-// const { contracts } = require("@/lottery");
+const { eventConfig } = require("@/loadenv");
+const eventPeriod = eventConfig && {
+  startAt: new Date(eventConfig.period.startAt),
+  endAt: new Date(eventConfig.period.endAt),
+};
+const { contracts } = require("@/lottery");
+const mongoose = require("mongoose");
 
 const createHandler = async (req, res) => {
   const { name, from, to, time, maxPartLength } = req.body;
@@ -110,12 +111,12 @@ const createHandler = async (req, res) => {
     const roomObjectFormated = formatSettlement(roomObject);
 
     // 이벤트 코드입니다.
-    // await contracts?.completeFirstRoomCreationQuest(req.userOid, req.timestamp);
+    await contracts?.completeFirstRoomCreationQuest(req.userOid, req.timestamp);
 
     return res.send(roomObjectFormated);
   } catch (err) {
     logger.error(err);
-    res.status(500).json({
+    return res.status(500).json({
       error: "Rooms/create : internal server error",
     });
     return;
@@ -128,62 +129,62 @@ const createTestHandler = async (req, res) => {
 
   try {
     // 이벤트 코드입니다.
-    // if (
-    //   !eventPeriod ||
-    //   req.timestamp >= eventPeriod.endAt ||
-    //   req.timestamp < eventPeriod.startAt
-    // )
-    //   return res.json({ result: true });
+    if (
+      !eventPeriod ||
+      req.timestamp >= eventPeriod.endAt ||
+      req.timestamp < eventPeriod.startAt
+    )
+      return res.json({ result: true });
 
-    // const countRecentlyMadeRooms = await roomModel.countDocuments({
-    //   madeat: { $gte: new Date(req.timestamp - 86400000) }, // 밀리초 단위로 24시간을 나타냅니다.
-    //   "part.0.user": req.userOid, // 방 최초 생성자를 저장하는 필드가 없으므로, 첫 번째 참여자를 생성자로 간주합니다.
-    // });
-    // if (!countRecentlyMadeRooms && countRecentlyMadeRooms !== 0)
-    //   return res
-    //     .status(500)
-    //     .json({ error: "Rooms/create/test : internal server error" });
+    const countRecentlyMadeRooms = await roomModel.countDocuments({
+      madeat: { $gte: new Date(req.timestamp - 86400000) }, // 밀리초 단위로 24시간을 나타냅니다.
+      "part.0.user": req.userOid, // 방 최초 생성자를 저장하는 필드가 없으므로, 첫 번째 참여자를 생성자로 간주합니다.
+    });
+    if (!countRecentlyMadeRooms && countRecentlyMadeRooms !== 0)
+      return res
+        .status(500)
+        .json({ error: "Rooms/create/test : internal server error" });
 
-    // const dateTime = new Date(time);
-    // const candidateRooms = await roomModel
-    //   .find(
-    //     {
-    //       time: {
-    //         $gte: new Date(dateTime.getTime() - 43200000),
-    //         $lte: new Date(dateTime.getTime() + 43200000),
-    //       },
-    //       part: { $elemMatch: { user: req.userOid } },
-    //     },
-    //     "from to time maxPartLength"
-    //   )
-    //   .limit(2)
-    //   .lean();
-    // if (!candidateRooms)
-    //   return res
-    //     .status(500)
-    //     .json({ error: "Rooms/create/test : internal server error" });
+    const dateTime = new Date(time);
+    const candidateRooms = await roomModel
+      .find(
+        {
+          time: {
+            $gte: new Date(dateTime.getTime() - 43200000),
+            $lte: new Date(dateTime.getTime() + 43200000),
+          },
+          part: { $elemMatch: { user: req.userOid } },
+        },
+        "from to time maxPartLength"
+      )
+      .limit(2)
+      .lean();
+    if (!candidateRooms)
+      return res
+        .status(500)
+        .json({ error: "Rooms/create/test : internal server error" });
 
-    // const isAbusing = checkIsAbusing(
-    //   req.body,
-    //   countRecentlyMadeRooms,
-    //   candidateRooms
-    // );
-    // if (isAbusing) {
-    //   const user = await userModel
-    //     .findOne({ _id: req.userOid, withdraw: false })
-    //     .lean();
-    //   notifyRoomCreationAbuseToReportChannel(
-    //     req.userOid,
-    //     user?.nickname ?? req.userOid,
-    //     req.body
-    //   );
-    // }
+    const isAbusing = checkIsAbusing(
+      req.body,
+      countRecentlyMadeRooms,
+      candidateRooms
+    );
+    if (isAbusing) {
+      const user = await userModel
+        .findOne({ _id: req.userOid, withdraw: false })
+        .lean();
+      notifyRoomCreationAbuseToReportChannel(
+        req.userOid,
+        user?.nickname ?? req.userOid,
+        req.body
+      );
+    }
 
-    // return res.json({ result: !isAbusing });
+    return res.json({ result: !isAbusing });
     return res.json({ result: true });
   } catch (err) {
     logger.error(err);
-    res.status(500).json({
+    return res.status(500).json({
       error: "Rooms/create/test : internal server error",
     });
   }
@@ -205,7 +206,7 @@ const publicInfoHandler = async (req, res) => {
     }
   } catch (err) {
     logger.error(err);
-    res.status(500).json({
+    return res.status(500).json({
       error: "Rooms/publicInfo : internal server error",
     });
   }
@@ -228,7 +229,7 @@ const infoHandler = async (req, res) => {
     }
   } catch (err) {
     logger.error(err);
-    res.status(500).json({
+    return res.status(500).json({
       error: "Rooms/info : internal server error",
     });
   }
@@ -307,7 +308,7 @@ const joinHandler = async (req, res) => {
     res.send(formatSettlement(roomObject));
   } catch (err) {
     logger.error(err);
-    res.status(500).json({
+    return res.status(500).json({
       error: "Rooms/join : internal server error",
     });
   }
@@ -396,7 +397,7 @@ const abortHandler = async (req, res) => {
     res.send(formatSettlement(roomObject, { isOver }));
   } catch (err) {
     logger.error(err);
-    res.status(500).json({
+    return res.status(500).json({
       error: "Rooms/abort : internal server error",
     });
   }
@@ -475,11 +476,11 @@ const searchHandler = async (req, res) => {
       .limit(1000)
       .populate(roomPopulateOption)
       .lean();
-    res.json(
+    return res.json(
       rooms.map((room) => formatSettlement(room, { includeSettlement: false }))
     );
   } catch (err) {
-    res.status(500).json({
+    return res.status(500).json({
       error: "Rooms/search : Internal server error",
     });
   }
@@ -521,8 +522,82 @@ const searchByUserHandler = async (req, res) => {
     res.json(response);
   } catch (err) {
     logger.error(err);
-    res.status(500).json({
+    return res.status(500).json({
       error: "Rooms/searchByUser : internal server error",
+    });
+  }
+};
+
+const searchByTimeGapHandler = async (req, res) => {
+  try {
+    // timeGap(단위: 분)은 기본적으로 25분으로 설정되어 있습니다.
+    const { from, to, time, timeGap = 25 } = req.query;
+
+    // Check if from and to are different
+    if (from === to) {
+      return res.status(400).json({
+        error: "Rooms/searchByTimeGap : Bad request",
+      });
+    }
+
+    // Validate locations exist
+    const fromLocation = await locationModel.findById(from);
+    if (!fromLocation || fromLocation?.isValid === false) {
+      return res.status(400).json({
+        error: "Rooms/searchByTimeGap : Invalid 'from' location",
+      });
+    }
+
+    const toLocation = await locationModel.findById(to);
+    if (!toLocation || toLocation?.isValid === false) {
+      return res.status(400).json({
+        error: "Rooms/searchByTimeGap : Invalid 'to' location",
+      });
+    }
+
+    // Parse the time and create time range (±25 minutes)
+    const targetTime = new Date(time);
+    const currentTime = new Date();
+
+    const _minTime = new Date(targetTime.getTime() - timeGap * 60 * 1000); // timegap minutes before
+    const minTime =
+      _minTime.getTime() >= currentTime.getTime() ? _minTime : currentTime; // If the time is in the past, use current time
+    const maxTime = new Date(targetTime.getTime() + timeGap * 60 * 1000); // timegap minutes after
+
+    // Build query
+    const query = {
+      from: mongoose.Types.ObjectId(from),
+      to: mongoose.Types.ObjectId(to),
+      time: { $gte: minTime, $lte: maxTime },
+      "part.0": { $exists: true }, // Ensure at least one participant exists
+    };
+
+    const agg = [
+      { $match: query },
+      {
+        $addFields: {
+          diff: {
+            $abs: {
+              $subtract: ["$time", targetTime],
+            },
+          },
+        },
+      },
+      { $sort: { diff: 1 } },
+      { $limit: 3 },
+    ];
+
+    const rawRooms = await roomModel.aggregate(agg);
+    // Mongoose 6.x 이상이라면, aggregate 결과에도 populate 가능
+    const rooms = await roomModel.populate(rawRooms, roomPopulateOption);
+
+    return res.json(
+      rooms.map((room) => formatSettlement(room, { includeSettlement: false }))
+    );
+  } catch (err) {
+    logger.error(err);
+    return res.status(500).json({
+      error: "Rooms/searchByTimeGap : Internal server error",
     });
   }
 };
@@ -590,17 +665,17 @@ const commitSettlementHandler = async (req, res) => {
     });
 
     // 이벤트 코드입니다.
-    // await contracts?.completeFareSettlementQuest(
-    //   req.userOid,
-    //   req.timestamp,
-    //   roomObject
-    // );
+    await contracts?.completeFareSettlementQuest(
+      req.userOid,
+      req.timestamp,
+      roomObject
+    );
 
     // 수정한 방 정보를 반환합니다.
     res.send(formatSettlement(roomObject, { isOver: true }));
   } catch (err) {
     logger.error(err);
-    res.status(500).json({
+    return res.status(500).json({
       error: "Rooms/:id/commitSettlement : internal server error",
     });
   }
@@ -663,17 +738,17 @@ const commitPaymentHandler = async (req, res) => {
     });
 
     // 이벤트 코드입니다.
-    // await contracts?.completeFarePaymentQuest(
-    //   req.userOid,
-    //   req.timestamp,
-    //   roomObject
-    // );
+    await contracts?.completeFarePaymentQuest(
+      req.userOid,
+      req.timestamp,
+      roomObject
+    );
 
     // 수정한 방 정보를 반환합니다.
     res.send(formatSettlement(roomObject, { isOver: true }));
   } catch (err) {
     logger.error(err);
-    res.status(500).json({
+    return res.status(500).json({
       error: "Rooms/:id/commitPayment : internal server error",
     });
   }
@@ -844,5 +919,6 @@ module.exports = {
   searchByUserHandler,
   commitPaymentHandler,
   commitSettlementHandler,
+  searchByTimeGapHandler,
   // editHandler,
 };

@@ -15,6 +15,7 @@ import type {
   AdminLog,
   TaxiFare,
   FavoriteRoute,
+  Notice,
 } from "@/types/mongo";
 
 const userSchema = new Schema<User>({
@@ -27,6 +28,7 @@ const userSchema = new Schema<User>({
   withdraw: { type: Boolean, default: false }, //탈퇴 여부
   withdrewAt: { type: Date }, //탈퇴 시각
   phoneNumber: { type: String }, // 전화번호 (2023FALL 이벤트부터 추가)
+  badge: { type: Boolean }, // 인증 뱃지 사용 여부
   ban: { type: Boolean, default: false }, //계정 정지 여부
   joinat: { type: Date, required: true }, //가입 시각
   agreeOnTermsOfService: { type: Boolean, default: false }, //이용약관 동의 여부
@@ -251,6 +253,20 @@ const taxiFareSchema = new Schema<TaxiFare>(
 );
 
 export const taxiFareModel = model("TaxiFare", taxiFareSchema);
+
+const noticeSchema = new Schema<Notice>(
+  {
+    title: { type: String, required: true },
+    notion_url: { type: String, required: true },
+    is_pinned: { type: Boolean, default: false },
+    is_active: { type: Boolean, default: true },
+  },
+  {
+    timestamps: true, // 최근 업데이트 시간 기록용
+  }
+);
+
+export const noticeModel = model("Notice", noticeSchema);
 
 mongoose.set("strictQuery", true);
 

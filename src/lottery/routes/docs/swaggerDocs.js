@@ -10,7 +10,7 @@ const { invitesSchema } = require("./schemas/invitesSchema");
 const { itemsSchema } = require("./schemas/itemsSchema");
 const { questsSchema } = require("./schemas/questsSchema");
 
-const { eventConfig } = require("../../../../loadenv");
+const { eventConfig } = require("@/loadenv");
 const apiPrefix = `/events/${eventConfig?.mode}`;
 
 const eventSwaggerDocs = {

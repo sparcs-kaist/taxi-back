@@ -14,7 +14,8 @@ import { favoriteRoutesPopulateOption } from "@/modules/populates/favoriteRoutes
 import { CreateHandlerSchema, DeleteHandlerSchema } from "@/routes/docs/schemas/favoriteRoutesSchema";
 
 // 이벤트 코드입니다.
-// const { contracts } = require("@/lottery");
+import { contracts } from "@/lottery";
+import { eventStatusModel } from "@/lottery/modules/stores/mongo";
 
 export const agreeOnTermsOfServiceHandler: RequestHandler = async (
   req,
@@ -77,10 +78,10 @@ export const editNicknameHandler: RequestHandler = async (req, res) => {
 
     if (result) {
       // 이벤트 코드입니다.
-      // await contracts?.completeNicknameChangingQuest(
-      //   req.userOid,
-      //   req.timestamp
-      // );
+      await contracts?.completeNicknameChangingQuest(
+        req.userOid,
+        req.timestamp
+      );
 
       return res
         .status(200)
@@ -106,11 +107,11 @@ export const editAccountHandler: RequestHandler = async (req, res) => {
 
     if (result) {
       // 이벤트 코드입니다.
-      // await contracts?.completeAccountChangingQuest(
-      //   req.userOid,
-      //   req.timestamp,
-      //   newAccount
-      // );
+      await contracts?.completeAccountChangingQuest(
+        req.userOid,
+        req.timestamp,
+        newAccount
+      );
 
       return res
         .status(200)
@@ -123,6 +124,56 @@ export const editAccountHandler: RequestHandler = async (req, res) => {
   } catch (err) {
     logger.error(err);
     return res.status(500).send("Users/editAccount : internal server error");
+  }
+};
+
+export const registerPhoneNumberHandler: RequestHandler = async (req, res) => {
+  try {
+    const newPhoneNumber = req.body.phoneNumber;
+    const result = await userModel.findOneAndUpdate(
+      { _id: req.userOid, withdraw: false },
+      { phoneNumber: newPhoneNumber, badge: true }
+    );
+
+    if (result) {
+      return res
+        .status(200)
+        .send("Users/registerPhoneNumber : create user phoneNumber successful");
+    } else {
+      return res
+        .status(400)
+        .send("Users/registerPhoneNumber : such user id does not exist");
+    }
+  } catch (err) {
+    logger.error(err);
+    return res
+      .status(500)
+      .send("Users/registerPhoneNumber : internal server error");
+  }
+};
+
+export const editBadgeHandler: RequestHandler = async (req, res) => {
+  try {
+    if (req.body.badge === "true" || req.body.badge === "false") {
+      await userModel.findOneAndUpdate(
+        {
+          _id: req.userOid,
+          withdraw: false,
+          phoneNumber: { $exists: true, $ne: null },
+        },
+        { badge: req.body.badge === "true" ? true : false }
+      );
+      return res
+        .status(200)
+        .send("Users/editBadge : badge successfully applied");
+    } else {
+      return res
+        .status(400)
+        .send("Users/editBadge : invalid request for badge");
+    }
+  } catch (err) {
+    logger.error(err);
+    return res.status(500).send("Users/editBadge : internal server error");
   }
 };
 
@@ -274,6 +325,14 @@ export const withdrawHandler: RequestHandler = async (req, res) => {
       return res.status(400).send("Users/withdraw : already withdrawn");
     } else if (user.ongoingRoom?.length !== 0) {
       return res.status(400).send("Users/withdraw : ongoing room exists");
+    }
+
+    // 이벤트 코드입니다.
+    const isEventRegistered = await eventStatusModel.exists({
+      userId: req.userOid,
+    });
+    if (isEventRegistered) {
+      return res.status(400).send("Users/withdraw : event registered");
     }
 
     // 등록된 모든 디바이스 토큰 삭제

@@ -4,12 +4,12 @@ const {
 } = require("../modules/stores/mongo");
 const { userModel } = require("../../modules/stores/mongo");
 const { isLogin, getLoginInfo } = require("../../modules/auths/login");
-const logger = require("../../modules/logger");
+const logger = require("@/modules/logger").default;
 const {
   publicNoticePopulateOption,
 } = require("../modules/populates/transactions");
 
-const { eventConfig } = require("../../../loadenv");
+const { eventConfig } = require("@/loadenv");
 
 /**
  * getValueRank 사용자의 상품 구매 내역 또는 경품 추첨 내역의 순위 결정을 위한 가치를 평가하는 함수

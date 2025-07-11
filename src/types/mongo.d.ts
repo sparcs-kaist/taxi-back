@@ -19,6 +19,8 @@ export interface User extends Document<Types.ObjectId> {
   withdrewAt?: Date;
   /** 사용자의 전화번호. 2023 가을 이벤트부터 추가됨. */
   phoneNumber?: string;
+  /** 인증 뱃지 사용 여부 */
+  badge?: boolean;
   /** 계정 정지 여부. */
   ban: boolean;
   /** 계정 가입 시각. */
@@ -194,6 +196,7 @@ export interface TaxiFare extends Document<Types.ObjectId> {
   fare: number;
 }
 
+
 export interface FavoriteRoute extends Document<Types.ObjectId> {
   /** 즐겨찾기를 등록한 사용자의 User ObjectID. */
   user: Types.ObjectId;
@@ -203,4 +206,13 @@ export interface FavoriteRoute extends Document<Types.ObjectId> {
   to: Types.ObjectId;
   /** 즐겨찾기 등록 시각. */
   createdAt?: Date;
+
+export interface Notice extends Document<Types.ObjectId> {
+  /** 공지사항의 제목. */
+  title: string;
+  /** 공지사항의 노션 URL. */
+  notion_url: string;
+  /** 공지사항 상단 고정 여부. */
+  is_pinned: boolean;
+  is_active: boolean;
 }

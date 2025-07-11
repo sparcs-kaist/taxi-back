@@ -14,6 +14,7 @@ const {
   deviceTokenModel,
   notificationOptionModel,
   taxiFareModel,
+  noticeModel,
 } = require("@/modules/stores/mongo");
 const { buildResource } = require("@/modules/adminResource");
 
@@ -38,9 +39,10 @@ const resources = [
   deviceTokenModel,
   notificationOptionModel,
   taxiFareModel,
+  noticeModel,
 ]
   .map(buildResource())
-  .concat(/*require("@/lottery").resources*/ []);
+  .concat(require("@/lottery").resources);
 
 // Create router for admin page
 const adminJS = new AdminJS({ resources });
