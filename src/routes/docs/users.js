@@ -333,7 +333,7 @@ usersDocs[`${apiPrefix}/registerResidence`] = {
       500: {
         content: {
           "text/html": {
-            example: "Users/registerResidence : internal server error",
+            example: "Users/registerResidence: internal server error",
           },
         },
       },
@@ -352,6 +352,13 @@ usersDocs[`${apiPrefix}/deleteResidence`] = {
           "text/html": {
             example:
               "Users/deleteResidence: residenceInfo deleted successfully",
+          },
+        },
+      },
+      400: {
+        content: {
+          "text/html": {
+            example: "Users/deleteResidence: user not found or update failed",
           },
         },
       },
