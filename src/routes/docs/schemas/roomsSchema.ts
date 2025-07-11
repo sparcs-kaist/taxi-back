@@ -31,6 +31,15 @@ export const roomsZod = {
     maxPartLength: z.number().int().min(2).max(4),
   }),
 
+  createRoomTest: z.object({
+    from: z.string().regex(patterns.objectId),
+    to: z.string().regex(patterns.objectId),
+    time: z.string().refine((val) => !isNaN(Date.parse(val)), {
+      message: "Invalid ISO date format",
+    }),
+    maxPartLength: z.number().int().min(2).max(4),
+  }),
+
   roomIdBody: z.object({
     roomId: z.string().regex(patterns.objectId),
   }),

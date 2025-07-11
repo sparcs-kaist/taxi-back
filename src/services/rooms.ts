@@ -1,4 +1,4 @@
-import { RequestHandler } from "express";
+import type { RequestHandler } from "express";
 import { z } from "zod";
 import { roomModel, locationModel, userModel } from "@/modules/stores/mongo";
 import { emitChatEvent } from "@/modules/socket";
@@ -19,7 +19,6 @@ import {
 
 // 이벤트 코드입니다.
 import { eventConfig } from "@/loadenv";
-import { Search } from "aws-sdk/clients/kendra";
 import { Types } from "mongoose";
 const eventPeriod = eventConfig && {
   startAt: new Date(eventConfig.period.startAt),
@@ -424,7 +423,8 @@ export const abortHandler: RequestHandler = async (req, res) => {
       if (userOngoingRoomIndex)
         user.ongoingRoom?.splice(userOngoingRoomIndex, 1);
     } else if (userDoneRoomIndex !== -1) {
-      if (userDoneRoomIndex) user.doneRoom?.splice(userDoneRoomIndex, 1);
+      if (userDoneRoomIndex !== undefined)
+        user.doneRoom?.splice(userDoneRoomIndex, 1);
     } else {
       // room.part에는 user가 있지만 user.ongoingRoom이나 user.doneRoom에는 room이 없는 상황.
       logger.error(
@@ -657,7 +657,8 @@ export const commitSettlementHandler: RequestHandler = async (req, res) => {
         error: "Rooms/:id/commitSettlement : internal server error",
       });
     }
-    if (userOngoingRoomIndex) user.ongoingRoom?.splice(userOngoingRoomIndex, 1);
+    if (userOngoingRoomIndex !== undefined)
+      user.ongoingRoom?.splice(userOngoingRoomIndex, 1);
 
     await user.save();
 
@@ -740,7 +741,8 @@ export const commitPaymentHandler: RequestHandler = async (req, res) => {
         error: "Rooms/:id/commitPayment : internal server error",
       });
     }
-    if (userOngoingRoomIndex) user.ongoingRoom?.splice(userOngoingRoomIndex, 1);
+    if (userOngoingRoomIndex !== undefined)
+      user.ongoingRoom?.splice(userOngoingRoomIndex, 1);
 
     await user.save();
 

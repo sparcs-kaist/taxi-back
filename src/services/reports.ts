@@ -1,11 +1,11 @@
-import { RequestHandler } from "express";
+import type { RequestHandler } from "express";
 import { userModel, reportModel, roomModel } from "@/modules/stores/mongo";
 import { reportPopulateOption } from "@/modules/populates/reports";
 import { sendReportEmail } from "@/modules/email";
 import logger from "@/modules/logger";
 import reportEmailPage from "@/views/reportEmailPage";
 import { notifyReportToReportChannel } from "@/modules/slackNotification";
-import { ReportsCreate } from "@/routes/docs/schemas/reportsSchema";
+import type { ReportsCreate } from "@/routes/docs/schemas/reportsSchema";
 
 export const createHandler: RequestHandler = async (req, res) => {
   try {
@@ -16,7 +16,7 @@ export const createHandler: RequestHandler = async (req, res) => {
     if (!user) {
       return res
         .status(400)
-        .json({ error: "User/report: no corresponding user" });
+        .json({ error: "Reports/create: no corresponding user" });
     }
 
     const creatorId = user._id;
@@ -82,7 +82,7 @@ export const searchByUserHandler: RequestHandler = async (req, res) => {
     if (!user) {
       return res
         .status(400)
-        .json({ error: "User/report: no corresponding user" });
+        .json({ error: "Reports/searchByUser: no corresponding user" });
     }
 
     const response = {
@@ -99,7 +99,7 @@ export const searchByUserHandler: RequestHandler = async (req, res) => {
   } catch (err) {
     logger.error(err);
     res.status(500).json({
-      error: "report/searchByUser : internal server error",
+      error: "Reports/searchByUser : internal server error",
     });
   }
 };
