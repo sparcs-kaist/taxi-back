@@ -1,15 +1,11 @@
-const { userModel } = require("@/modules/stores/mongo");
-const { logout, login } = require("@/modules/auths/login");
-
+const { logout } = require("@/modules/auths/login");
 const { unregisterDeviceToken } = require("@/modules/fcm");
 const {
   generateNickname,
   generateProfileImageUrl,
 } = require("@/modules/modifyProfile");
-const logger = require("@/modules/logger").default;
-const jwt = require("@/modules/auths/jwt");
 
-const { registerDeviceTokenHandler, tryLogin } = require("@/services/auth");
+const { tryLogin } = require("@/services/auth");
 const loginReplacePage = require("@/views/loginReplacePage").default;
 
 const createUserData = (id) => {
@@ -81,9 +77,7 @@ const oneAppLoginHandler = (req, res) => {
 
   req.session.loginAfterState = {};
   req.session.isApp = false;
-  req.session.oneAppState = {
-    codeChallenge,
-  };
+  req.session.oneAppState = { codeChallenge };
   res.end(loginReplacePage);
 };
 
