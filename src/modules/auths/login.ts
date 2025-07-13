@@ -40,7 +40,7 @@ export const getLoginInfo = (req: Request) => {
     if (decoded === TOKEN_EXPIRED || decoded === TOKEN_INVALID) {
       return { id: undefined, sid: undefined, oid: undefined, name: undefined };
     }
-    const { oid, uid } = decoded as { oid: string; uid: string }; // TODO: FIXME
+    const { oid, uid } = decoded;
     return { id: uid, sid: undefined, oid, name: undefined }; // TODO: name?
   } else if (req.session.loginInfo) {
     const { id, sid, oid, name, time } = req.session.loginInfo;

@@ -61,7 +61,15 @@ export const signForOneApp = (payload: PayloadForOneApp) => {
 
 export const verifyForOneApp = (accessToken: string) => {
   try {
-    return jwt.verify(accessToken, secretKeyForOneApp) as PayloadForOneApp;
+    const { oid, uid } = jwt.verify(
+      accessToken,
+      secretKeyForOneApp
+    ) as PayloadForOneApp;
+    // oid가 없는 토큰은 Taxi에서는 사용할 수 없습니다.
+    if (oid === undefined) {
+      return TOKEN_INVALID;
+    }
+    return { oid, uid };
   } catch (err) {
     if (err instanceof Error && err.message === "jwt expired") {
       return TOKEN_EXPIRED;

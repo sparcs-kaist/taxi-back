@@ -38,8 +38,8 @@ const loginReplaceHandler = (req, res) => {
   tryLogin(
     req,
     res,
-    undefined,
     createUserData(id),
+    undefined,
     redirectOrigin,
     redirectPath
   );
@@ -54,7 +54,6 @@ const sparcsssoHandler = (req, res) => {
     redirectPath: redirectPath,
   };
   req.session.isApp = isApp;
-  req.session.isOneApp = false;
   res.end(loginReplacePage);
 };
 
@@ -80,9 +79,7 @@ const logoutHandler = async (req, res) => {
 const oneAppLoginHandler = (req, res) => {
   const { codeChallenge } = req.query;
 
-  req.session.loginAfterState = {
-    redirectOrigin: "https://taxi.sparcs.org", // TODO: 원앱 전용 에러 핸들링 로직 추가 후 삭제
-  };
+  req.session.loginAfterState = {};
   req.session.isApp = false;
   req.session.oneAppState = {
     codeChallenge,

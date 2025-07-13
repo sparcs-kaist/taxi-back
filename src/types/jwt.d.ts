@@ -1,4 +1,4 @@
 export interface PayloadForOneApp {
-  oid: string;
+  oid: string | undefined;
   uid: string;
 }

@@ -69,6 +69,9 @@ const joinus = async (req, userData) => {
     // 탈퇴 후 7일이 지나지 않았을 경우, 가입을 거부합니다.
     const diff = req.timestamp - oldUser.withdrewAt.getTime();
     if (diff < 7 * 24 * 60 * 60 * 1000) {
+      logger.info(
+        `Login denied: recently withdrawn user (uid: ${userData.id}, sid: ${userData.sid})`
+      );
       return false;
     }
   }
@@ -106,14 +109,17 @@ const update = async (userData) => {
 const tryLogin = async (
   req,
   res,
-  userDataBefore,
   userData,
+  kaistInfoV2,
   redirectOrigin,
   redirectPath
 ) => {
+  const isOneApp = !!req.session.oneAppState;
+  const { id: uid, sid } = userData;
+
   try {
     const user = await userModel.findOne(
-      { id: userData.id, withdraw: false }, // NOTE: SSO uid 쓰는 곳
+      { id: uid, withdraw: false }, // NOTE: SSO uid 쓰는 곳
       "_id name email subinfo id withdraw ban"
     );
     if (!user) {
@@ -121,16 +127,22 @@ const tryLogin = async (
         return tryLogin(
           req,
           res,
-          userDataBefore,
           userData,
+          kaistInfoV2,
           redirectOrigin,
           redirectPath
         );
-      } else {
-        const redirectUrl = new URL("/login/fail", redirectOrigin).href;
-        res.redirect(redirectUrl);
-        return;
       }
+      // 회원가입이 거절된 경우 Taxi를 사용할 수 없습니다.
+      return grantLoginOnlyForOneApp(
+        req,
+        res,
+        undefined,
+        uid,
+        sid,
+        kaistInfoV2,
+        redirectOrigin
+      );
     }
     if (
       user.name !== userData.name ||
@@ -144,27 +156,24 @@ const tryLogin = async (
       return tryLogin(
         req,
         res,
-        userDataBefore,
         userData,
+        kaistInfoV2,
         redirectOrigin,
         redirectPath
       );
     }
 
-    if (req.session.oneAppState) {
-      req.session.oneAppState = {
-        ...req.session.oneAppState,
-        oid: user._id.toString(),
-        uid: user.id,
-        kaistInfoV2: userDataBefore?.kaistInfoV2,
-      };
-      return res.redirect(
-        "sparcsapp://authorize?session=" +
-          encodeURIComponent(req.cookies["connect.sid"])
+    if (isOneApp) {
+      return grantLoginOnlyForOneApp(
+        req,
+        res,
+        user._id.toString(),
+        uid,
+        sid,
+        kaistInfoV2,
+        redirectOrigin
       );
-    }
-
-    if (req.session.isApp) {
+    } else if (req.session.isApp) {
       const { token: accessToken } = await jwt.sign({
         id: user._id,
         type: "access",
@@ -177,13 +186,56 @@ const tryLogin = async (
       req.session.refreshToken = refreshToken;
     }
 
-    login(req, userData.sid, user.id, user._id, user.name);
-
-    res.redirect(new URL(redirectPath, redirectOrigin).href);
+    login(req, userData.sid, uid, user._id, user.name);
+    return res.redirect(new URL(redirectPath, redirectOrigin).href);
   } catch (err) {
     logger.error(err);
+    return denyLogin(
+      res,
+      isOneApp,
+      redirectOrigin,
+      500,
+      "internal server error"
+    );
+  }
+};
+
+const denyLogin = (res, isOneApp, redirectOrigin, code, description) => {
+  logger.info(`Login denied: ${description}`);
+  const encodedDescription = encodeURIComponent(description);
+  const redirectUrl = isOneApp
+    ? `sparcsapp://error?code=${code}&description=${encodedDescription}`
+    : new URL("/login/fail", redirectOrigin).href;
+  return res.redirect(redirectUrl);
+};
+
+const grantLoginOnlyForOneApp = (
+  req,
+  res,
+  oid,
+  uid,
+  sid,
+  kaistInfoV2,
+  redirectOrigin
+) => {
+  if (req.session.oneAppState) {
+    // 원앱에서 로그인하는 경우 토큰 발급을 위해 세션에 정보를 저장합니다.
+    // oid가 없는 토큰은 다른 서비스에서의 인증 용도로 발급하는 것이며, Taxi에서는 사용할 수 없습니다.
+    req.session.oneAppState = {
+      ...req.session.oneAppState,
+      oid,
+      uid,
+      kaistInfoV2,
+    };
+    return res.redirect(
+      "sparcsapp://authorize?session=" +
+        encodeURIComponent(req.cookies["connect.sid"])
+    );
+  } else {
+    // 웹에서 로그인하는 경우 SSO 로그아웃 후 로그인 실패 화면으로 이동합니다.
     const redirectUrl = new URL("/login/fail", redirectOrigin).href;
-    res.redirect(redirectUrl);
+    const ssoLogoutUrl = ssoClient.getLogoutUrl(sid, redirectUrl);
+    return res.redirect(ssoLogoutUrl);
   }
 };
 
@@ -203,49 +255,46 @@ const sparcsssoHandler = (req, res) => {
 
 const sparcsssoCallbackHandler = (req, res) => {
   const loginAfterState = req.session?.loginAfterState;
+  const isOneApp = !!req.session?.oneAppState;
   const { state: stateForCmp, code } = req.query;
 
-  if (!loginAfterState)
+  if (!loginAfterState) {
     return res.status(400).send("Auth/sparcssso/callback : invalid request");
+  }
 
   const { state, redirectOrigin, redirectPath } = loginAfterState;
   req.session.loginAfterState = undefined;
 
-  if (!state || !redirectOrigin || !redirectPath) {
+  // 원앱에서 로그인하는 경우 redirectOrigin과 redirectPath가 없음
+  if (!state || (!isOneApp && (!redirectOrigin || !redirectPath))) {
     return res.status(400).send("Auth/sparcssso/callback : invalid request");
-  }
-
-  if (state !== stateForCmp) {
-    logger.info("Login denied: state mismatch");
-
-    const redirectUrl = new URL("/login/fail", redirectOrigin).href;
-    return res.redirect(redirectUrl);
+  } else if (state !== stateForCmp) {
+    return denyLogin(res, isOneApp, redirectOrigin, 400, "state mismatch");
   }
 
   ssoClient.getUserInfo(code).then((userDataBefore) => {
+    const { kaist_v2_info: kaistInfoV2 } = userDataBefore;
     logger.info(`Login requested: ${JSON.stringify(userDataBefore)}`);
 
     const userData = transUserData(userDataBefore);
     const isTestAccount = testAccounts?.includes(userData.email);
     if (userData.isEligible || nodeEnv !== "production" || isTestAccount) {
-      tryLogin(
+      tryLogin(req, res, userData, kaistInfoV2, redirectOrigin, redirectPath);
+    } else {
+      // 카이스트 구성원이 아닌 경우 Taxi를 사용할 수 없습니다.
+      const { id: uid, sid } = userData;
+      logger.info(
+        `Login denied: not a KAIST member (uid: ${uid}, sid: ${sid})`
+      );
+      grantLoginOnlyForOneApp(
         req,
         res,
-        userDataBefore,
-        userData,
-        redirectOrigin,
-        redirectPath
+        undefined,
+        uid,
+        sid,
+        kaistInfoV2,
+        redirectOrigin
       );
-    } else {
-      // 카이스트 구성원이 아닌 경우, SSO 로그아웃 이후, 로그인 실패 URI 로 이동합니다
-      const { id, sid, kaist, kaistType } = userData;
-      logger.info(
-        `Login denied: not a KAIST member (uid: ${id}, sid: ${sid}, kaist: ${kaist}, kaistType: ${kaistType})`
-      );
-
-      const redirectUrl = new URL("/login/fail", redirectOrigin).href;
-      const ssoLogoutUrl = ssoClient.getLogoutUrl(sid, redirectUrl);
-      res.redirect(ssoLogoutUrl);
     }
   });
 };
@@ -282,14 +331,9 @@ const oneAppLoginHandler = (req, res) => {
   const { codeChallenge } = req.query;
   const { url, state } = ssoClient.getLoginParams();
 
-  req.session.loginAfterState = {
-    state,
-    redirectOrigin: "https://taxi.sparcs.org", // TODO: 원앱 전용 에러 핸들링 로직 추가 후 삭제
-  };
+  req.session.loginAfterState = { state };
   req.session.isApp = false;
-  req.session.oneAppState = {
-    codeChallenge,
-  };
+  req.session.oneAppState = { codeChallenge };
   res.redirect(url + "&social_enabled=0&show_disabled_button=0");
 };
 
