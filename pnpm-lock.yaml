@@ -72,8 +72,8 @@ dependencies:
     specifier: ^1.12.1
     version: 1.12.2
   nodemailer:
-    specifier: ^6.9.9
-    version: 6.9.9
+    specifier: ^7.0.5
+    version: 7.0.5
   querystring:
     specifier: ^0.2.1
     version: 0.2.1
@@ -89,6 +89,9 @@ dependencies:
   swagger-ui-express:
     specifier: ^4.6.0
     version: 4.6.3(express@4.18.2)
+  uuid:
+    specifier: ^10.0.0
+    version: 10.0.0
   validator:
     specifier: ^13.7.0
     version: 13.11.0
@@ -127,6 +130,9 @@ devDependencies:
   '@types/node-cron':
     specifier: ^3.0.11
     version: 3.0.11
+  '@types/nodemailer':
+    specifier: ^6.4.17
+    version: 6.4.17
   '@types/response-time':
     specifier: ^2.3.8
     version: 2.3.8
@@ -3865,6 +3871,12 @@ packages:
     dependencies:
       undici-types: 5.26.5
 
+  /@types/nodemailer@6.4.17:
+    resolution: {integrity: sha512-I9CCaIp6DTldEg7vyUTZi8+9Vo0hi1/T8gv3C89yk1rSAAzoKQ8H8ki/jBYJSFoH/BisgLP8tkZMlQ91CIquww==}
+    dependencies:
+      '@types/node': 20.9.0
+    dev: true
+
   /@types/object.omit@3.0.0:
     resolution: {integrity: sha512-I27IoPpH250TUzc9FzXd0P1BV/BMJuzqD3jOz98ehf9dQqGkxlq+hO1bIqZGWqCg5bVOy0g4AUVJtnxe0klDmw==}
     dev: false
@@ -7411,8 +7423,8 @@ packages:
     resolution: {integrity: sha512-uYr7J37ae/ORWdZeQ1xxMJe3NtdmqMC/JZK+geofDrkLUApKRHPd18/TxtBOJ4A0/+uUIliorNrfYV6s1b02eQ==}
     dev: false
 
-  /nodemailer@6.9.9:
-    resolution: {integrity: sha512-dexTll8zqQoVJEZPwQAKzxxtFn0qTnjdQTchoU6Re9BUUGBJiOy3YMn/0ShTW6J5M0dfQ1NeDeRTTl4oIWgQMA==}
+  /nodemailer@7.0.5:
+    resolution: {integrity: sha512-nsrh2lO3j4GkLLXoeEksAMgAOqxOv6QumNRVQTJwKH4nuiww6iC2y7GyANs9kRAxCexg3+lTWM3PZ91iLlVjfg==}
     engines: {node: '>=6.0.0'}
     dev: false
 
@@ -9356,6 +9368,11 @@ packages:
   /utils-merge@1.0.1:
     resolution: {integrity: sha512-pMZTvIkT1d+TFGvDOqodOclx0QWkkgi6Tdoa8gC8ffGAAqz9pzPTZWAybbsHHoED/ztMtkv/VoYTYyShUn81hA==}
     engines: {node: '>= 0.4.0'}
+    dev: false
+
+  /uuid@10.0.0:
+    resolution: {integrity: sha512-8XkAphELsDnEGrDxUOHB3RGvXz6TeuYSGEZBOjtTtPm2lwhGBjLgOzLHB63IUWfBpNucQjND6d3AOudO+H3RWQ==}
+    hasBin: true
     dev: false
 
   /uuid@8.0.0:

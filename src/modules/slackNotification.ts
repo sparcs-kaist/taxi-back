@@ -2,6 +2,7 @@ import axios from "axios";
 import { nodeEnv, slackWebhookUrl as slackUrl } from "@/loadenv";
 import logger from "@/modules/logger";
 import type { Report } from "@/types/mongo";
+import type { SendMailOptions } from "nodemailer";
 
 export const sendTextToReportChannel = (text: string) => {
   if (!slackUrl.report) return;
@@ -59,7 +60,11 @@ export const notifyRoomCreationAbuseToReportChannel = (
   );
 };
 
-const notifyEmailFailureToReportChannel = (mailOption, report, error) => {
+export const notifyEmailFailureToReportChannel = (
+  mailOption: SendMailOptions,
+  report: Report,
+  error: Error
+) => {
   sendTextToReportChannel(
     `${mailOption.to}님께 보내려는 신고 메일이 실패했습니다.
     
@@ -72,11 +77,4 @@ const notifyEmailFailureToReportChannel = (mailOption, report, error) => {
     문제 원인: ${error.message}
     `
   );
-};
-
-module.exports = {
-  sendTextToReportChannel,
-  notifyReportToReportChannel,
-  notifyRoomCreationAbuseToReportChannel,
-  notifyEmailFailureToReportChannel,
 };
