@@ -21,6 +21,15 @@ export const roomsZod = {
     id: z.string().regex(patterns.objectId),
   }),
 
+  searchByTimeGap: z.object({
+    from: z.string().regex(patterns.objectId),
+    to: z.string().regex(patterns.objectId),
+    time: z.string().refine((val) => !isNaN(Date.parse(val)), {
+      message: "Invalid ISO date format",
+    }),
+    timeGap: z.coerce.number().int().min(0).max(60).optional(),
+  }),
+
   createRoom: z.object({
     name: z.string().regex(patterns.room.name),
     from: z.string().regex(patterns.objectId),
@@ -59,3 +68,6 @@ export type SearchRoomsParams = z.infer<typeof roomsZod.searchRooms>;
 export type RoomIdQueryParams = z.infer<typeof roomsZod.roomIdQuery>;
 export type CreateRoomBody = z.infer<typeof roomsZod.createRoom>;
 export type RoomIdBody = z.infer<typeof roomsZod.roomIdBody>;
+export type SearchRoomsByTimeGapQuery = z.infer<
+  typeof roomsZod.searchByTimeGap
+>;
