@@ -17,10 +17,21 @@ const {
 const jwt = require("@/modules/auths/jwt");
 const logger = require("@/modules/logger").default;
 
-const transUserData = (userData) => {
+const transKaistInfo = (userData) => {
   const kaistInfo = userData.kaist_info ? JSON.parse(userData.kaist_info) : {};
+  const kaistInfoV2 = userData.kaist_v2_info
+    ? JSON.parse(userData.kaist_v2_info)
+    : {};
+  return {
+    kaist: kaistInfoV2.std_no || kaistInfo.ku_std_no || "", // 학번 (직원인 경우 빈 문자열)
+    kaistType: kaistInfoV2.socps_cd || kaistInfo.employeeType || "", // 구성원 유형
+    email: kaistInfoV2.email || kaistInfo.mail || "", // 학교 이메일 주소
+  };
+};
 
-  // info.ku_std_no: 학번
+const transUserData = (userData) => {
+  const kaistInfo = transKaistInfo(userData);
+
   // info.isEligible: 카이스트 구성원인지 여부
   const info = {
     id: userData.uid,
@@ -28,11 +39,11 @@ const transUserData = (userData) => {
     name: getFullUsername(userData.first_name, userData.last_name),
     facebook: userData.facebook_id || "",
     twitter: userData.twitter_id || "",
-    kaist: kaistInfo?.ku_std_no || "",
-    kaistType: kaistInfo?.employeeType || "", // DB에 저장하지 않음
+    kaist: kaistInfo.kaist,
+    kaistType: kaistInfo.kaistType, // DB에 저장하지 않음
     sparcs: userData.sparcs_id || "",
-    email: kaistInfo?.mail || userData.email,
-    isEligible: userPattern.allowedEmployeeTypes.test(kaistInfo?.employeeType), // DB에 저장하지 않음
+    email: kaistInfo.email || userData.email,
+    isEligible: userPattern.allowedEmployeeTypes.test(kaistInfo.kaistType), // DB에 저장하지 않음
   };
   return info;
 };
@@ -172,6 +183,8 @@ const sparcsssoCallbackHandler = (req, res) => {
   }
 
   ssoClient.getUserInfo(code).then((userDataBefore) => {
+    logger.info(`Login requested: ${JSON.stringify(userDataBefore)}`);
+
     const userData = transUserData(userDataBefore);
     const isTestAccount = testAccounts?.includes(userData.email);
     if (userData.isEligible || nodeEnv !== "production" || isTestAccount) {
