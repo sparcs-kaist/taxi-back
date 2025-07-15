@@ -24,7 +24,7 @@ export interface LoginInfo {
   time: number;
 }
 
-const getBearerToken = (req: Request) => {
+export const getBearerToken = (req: Request) => {
   const parts = req.headers.authorization?.split(" ");
   if (parts && parts.length === 2 && parts[0] === "Bearer") {
     return parts[1];
@@ -74,7 +74,14 @@ export const login = (
 export const logout = (req: Request) => {
   // 로그아웃 전 socket.io 소켓들 연결부터 끊기
   const io = req.app.get("io");
-  if (io) io.in(`session-${req.session.id}`).disconnectSockets(true);
+  if (io) {
+    const accessTokenForOneApp = getBearerToken(req);
+    if (accessTokenForOneApp) {
+      io.in(`token-${accessTokenForOneApp}`).disconnectSockets(true);
+    } else {
+      io.in(`session-${req.session.id}`).disconnectSockets(true);
+    }
+  }
 
   req.session.destroy((err) => {
     if (err) logger.error(err);

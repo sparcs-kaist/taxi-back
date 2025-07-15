@@ -2,7 +2,7 @@ const { Server } = require("socket.io");
 
 const sessionMiddleware = require("@/middlewares/session").default;
 const logger = require("@/modules/logger").default;
-const { getLoginInfo } = require("@/modules/auths/login");
+const { getBearerToken, getLoginInfo } = require("@/modules/auths/login");
 const { roomModel, userModel, chatModel } = require("@/modules/stores/mongo");
 const { getTokensOfUsers, sendMessageByTokens } = require("@/modules/fcm");
 
@@ -246,17 +246,27 @@ const startSocketServer = (server) => {
   io.on("connection", (socket) => {
     try {
       const req = socket.request;
-      req.session.reload((err) => {
-        if (err) {
+      const bearerToken = getBearerToken(req);
+      const joinRooms = () => {
+        const { oid: userOid } = getLoginInfo(req);
+        if (!userOid) {
           return socket.disconnect();
         }
 
-        const { oid: userOid } = getLoginInfo(req);
-        if (!userOid) return;
-
-        socket.join(`session-${req.session.id}`);
+        socket.join(getSessionRoom(req));
         socket.join(`user-${userOid}`);
-      });
+      };
+
+      if (bearerToken) {
+        joinRooms();
+      } else {
+        req.session.reload((err) => {
+          if (err) {
+            return socket.disconnect();
+          }
+          joinRooms();
+        });
+      }
 
       socket.on("disconnect", () => {});
     } catch (err) {
@@ -267,9 +277,15 @@ const startSocketServer = (server) => {
   return io;
 };
 
+const getSessionRoom = (req) => {
+  const bearerToken = getBearerToken(req);
+  return bearerToken ? `token-${bearerToken}` : `session-${req.session.id}`;
+};
+
 module.exports = {
   transformChatsForRoom,
   emitChatEvent,
   emitUpdateEvent,
   startSocketServer,
+  getSessionRoom,
 };

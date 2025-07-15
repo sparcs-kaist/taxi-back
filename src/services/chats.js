@@ -5,6 +5,7 @@ const {
   transformChatsForRoom,
   emitChatEvent,
   emitUpdateEvent,
+  getSessionRoom,
 } = require("@/modules/socket");
 const logger = require("@/modules/logger").default;
 
@@ -15,7 +16,6 @@ const loadRecentChatHandler = async (req, res) => {
     const io = req.app.get("io");
     const { userOid } = req;
     const { roomId } = req.body;
-    const { id: sessionId } = req.session;
     if (!userOid) {
       return res.status(500).send("Chat/ : internal server error");
     }
@@ -39,7 +39,7 @@ const loadRecentChatHandler = async (req, res) => {
 
     if (chats) {
       chats.reverse();
-      io.in(`session-${sessionId}`).emit("chat_init", {
+      io.in(getSessionRoom(req)).emit("chat_init", {
         chats: await transformChatsForRoom(chats),
       });
       res.json({ result: true });
@@ -57,7 +57,6 @@ const loadBeforeChatHandler = async (req, res) => {
     const io = req.app.get("io");
     const { userOid } = req;
     const { roomId, lastMsgDate } = req.body;
-    const { id: sessionId } = req.session;
     if (!userOid) {
       return res.status(500).send("Chat/load/before : internal server error");
     }
@@ -83,7 +82,7 @@ const loadBeforeChatHandler = async (req, res) => {
 
     if (chats) {
       chats.reverse();
-      io.in(`session-${sessionId}`).emit("chat_push_front", {
+      io.in(getSessionRoom(req)).emit("chat_push_front", {
         chats: await transformChatsForRoom(chats),
       });
       res.json({ result: true });
@@ -101,7 +100,6 @@ const loadAfterChatHandler = async (req, res) => {
     const io = req.app.get("io");
     const { userOid } = req;
     const { roomId, lastMsgDate } = req.body;
-    const { id: sessionId } = req.session;
     if (!userOid) {
       return res.status(500).send("Chat/load/after : internal server error");
     }
@@ -124,7 +122,7 @@ const loadAfterChatHandler = async (req, res) => {
       .populate(chatPopulateOption);
 
     if (chats) {
-      io.in(`session-${sessionId}`).emit("chat_push_back", {
+      io.in(getSessionRoom(req)).emit("chat_push_back", {
         chats: await transformChatsForRoom(chats),
       });
       res.json({ result: true });
