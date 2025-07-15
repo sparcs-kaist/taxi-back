@@ -13,6 +13,18 @@ router.get(
   roomHandlers.searchHandler
 );
 
+router.get(
+  "/searchByTimeGap",
+  [
+    query("from").isMongoId(),
+    query("to").isMongoId(),
+    query("time").isISO8601(),
+    query("timeGap").optional().isInt({ min: 0, max: 60 }),
+  ],
+  validator,
+  roomHandlers.searchByTimeGapHandler
+);
+
 // 특정 id 방의 정산 정보를 제외한 세부사항을 반환한다.
 router.get(
   "/publicInfo",

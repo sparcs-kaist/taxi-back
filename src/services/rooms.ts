@@ -1,5 +1,4 @@
 import type { RequestHandler } from "express";
-import { z } from "zod";
 import { roomModel, locationModel, userModel } from "@/modules/stores/mongo";
 import { emitChatEvent } from "@/modules/socket";
 import logger from "@/modules/logger";
@@ -13,13 +12,13 @@ import { notifyRoomCreationAbuseToReportChannel } from "@/modules/slackNotificat
 import { contracts } from "@/lottery";
 import {
   CreateRoomBody,
+  SearchRoomsByTimeGapQuery,
   SearchRoomsParams,
-  roomsZod,
 } from "@/routes/docs/schemas/roomsSchema";
 
 // 이벤트 코드입니다.
 import { eventConfig } from "@/loadenv";
-import { Types } from "mongoose";
+import mongoose, { PipelineStage, Types } from "mongoose";
 const eventPeriod = eventConfig && {
   startAt: new Date(eventConfig.period.startAt),
   endAt: new Date(eventConfig.period.endAt),
@@ -146,7 +145,7 @@ export const createHandler: RequestHandler = async (req, res) => {
     return res.send(roomObjectFormated);
   } catch (err) {
     logger.error(err);
-    res.status(500).json({
+    return res.status(500).json({
       error: "Rooms/create : internal server error",
     });
     return;
@@ -213,7 +212,7 @@ export const createTestHandler: RequestHandler = async (req, res) => {
     return res.json({ result: !isAbusing });
   } catch (err) {
     logger.error(err);
-    res.status(500).json({
+    return res.status(500).json({
       error: "Rooms/create/test : internal server error",
     });
   }
@@ -235,7 +234,7 @@ export const publicInfoHandler: RequestHandler = async (req, res) => {
     }
   } catch (err) {
     logger.error(err);
-    res.status(500).json({
+    return res.status(500).json({
       error: "Rooms/publicInfo : internal server error",
     });
   }
@@ -263,7 +262,7 @@ export const infoHandler: RequestHandler = async (req, res) => {
     }
   } catch (err) {
     logger.error(err);
-    res.status(500).json({
+    return res.status(500).json({
       error: "Rooms/info : internal server error",
     });
   }
@@ -362,7 +361,7 @@ export const joinHandler: RequestHandler = async (req, res) => {
     res.send(formatSettlement(roomObject));
   } catch (err) {
     logger.error(err);
-    res.status(500).json({
+    return res.status(500).json({
       error: "Rooms/join : internal server error",
     });
   }
@@ -462,7 +461,7 @@ export const abortHandler: RequestHandler = async (req, res) => {
     res.send(formatSettlement(roomObject, { isOver }));
   } catch (err) {
     logger.error(err);
-    res.status(500).json({
+    return res.status(500).json({
       error: "Rooms/abort : internal server error",
     });
   }
@@ -542,11 +541,11 @@ export const searchHandler: RequestHandler = async (req, res) => {
       .limit(1000)
       .populate(roomPopulateOption)
       .lean<PopulatedRoom[]>();
-    res.json(
+    return res.json(
       rooms.map((room) => formatSettlement(room, { includeSettlement: false }))
     );
   } catch (err) {
-    res.status(500).json({
+    return res.status(500).json({
       error: "Rooms/search : Internal server error",
     });
   }
@@ -594,8 +593,90 @@ export const searchByUserHandler: RequestHandler = async (req, res) => {
     res.json(response);
   } catch (err) {
     logger.error(err);
-    res.status(500).json({
+    return res.status(500).json({
       error: "Rooms/searchByUser : internal server error",
+    });
+  }
+};
+
+export const searchByTimeGapHandler: RequestHandler = async (req, res) => {
+  try {
+    // timeGap(단위: 분)은 기본적으로 25분으로 설정되어 있습니다.
+    const {
+      from,
+      to,
+      time,
+      timeGap = 25,
+    } = req.query as unknown as SearchRoomsByTimeGapQuery;
+
+    // Check if from and to are different
+    if (from === to) {
+      return res.status(400).json({
+        error: "Rooms/searchByTimeGap : Bad request",
+      });
+    }
+
+    // Validate locations exist
+    const fromLocation = await locationModel.findById(from);
+    if (!fromLocation || fromLocation?.isValid === false) {
+      return res.status(400).json({
+        error: "Rooms/searchByTimeGap : Invalid 'from' location",
+      });
+    }
+
+    const toLocation = await locationModel.findById(to);
+    if (!toLocation || toLocation?.isValid === false) {
+      return res.status(400).json({
+        error: "Rooms/searchByTimeGap : Invalid 'to' location",
+      });
+    }
+
+    // Parse the time and create time range (±25 minutes)
+    const targetTime = new Date(time);
+    const currentTime = new Date();
+
+    const _minTime = new Date(targetTime.getTime() - timeGap * 60 * 1000); // timegap minutes before
+    const minTime =
+      _minTime.getTime() >= currentTime.getTime() ? _minTime : currentTime; // If the time is in the past, use current time
+    const maxTime = new Date(targetTime.getTime() + timeGap * 60 * 1000); // timegap minutes after
+
+    // Build query
+    const query = {
+      from: new mongoose.Types.ObjectId(from),
+      to: new mongoose.Types.ObjectId(to),
+      time: { $gte: minTime, $lte: maxTime },
+      "part.0": { $exists: true }, // Ensure at least one participant exists
+    };
+
+    const agg: PipelineStage[] = [
+      { $match: query },
+      {
+        $addFields: {
+          diff: {
+            $abs: {
+              $subtract: ["$time", targetTime],
+            },
+          },
+        },
+      },
+      { $sort: { diff: 1 } },
+      { $limit: 3 },
+    ];
+
+    const rawRooms = await roomModel.aggregate(agg);
+    // Mongoose 6.x 이상이라면, aggregate 결과에도 populate 가능
+    const rooms = (await roomModel.populate(
+      rawRooms,
+      roomPopulateOption
+    )) as unknown as PopulatedRoom[];
+
+    return res.json(
+      rooms.map((room) => formatSettlement(room, { includeSettlement: false }))
+    );
+  } catch (err) {
+    logger.error(err);
+    return res.status(500).json({
+      error: "Rooms/searchByTimeGap : Internal server error",
     });
   }
 };
@@ -684,7 +765,7 @@ export const commitSettlementHandler: RequestHandler = async (req, res) => {
     );
   } catch (err) {
     logger.error(err);
-    res.status(500).json({
+    return res.status(500).json({
       error: "Rooms/:id/commitSettlement : internal server error",
     });
   }
@@ -766,7 +847,7 @@ export const commitPaymentHandler: RequestHandler = async (req, res) => {
     res.send(formatSettlement(roomObject, { isOver: true }));
   } catch (err) {
     logger.error(err);
-    res.status(500).json({
+    return res.status(500).json({
       error: "Rooms/:id/commitPayment : internal server error",
     });
   }

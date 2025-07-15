@@ -26,6 +26,7 @@ import {
   fareRouter,
   locationRouter,
   logininfoRouter,
+  noticeRouter,
   notificationRouter,
   reportRouter,
   roomRouter,
@@ -92,6 +93,7 @@ app.use("/chats", chatRouter);
 app.use("/fare", fareRouter);
 app.use("/locations", locationRouter);
 app.use("/logininfo", logininfoRouter);
+app.use("/notice", noticeRouter);
 app.use("/notifications", notificationRouter);
 app.use("/reports", reportRouter);
 app.use("/rooms", roomRouter);

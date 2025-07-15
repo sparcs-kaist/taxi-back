@@ -14,6 +14,7 @@ import type {
   AdminIPWhitelist,
   AdminLog,
   TaxiFare,
+  Notice,
 } from "@/types/mongo";
 
 const userSchema = new Schema<User>({
@@ -251,6 +252,20 @@ const taxiFareSchema = new Schema<TaxiFare>(
 );
 
 export const taxiFareModel = model("TaxiFare", taxiFareSchema);
+
+const noticeSchema = new Schema<Notice>(
+  {
+    title: { type: String, required: true },
+    notion_url: { type: String, required: true },
+    is_pinned: { type: Boolean, default: false },
+    is_active: { type: Boolean, default: true },
+  },
+  {
+    timestamps: true, // 최근 업데이트 시간 기록용
+  }
+);
+
+export const noticeModel = model("Notice", noticeSchema);
 
 mongoose.set("strictQuery", true);
 
