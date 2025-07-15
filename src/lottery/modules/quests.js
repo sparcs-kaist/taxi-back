@@ -4,10 +4,10 @@ const {
   itemModel,
   transactionModel,
 } = require("./stores/mongo");
-const logger = require("../../modules/logger");
+const logger = require("@/modules/logger").default;
 const mongoose = require("mongoose");
 
-const { eventConfig } = require("../../../loadenv");
+const { eventConfig } = require("@/loadenv");
 const eventPeriod = eventConfig && {
   startAt: new Date(eventConfig.period.startAt),
   endAt: new Date(eventConfig.period.endAt),
@@ -66,6 +66,10 @@ const buildQuests = (quests) => {
  */
 const completeQuest = async (userId, timestamp, quest) => {
   try {
+    // 이벤트(2025spring) 기간을 하루 더 연장하여 넙죽코인 소비기한을 보장할 때, completeQuest 함수를 비활성화합니다.
+    // 추후 이벤트에서는 아래 코드를 지워주시길 바랍니다.
+    if (timestamp >= new Date("2025-03-13T00:00:00+09:00")) return null;
+
     // 1단계: 유저의 EventStatus를 가져옵니다. 블록드리스트인지도 확인합니다.
     const eventStatus = await eventStatusModel.findOne({ userId }).lean();
     if (!eventStatus || eventStatus.isBanned) return null;
@@ -85,7 +89,7 @@ const completeQuest = async (userId, timestamp, quest) => {
     // 3단계: 유저의 퀘스트 완료 횟수를 확인합니다.
     // maxCount가 0인 경우, 무제한으로 퀘스트를 완료할 수 있습니다.
     const questCount = eventStatus.completedQuests.filter(
-      (completedQuestId) => completedQuestId === quest.id
+      ({ questId }) => questId === quest.id
     ).length;
     if (quest.maxCount > 0 && questCount >= quest.maxCount) {
       logger.info(

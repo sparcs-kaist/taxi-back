@@ -4,9 +4,9 @@ const { validateBody } = require("../middlewares/zod");
 const { roomsZod } = require("./docs/schemas/roomsSchema");
 const router = express.Router();
 
-const roomHandlers = require("../services/rooms");
-const validator = require("../middlewares/validator");
-const patterns = require("../modules/patterns");
+const roomHandlers = require("@/services/rooms");
+const validator = require("@/middlewares/validator").default;
+const patterns = require("@/modules/patterns").default;
 
 // 조건(이름, 출발지, 도착지, 날짜)에 맞는 방들을 모두 반환한다.
 router.get(
@@ -24,6 +24,18 @@ router.get(
   roomHandlers.searchHandler
 );
 
+router.get(
+  "/searchByTimeGap",
+  [
+    query("from").isMongoId(),
+    query("to").isMongoId(),
+    query("time").isISO8601(),
+    query("timeGap").optional().isInt({ min: 0, max: 60 }),
+  ],
+  validator,
+  roomHandlers.searchByTimeGapHandler
+);
+
 // 특정 id 방의 정산 정보를 제외한 세부사항을 반환한다.
 router.get(
   "/publicInfo",
@@ -33,7 +45,10 @@ router.get(
 );
 
 // 이후 API 접근 시 로그인 필요
-router.use(require("../middlewares/auth"));
+router.use(require("@/middlewares/auth").default);
+
+// 방 생성/참여전 ban 여부 확인
+router.use(require("@/middlewares/ban").default);
 
 // 특정 id 방 세부사항 보기
 router.get(

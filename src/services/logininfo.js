@@ -1,15 +1,15 @@
-const { userModel } = require("../modules/stores/mongo");
-const { getLoginInfo } = require("../modules/auths/login");
-const logger = require("../modules/logger");
+const { userModel } = require("@/modules/stores/mongo");
+const { getLoginInfo } = require("@/modules/auths/login");
+const logger = require("@/modules/logger").default;
 
 const logininfoHandler = async (req, res) => {
   try {
     const user = getLoginInfo(req);
-    if (!user.id) return res.json({ id: undefined });
+    if (!user.oid) return res.json({ id: undefined });
 
     const userDetail = await userModel.findOne(
-      { id: user.id },
-      "_id name nickname id withdraw phoneNumber ban joinat agreeOnTermsOfService subinfo email profileImageUrl account"
+      { _id: user.oid, withdraw: false },
+      "_id name nickname id withdraw phoneNumber badge ban joinat agreeOnTermsOfService subinfo email profileImageUrl account"
     );
 
     res.json({
@@ -19,6 +19,7 @@ const logininfoHandler = async (req, res) => {
       nickname: userDetail.nickname,
       withdraw: userDetail.withdraw,
       phoneNumber: userDetail.phoneNumber,
+      badge: userDetail.badge,
       ban: userDetail.ban,
       joinat: userDetail.joinat,
       agreeOnTermsOfService: userDetail.agreeOnTermsOfService,

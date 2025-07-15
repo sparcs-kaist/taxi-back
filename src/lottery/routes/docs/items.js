@@ -1,4 +1,4 @@
-const { eventConfig } = require("../../../../loadenv");
+const { eventConfig } = require("@/loadenv");
 const apiPrefix = `/events/${eventConfig?.mode}/items`;
 
 const itemsDocs = {};
@@ -28,6 +28,7 @@ itemsDocs[`${apiPrefix}/`] = {
                       "price",
                       "isDisabled",
                       "itemType",
+                      "realStock",
                     ],
                     properties: {
                       _id: {
@@ -50,11 +51,6 @@ itemsDocs[`${apiPrefix}/`] = {
                         description: "상품의 썸네일 이미지 URL",
                         example: "THUMBNAIL URL",
                       },
-                      instagramStoryStickerImageUrl: {
-                        type: "string",
-                        description: "인스타그램 스토리 스티커 이미지 URL",
-                        example: "STICKER URL",
-                      },
                       price: {
                         type: "number",
                         description: "상품의 가격. 0 이상의 정수입니다.",
@@ -71,6 +67,98 @@ itemsDocs[`${apiPrefix}/`] = {
                           "상품의 유형. 0: 일반 상품, 1: 일반 티켓, 2: 고급 티켓, 3: 랜덤박스입니다.",
                         example: 0,
                       },
+                      realStock: {
+                        type: "number",
+                        description: "상품의 실제 재고",
+                        example: 30,
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+  },
+};
+itemsDocs[`${apiPrefix}/{itemId}`] = {
+  get: {
+    tags: [`${apiPrefix}`],
+    summary: "상점에서 판매하는 특정 상품의 정보 반환",
+    description: "상점에서 판매하는 특정 상품의 정보를 가져옵니다.",
+    parameters: [
+      {
+        in: "path",
+        name: "itemId",
+        required: true,
+        description: "정보를 조회할 상품의 ObjectId",
+        example: "ITEM ID",
+      },
+    ],
+    responses: {
+      200: {
+        content: {
+          "application/json": {
+            schema: {
+              type: "object",
+              required: ["item"],
+              properties: {
+                item: {
+                  type: "object",
+                  required: [
+                    "_id",
+                    "name",
+                    "description",
+                    "imageUrl",
+                    "price",
+                    "isDisabled",
+                    "itemType",
+                    "realStock",
+                  ],
+                  description: "상품의 정보",
+                  properties: {
+                    _id: {
+                      type: "string",
+                      description: "상품의 ObjectId",
+                      example: "ITEM ID",
+                    },
+                    name: {
+                      type: "string",
+                      description: "상품의 이름",
+                      example: "진짜 송편",
+                    },
+                    description: {
+                      type: "string",
+                      description: "상품의 설명",
+                      example: "먹을 수 있는 송편입니다.",
+                    },
+                    imageUrl: {
+                      type: "string",
+                      description: "상품의 썸네일 이미지 URL",
+                      example: "THUMBNAIL URL",
+                    },
+                    price: {
+                      type: "number",
+                      description: "상품의 가격. 0 이상의 정수입니다.",
+                      example: 400,
+                    },
+                    isDisabled: {
+                      type: "boolean",
+                      description: "상품의 판매 중지 여부",
+                      example: false,
+                    },
+                    itemType: {
+                      type: "number",
+                      description:
+                        "상품의 유형. 0: 일반 상품, 1: 일반 티켓, 2: 고급 티켓, 3: 랜덤박스입니다.",
+                      example: 0,
+                    },
+                    realStock: {
+                      type: "number",
+                      description: "상품의 실제 재고",
+                      example: 30,
                     },
                   },
                 },
@@ -114,6 +202,7 @@ itemsDocs[`${apiPrefix}/leaderboard/{itemId}`] = {
                       "profileImageUrl",
                       "amount",
                       "probability",
+                      "rank",
                     ],
                     properties: {
                       nickname: {
@@ -135,6 +224,11 @@ itemsDocs[`${apiPrefix}/leaderboard/{itemId}`] = {
                         type: "number",
                         description: "유저가 상품에 당첨될 확률",
                         example: 0.1,
+                      },
+                      rank: {
+                        type: "number",
+                        description: "순위",
+                        example: 1,
                       },
                     },
                   },
@@ -182,7 +276,7 @@ itemsDocs[`${apiPrefix}/purchase/{itemId}`] = {
         in: "path",
         name: "itemId",
         required: true,
-        description: "리더보드를 조회할 상품의 ObjectId",
+        description: "구입할 상품의 ObjectId",
         example: "ITEM ID",
       },
     ],
@@ -213,6 +307,46 @@ itemsDocs[`${apiPrefix}/purchase/{itemId}`] = {
                   description:
                     "대박 여부. 랜덤박스를 구입한 경우에만 포함됩니다.",
                   example: true,
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+  },
+};
+itemsDocs[`${apiPrefix}/useCoupon/{couponCode}`] = {
+  post: {
+    tags: [`${apiPrefix}`],
+    summary: "쿠폰 사용",
+    description: "쿠폰을 사용합니다.",
+    parameters: [
+      {
+        in: "path",
+        name: "couponCode",
+        required: true,
+        description: "사용할 쿠폰의 코드",
+        example: "COUPON CODE",
+      },
+    ],
+    responses: {
+      200: {
+        content: {
+          "application/json": {
+            schema: {
+              type: "object",
+              required: ["result", "reward"],
+              properties: {
+                result: {
+                  type: "boolean",
+                  description: "성공 여부. 항상 true입니다.",
+                  example: true,
+                },
+                reward: {
+                  type: "number",
+                  description: "쿠폰의 사용 보상. 0 이상의 정수입니다.",
+                  example: 500,
                 },
               },
             },

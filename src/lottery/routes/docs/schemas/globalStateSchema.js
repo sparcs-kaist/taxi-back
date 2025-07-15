@@ -1,6 +1,6 @@
 const { z } = require("zod");
 const { zodToSchemaObject } = require("../../../../routes/docs/utils");
-const { objectId, user } = require("../../../../modules/patterns");
+const { objectId, user } = require("../../../../modules/patterns").default;
 
 const globalStateZod = {
   createUserGlobalStateHandler: z

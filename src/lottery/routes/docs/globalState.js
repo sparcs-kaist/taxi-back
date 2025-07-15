@@ -1,4 +1,4 @@
-const { eventConfig } = require("../../../../loadenv");
+const { eventConfig } = require("@/loadenv");
 const apiPrefix = `/events/${eventConfig?.mode}/globalState`;
 
 const globalStateDocs = {};
@@ -103,9 +103,9 @@ globalStateDocs[`${apiPrefix}/`] = {
                     "유저가 완료한 퀘스트의 배열. 여러 번 완료한 퀘스트의 경우 배열 내에 같은 퀘스트가 여러 번 포함됩니다.",
                   items: {
                     type: "object",
-                    required: ["id", "completedAt"],
+                    required: ["questId", "completedAt"],
                     properties: {
-                      id: {
+                      questId: {
                         type: "string",
                         description: "퀘스트의 Id",
                         example: "QUEST ID",

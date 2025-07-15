@@ -11,7 +11,8 @@ const usersDocs = require("./users");
 const roomsDocs = require("./rooms");
 const chatsDocs = require("./chats");
 const fareDocs = require("./fare");
-const { port, nodeEnv } = require("../../../loadenv");
+const noticeDocs = require("./notice");
+const { port, nodeEnv } = require("@/loadenv");
 
 const serverList = [
   {
@@ -75,6 +76,10 @@ const swaggerDocs = {
       name: "fare",
       description: "예상 택시 금액 계산",
     },
+    {
+      name: "notice",
+      description: "공지사항 조회",
+    },
   ],
   consumes: ["application/json"],
   produces: ["application/json"],
@@ -88,6 +93,7 @@ const swaggerDocs = {
     ...chatsDocs,
     ...roomsDocs,
     ...fareDocs,
+    ...noticeDocs,
   },
   components: {
     schemas: {

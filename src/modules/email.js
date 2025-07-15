@@ -1,7 +1,9 @@
 const nodemailer = require("nodemailer");
 const logger = require("./logger");
 const { nodeEnv } = require("../../loadenv");
-const { notifyEmailFailureToReportChannel } = require("../modules/slackNotification");
+const {
+  notifyEmailFailureToReportChannel,
+} = require("../modules/slackNotification");
 
 /**
  * production 환경에서 메일을 전송하기 위해 사용되는 agent입니다.
@@ -137,14 +139,14 @@ const sendReportEmail = async (reportedEmail, report, html) => {
       reportTypeMap[report.type]
     })`,
     html,
-  }
+  };
 
   const result = await transporter.sendMail(mailOptions);
 
   if (result instanceof Error) {
     notifyEmailFailureToReportChannel(mailOptions, report, result);
   }
-}
+};
 
 module.exports = {
   sendReportEmail,

@@ -5,20 +5,38 @@ const {
 } = require("../modules/stores/mongo");
 const { userModel } = require("../../modules/stores/mongo");
 const { isLogin, getLoginInfo } = require("../../modules/auths/login");
-const logger = require("../../modules/logger");
+const logger = require("@/modules/logger").default;
 
-const { eventConfig } = require("../../../loadenv");
+const { eventConfig } = require("@/loadenv");
 const contracts = require("../modules/contracts");
 
 const getItemsHandler = async (req, res) => {
   try {
     const items = await itemModel
       .find(
-        {},
-        "_id name description imageUrl instagramStoryStickerImageUrl price isDisabled itemType"
+        { itemType: { $ne: 4 } },
+        "_id name description imageUrl price isDisabled itemType realStock"
       )
       .lean();
     res.json({ items });
+  } catch (err) {
+    logger.error(err);
+    res.status(500).json({ error: "Items/ : internal server error" });
+  }
+};
+
+const getItemHandler = async (req, res) => {
+  try {
+    const { itemId } = req.params;
+    const item = await itemModel
+      .findById(
+        itemId,
+        "_id name description imageUrl price isDisabled itemType realStock"
+      )
+      .lean();
+    if (!item) return res.status(400).json({ error: "Items/ : invalid item" });
+
+    res.json({ item });
   } catch (err) {
     logger.error(err);
     res.status(500).json({ error: "Items/ : internal server error" });
@@ -107,15 +125,27 @@ const getItemLeaderboardHandler = async (req, res) => {
       leaderboardBase
         .filter((user) => user.rank <= 20)
         .map(async (user) => {
-          const userInfo = await userModel.findById(user.userId).lean();
+          const userInfo = await userModel
+            .findOne({ _id: user.userId, withdraw: false })
+            .lean();
+          if (!userInfo) {
+            logger.error(`Fail to find user ${user.userId}`);
+            return null;
+          }
           return {
+            userId: user.userId,
             nickname: userInfo.nickname,
             profileImageUrl: userInfo.profileImageUrl,
             amount: user.amount,
             probability: user.probability,
+            rank: user.rank,
           };
         })
     );
+    if (leaderboard.includes(null))
+      return res
+        .status(500)
+        .json({ error: "Items/leaderboard : internal server error" });
 
     const userId = isLogin(req) ? getLoginInfo(req).oid : null;
     const user = leaderboardBase.find(
@@ -129,6 +159,7 @@ const getItemLeaderboardHandler = async (req, res) => {
       amount: user?.amount,
       probability: user?.probability,
       rank: user?.rank,
+      userId: user?.userId,
     });
   } catch (err) {
     logger.error(err);
@@ -153,7 +184,7 @@ const updateEventStatus = async (
     }
   );
 
-// 아래의 함수는 2024 추석 이벤트에서 사용되지 않습니다.
+// 아래의 함수는 2025 봄 이벤트에서 사용되지 않습니다.
 //
 // const getRandomItem = async (req, depth) => {
 //   if (depth >= 10) {
@@ -236,133 +267,180 @@ const updateEventStatus = async (
 //   }
 // };
 
+const purchaseItem = async (req, item, amount) => {
+  const totalPrice = item.price * amount;
+
+  // 구매 가능 조건: 재화가 충분하며, 재고가 남아있으며, 판매 중인 상품이어야 합니다.
+  if (item.isDisabled) return { error: "disabled item" };
+  if (req.eventStatus.creditAmount < totalPrice)
+    return { error: "not enough credit" };
+  if (item.stock < amount) return { error: "out of stock" };
+
+  // 1단계: 재고를 차감합니다.
+  const { modifiedCount } = await itemModel.updateOne(
+    { _id: item._id, stock: { $gte: amount } },
+    { $inc: { stock: -amount } }
+  );
+  if (modifiedCount === 0) return { error: "item out of stock" };
+
+  if (item.itemType === 3) {
+    // 랜덤박스를 구입한 경우
+    // 2단계: 대박(40%)인지 쪽박(60%)인지 결정합니다.
+    const isJackpot = Math.random() < 0.4;
+    const creditDelta = isJackpot ? totalPrice : -totalPrice;
+
+    // 3단계: 유저 정보를 업데이트합니다.
+    await updateEventStatus(req.userOid, { creditDelta });
+
+    // 4단계: 입출금 내역을 추가합니다.
+    if (isJackpot) {
+      const transaction = new transactionModel({
+        type: "get",
+        amount: creditDelta,
+        userId: req.userOid,
+        itemId: item._id,
+        itemAmount: amount,
+        comment: `${eventConfig?.credit.name} ${totalPrice}개를 "${item.name}"에 사용해 대박을 터뜨렸습니다.`,
+      });
+      await transaction.save();
+    } else {
+      const transaction = new transactionModel({
+        type: "use",
+        amount: -creditDelta,
+        userId: req.userOid,
+        itemId: item._id,
+        itemAmount: amount,
+        comment: `${eventConfig?.credit.name} ${totalPrice}개를 "${item.name}"에 사용했지만 쪽박을 맞았습니다.`,
+      });
+      await transaction.save();
+    }
+
+    return { result: { result: true, isJackpot } };
+  } else if (item.itemType === 4) {
+    // 쿠폰을 사용한 경우
+    // 2단계: 쿠폰 사용 여부를 조회합니다.
+    const isUsed = await transactionModel.exists({
+      userId: req.userOid,
+      itemId: item._id,
+    });
+    if (isUsed) return { error: "already used coupon" };
+
+    // 3단계: 유저 정보를 업데이트합니다.
+    await updateEventStatus(req.userOid, {
+      creditDelta: item.couponReward,
+    });
+
+    // 4단계: 입출금 내역을 추가합니다.
+    const transaction = new transactionModel({
+      type: "get",
+      amount: item.couponReward,
+      userId: req.userOid,
+      itemId: item._id,
+      itemAmount: amount,
+      comment: `쿠폰 "${item.name}"을 사용해 ${eventConfig?.credit.name} ${item.couponReward}개를 획득했습니다.`,
+    });
+    await transaction.save();
+
+    return { result: { result: true, reward: item.couponReward } };
+  } else {
+    // 랜덤박스, 쿠폰이 아닌 상품을 구입한 경우
+    // 2단계: 유저 정보를 업데이트합니다.
+    await updateEventStatus(req.userOid, {
+      creditDelta: -totalPrice,
+      ticket1Delta: item.itemType === 1 ? amount : 0,
+      ticket2Delta: item.itemType === 2 ? amount : 0,
+    });
+
+    // 3단계: 출금 내역을 추가합니다.
+    const transaction = new transactionModel({
+      type: "use",
+      amount: totalPrice,
+      userId: req.userOid,
+      itemId: item._id,
+      itemAmount: amount,
+      comment: `${eventConfig?.credit.name} ${totalPrice}개를 사용해 "${item.name}" ${amount}개를 획득했습니다.`,
+    });
+    await transaction.save();
+
+    // 4단계: 퀘스트를 완료 처리합니다.
+    await contracts.completeItemPurchaseQuest(
+      req.userOid,
+      transaction.createdAt
+    );
+
+    return { result: { result: true } };
+  }
+
+  // const randomItem = await getRandomItem(req, 0);
+  // if (!randomItem) {
+  //   // 랜덤박스가 실패한 경우, 상태를 구매 이전으로 되돌립니다.
+  //   // TODO: Transactions 도입 후 이 코드는 삭제합니다.
+  //   logger.info(`User ${req.userOid}'s status will be restored`);
+
+  //   await transactionModel.deleteOne({ _id: transaction._id });
+  //   await updateEventStatus(req.userOid, {
+  //     creditDelta: item.price,
+  //   });
+  //   await itemModel.updateOne(
+  //     { _id: item._id },
+  //     {
+  //       $inc: {
+  //         stock: 1,
+  //       },
+  //     }
+  //   );
+
+  //   logger.info(`User ${req.userOid}'s status was successfully restored`);
+
+  //   return res
+  //     .status(500)
+  //     .json({ error: "Items/purchase : random box error" });
+  // }
+};
+
 const purchaseItemHandler = async (req, res) => {
   try {
     const { itemId } = req.params;
-    const item = await itemModel.findById(itemId).lean();
+    const item = await itemModel
+      .findOne({ _id: itemId, itemType: { $ne: 4 } })
+      .lean();
     if (!item)
       return res.status(400).json({ error: "Items/purchase : invalid Item" });
 
     const { amount } = req.body;
-    const totalPrice = item.price * amount;
-
-    // 구매 가능 조건: 재화가 충분하며, 재고가 남아있으며, 판매 중인 상품이어야 합니다.
-    if (item.isDisabled)
-      return res.status(400).json({ error: "Items/purchase : disabled item" });
-    if (req.eventStatus.creditAmount < totalPrice)
-      return res
-        .status(400)
-        .json({ error: "Items/purchase : not enough credit" });
-    if (item.stock < amount)
-      return res
-        .status(400)
-        .json({ error: "Items/purchase : item out of stock" });
-
-    // 1단계: 재고를 차감합니다.
-    const { modifiedCount } = await itemModel.updateOne(
-      { _id: item._id, stock: { $gte: amount } },
-      { $inc: { stock: -amount } }
-    );
-    if (modifiedCount === 0)
-      return res
-        .status(400)
-        .json({ error: "Items/purchase : item out of stock" });
-
-    if (item.itemType !== 3) {
-      // 랜덤박스가 아닌 상품을 구입한 경우
-      // 2단계: 유저 정보를 업데이트합니다.
-      await updateEventStatus(req.userOid, {
-        creditDelta: -totalPrice,
-        ticket1Delta: item.itemType === 1 ? amount : 0,
-        ticket2Delta: item.itemType === 2 ? amount : 0,
-      });
-
-      // 3단계: 출금 내역을 추가합니다.
-      const transaction = new transactionModel({
-        type: "use",
-        amount: totalPrice,
-        userId: req.userOid,
-        itemId: item._id,
-        itemAmount: amount,
-        comment: `${eventConfig?.credit.name} ${totalPrice}개를 사용해 "${item.name}" ${amount}개를 획득했습니다.`,
-      });
-      await transaction.save();
-
-      // 4단계: 퀘스트를 완료 처리합니다.
-      await contracts.completeItemPurchaseQuest(
-        req.userOid,
-        transaction.createdAt
-      );
-
-      return res.json({ result: true });
-    } else {
-      // 랜덤박스를 구입한 경우
-      // 2단계: 대박(40%)인지 쪽박(60%)인지 결정합니다.
-      const isJackpot = Math.random() < 0.4;
-      const creditDelta = isJackpot ? totalPrice : -totalPrice;
-
-      // 3단계: 유저 정보를 업데이트합니다.
-      await updateEventStatus(req.userOid, { creditDelta });
-
-      // 4단계: 입출금 내역을 추가합니다.
-      if (isJackpot) {
-        const transaction = new transactionModel({
-          type: "get",
-          amount: creditDelta,
-          userId: req.userOid,
-          itemId: item._id,
-          itemAmount: amount,
-          comment: `${eventConfig?.credit.name} ${totalPrice}개를 "${item.name}"에 사용해 대박을 터뜨렸습니다.`,
-        });
-        await transaction.save();
-      } else {
-        const transaction = new transactionModel({
-          type: "use",
-          amount: creditDelta,
-          userId: req.userOid,
-          itemId: item._id,
-          itemAmount: amount,
-          comment: `${eventConfig?.credit.name} ${totalPrice}개를 "${item.name}"에 사용했지만 쪽박을 맞았습니다.`,
-        });
-        await transaction.save();
-      }
-
-      return res.json({ result: true, isJackpot });
-    }
-
-    // const randomItem = await getRandomItem(req, 0);
-    // if (!randomItem) {
-    //   // 랜덤박스가 실패한 경우, 상태를 구매 이전으로 되돌립니다.
-    //   // TODO: Transactions 도입 후 이 코드는 삭제합니다.
-    //   logger.info(`User ${req.userOid}'s status will be restored`);
-
-    //   await transactionModel.deleteOne({ _id: transaction._id });
-    //   await updateEventStatus(req.userOid, {
-    //     creditDelta: item.price,
-    //   });
-    //   await itemModel.updateOne(
-    //     { _id: item._id },
-    //     {
-    //       $inc: {
-    //         stock: 1,
-    //       },
-    //     }
-    //   );
-
-    //   logger.info(`User ${req.userOid}'s status was successfully restored`);
-
-    //   return res
-    //     .status(500)
-    //     .json({ error: "Items/purchase : random box error" });
-    // }
+    const { result, error } = await purchaseItem(req, item, amount);
+    if (error)
+      return res.status(400).json({ error: `Items/purchase : ${error}` });
+    return res.json(result);
   } catch (err) {
     logger.error(err);
     res.status(500).json({ error: "Items/purchase : internal server error" });
   }
 };
 
+const useCouponHandler = async (req, res) => {
+  try {
+    const { couponCode } = req.params;
+    const coupon = await itemModel.findOne({ couponCode, itemType: 4 }).lean();
+    if (!coupon)
+      return res
+        .status(400)
+        .json({ error: "Items/useCoupon : invalid coupon" });
+
+    const { result, error } = await purchaseItem(req, coupon, 1);
+    if (error)
+      return res.status(400).json({ error: `Items/useCoupon : ${error}` });
+    return res.json(result);
+  } catch (err) {
+    logger.error(err);
+    res.status(500).json({ error: "Items/useCoupon : internal server error" });
+  }
+};
+
 module.exports = {
   getItemsHandler,
+  getItemHandler,
   getItemLeaderboardHandler,
   purchaseItemHandler,
+  useCouponHandler,
 };
