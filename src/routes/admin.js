@@ -14,6 +14,7 @@ const {
   deviceTokenModel,
   notificationOptionModel,
   taxiFareModel,
+  noticeModel,
 } = require("@/modules/stores/mongo");
 const { buildResource } = require("@/modules/adminResource");
 
@@ -38,6 +39,7 @@ const resources = [
   deviceTokenModel,
   notificationOptionModel,
   taxiFareModel,
+  noticeModel,
 ]
   .map(buildResource())
   .concat(require("@/lottery").resources);

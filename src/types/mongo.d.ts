@@ -205,3 +205,13 @@ export interface TaxiFare extends Document<Types.ObjectId> {
   /** 예상 택시 요금. */
   fare: number;
 }
+
+export interface Notice extends Document<Types.ObjectId> {
+  /** 공지사항의 제목. */
+  title: string;
+  /** 공지사항의 노션 URL. */
+  notion_url: string;
+  /** 공지사항 상단 고정 여부. */
+  is_pinned: boolean;
+  is_active: boolean;
+}
