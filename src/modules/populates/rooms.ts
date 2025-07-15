@@ -17,7 +17,7 @@ export const roomPopulateOption = [
     select: "-_id user settlementStatus readAt",
     populate: {
       path: "user",
-      select: "_id id name nickname profileImageUrl withdraw",
+      select: "_id id name nickname profileImageUrl withdraw badge",
     },
   },
 ];
@@ -26,7 +26,13 @@ interface PopulatedParticipant
   extends Pick<Participant, "settlementStatus" | "readAt"> {
   user: Pick<
     User,
-    "_id" | "id" | "name" | "nickname" | "profileImageUrl" | "withdraw"
+    | "_id"
+    | "id"
+    | "name"
+    | "nickname"
+    | "profileImageUrl"
+    | "withdraw"
+    | "badge"
   > | null;
 }
 
@@ -92,7 +98,7 @@ export const formatSettlement = (
       koName: roomObject.to!.koName,
     },
     part: roomObject.part.map((participantSubDocument) => {
-      const { _id, name, nickname, profileImageUrl, withdraw } =
+      const { _id, name, nickname, profileImageUrl, withdraw, badge } =
         participantSubDocument.user!;
       const { settlementStatus, readAt } = participantSubDocument;
       return {
@@ -101,6 +107,7 @@ export const formatSettlement = (
         nickname,
         profileImageUrl,
         withdraw,
+        badge,
         isSettlement: includeSettlement ? settlementStatus : undefined,
         readAt: readAt ?? roomObject.madeat,
       };
