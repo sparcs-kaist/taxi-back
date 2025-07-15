@@ -31,6 +31,7 @@ import {
   reportRouter,
   roomRouter,
   userRouter,
+  emailRouter,
 } from "@/routes";
 
 import { initializeApp as initializeFirebase } from "@/modules/fcm";
@@ -88,7 +89,7 @@ if (eventConfig) {
 app.use(originValidatorMiddleware);
 
 // 이메일 수신 확인은 origin 검사 거치지 않기
-app.use("/email", require("./src/routes/emails"));
+app.use("/email", emailRouter);
 
 // [Router] APIs
 app.use("/auth", authRouter);

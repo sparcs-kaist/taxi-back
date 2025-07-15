@@ -1,9 +1,15 @@
-const { userModel, reportModel, roomModel } = require("@/modules/stores/mongo");
+const {
+  userModel,
+  reportModel,
+  roomModel,
+  emailModel,
+} = require("@/modules/stores/mongo");
 const { reportPopulateOption } = require("@/modules/populates/reports");
 const { sendReportEmail } = require("@/modules/email");
 const logger = require("@/modules/logger").default;
 const reportEmailPage = require("@/views/reportEmailPage").default;
 const { notifyReportToReportChannel } = require("@/modules/slackNotification");
+const { v4: uuidv4 } = require("uuid");
 
 const createHandler = async (req, res) => {
   try {
