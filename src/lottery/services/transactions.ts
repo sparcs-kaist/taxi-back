@@ -24,7 +24,7 @@ export const getUserTransactionsHandler: RequestHandler = async (req, res) => {
       .populate(transactionPopulateOption)
       .lean();
     if (!transactions) {
-      res.status(500).json({ error: "Transactions/ : internal server error" });
+      res.status(500).json({ error: "Transactions: internal server error" });
       return;
     }
 
@@ -33,6 +33,6 @@ export const getUserTransactionsHandler: RequestHandler = async (req, res) => {
     });
   } catch (err) {
     logger.error(err);
-    res.status(500).json({ error: "Transactions/ : internal server error" });
+    res.status(500).json({ error: "Transactions: internal server error" });
   }
 };
