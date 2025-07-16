@@ -16,7 +16,7 @@ describe("[reports] 1.createHandler", () => {
     const testUser1 = await userGenerator("test1", testData);
     const testUser2 = await userGenerator("test2", testData);
     const testRoom = await roomGenerator("test1", testData);
-    const msg = "User/report : report successful";
+    const msg = "Reports/create: report successful";
     let req = httpMocks.createRequest({
       userOid: testUser1._id,
       body: {
