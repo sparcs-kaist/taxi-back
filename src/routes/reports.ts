@@ -1,8 +1,7 @@
 import express from "express";
-import { validateBody } from "@/middlewares/zod";
+import { authMiddleware, validateBody } from "@/middlewares";
 import { reportsZod } from "./docs/schemas/reportsSchema";
 import * as reportHandlers from "@/services/reports";
-import { authMiddleware } from "@/middlewares";
 
 const router = express.Router();
 

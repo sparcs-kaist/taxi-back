@@ -12,34 +12,25 @@ export const createHandler: RequestHandler = async (req, res) => {
     const { reportedId, type, etcDetail, time, roomId }: ReportsCreate =
       req.body;
     const user = await userModel.findOne({ _id: req.userOid, withdraw: false });
-
     if (!user) {
-      return res
-        .status(400)
-        .json({ error: "Reports/create: no corresponding user" });
+      return res.status(400).send("Reports/create: no corresponding user");
     }
-
-    const creatorId = user._id;
 
     const reported = await userModel.findOne({
       _id: reportedId,
       withdraw: false,
     });
     if (!reported) {
-      return res.status(400).json({
-        error: "User/report: no corresponding user",
-      });
+      return res.status(400).send("Reports/create: no corresponding user");
     }
 
     const room = await roomModel.findById(roomId);
     if (!room) {
-      return res.status(400).json({
-        error: "User/report: no corresponding room",
-      });
+      return res.status(400).send("Reports/create: no corresponding room");
     }
 
     const report = new reportModel({
-      creatorId,
+      creatorId: user._id,
       reportedId,
       type,
       etcDetail,
@@ -52,25 +43,21 @@ export const createHandler: RequestHandler = async (req, res) => {
     notifyReportToReportChannel(user.nickname, report);
 
     if (report.type === "no-settlement" || report.type === "no-show") {
-      const emailRoomName = room ? room.name : "";
-      const emailRoomId = room ? room._id.toString() : "";
       const emailHtml = reportEmailPage[report.type](
         req.origin ?? "https://taxi.sparcs.org",
         reported.name,
         reported.nickname,
-        emailRoomName,
+        room.name,
         user.nickname,
-        emailRoomId
+        room._id.toString()
       );
       sendReportEmail(reported.email, report, emailHtml);
     }
 
-    res.status(200).send("User/report : report successful");
+    return res.status(200).send("Reports/create: report successful");
   } catch (err) {
     logger.error(err);
-    res.status(500).json({
-      error: "User/report : internal server error",
-    });
+    return res.status(500).send("Reports/create: internal server error");
   }
 };
 
@@ -78,7 +65,6 @@ export const searchByUserHandler: RequestHandler = async (req, res) => {
   try {
     // 해당 user가 신고한 사람인지, 신고 받은 사람인지 기준으로 신고를 분리해서 응답을 전송합니다.
     const user = await userModel.findOne({ _id: req.userOid, withdraw: false });
-
     if (!user) {
       return res
         .status(400)
@@ -95,11 +81,9 @@ export const searchByUserHandler: RequestHandler = async (req, res) => {
         .limit(1000)
         .populate(reportPopulateOption),
     };
-    res.json(response);
+    return res.json(response);
   } catch (err) {
     logger.error(err);
-    res.status(500).json({
-      error: "Reports/searchByUser : internal server error",
-    });
+    return res.status(500).send("Reports/searchByUser: internal server error");
   }
 };
