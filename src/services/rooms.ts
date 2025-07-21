@@ -419,20 +419,24 @@ export const abortHandler: RequestHandler = async (req, res) => {
 
     // 사용자가 참여중인 방 목록에서 방을 제거합니다.
     // 제거할 방이 없는 경우, 500 오류를 발생시킵니다.
-    if (userOngoingRoomIndex !== -1) {
-      if (userOngoingRoomIndex)
-        user.ongoingRoom?.splice(userOngoingRoomIndex, 1);
-    } else if (userDoneRoomIndex !== -1) {
-      if (userDoneRoomIndex !== undefined)
-        user.doneRoom?.splice(userDoneRoomIndex, 1);
+    if (userOngoingRoomIndex === -1) {
+      if (userDoneRoomIndex === -1) {
+        await user.save();
+        logger.error(
+          `Rooms/abort: referential integrity error (user: ${user._id}, room: ${room._id})`
+        );
+        return res.status(500).json({
+          error: "Rooms/abort : internal server error",
+        });
+      } else {
+        if (userDoneRoomIndex !== undefined) {
+          user.doneRoom?.splice(userDoneRoomIndex, 1);
+        }
+      }
     } else {
-      // room.part에는 user가 있지만 user.ongoingRoom이나 user.doneRoom에는 room이 없는 상황.
-      logger.error(
-        `Rooms/abort: referential integrity error (user: ${user._id}, room: ${room._id})`
-      );
-      return res.status(500).json({
-        error: "Rooms/abort : internal server error",
-      });
+      if (userOngoingRoomIndex !== undefined) {
+        user.ongoingRoom?.splice(userOngoingRoomIndex, 1);
+      }
     }
     await user.save();
     room.part.splice(roomPartIndex, 1);
