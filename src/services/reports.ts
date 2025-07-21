@@ -5,12 +5,11 @@ import { sendReportEmail } from "@/modules/email";
 import logger from "@/modules/logger";
 import reportEmailPage from "@/views/reportEmailPage";
 import { notifyReportToReportChannel } from "@/modules/slackNotification";
-import type { ReportsCreate } from "@/routes/docs/schemas/reportsSchema";
+import type { CreateBody } from "@/routes/docs/schemas/reportsSchema";
 
 export const createHandler: RequestHandler = async (req, res) => {
   try {
-    const { reportedId, type, etcDetail, time, roomId }: ReportsCreate =
-      req.body;
+    const { reportedId, type, etcDetail, time, roomId }: CreateBody = req.body;
     const user = await userModel.findOne({ _id: req.userOid, withdraw: false });
     if (!user) {
       return res.status(400).send("Reports/create: no corresponding user");

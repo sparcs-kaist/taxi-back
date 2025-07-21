@@ -11,9 +11,10 @@ import {
 import { notifyRoomCreationAbuseToReportChannel } from "@/modules/slackNotification";
 import { contracts } from "@/lottery";
 import {
-  CreateRoomBody,
-  SearchRoomsByTimeGapQuery,
-  SearchRoomsParams,
+  CreateBody,
+  CreateTestBody,
+  SearchByTimeGapQuery,
+  SearchQuery,
 } from "@/routes/docs/schemas/roomsSchema";
 
 // 이벤트 코드입니다.
@@ -39,7 +40,7 @@ interface checkIsAbusingInput {
 }
 
 export const createHandler: RequestHandler = async (req, res) => {
-  const { name, from, to, time, maxPartLength } = req.body as CreateRoomBody;
+  const { name, from, to, time, maxPartLength } = req.body as CreateBody;
 
   try {
     if (from === to) {
@@ -154,7 +155,7 @@ export const createHandler: RequestHandler = async (req, res) => {
 
 export const createTestHandler: RequestHandler = async (req, res) => {
   // 이 Handler에서는 Parameter에 대해 추가적인 Validation을 하지 않습니다.
-  const { time } = req.body as CreateRoomBody;
+  const { time } = req.body as CreateTestBody;
 
   try {
     // 이벤트 코드입니다.
@@ -470,7 +471,7 @@ export const abortHandler: RequestHandler = async (req, res) => {
 export const searchHandler: RequestHandler = async (req, res) => {
   try {
     const { name, from, to, time, withTime, maxPartLength, isHome } =
-      req.query as SearchRoomsParams;
+      req.query as SearchQuery;
 
     // 출발지와 도착지가 같은 경우
     if (from && to && from === to) {
@@ -607,7 +608,7 @@ export const searchByTimeGapHandler: RequestHandler = async (req, res) => {
       to,
       time,
       timeGap = 25,
-    } = req.query as unknown as SearchRoomsByTimeGapQuery;
+    } = req.query as unknown as SearchByTimeGapQuery;
 
     // Check if from and to are different
     if (from === to) {

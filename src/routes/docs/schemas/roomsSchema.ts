@@ -3,7 +3,7 @@ import patterns from "@/modules/patterns";
 import { zodToSchemaObject } from "../utils";
 
 export const roomsZod = {
-  searchRooms: z
+  searchHandler: z
     .object({
       name: z.string().regex(patterns.room.name),
       from: z.string().regex(patterns.objectId),
@@ -17,11 +17,7 @@ export const roomsZod = {
     })
     .partial(),
 
-  roomIdQuery: z.object({
-    id: z.string().regex(patterns.objectId),
-  }),
-
-  searchByTimeGap: z.object({
+  searchByTimeGapHandler: z.object({
     from: z.string().regex(patterns.objectId),
     to: z.string().regex(patterns.objectId),
     time: z.string().refine((val) => !isNaN(Date.parse(val)), {
@@ -30,44 +26,63 @@ export const roomsZod = {
     timeGap: z.coerce.number().int().min(0).max(60).optional(),
   }),
 
-  createRoom: z.object({
+  publicInfoHandler: z.object({
+    id: z.string().regex(patterns.objectId),
+  }),
+
+  infoHandler: z.object({
+    id: z.string().regex(patterns.objectId),
+  }),
+
+  createHandler: z.object({
     name: z.string().regex(patterns.room.name),
     from: z.string().regex(patterns.objectId),
     to: z.string().regex(patterns.objectId),
     time: z.string().refine((val) => !isNaN(Date.parse(val)), {
       message: "Invalid ISO date format",
     }),
-    maxPartLength: z.number().int().min(2).max(4),
+    maxPartLength: z.coerce.number().int().min(2).max(4),
   }),
 
-  createRoomTest: z.object({
+  createTestHandler: z.object({
     from: z.string().regex(patterns.objectId),
     to: z.string().regex(patterns.objectId),
     time: z.string().refine((val) => !isNaN(Date.parse(val)), {
       message: "Invalid ISO date format",
     }),
-    maxPartLength: z.number().int().min(2).max(4),
+    maxPartLength: z.coerce.number().int().min(2).max(4),
   }),
 
-  roomIdBody: z.object({
+  joinHandler: z.object({
     roomId: z.string().regex(patterns.objectId),
   }),
 
-  commitSettlement: z.object({
+  abortHandler: z.object({
     roomId: z.string().regex(patterns.objectId),
   }),
 
-  commitPayment: z.object({
+  commitSettlementHandler: z.object({
+    roomId: z.string().regex(patterns.objectId),
+  }),
+
+  commitPaymentHandler: z.object({
     roomId: z.string().regex(patterns.objectId),
   }),
 };
 
 export const roomsSchema = zodToSchemaObject(roomsZod);
 
-export type SearchRoomsParams = z.infer<typeof roomsZod.searchRooms>;
-export type RoomIdQueryParams = z.infer<typeof roomsZod.roomIdQuery>;
-export type CreateRoomBody = z.infer<typeof roomsZod.createRoom>;
-export type RoomIdBody = z.infer<typeof roomsZod.roomIdBody>;
-export type SearchRoomsByTimeGapQuery = z.infer<
-  typeof roomsZod.searchByTimeGap
+export type SearchQuery = z.infer<typeof roomsZod.searchHandler>;
+export type SearchByTimeGapQuery = z.infer<
+  typeof roomsZod.searchByTimeGapHandler
 >;
+export type PublicInfoQuery = z.infer<typeof roomsZod.publicInfoHandler>;
+export type InfoQuery = z.infer<typeof roomsZod.infoHandler>;
+export type CreateBody = z.infer<typeof roomsZod.createHandler>;
+export type CreateTestBody = z.infer<typeof roomsZod.createTestHandler>;
+export type JoinBody = z.infer<typeof roomsZod.joinHandler>;
+export type AbortBody = z.infer<typeof roomsZod.abortHandler>;
+export type CommitSettlementBody = z.infer<
+  typeof roomsZod.commitSettlementHandler
+>;
+export type CommitPaymentBody = z.infer<typeof roomsZod.commitPaymentHandler>;

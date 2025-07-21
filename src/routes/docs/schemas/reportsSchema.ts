@@ -14,4 +14,4 @@ export const reportsZod = {
 
 export const reportsSchema = zodToSchemaObject(reportsZod);
 
-export type ReportsCreate = z.infer<typeof reportsZod.createHandler>;
+export type CreateBody = z.infer<typeof reportsZod.createHandler>;

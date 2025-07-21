@@ -1,5 +1,9 @@
 import express from "express";
-import { validateBody, validateQuery } from "../middlewares/zod";
+import {
+  validateBody,
+  validateParams,
+  validateQuery,
+} from "../middlewares/zod";
 import { roomsZod } from "./docs/schemas/roomsSchema";
 import * as roomHandlers from "@/services/rooms";
 import { authMiddleware, banMiddleware } from "@/middlewares";
@@ -9,20 +13,20 @@ const router = express.Router();
 // 조건(이름, 출발지, 도착지, 날짜)에 맞는 방들을 모두 반환한다.
 router.get(
   "/search",
-  validateQuery(roomsZod.searchRooms),
+  validateQuery(roomsZod.searchHandler),
   roomHandlers.searchHandler
 );
 
 router.get(
   "/searchByTimeGap",
-  validateQuery(roomsZod.searchByTimeGap),
+  validateQuery(roomsZod.searchByTimeGapHandler),
   roomHandlers.searchByTimeGapHandler
 );
 
 // 특정 id 방의 정산 정보를 제외한 세부사항을 반환한다.
 router.get(
   "/publicInfo",
-  validateQuery(roomsZod.roomIdQuery),
+  validateQuery(roomsZod.publicInfoHandler),
   roomHandlers.publicInfoHandler
 );
 
@@ -35,21 +39,21 @@ router.use(banMiddleware);
 // 특정 id 방 세부사항 보기
 router.get(
   "/info",
-  validateQuery(roomsZod.roomIdQuery),
+  validateQuery(roomsZod.infoHandler),
   roomHandlers.infoHandler
 );
 
 // JSON으로 받은 정보로 방을 생성한다.
 router.post(
   "/create",
-  validateBody(roomsZod.createRoom),
+  validateBody(roomsZod.createHandler),
   roomHandlers.createHandler
 );
 
 // 방을 생성하기 전, 생성하고자 하는 방이 실제로 택시 탑승의 목적성을 갖고 있는지 예측한다.
 router.post(
   "/create/test",
-  validateBody(roomsZod.createRoomTest),
+  validateBody(roomsZod.createTestHandler),
   roomHandlers.createTestHandler
 );
 
@@ -57,7 +61,7 @@ router.post(
 // FIXME: req.body.users 검증할 때 SSO ID 규칙 반영하기
 router.post(
   "/join",
-  validateBody(roomsZod.roomIdQuery),
+  validateBody(roomsZod.joinHandler),
   roomHandlers.joinHandler
 );
 
@@ -67,7 +71,7 @@ router.post(
 // 모든 사람이 나갈 경우에도 방을 삭제하지 않는다.
 router.post(
   "/abort",
-  validateBody(roomsZod.roomIdQuery),
+  validateBody(roomsZod.abortHandler),
   roomHandlers.abortHandler
 );
 
@@ -77,14 +81,14 @@ router.get("/searchByUser", roomHandlers.searchByUserHandler);
 // 해당 방에 요청을 보낸 유저의 정산을 처리한다.
 router.post(
   "/commitSettlement",
-  validateBody(roomsZod.commitSettlement),
+  validateBody(roomsZod.commitSettlementHandler),
   roomHandlers.commitSettlementHandler
 );
 
 // 해당 방에 요청을 보낸 유저의 송금을 처리한다.
 router.post(
   "/commitPayment",
-  validateBody(roomsZod.commitPayment),
+  validateBody(roomsZod.commitPaymentHandler),
   roomHandlers.commitPaymentHandler
 );
 
