@@ -13,22 +13,26 @@ export interface LoginInfo {
   id: string;
   sid?: string;
   oid: string;
-  name: string;
+  // name: string;
   time: number;
 }
 
 export const getLoginInfo = (req: Request) => {
   if (req.session.loginInfo) {
-    const { id, sid, oid, name, time } = req.session.loginInfo;
+    // const { id, sid, oid, name, time } = req.session.loginInfo;
+    const { id, sid, oid, time } = req.session.loginInfo;
     const timeFlow = Date.now() - time;
     // 14일이 지난 세션에 대해서는 로그인 정보를 반환하지 않습니다.
     // 세션은 새로운 요청 시 갱신되지 않습니다.
     if (timeFlow > sessionConfig.expiry) {
-      return { id: undefined, sid: undefined, oid: undefined, name: undefined };
+      // return { id: undefined, sid: undefined, oid: undefined, name: undefined };
+      return { id: undefined, sid: undefined, oid: undefined };
     }
-    return { id, sid, oid, name };
+    // return { id, sid, oid, name };
+    return { id, sid, oid };
   }
-  return { id: undefined, sid: undefined, oid: undefined, name: undefined };
+  // return { id: undefined, sid: undefined, oid: undefined, name: undefined };
+  return { id: undefined, sid: undefined, oid: undefined };
 };
 
 export const isLogin = (req: Request) => {
@@ -41,10 +45,11 @@ export const login = (
   req: Request,
   id: string,
   oid: string,
-  name: string,
+  // name: string,
   sid?: string
 ) => {
-  req.session.loginInfo = { sid, id, oid, name, time: Date.now() };
+  req.session.loginInfo = { sid, id, oid, time: Date.now() };
+  // req.session.loginInfo = { sid, id, oid, name, time: Date.now() };
 };
 
 export const logout = (req: Request) => {

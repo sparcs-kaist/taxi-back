@@ -44,7 +44,8 @@ export const tokenLoginHandler: RequestHandler = async (req, res) => {
       return res.status(401).json({ message: "No corresponding user" });
     }
 
-    login(req, user.id, user._id.toString(), user.name, undefined);
+    // login(req, user.id, user._id.toString(), user.name, undefined);
+    login(req, user.id, user._id.toString(), undefined);
     req.session.isApp = true;
     req.session.deviceToken = deviceToken;
 
@@ -95,7 +96,7 @@ export const tokenRefreshHandler: RequestHandler = async (req, res) => {
     });
   } catch (e) {
     logger.error(e);
-    return res.status(501).send("server error");
+    return res.status(500).send("server error");
   }
 };
 

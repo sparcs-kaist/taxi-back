@@ -196,7 +196,8 @@ export const tryLogin = async (
       req.session.refreshToken = refreshToken;
     }
 
-    login(req, user.id, user._id.toString(), user.name, userData.sid);
+    // login(req, user.id, user._id.toString(), user.name, userData.sid);
+    login(req, user.id, user._id.toString(), userData.sid);
 
     res.redirect(new URL(redirectPath, redirectOrigin).href);
   } catch (err) {
@@ -211,7 +212,10 @@ export const sparcsssoHandler: RequestHandler = (req, res) => {
     (req.query?.redirect as string) || "%2F"
   );
   const isApp = !!req.query.isApp;
-  const { url, state } = ssoClient!.getLoginParams();
+  const { url, state } = ssoClient!.getLoginParams() as {
+    url: string;
+    state: string;
+  };
 
   req.session.loginAfterState = {
     state: state,

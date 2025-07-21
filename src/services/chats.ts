@@ -147,8 +147,8 @@ function isChatType(x: unknown): x is ChatType {
     "out",
     "s3img",
     "payment",
+    "departure",
     "settlement",
-    "account",
     "account",
     "arrival",
   ];
@@ -346,9 +346,9 @@ export const uploadChatImgDoneHandler: RequestHandler = async (req, res) => {
 /**
  * 주어진 유저가 주어진 방에 참여하는 중인지 확인합니다.
  * @summary 채팅 load/send 관련 api에서 검증을 위하여 함수로 분리하였습니다.
- * @param {string} userOid - 확인하고픈 user의 objectId 입니다.
- * @param {string} roomId - 참여하는지 확인하고픈 방의 objectId 입니다.
- * @return {Promise<Boolean>} userId가 방에 포함되어 있다면 true, 그 외의 경우 false를 반환합니다.
+ * @param userOid - 확인하고픈 user의 objectId 입니다.
+ * @param roomId - 참여하는지 확인하고픈 방의 objectId 입니다.
+ * @return userId가 방에 포함되어 있다면 true, 그 외의 경우 false를 반환합니다.
  */
 const isUserInRoom = async (userOid: string, roomId: string) => {
   const result = await roomModel.findById(roomId);

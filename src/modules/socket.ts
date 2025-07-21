@@ -40,7 +40,7 @@ export type ChatArrayObject = Omit<LeanDocument<Chat>, "authorId"> & {
 
 /**
  * Chat Object의 array가 주어졌을 때 클라이언트에서 처리하기 편한 형태로 Chat Object를 가공합니다.
- * @param {Object[]} chats - Chats Document에 lean과 populate(chatPopulateOption)을 차례로 적용한 Chat Object의 배열입니다.
+ * @param {ChatArrayObject[]} chats - Chats Document에 lean과 populate(chatPopulateOption)을 차례로 적용한 Chat Object의 배열입니다.
  * @return {Promise<Array>} {type: String, authorId: String, authorName: String, authorProfileUrl: String, content: string, time: Date}로 이루어진 chat 객체의 배열입니다.
  */
 export const transformChatsForRoom = async (chats: ChatArrayObject[]) => {
