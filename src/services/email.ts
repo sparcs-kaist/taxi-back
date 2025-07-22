@@ -1,11 +1,9 @@
-const express = require("express");
-const router = express.Router();
-const { emailModel } = require("../modules/stores/mongo");
-const logger = require("../modules/logger");
+import { emailModel } from "../modules/stores/mongo";
+import logger from "../modules/logger";
+import type { RequestHandler } from "express";
 
-router.get("/open-tracking", async (req, res) => {
-  console.log("Open tracking request received");
-  const { trackingId } = req.query;
+export const emailHandler: RequestHandler = async (req, res) => {
+  const trackingId = req.query.trackingId as string;
 
   if (!trackingId) {
     return res.status(400).send("Tracking ID missing");
@@ -29,6 +27,4 @@ router.get("/open-tracking", async (req, res) => {
     logger.error(err);
     res.status(500).send("Internal Server Error");
   }
-});
-
-module.exports = router;
+};

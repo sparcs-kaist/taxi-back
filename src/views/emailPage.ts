@@ -1,11 +1,11 @@
 import { getS3Url } from "@/modules/stores/aws";
 import { port } from "@/loadenv";
 
-function changePort(origin: string, newPort: string) {
+const changePort = (origin: string, newPort: string) => {
   const url = new URL(origin);
   url.port = newPort; // 포트 변경
   return url.origin; // origin 문자열만 리턴 (프로토콜 + hostname + port)
-}
+};
 
 const emailPage = (
   title: string,
