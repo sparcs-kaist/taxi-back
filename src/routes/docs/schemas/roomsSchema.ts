@@ -15,16 +15,25 @@ export const roomsZod = {
       maxPartLength: z.coerce.number().int().min(2).max(4),
       isHome: z.coerce.boolean(),
     })
-    .partial(),
-
-  searchByTimeGapHandler: z.object({
-    from: z.string().regex(patterns.objectId),
-    to: z.string().regex(patterns.objectId),
-    time: z.string().refine((val) => !isNaN(Date.parse(val)), {
-      message: "Invalid ISO date format",
+    .partial({
+      name: true,
+      from: true,
+      to: true,
+      time: true,
+      withTime: true,
+      maxPartLength: true,
     }),
-    timeGap: z.coerce.number().int().min(0).max(60).optional(),
-  }),
+
+  searchByTimeGapHandler: z
+    .object({
+      from: z.string().regex(patterns.objectId),
+      to: z.string().regex(patterns.objectId),
+      time: z.string().refine((val) => !isNaN(Date.parse(val)), {
+        message: "Invalid ISO date format",
+      }),
+      timeGap: z.coerce.number().int().min(0).max(60),
+    })
+    .partial({ timeGap: true }),
 
   publicInfoHandler: z.object({
     id: z.string().regex(patterns.objectId),
