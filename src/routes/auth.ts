@@ -1,19 +1,18 @@
-const express = require("express");
+import express from "express";
 const router = express.Router();
-const { body, query } = require("express-validator");
-const validator = require("@/middlewares/validator").default;
 
-const authHandlers = require("@/services/auth");
-const authReplaceHandlers = require("@/services/auth.replace");
-const mobileAuthHandlers = require("@/services/auth.mobile");
-const { isAuthReplace } = require("@/modules/auths/login");
+import { validateBody, validateQuery } from "@/middlewares/zod";
+import { authZod } from "./docs/schemas/authSchema";
+
+import * as authHandlers from "@/services/auth";
+import * as authReplaceHandlers from "@/services/auth.replace";
+import * as mobileAuthHandlers from "@/services/auth.mobile";
+import { isAuthReplace } from "@/modules/auths/login";
 
 // 로그인 페이지로 redirect합니다.
 router.get(
   "/sparcssso",
-  query("redirect").optional().isString(),
-  query("isApp").optional().isBoolean(),
-  validator,
+  validateQuery(authZod.sparcsssoHandler),
   (isAuthReplace ? authReplaceHandlers : authHandlers).sparcsssoHandler
 );
 
@@ -23,17 +22,14 @@ router.get("/sparcssso/callback", authHandlers.sparcsssoCallbackHandler);
 // replace 로그인을 시도합니다.
 router.post(
   "/login/replace",
-  body("id").isString(),
-  body("redirect").optional().isString(),
-  validator,
+  validateBody(authZod.loginReplaceHandler),
   (isAuthReplace ? authReplaceHandlers : authHandlers).loginReplaceHandler
 );
 
 // 로그아웃 후 redirect
 router.get(
   "/logout",
-  query("redirect").optional().isString(),
-  validator,
+  validateQuery(authZod.logoutHandler),
   (isAuthReplace ? authReplaceHandlers : authHandlers).logoutHandler
 );
 
@@ -46,4 +42,4 @@ router.post("/app/device", mobileAuthHandlers.registerDeviceTokenHandler);
 router.delete("/app/device", mobileAuthHandlers.removeDeviceTokenHandler);
 // FIXME: accessToken, deviceToken validation 추가
 
-module.exports = router;
+export default router;
