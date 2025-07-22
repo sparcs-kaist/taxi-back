@@ -39,3 +39,14 @@ export const chatsZod = {
 };
 
 export const chatsSchema = zodToSchemaObject(chatsZod);
+
+export type loadRecentChatBody = z.infer<typeof chatsZod.loadRecentChatHandler>;
+export type loadBeforeChatBody = z.infer<typeof chatsZod.loadBeforeChatHandler>;
+export type loadAfterChatBody = z.infer<typeof chatsZod.loadAfterChatHandler>;
+export type sendChatBody = z.infer<typeof chatsZod.sendChatHandler>;
+export type uploadChatImgGetPUrlBody = z.infer<
+  typeof chatsZod.uploadChatImgGetPUrlHandler
+>;
+export type uploadChatImgDoneBody = z.infer<
+  typeof chatsZod.uploadChatImgDoneHandler
+>;

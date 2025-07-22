@@ -2,8 +2,9 @@ import express from "express";
 import { validateBody } from "@/middlewares/zod";
 import { chatsZod } from "./docs/schemas/chatsSchema";
 
-const router = express.Router();
 import * as chatsHandlers from "@/services/chats";
+
+const router = express.Router();
 
 // 라우터 접근 시 로그인 필요
 router.use(require("@/middlewares/auth").default);

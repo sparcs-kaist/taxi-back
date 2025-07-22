@@ -1,5 +1,4 @@
 import express from "express";
-const router = express.Router();
 
 import { validateBody, validateQuery } from "@/middlewares/zod";
 import { authZod } from "./docs/schemas/authSchema";
@@ -8,6 +7,8 @@ import * as authHandlers from "@/services/auth";
 import * as authReplaceHandlers from "@/services/auth.replace";
 import * as mobileAuthHandlers from "@/services/auth.mobile";
 import { isAuthReplace } from "@/modules/auths/login";
+
+const router = express.Router();
 
 // 로그인 페이지로 redirect합니다.
 router.get(
