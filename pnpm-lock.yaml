@@ -121,6 +121,9 @@ devDependencies:
   '@types/jsonwebtoken':
     specifier: ^9.0.5
     version: 9.0.5
+  '@types/mocha':
+    specifier: ^10.0.10
+    version: 10.0.10
   '@types/node':
     specifier: ^20.9.0
     version: 20.9.0
@@ -3855,6 +3858,10 @@ packages:
     requiresBuild: true
     dev: false
     optional: true
+
+  /@types/mocha@10.0.10:
+    resolution: {integrity: sha512-xPyYSz1cMPnJQhl0CLMH68j3gprKZaTjG3s5Vi+fDgx+uhG9NOXwbVt52eFS8ECyXhyKcjDLCBEqBExKuiZb7Q==}
+    dev: true
 
   /@types/node-cron@3.0.11:
     resolution: {integrity: sha512-0ikrnug3/IyneSHqCBeslAhlK2aBfYek1fGo4bP4QnZPmiqSGRK+Oy7ZMisLWkesffJvQ1cqAcBnJC+8+nxIAg==}

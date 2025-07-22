@@ -1,10 +1,27 @@
-const expect = require("chai").expect;
-const reportHandlers = require("../../src/services/reports");
-const { userModel } = require("../../src/modules/stores/mongo");
-const { userGenerator, roomGenerator, testRemover } = require("../utils");
-const httpMocks = require("node-mocks-http");
+import { expect } from "chai";
+import * as reportHandlers from "../../src/services/reports";
+import { userModel } from "../../src/modules/stores/mongo";
+import { userGenerator, roomGenerator, testRemover } from "../utils";
+import httpMocks from "node-mocks-http";
+import { describe, it, afterEach } from "mocha";
+import { Types } from "mongoose";
 
-let testData = { rooms: [], users: [], chat: [], location: [], report: [] };
+interface TestData {
+  rooms: any[];
+  users: any[];
+  chat: any[];
+  location: any[];
+  report: any[];
+}
+
+let testData: TestData = {
+  rooms: [],
+  users: [],
+  chat: [],
+  location: [],
+  report: [],
+};
+
 const removeTestData = async () => {
   await testRemover(testData);
 };
@@ -28,7 +45,7 @@ describe("[reports] 1.createHandler", () => {
       },
     });
     let res = httpMocks.createResponse();
-    await reportHandlers.createHandler(req, res);
+    await reportHandlers.createHandler(req, res, () => {});
 
     const resData = res._getData();
     expect(res).to.has.property("statusCode", 200);
@@ -41,10 +58,10 @@ describe("[reports] 2.searchByUserHandler", () => {
   it("should return correct reporting/reported reports of users", async () => {
     const testUser1 = await userModel.findOne({ id: "test1" });
     let req = httpMocks.createRequest({
-      userOid: testUser1._id,
+      userOid: testUser1!._id,
     });
     let res = httpMocks.createResponse();
-    await reportHandlers.searchByUserHandler(req, res);
+    await reportHandlers.searchByUserHandler(req, res, () => {});
     afterEach(removeTestData);
 
     const resJson = res._getJSONData();
@@ -53,7 +70,7 @@ describe("[reports] 2.searchByUserHandler", () => {
     expect(resJson).to.has.property("reported");
     expect(resJson.reporting[0]).to.has.property(
       "creatorId",
-      testUser1._id.toString()
+      (testUser1!._id as Types.ObjectId).toString()
     );
   });
 });
