@@ -37,8 +37,14 @@ interface PopulatedParticipant
 }
 
 export interface PopulatedRoom extends Omit<Room, "from" | "to" | "part"> {
-  from: Pick<Location, "_id" | "koName" | "enName"> | null;
-  to: Pick<Location, "_id" | "koName" | "enName"> | null;
+  from: Pick<
+    Location,
+    "_id" | "koName" | "enName" | "latitude" | "longitude"
+  > | null;
+  to: Pick<
+    Location,
+    "_id" | "koName" | "enName" | "latitude" | "longitude"
+  > | null;
   part: PopulatedParticipant[];
 }
 
@@ -46,6 +52,8 @@ interface FormattedLocation {
   _id: string;
   enName: string;
   koName: string;
+  latitude: number;
+  longitude: number;
 }
 
 export interface FormattedRoom {
@@ -91,11 +99,15 @@ export const formatSettlement = (
       _id: roomObject.from!._id!.toString(),
       enName: roomObject.from!.enName,
       koName: roomObject.from!.koName,
+      latitude: roomObject.from!.latitude,
+      longitude: roomObject.from!.longitude,
     },
     to: {
       _id: roomObject.to!._id!.toString(),
       enName: roomObject.to!.enName,
       koName: roomObject.to!.koName,
+      latitude: roomObject.to!.latitude,
+      longitude: roomObject.to!.longitude,
     },
     part: roomObject.part.map((participantSubDocument) => {
       const { _id, name, nickname, profileImageUrl, withdraw, badge } =
