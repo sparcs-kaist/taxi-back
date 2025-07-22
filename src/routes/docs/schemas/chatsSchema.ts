@@ -32,6 +32,7 @@ export const chatsZod = {
   }),
   uploadChatImgGetPUrlHandler: z.object({
     type: z.string().regex(chat.chatImgType),
+    roomId: z.string().regex(objectId),
   }),
   uploadChatImgDoneHandler: z.object({
     id: z.string().regex(objectId),
@@ -43,6 +44,7 @@ export const chatsSchema = zodToSchemaObject(chatsZod);
 export type LoadRecentChatBody = z.infer<typeof chatsZod.loadRecentChatHandler>;
 export type LoadBeforeChatBody = z.infer<typeof chatsZod.loadBeforeChatHandler>;
 export type LoadAfterChatBody = z.infer<typeof chatsZod.loadAfterChatHandler>;
+export type ReadChatBody = z.infer<typeof chatsZod.readChatHandler>;
 export type SendChatBody = z.infer<typeof chatsZod.sendChatHandler>;
 export type UploadChatImgGetPUrlBody = z.infer<
   typeof chatsZod.uploadChatImgGetPUrlHandler

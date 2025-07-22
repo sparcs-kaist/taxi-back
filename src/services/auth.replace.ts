@@ -11,6 +11,11 @@ import * as jwt from "@/modules/auths/jwt";
 
 import { tryLogin } from "@/services/auth";
 import loginReplacePage from "@/views/loginReplacePage";
+import {
+  LoginReplaceBody,
+  SparcsssoQuery,
+  LogoutQuery,
+} from "@/routes/docs/schemas/authSchema";
 
 const createUserData = (id: string) => {
   const info = {
@@ -29,7 +34,7 @@ const createUserData = (id: string) => {
 };
 
 export const loginReplaceHandler: RequestHandler = (req, res) => {
-  const { id } = req.body;
+  const { id }: LoginReplaceBody = req.body;
   const loginAfterState = req.session?.loginAfterState;
   if (!loginAfterState)
     return res.status(400).send("Auth/login/replace : invalid request");
@@ -39,10 +44,8 @@ export const loginReplaceHandler: RequestHandler = (req, res) => {
 };
 
 export const sparcsssoHandler: RequestHandler = (req, res) => {
-  const redirectPath = decodeURIComponent(
-    (req.query?.redirect as string) || "%2F"
-  );
-  const isApp = !!req.query.isApp;
+  const { redirect, isApp }: SparcsssoQuery = req.query;
+  const redirectPath = decodeURIComponent(redirect || "%2F");
 
   req.session.loginAfterState = {
     redirectOrigin: req.origin,
@@ -53,9 +56,8 @@ export const sparcsssoHandler: RequestHandler = (req, res) => {
 };
 
 export const logoutHandler: RequestHandler = async (req, res) => {
-  const redirectPath = decodeURIComponent(
-    (req.query?.redirect as string) || "%2F"
-  );
+  const { redirect }: LogoutQuery = req.query;
+  const redirectPath = decodeURIComponent(redirect || "%2F");
 
   try {
     // DB에서 deviceToken 레코드를 삭제합니다.

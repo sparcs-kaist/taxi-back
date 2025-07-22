@@ -10,6 +10,15 @@ import {
 } from "@/modules/socket";
 import { Chat, ChatType } from "@/types/mongo";
 import logger from "@/modules/logger";
+import {
+  LoadRecentChatBody,
+  LoadAfterChatBody,
+  LoadBeforeChatBody,
+  SendChatBody,
+  ReadChatBody,
+  UploadChatImgGetPUrlBody,
+  UploadChatImgDoneBody,
+} from "@/routes/docs/schemas/chatsSchema";
 
 const chatCount = 60;
 
@@ -17,7 +26,7 @@ export const loadRecentChatHandler: RequestHandler = async (req, res) => {
   try {
     const io = req.app.get("io");
     const { userOid } = req;
-    const { roomId } = req.body;
+    const { roomId }: LoadRecentChatBody = req.body;
     const { id: sessionId } = req.session;
     if (!userOid) {
       return res.status(500).send("Chat/ : internal server error");
@@ -59,7 +68,7 @@ export const loadBeforeChatHandler: RequestHandler = async (req, res) => {
   try {
     const io = req.app.get("io");
     const { userOid } = req;
-    const { roomId, lastMsgDate } = req.body;
+    const { roomId, lastMsgDate }: LoadBeforeChatBody = req.body;
     const { id: sessionId } = req.session;
     if (!userOid) {
       return res.status(500).send("Chat/load/before : internal server error");
@@ -103,7 +112,7 @@ export const loadAfterChatHandler: RequestHandler = async (req, res) => {
   try {
     const io = req.app.get("io");
     const { userOid } = req;
-    const { roomId, lastMsgDate } = req.body;
+    const { roomId, lastMsgDate }: LoadAfterChatBody = req.body;
     const { id: sessionId } = req.session;
     if (!userOid) {
       return res.status(500).send("Chat/load/after : internal server error");
@@ -159,11 +168,7 @@ export const sendChatHandler: RequestHandler = async (req, res) => {
   try {
     const io = req.app.get("io");
     const { userOid } = req;
-    const { roomId, type, content } = req.body as {
-      roomId: string;
-      type: string;
-      content: string;
-    };
+    const { roomId, type, content }: SendChatBody = req.body;
     const user = await userModel.findOne({ _id: userOid, withdraw: false });
 
     if (!userOid || !user) {
@@ -183,12 +188,11 @@ export const sendChatHandler: RequestHandler = async (req, res) => {
     if (!isChatType(type)) {
       return res.status(403).send("Chat/send : Invalid ChatType");
     }
-    const convertedType = type;
 
     if (
       await emitChatEvent(io, {
         roomId,
-        type: convertedType,
+        type,
         content,
         authorId: user._id,
         time: undefined,
@@ -206,7 +210,7 @@ export const readChatHandler: RequestHandler = async (req, res) => {
   try {
     const io = req.app.get("io");
     const { userOid } = req;
-    const { roomId } = req.body;
+    const { roomId }: ReadChatBody = req.body;
     const user = await userModel.findOne({ _id: userOid, withdraw: false });
 
     if (!userOid || !user) {
@@ -249,7 +253,7 @@ export const readChatHandler: RequestHandler = async (req, res) => {
 
 export const uploadChatImgGetPUrlHandler: RequestHandler = async (req, res) => {
   try {
-    const { type, roomId } = req.body;
+    const { type, roomId }: UploadChatImgGetPUrlBody = req.body;
     const user = await userModel.findOne({ _id: req.userOid, withdraw: false });
     if (!roomId) {
       return res
@@ -292,11 +296,12 @@ export const uploadChatImgGetPUrlHandler: RequestHandler = async (req, res) => {
 
 export const uploadChatImgDoneHandler: RequestHandler = async (req, res) => {
   try {
+    const { id }: UploadChatImgDoneBody = req.body;
     const user = await userModel.findOne(
       { _id: req.userOid, withdraw: false },
       "_id nickname profileImageUrl"
     );
-    const chat = await chatModel.findById(req.body.id).lean();
+    const chat = await chatModel.findById(id).lean();
     if (!user) {
       return res
         .status(500)

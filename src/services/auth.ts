@@ -15,6 +15,7 @@ import {
 } from "@/modules/modifyProfile";
 import * as jwt from "@/modules/auths/jwt";
 import logger from "@/modules/logger";
+import { SparcsssoQuery, LogoutQuery } from "@/routes/docs/schemas/authSchema";
 
 interface UserDataType {
   email: string;
@@ -207,10 +208,9 @@ export const tryLogin = async (
 };
 
 export const sparcsssoHandler: RequestHandler = (req, res) => {
-  const redirectPath = decodeURIComponent(
-    (req.query?.redirect as string) || "%2F"
-  );
-  const isApp = !!req.query.isApp;
+  const { redirect, isApp }: SparcsssoQuery = req.query;
+  const redirectPath = decodeURIComponent(redirect || "%2F");
+
   const { url, state } = ssoClient!.getLoginParams() as {
     url: string;
     state: string;
@@ -274,9 +274,8 @@ export const loginReplaceHandler: RequestHandler = (req, res) => {
 };
 
 export const logoutHandler: RequestHandler = async (req, res) => {
-  const redirectPath = decodeURIComponent(
-    (req.query?.redirect as string) || "%2F"
-  );
+  const { redirect }: LogoutQuery = req.query;
+  const redirectPath = decodeURIComponent(redirect || "%2F");
 
   try {
     const { sid } = getLoginInfo(req);
