@@ -85,11 +85,11 @@ if (eventConfig) {
   app.use(`/events/${eventConfig.mode}`, lotteryRouter);
 }
 
-// [Middleware] 모든 API 요청에 대하여 origin 검증
-app.use(originValidatorMiddleware);
-
 // 이메일 수신 확인은 origin 검사 거치지 않기
 app.use("/email", emailRouter);
+
+// [Middleware] 모든 API 요청에 대하여 origin 검증
+app.use(originValidatorMiddleware);
 
 // [Router] APIs
 app.use("/auth", authRouter);

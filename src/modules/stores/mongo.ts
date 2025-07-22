@@ -212,6 +212,8 @@ const reportSchema = new Schema<Report>({
   roomId: { type: Schema.Types.ObjectId, ref: "Room" }, // 신고한 방 id
 });
 
+export const reportModel = model("Report", reportSchema);
+
 const emailSchema = new Schema({
   emailAddress: { type: String, required: true }, // 전송된 이메일 주소
   reportId: { type: Schema.Types.ObjectId, ref: "User" },
@@ -221,7 +223,7 @@ const emailSchema = new Schema({
   openedAt: { type: Date }, // 이메일 수신 시간
 });
 
-export const reportModel = model("Report", reportSchema);
+export const emailModel = model("Email", emailSchema);
 
 const adminIPWhitelistSchema = new Schema<AdminIPWhitelist>({
   ip: { type: String, required: true }, // IP 주소
@@ -310,30 +312,4 @@ export const connectDatabase = (mongoUrl: string) => {
   );
 
   return database;
-};
-
-module.exports = {
-  connectDatabase,
-  userModel: mongoose.model("User", userSchema),
-  banModel: mongoose.model("Ban", banSchema),
-  deviceTokenModel: mongoose.model("DeviceToken", deviceTokenSchema),
-  notificationOptionModel: mongoose.model(
-    "NotificationOption",
-    notificationOptionSchema
-  ),
-  topicSubscriptionModel: mongoose.model(
-    "TopicSubscription",
-    topicSubscriptionSchema
-  ),
-  roomModel: mongoose.model("Room", roomSchema),
-  locationModel: mongoose.model("Location", locationSchema),
-  chatModel: mongoose.model("Chat", chatSchema),
-  reportModel: mongoose.model("Report", reportSchema),
-  emailModel: mongoose.model("Email", emailSchema),
-  adminIPWhitelistModel: mongoose.model(
-    "AdminIPWhitelist",
-    adminIPWhitelistSchema
-  ),
-  adminLogModel: mongoose.model("AdminLog", adminLogSchema),
-  taxiFareModel: mongoose.model("TaxiFare", taxiFareSchema),
 };

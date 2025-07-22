@@ -8,7 +8,8 @@ interface ReportEmailPage {
     nickname: string,
     roomName: string,
     payer: string,
-    roomId: string | ObjectId
+    roomId: string | ObjectId,
+    trackingId: string
   ) => string;
 }
 
@@ -54,8 +55,8 @@ reportEmailPage["no-settlement"] = (
   감사합니다.<br />
   SPARCS Taxi팀 드림.
   `,
-  trackingId,
-  origin
+    trackingId,
+    origin
   );
 
 /* 미탑승 알림 메일을 위한 템플릿 */
