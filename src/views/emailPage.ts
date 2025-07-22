@@ -1,11 +1,4 @@
 import { getS3Url } from "@/modules/stores/aws";
-import { port } from "@/loadenv";
-
-const changePort = (origin: string, newPort: string) => {
-  const url = new URL(origin);
-  url.port = newPort; // 포트 변경
-  return url.origin; // origin 문자열만 리턴 (프로토콜 + hostname + port)
-};
 
 const emailPage = (
   title: string,
@@ -38,10 +31,7 @@ const emailPage = (
     </div>
     <!-- Tracking pixel to detect email opens -->
     <img src="${
-      new URL(
-        `/email/open-tracking?trackingId=${trackingId}`,
-        changePort(origin, port.toString())
-      ).href
+      new URL(`/api/email/open-tracking?trackingId=${trackingId}`, origin).href
     }" width="1" height="1" alt="pixel" />
   </div>
 </div>`;
