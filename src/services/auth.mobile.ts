@@ -44,7 +44,6 @@ export const tokenLoginHandler: RequestHandler = async (req, res) => {
       return res.status(401).json({ message: "No corresponding user" });
     }
 
-    // login(req, user.id, user._id.toString(), user.name, undefined);
     login(req, user.id, user._id.toString(), undefined);
     req.session.isApp = true;
     req.session.deviceToken = deviceToken;

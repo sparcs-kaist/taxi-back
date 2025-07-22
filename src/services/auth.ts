@@ -196,7 +196,6 @@ export const tryLogin = async (
       req.session.refreshToken = refreshToken;
     }
 
-    // login(req, user.id, user._id.toString(), user.name, userData.sid);
     login(req, user.id, user._id.toString(), userData.sid);
 
     res.redirect(new URL(redirectPath, redirectOrigin).href);
