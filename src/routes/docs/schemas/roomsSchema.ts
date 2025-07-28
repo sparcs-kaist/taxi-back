@@ -8,8 +8,8 @@ export const roomsZod = {
       name: z.string().regex(patterns.room.name),
       from: z.string().regex(patterns.objectId),
       to: z.string().regex(patterns.objectId),
-      time: z.string().refine((val) => !isNaN(Date.parse(val)), {
-        message: "Invalid ISO date format",
+      time: z.string().datetime({
+        message: "Invalid ISO datetime format",
       }),
       withTime: z.coerce.boolean(),
       maxPartLength: z.coerce.number().int().min(2).max(4),
@@ -28,8 +28,8 @@ export const roomsZod = {
     .object({
       from: z.string().regex(patterns.objectId),
       to: z.string().regex(patterns.objectId),
-      time: z.string().refine((val) => !isNaN(Date.parse(val)), {
-        message: "Invalid ISO date format",
+      time: z.string().datetime({
+        message: "Invalid ISO datetime format",
       }),
       timeGap: z.coerce.number().int().min(0).max(60),
     })
@@ -47,8 +47,8 @@ export const roomsZod = {
     name: z.string().regex(patterns.room.name),
     from: z.string().regex(patterns.objectId),
     to: z.string().regex(patterns.objectId),
-    time: z.string().refine((val) => !isNaN(Date.parse(val)), {
-      message: "Invalid ISO date format",
+    time: z.string().datetime({
+      message: "Invalid ISO datetime format",
     }),
     maxPartLength: z.coerce.number().int().min(2).max(4),
   }),
@@ -56,8 +56,8 @@ export const roomsZod = {
   createTestHandler: z.object({
     from: z.string().regex(patterns.objectId),
     to: z.string().regex(patterns.objectId),
-    time: z.string().refine((val) => !isNaN(Date.parse(val)), {
-      message: "Invalid ISO date format",
+    time: z.string().datetime({
+      message: "Invalid ISO datetime format",
     }),
     maxPartLength: z.coerce.number().int().min(2).max(4),
   }),

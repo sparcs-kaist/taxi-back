@@ -39,6 +39,13 @@ interface checkIsAbusingInput {
   maxPartLength: number;
 }
 
+interface userWithOngoingRooms {
+  _id: Types.ObjectId;
+  ongoingRoom?: {
+    part: { user: Types.ObjectId; settlementStatus: string }[];
+  }[];
+}
+
 export const createHandler: RequestHandler = async (req, res) => {
   const { name, from, to, time, maxPartLength } = req.body as CreateBody;
 
@@ -87,21 +94,14 @@ export const createHandler: RequestHandler = async (req, res) => {
     }
 
     // 사용자의 참여중인 진행중인 방이 5개 이상이면 오류를 반환합니다.
-    if ((user!.ongoingRoom?.length ?? 0) >= 5) {
+    if ((user.ongoingRoom?.length ?? 0) >= 5) {
       return res.status(400).json({
         error: "Rooms/create : participating in too many rooms",
       });
     }
 
     // 사용자가 참여한 진행중인 방 중 송금을 아직 완료하지 않은 방이 있다면 오류를 반환합니다.
-    const isSendRequired = checkIsSendRequired(
-      user as {
-        _id: Types.ObjectId;
-        ongoingRoom?: {
-          part: { user: Types.ObjectId; settlementStatus: string }[];
-        }[];
-      }
-    );
+    const isSendRequired = checkIsSendRequired(user as userWithOngoingRooms);
     if (isSendRequired) {
       return res.status(400).json({
         error: "Rooms/create : user has send-required rooms",
@@ -280,21 +280,14 @@ export const joinHandler: RequestHandler = async (req, res) => {
     }
 
     // 사용자의 참여중인 진행중인 방이 5개 이상이면 오류를 반환합니다.
-    if ((user!.ongoingRoom?.length ?? 0) >= 5) {
+    if ((user.ongoingRoom?.length ?? 0) >= 5) {
       return res.status(400).json({
         error: "Rooms/join : participating in too many rooms",
       });
     }
 
     // 사용자가 참여한 진행중인 방 중 송금을 아직 완료하지 않은 방이 있다면 오류를 반환합니다.
-    const isSendRequired = checkIsSendRequired(
-      user as {
-        _id: Types.ObjectId;
-        ongoingRoom?: {
-          part: { user: Types.ObjectId; settlementStatus: string }[];
-        }[];
-      }
-    );
+    const isSendRequired = checkIsSendRequired(user as userWithOngoingRooms);
     if (isSendRequired) {
       return res.status(400).json({
         error: "Rooms/join : user has send-required rooms",
@@ -475,7 +468,7 @@ export const abortHandler: RequestHandler = async (req, res) => {
 export const searchHandler: RequestHandler = async (req, res) => {
   try {
     const { name, from, to, time, withTime, maxPartLength, isHome } =
-      req.query as SearchQuery;
+      req.query as unknown as SearchQuery;
 
     // 출발지와 도착지가 같은 경우
     if (from && to && from === to) {
