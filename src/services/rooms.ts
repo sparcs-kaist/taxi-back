@@ -6,16 +6,17 @@ import {
   roomPopulateOption,
   formatSettlement,
   getIsOver,
-  PopulatedRoom,
+  type PopulatedRoom,
 } from "@/modules/populates/rooms";
 import { notifyRoomCreationAbuseToReportChannel } from "@/modules/slackNotification";
 import { contracts } from "@/lottery";
-import {
+import type {
   CreateBody,
   CreateTestBody,
   SearchByTimeGapQuery,
   SearchQuery,
 } from "@/routes/docs/schemas/roomsSchema";
+import type { Room } from "@/types/mongo";
 
 // 이벤트 코드입니다.
 import { eventConfig } from "@/loadenv";
@@ -123,7 +124,7 @@ export const createHandler: RequestHandler = async (req, res) => {
     await room.save();
 
     // 방의 ObjectID를 방 생성 요청을 한 사용자의 room 배열에 추가
-    user!.ongoingRoom?.push(room._id);
+    user.ongoingRoom?.push(room._id);
     await user.save();
 
     // 입장 채팅을 보냅니다.
@@ -312,7 +313,7 @@ export const joinHandler: RequestHandler = async (req, res) => {
     if (
       room.part
         .map((part) => part.user.toString())
-        .includes(user!._id.toString())
+        .includes(user._id.toString())
     ) {
       return res.status(409).json({
         error: "Rooms/join : " + user.id + " Already in room",
@@ -362,7 +363,7 @@ export const joinHandler: RequestHandler = async (req, res) => {
 };
 
 export const abortHandler: RequestHandler = async (req, res) => {
-  const isOvertime = (room: any, time: any) => {
+  const isOvertime = (room: Room, time: Date) => {
     if (new Date(room.time) <= time) return true;
     else return false;
   };
@@ -404,7 +405,10 @@ export const abortHandler: RequestHandler = async (req, res) => {
     const userDoneRoomIndex = user.doneRoom?.indexOf(room._id);
 
     // 방의 출발시간이 지나고 정산이 되지 않으면 나갈 수 없음
-    if (isOvertime(room, req.timestamp) && userOngoingRoomIndex !== -1) {
+    if (
+      isOvertime(room, new Date(req.timestamp!)) &&
+      userOngoingRoomIndex !== -1
+    ) {
       return res.status(400).json({
         error: "Rooms/abort : cannot exit room. Settlement is not done",
       });
