@@ -4,7 +4,7 @@ import { Server, Socket } from "socket.io";
 import type { Request } from "express";
 import type { LeanDocument, Types } from "mongoose";
 
-import sessionMiddleware from "@/middlewares/session";
+import { sessionMiddleware } from "@/middlewares";
 import logger from "@/modules/logger";
 import { getLoginInfo } from "@/modules/auths/login";
 import { roomModel, userModel, chatModel } from "@/modules/stores/mongo";

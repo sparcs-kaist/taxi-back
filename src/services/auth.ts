@@ -4,6 +4,7 @@ import { userModel } from "@/modules/stores/mongo";
 
 import patterns from "@/modules/patterns";
 const { user: userPattern } = patterns;
+import { SparcsssoQuery, LogoutQuery } from "@/routes/docs/schemas/authSchema";
 
 import { ssoClient, getLoginInfo, logout, login } from "@/modules/auths/login";
 
@@ -15,7 +16,6 @@ import {
 } from "@/modules/modifyProfile";
 import * as jwt from "@/modules/auths/jwt";
 import logger from "@/modules/logger";
-import { SparcsssoQuery, LogoutQuery } from "@/routes/docs/schemas/authSchema";
 
 interface UserDataType {
   email: string;

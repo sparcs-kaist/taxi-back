@@ -3,6 +3,13 @@ import type { RequestHandler } from "express";
 import { userModel } from "@/modules/stores/mongo";
 import { login } from "@/modules/auths/login";
 
+import {
+  TokenLoginQuery,
+  TokenRefreshQuery,
+  RegisterDeviceTokenBody,
+  RemoveDeviceTokenBody,
+} from "@/routes/docs/schemas/authSchema";
+
 import { registerDeviceToken, unregisterDeviceToken } from "@/modules/fcm";
 
 import * as jwt from "@/modules/auths/jwt";
@@ -13,10 +20,7 @@ import { JwtPayload } from "jsonwebtoken";
 const { TOKEN_EXPIRED, TOKEN_INVALID } = jwtValue;
 
 export const tokenLoginHandler: RequestHandler = async (req, res) => {
-  const { accessToken, deviceToken } = req.query as {
-    accessToken: string;
-    deviceToken: string;
-  };
+  const { accessToken, deviceToken } = req.query as TokenLoginQuery;
 
   try {
     if (!accessToken || !deviceToken) {
@@ -57,10 +61,7 @@ export const tokenLoginHandler: RequestHandler = async (req, res) => {
 
 export const tokenRefreshHandler: RequestHandler = async (req, res) => {
   try {
-    const { accessToken, refreshToken } = req.query as {
-      accessToken: string;
-      refreshToken: string;
-    };
+    const { accessToken, refreshToken } = req.query as TokenRefreshQuery;
     if (!accessToken || !refreshToken) {
       return res.status(400).send("invalid request");
     }
@@ -101,10 +102,7 @@ export const tokenRefreshHandler: RequestHandler = async (req, res) => {
 
 export const registerDeviceTokenHandler: RequestHandler = async (req, res) => {
   try {
-    const { accessToken, deviceToken } = req.body as {
-      accessToken: string;
-      deviceToken: string;
-    };
+    const { accessToken, deviceToken } = req.body as RegisterDeviceTokenBody;
     const accessTokenStatus = (await jwt.verify(accessToken)) as
       | JwtPayload
       | number;
@@ -133,10 +131,7 @@ export const registerDeviceTokenHandler: RequestHandler = async (req, res) => {
 
 export const removeDeviceTokenHandler: RequestHandler = async (req, res) => {
   try {
-    const { accessToken, deviceToken } = req.body as {
-      accessToken: string;
-      deviceToken: string;
-    };
+    const { accessToken, deviceToken } = req.body as RemoveDeviceTokenBody;
     const accessTokenStatus = await jwt.verify(accessToken);
     if (!deviceToken) {
       return res.status(400).send("invalid request");

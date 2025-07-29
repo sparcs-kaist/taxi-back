@@ -34,13 +34,28 @@ router.get(
   (isAuthReplace ? authReplaceHandlers : authHandlers).logoutHandler
 );
 
-router.get("/app/token/login", mobileAuthHandlers.tokenLoginHandler);
-// FIXME: accessToken, deviceToken validation 추가
-router.get("/app/token/refresh", mobileAuthHandlers.tokenRefreshHandler);
-// FIXME: accessToken, refreshToken validation 추가
-router.post("/app/device", mobileAuthHandlers.registerDeviceTokenHandler);
-// FIXME: accessToken, deviceToken validation 추가
-router.delete("/app/device", mobileAuthHandlers.removeDeviceTokenHandler);
-// FIXME: accessToken, deviceToken validation 추가
+router.get(
+  "/app/token/login",
+  validateQuery(authZod.tokenLoginHandler),
+  mobileAuthHandlers.tokenLoginHandler
+);
+
+router.get(
+  "/app/token/refresh",
+  validateQuery(authZod.tokenRefreshHandler),
+  mobileAuthHandlers.tokenRefreshHandler
+);
+
+router.post(
+  "/app/device",
+  validateBody(authZod.registerDeviceTokenHandler),
+  mobileAuthHandlers.registerDeviceTokenHandler
+);
+
+router.delete(
+  "/app/device",
+  validateBody(authZod.removeDeviceTokenHandler),
+  mobileAuthHandlers.removeDeviceTokenHandler
+);
 
 export default router;
