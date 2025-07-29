@@ -1,11 +1,11 @@
 const { zodToJsonSchema } = require("zod-to-json-schema");
 const logger = require("../../modules/logger").default;
 
-const zodToSchemaObject = (zodObejct) => {
+const zodToSchemaObject = (zodObject) => {
   try {
     const schemaObject = {};
-    Object.keys(zodObejct).forEach((key) => {
-      schemaObject[key] = zodToJsonSchema(zodObejct[key]);
+    Object.keys(zodObject).forEach((key) => {
+      schemaObject[key] = zodToJsonSchema(zodObject[key]);
     });
     return schemaObject;
   } catch (err) {
