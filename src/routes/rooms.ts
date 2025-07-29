@@ -1,12 +1,13 @@
 import express from "express";
+import { roomsZod } from "./docs/schemas/roomsSchema";
+import * as roomHandlers from "@/services/rooms";
 import {
+  authMiddleware,
+  banMiddleware,
   validateBody,
   validateParams,
   validateQuery,
-} from "../middlewares/zod";
-import { roomsZod } from "./docs/schemas/roomsSchema";
-import * as roomHandlers from "@/services/rooms";
-import { authMiddleware, banMiddleware } from "@/middlewares";
+} from "@/middlewares";
 
 const router = express.Router();
 

@@ -1,6 +1,6 @@
 import { z } from "zod";
 import patterns from "@/modules/patterns";
-import { zodToSchemaObject } from "../utils";
+import { zodToSchemaObject, zStringToBoolean } from "../utils";
 
 export const roomsZod = {
   searchHandler: z
@@ -11,9 +11,9 @@ export const roomsZod = {
       time: z.string().datetime({
         message: "Invalid ISO datetime format",
       }),
-      withTime: z.coerce.boolean(),
+      withTime: zStringToBoolean,
       maxPartLength: z.coerce.number().int().min(2).max(4),
-      isHome: z.coerce.boolean(),
+      isHome: zStringToBoolean,
     })
     .partial({
       name: true,

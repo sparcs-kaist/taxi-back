@@ -1,5 +1,6 @@
 const { zodToJsonSchema } = require("zod-to-json-schema");
 const logger = require("../../modules/logger").default;
+const { z } = require("zod");
 
 const zodToSchemaObject = (zodObejct) => {
   try {
@@ -14,4 +15,8 @@ const zodToSchemaObject = (zodObejct) => {
   }
 };
 
-module.exports = { zodToSchemaObject };
+const zStringToBoolean = z
+  .enum(["true", "false"])
+  .transform((value) => value === "true");
+
+module.exports = { zodToSchemaObject, zStringToBoolean };
