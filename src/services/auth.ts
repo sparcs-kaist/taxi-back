@@ -3,7 +3,7 @@ import { nodeEnv, testAccounts } from "@/loadenv";
 import { userModel } from "@/modules/stores/mongo";
 
 import patterns from "@/modules/patterns";
-const { user: userPattern } = patterns;
+
 import type {
   SparcsssoQuery,
   LogoutQuery,
@@ -20,23 +20,9 @@ import {
 import * as jwt from "@/modules/auths/jwt";
 import logger from "@/modules/logger";
 
-interface UserDataType {
-  email: string;
-  id: string;
-  sid: string;
-  uid?: string;
-  name: string;
-  nickname?: string;
-  kaist: string;
-  kaistType?: string;
-  kaist_info?: string;
-  sparcs: string;
-  facebook: string;
-  twitter: string;
-  first_name?: string;
-  last_name?: string;
-  isEligible?: boolean;
-}
+const { user: userPattern } = patterns;
+
+type UserDataType = ReturnType<typeof transUserData>;
 
 interface RawUserType {
   uid: string;

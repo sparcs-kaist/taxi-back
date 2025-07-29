@@ -2,10 +2,6 @@ import type { RequestHandler } from "express";
 import { logout } from "@/modules/auths/login";
 
 import { unregisterDeviceToken } from "@/modules/fcm";
-import {
-  generateNickname,
-  generateProfileImageUrl,
-} from "@/modules/modifyProfile";
 
 import { tryLogin } from "@/services/auth";
 import loginReplacePage from "@/views/loginReplacePage";
@@ -15,18 +11,19 @@ import type {
   LogoutQuery,
 } from "@/routes/docs/schemas/authSchema";
 
+// tryLogin의 userdata의 type (UserDataType)을 맞추기 위한 함수
 const createUserData = (id: string) => {
   const info = {
     id: id,
     sid: id + "-sid",
     name: id + "-name",
-    nickname: generateNickname(id),
-    profileImageUrl: generateProfileImageUrl(),
     facebook: id + "-facebook",
     twitter: id + "-twitter",
     kaist: "20220411",
+    kaistType: "",
     sparcs: id + "-sparcs",
     email: "taxi@sparcs.org",
+    isEligible: false,
   };
   return info;
 };
