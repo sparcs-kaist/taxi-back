@@ -10,6 +10,7 @@ const logger = require("@/modules/logger").default;
 const reportEmailPage = require("@/views/reportEmailPage").default;
 const { notifyReportToReportChannel } = require("@/modules/slackNotification");
 const { v4: uuidv4 } = require("uuid");
+const { FRONT_URL } = require("@/loadenv");
 
 const createHandler = async (req, res) => {
   try {
@@ -71,7 +72,7 @@ const createHandler = async (req, res) => {
       const emailRoomName = room ? room.name : "";
       const emailRoomId = room ? room._id : "";
       const emailHtml = reportEmailPage[report.type](
-        req.origin,
+        FRONT_URL,
         reported.name,
         reported.nickname,
         emailRoomName,

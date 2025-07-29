@@ -1,5 +1,5 @@
 import express from "express";
-import { emailHandler } from "../services/email";
+import { emailHandler } from "@/services/email";
 
 const router = express.Router();
 

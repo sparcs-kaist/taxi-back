@@ -1,5 +1,5 @@
-import { emailModel } from "../modules/stores/mongo";
-import logger from "../modules/logger";
+import { emailModel } from "@/modules/stores/mongo";
+import logger from "@/modules/logger";
 import type { RequestHandler } from "express";
 
 export const emailHandler: RequestHandler = async (req, res) => {
