@@ -31,8 +31,8 @@ class NodemailerTransport {
 
   /**
    * 이메일을 전송합니다.
-   * @param {SendMailOptions} mailOptions - 메일 전송에 필요한 주소, 제목, 본문 등 정보입니다.
-   * @return {Promise<boolean>} 이메일 전송에 성공하면 true를, 실패하면 error를 반환합니다.
+   * @param - 메일 전송에 필요한 주소, 제목, 본문 등 정보입니다.
+   * @return 이메일 전송에 성공하면 true를, 실패하면 error를 반환합니다.
    */
   async sendMail(mailOptions: SendMailOptions) {
     try {
@@ -62,8 +62,8 @@ class MockNodemailerTransport {
   /**
    * 이메일 전송을 위한 agent 객체를 생성합니다.
    * mock 이메일 전송을 위한 테스트 계정을 생성하기 위해 비동기 함수로 작성되었습니다.
-   * @return {Promise<nodemailer.Transporter>} agent 객체를 생성하는 Promise입니다.
-   * @throws {Error} 이메일 전송을 위한 agent 객체 생성에 실패하면 에러를 반환합니다.
+   * @return agent 객체를 생성하는 Promise입니다.
+   * @throws 이메일 전송을 위한 agent 객체 생성에 실패하면 에러를 반환합니다.
    */
   async getTransporter() {
     if (!this.#transporterPromise) {
@@ -95,8 +95,8 @@ class MockNodemailerTransport {
 
   /**
    * 이메일을 전송합니다.
-   * @param {SendMailOptions} mailOptions - 메일 전송에 필요한 주소, 제목, 본문 등 정보입니다.
-   * @return {Promise<boolean>} 이메일 전송에 성공하면 true를, 실패하면 error를 반환합니다.
+   * @param mailOptions - 메일 전송에 필요한 주소, 제목, 본문 등 정보입니다.
+   * @return 이메일 전송에 성공하면 true를, 실패하면 error를 반환합니다.
    */
   async sendMail(mailOptions: SendMailOptions) {
     try {
@@ -123,11 +123,11 @@ const transporter =
 
 /**
  * 이메일을 전송합니다.
- * @param {string} reportedEmail - 신고를 받은 사용자의 이메일입니다.
- * @param {Report} report - 신고 내용입니다.
- * @param {string} report.type - 신고 유형입니다. reportTypeMap의 키여야 합니다.
- * @param {string} html - HTML 형식의 이메일 본문입니다.
- * @return {Promise<boolean>} 이메일 전송에 성공하면 true를, 실패하면 false를 반환합니다.
+ * @param reportedEmail - 신고를 받은 사용자의 이메일입니다.
+ * @param report - 신고 내용입니다.
+ * @param report.type - 신고 유형입니다. reportTypeMap의 키여야 합니다.
+ * @param html - HTML 형식의 이메일 본문입니다.
+ * @return 이메일 전송에 성공하면 true를, 실패하면 false를 반환합니다.
  */
 export const sendReportEmail = async (
   reportedEmail: string,

@@ -15,6 +15,7 @@ import type {
   AdminLog,
   TaxiFare,
   Notice,
+  Email,
 } from "@/types/mongo";
 
 const userSchema = new Schema<User>({
@@ -214,7 +215,7 @@ const reportSchema = new Schema<Report>({
 
 export const reportModel = model("Report", reportSchema);
 
-const emailSchema = new Schema({
+const emailSchema = new Schema<Email>({
   emailAddress: { type: String, required: true }, // 전송된 이메일 주소
   reportId: { type: Schema.Types.ObjectId, ref: "User" },
   trackingId: { type: String, required: true }, // 이메일 id

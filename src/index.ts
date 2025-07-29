@@ -23,6 +23,7 @@ import {
   authRouter,
   chatRouter,
   docsRouter,
+  emailRouter,
   fareRouter,
   locationRouter,
   logininfoRouter,
@@ -31,7 +32,6 @@ import {
   reportRouter,
   roomRouter,
   userRouter,
-  emailRouter,
 } from "@/routes";
 
 import { initializeApp as initializeFirebase } from "@/modules/fcm";

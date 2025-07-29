@@ -12,6 +12,16 @@ const { notifyReportToReportChannel } = require("@/modules/slackNotification");
 const { v4: uuidv4 } = require("uuid");
 const { FRONT_URL } = require("@/loadenv");
 
+const generateUniqueTrackingId = async () => {
+  let trackingId;
+  let existingTracking;
+  do {
+    trackingId = uuidv4();
+    existingTracking = await emailModel.findOne({ trackingId });
+  } while (existingTracking);
+  return trackingId;
+};
+
 const createHandler = async (req, res) => {
   try {
     const { reportedId, type, etcDetail, time, roomId } = req.body;
@@ -45,16 +55,6 @@ const createHandler = async (req, res) => {
     });
 
     await report.save();
-
-    const generateUniqueTrackingId = async () => {
-      let trackingId;
-      let existingTracking;
-      do {
-        trackingId = uuidv4();
-        existingTracking = await emailModel.findOne({ trackingId });
-      } while (existingTracking);
-      return trackingId;
-    };
 
     const trackingId = await generateUniqueTrackingId();
 

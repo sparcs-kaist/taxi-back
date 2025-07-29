@@ -31,7 +31,10 @@ const emailPage = (
     </div>
     <!-- Tracking pixel to detect email opens -->
     <img src="${
-      new URL(`/api/email/open-tracking?trackingId=${trackingId}`, origin).href
+      new URL(
+        `/api/email/open-tracking?trackingId=${encodeURIComponent(trackingId)}`,
+        origin
+      ).href
     }" width="1" height="1" alt="pixel" />
   </div>
 </div>`;
