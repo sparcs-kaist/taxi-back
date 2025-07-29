@@ -8,7 +8,7 @@ import {
   emitUpdateEvent,
   ChatArrayObject,
 } from "@/modules/socket";
-import { Chat, ChatType } from "@/types/mongo";
+import { ChatType } from "@/types/mongo";
 import logger from "@/modules/logger";
 import {
   LoadRecentChatBody,

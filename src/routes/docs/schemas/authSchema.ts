@@ -13,7 +13,7 @@ export const authZod = {
   sparcsssoHandler: z
     .object({
       redirect: z.string(),
-      isApp: z.coerce.boolean(),
+      isApp: z.enum(["true", "false"]).transform((value) => value === "true"),
     })
     .partial(),
   loginReplaceHandler: z

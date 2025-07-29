@@ -1,5 +1,5 @@
 import express from "express";
-import { validateBody } from "@/middlewares/zod";
+import { validateBody } from "@/middlewares";
 import { chatsZod } from "./docs/schemas/chatsSchema";
 
 import * as chatsHandlers from "@/services/chats";

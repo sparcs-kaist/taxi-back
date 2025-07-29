@@ -6,8 +6,6 @@ import {
   generateNickname,
   generateProfileImageUrl,
 } from "@/modules/modifyProfile";
-import logger from "@/modules/logger";
-import * as jwt from "@/modules/auths/jwt";
 
 import { tryLogin } from "@/services/auth";
 import loginReplacePage from "@/views/loginReplacePage";

@@ -1,6 +1,6 @@
 import express from "express";
 
-import { validateBody, validateQuery } from "@/middlewares/zod";
+import { validateBody, validateQuery } from "@/middlewares";
 import { authZod } from "./docs/schemas/authSchema";
 
 import * as authHandlers from "@/services/auth";
