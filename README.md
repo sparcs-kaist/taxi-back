@@ -11,8 +11,8 @@ Taxi는 KAIST 구성원들의 택시 동승 인원 모집을 위한 서비스입
 
 ## Prerequisite
 
-- Recommended node version : >=22.0.0 (Node v22.12.0, for example)
-- Recommended pnpm version : >=10.0.0 (pmpm v10.14.0, for example)
+- Recommended node version : >=22.0.0 (Node v22.17.1, for example)
+- Recommended pnpm version : >=10.0.0 (pmpm v10.13.1, for example)
 - Recommended mongoDB version : 5.0.8
 
 ## Project Setup
