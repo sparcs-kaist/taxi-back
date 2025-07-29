@@ -6,11 +6,11 @@ import {
   transformChatsForRoom,
   emitChatEvent,
   emitUpdateEvent,
-  ChatArrayObject,
+  type ChatArrayObject,
 } from "@/modules/socket";
-import { ChatType } from "@/types/mongo";
+import type { ChatType } from "@/types/mongo";
 import logger from "@/modules/logger";
-import {
+import type {
   LoadRecentChatBody,
   LoadAfterChatBody,
   LoadBeforeChatBody,

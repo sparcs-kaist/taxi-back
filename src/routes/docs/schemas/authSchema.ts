@@ -6,7 +6,7 @@ const { jwtToken } = patterns;
 
 const tokenObject = z.object({
   accessToken: z.string().regex(jwtToken),
-  deviceToken: z.string().regex(jwtToken),
+  deviceToken: z.string(), // FCM Token (spec does not exist at docs)
 });
 
 export const authZod = {

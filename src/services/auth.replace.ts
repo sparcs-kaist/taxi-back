@@ -9,7 +9,7 @@ import {
 
 import { tryLogin } from "@/services/auth";
 import loginReplacePage from "@/views/loginReplacePage";
-import {
+import type {
   LoginReplaceBody,
   SparcsssoQuery,
   LogoutQuery,
