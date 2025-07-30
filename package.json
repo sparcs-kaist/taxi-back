@@ -4,7 +4,7 @@
   "description": "KAIST Taxi Party Matching Web Service",
   "author": "sparcs/taxi",
   "license": "MIT",
-  "main": "app.js",
+  "main": "src/index.ts",
   "scripts": {
     "preinstall": "npx only-allow pnpm",
     "start": "nodemon",
@@ -21,7 +21,7 @@
   },
   "engines": {
     "node": ">=22.0.0",
-    "pnpm": ">=10.0.0"
+    "pnpm": "^10.0.0"
   },
   "dependencies": {
     "@adminjs/express": "^5.1.0",
