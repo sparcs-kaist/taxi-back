@@ -1,4 +1,4 @@
-import type { RequestHandler } from "express";
+import type { Request, Response, NextFunction, RequestHandler } from "express";
 import { roomModel, locationModel, userModel } from "@/modules/stores/mongo";
 import { emitChatEvent } from "@/modules/socket";
 import logger from "@/modules/logger";
@@ -25,6 +25,12 @@ const eventPeriod = eventConfig && {
   startAt: new Date(eventConfig.period.startAt),
   endAt: new Date(eventConfig.period.endAt),
 };
+
+type CustomRequestHandler<Q> = (
+  req: Request<{}, any, any, Q>,
+  res: Response,
+  next: NextFunction
+) => any;
 
 interface candidateRoom {
   from: string;
@@ -469,10 +475,13 @@ export const abortHandler: RequestHandler = async (req, res) => {
   }
 };
 
-export const searchHandler: RequestHandler = async (req, res) => {
+export const searchHandler: CustomRequestHandler<SearchQuery> = async (
+  req,
+  res
+) => {
   try {
     const { name, from, to, time, withTime, maxPartLength, isHome } =
-      req.query as unknown as SearchQuery;
+      req.query as SearchQuery;
 
     // 출발지와 도착지가 같은 경우
     if (from && to && from === to) {
