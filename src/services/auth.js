@@ -375,7 +375,7 @@ const oneAppTokenIssueHandler = async (req, res) => {
 
     const { oid, uid, ssoInfo } = req.session.oneAppState;
     req.session.oneAppState = undefined;
-    req.session.destroy(logger.error);
+    req.session.destroy((e) => e && logger.error(e));
 
     const tokenPayload = { oid, uid };
     const { accessToken } = jwt.signForOneApp(tokenPayload);
