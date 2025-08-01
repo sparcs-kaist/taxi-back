@@ -217,8 +217,8 @@ export const reportModel = model("Report", reportSchema);
 
 const emailSchema = new Schema<Email>({
   emailAddress: { type: String, required: true }, // 전송된 이메일 주소
-  reportId: { type: Schema.Types.ObjectId, ref: "Report" },
-  trackingId: { type: String, required: true }, // 이메일 id
+  reportId: { type: Schema.Types.ObjectId, required: true, ref: "Report" },
+  trackingId: { type: String, required: true, unique: true }, // 이메일 id
   sentAt: { type: Date, required: true }, // 이메일 전송 시간
   isOpened: { type: Boolean, required: true }, // 이메일 수신 여부
   openedAt: { type: Date }, // 이메일 수신 시간

@@ -58,7 +58,7 @@ const createHandler = async (req, res) => {
 
     const trackingId = await generateUniqueTrackingId();
 
-    await emailModel.create({
+    const email = new emailModel({
       emailAddress: reported.email,
       reportId: report,
       trackingId,
@@ -66,13 +66,14 @@ const createHandler = async (req, res) => {
       isOpened: false,
     });
 
+    await email.save();
+
     notifyReportToReportChannel(user.nickname, report);
 
     if (report.type === "no-settlement" || report.type === "no-show") {
       const emailRoomName = room ? room.name : "";
       const emailRoomId = room ? room._id : "";
       const emailHtml = reportEmailPage[report.type](
-        FRONT_URL,
         reported.name,
         reported.nickname,
         emailRoomName,

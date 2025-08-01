@@ -1,9 +1,9 @@
 import type { ObjectId } from "mongoose";
 import emailPage from "./emailPage";
+import { frontUrl as origin } from "@/loadenv";
 
 interface ReportEmailPage {
   [key: string]: (
-    origin: string,
     name: string,
     nickname: string,
     roomName: string,
@@ -17,7 +17,6 @@ const reportEmailPage: ReportEmailPage = {};
 
 /* 미정산 알림 메일을 위한 템플릿 */
 reportEmailPage["no-settlement"] = (
-  origin,
   name,
   nickname,
   roomName,
@@ -55,13 +54,11 @@ reportEmailPage["no-settlement"] = (
   감사합니다.<br />
   SPARCS Taxi팀 드림.
   `,
-    trackingId,
-    origin
+    trackingId
   );
 
 /* 미탑승 알림 메일을 위한 템플릿 */
 reportEmailPage["no-show"] = (
-  origin,
   name,
   nickname,
   roomName,
@@ -98,8 +95,7 @@ reportEmailPage["no-show"] = (
     감사합니다.<br />
     SPARCS Taxi팀 드림.
     `,
-    trackingId,
-    origin
+    trackingId
   );
 
 export default reportEmailPage;

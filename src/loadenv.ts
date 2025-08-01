@@ -74,4 +74,4 @@ export const naverMap = {
   apiId: process.env.NAVER_MAP_API_ID || "", // optional
   apiKey: process.env.NAVER_MAP_API_KEY || "", // optional
 };
-export const FRONT_URL = process.env.FRONT_URL || "http://localhost:3000"; // optional
+export const frontUrl = process.env.FRONT_URL || "http://localhost:3000"; // optional

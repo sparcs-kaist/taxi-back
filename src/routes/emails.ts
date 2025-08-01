@@ -5,10 +5,6 @@ import { emailZod } from "@/routes/docs/schemas/emailSchema";
 
 const router = express.Router();
 
-router.get(
-  "/open-tracking",
-  validateQuery(emailZod.emailHandler),
-  emailHandler
-);
+router.get("/openTracking", validateQuery(emailZod.emailHandler), emailHandler);
 
 export default router;

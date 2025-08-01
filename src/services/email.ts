@@ -6,13 +6,13 @@ export const emailHandler: RequestHandler = async (req, res) => {
   const trackingId = req.query.trackingId as string;
 
   if (!trackingId) {
-    return res.status(400).send("Tracking ID missing");
+    return res.status(400).send("Email/open-tracking: Tracking ID missing");
   }
 
   try {
     const trackingRecord = await emailModel.findOne({ trackingId });
     if (!trackingRecord) {
-      return res.status(404).send("Tracking ID not found");
+      return res.status(404).send("Email/open-tracking: Tracking ID not found");
     }
 
     trackingRecord.isOpened = true;
@@ -20,11 +20,11 @@ export const emailHandler: RequestHandler = async (req, res) => {
     await trackingRecord.save();
 
     res.set("Content-Type", "image/gif");
-    res.send(
+    return res.send(
       Buffer.from("R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==", "base64")
     );
   } catch (err) {
     logger.error(err);
-    res.status(500).send("Internal Server Error");
+    return res.status(500).send("Email/open-tracking: Internal Server Error");
   }
 };
