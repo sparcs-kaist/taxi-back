@@ -528,9 +528,9 @@ authDocs[`${apiPrefix}/sparcsapp/token/issue`] = {
                   type: "string",
                   description: "새로운 Refresh Token",
                 },
-                kaistInfoV2: {
+                ssoInfo: {
                   type: "string",
-                  description: "SPARCS SSO에서 전달받은 KAIST 관련 정보",
+                  description: "SPARCS SSO에서 전달받은 사용자 정보",
                 },
               },
             },
