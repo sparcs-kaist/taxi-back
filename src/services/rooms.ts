@@ -1,5 +1,5 @@
 import type { RequestHandler } from "express";
-import mongoose, { Types, type PipelineStage } from "mongoose";
+import { Types, type PipelineStage } from "mongoose";
 import { roomModel, locationModel, userModel } from "@/modules/stores/mongo";
 import { emitChatEvent } from "@/modules/socket";
 import logger from "@/modules/logger";
@@ -39,7 +39,7 @@ export const createHandler: RequestHandler = async (req, res) => {
       });
     }
 
-    if (req.timestamp! > Date.parse(req.body.time)) {
+    if (req.timestamp! > Date.parse(time)) {
       return res.status(400).json({
         error: "Rooms/create : invalid timestamp",
       });
@@ -205,8 +205,8 @@ export const publicInfoHandler: RequestHandler = async (req, res) => {
   try {
     const roomObject = await roomModel
       .findOne({ _id: req.query.id })
-      .lean<PopulatedRoom>()
-      .populate(roomPopulateOption);
+      .lean()
+      .populate<PopulatedRoom>(roomPopulateOption);
     if (roomObject) {
       // 방의 정산 정보는 개인정보로 방에 참여하기 전까지는 반환하지 않습니다.
       res.send(formatSettlement(roomObject, { includeSettlement: false }));
@@ -232,8 +232,8 @@ export const infoHandler: RequestHandler = async (req, res) => {
 
     const roomObject = await roomModel
       .findOne({ _id: req.query.id, "part.user": user._id })
-      .lean<PopulatedRoom>()
-      .populate(roomPopulateOption);
+      .lean()
+      .populate<PopulatedRoom>(roomPopulateOption);
     if (roomObject) {
       const isOver = getIsOver(roomObject, user._id.toString());
       res.send(formatSettlement(roomObject, { isOver }));
@@ -502,8 +502,8 @@ export const searchHandler: RequestHandler = async (req, res) => {
       .find(query)
       .sort({ time: 1 })
       .limit(1000)
-      .populate(roomPopulateOption)
-      .lean<PopulatedRoom[]>();
+      .lean()
+      .populate<PopulatedRoom>(roomPopulateOption);
     return res.json(
       rooms.map((room) => formatSettlement(room, { includeSettlement: false }))
     );
@@ -627,10 +627,10 @@ export const searchByTimeGapHandler: RequestHandler = async (req, res) => {
 
     const rawRooms = await roomModel.aggregate(agg);
     // Mongoose 6.x 이상이라면, aggregate 결과에도 populate 가능
-    const rooms = (await roomModel.populate(
+    const rooms = await roomModel.populate<PopulatedRoom>(
       rawRooms,
       roomPopulateOption
-    )) as unknown as PopulatedRoom[];
+    );
 
     return res.json(
       rooms.map((room) => formatSettlement(room, { includeSettlement: false }))
@@ -646,7 +646,6 @@ export const searchByTimeGapHandler: RequestHandler = async (req, res) => {
 export const commitSettlementHandler: RequestHandler = async (req, res) => {
   try {
     const user = await userModel.findOne({ _id: req.userOid, withdraw: false });
-
     if (!user) {
       return res
         .status(400)
@@ -679,8 +678,8 @@ export const commitSettlementHandler: RequestHandler = async (req, res) => {
           ],
         }
       )
-      .lean<PopulatedRoom>()
-      .populate(roomPopulateOption);
+      .lean()
+      .populate<PopulatedRoom>(roomPopulateOption);
 
     if (!roomObject) {
       return res.status(404).json({
@@ -761,8 +760,8 @@ export const commitPaymentHandler: RequestHandler = async (req, res) => {
           new: true,
         }
       )
-      .lean<PopulatedRoom>()
-      .populate(roomPopulateOption);
+      .lean()
+      .populate<PopulatedRoom>(roomPopulateOption);
 
     if (!roomObject) {
       return res.status(404).json({
@@ -877,9 +876,6 @@ const checkIsSendRequired = (userObject: {
   // user의 참여중인 방의 part 정보만 가져오기
   const ongoingRoomParts = userObject.ongoingRoom.map((room) => room.part);
   // part에서 자신의 id에 해당하는 part만 가져오기
-  if (!ongoingRoomParts) {
-    return false;
-  }
   const userParts = ongoingRoomParts
     .map((partList) =>
       partList.filter((part) => part.user.equals(userObject._id))
