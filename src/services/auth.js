@@ -291,7 +291,6 @@ const sparcsssoCallbackHandler = (req, res) => {
         res,
         userDataBefore,
         userData,
-        kaistInfoV2,
         redirectOrigin,
         redirectPath
       );
@@ -429,6 +428,7 @@ const verifyRefreshToken = (refreshToken) => {
 };
 
 module.exports = {
+  transUserData,
   tryLogin,
   sparcsssoHandler,
   sparcsssoCallbackHandler,

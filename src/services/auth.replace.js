@@ -1,27 +1,33 @@
 const { logout } = require("@/modules/auths/login");
 const { unregisterDeviceToken } = require("@/modules/fcm");
-const {
-  generateNickname,
-  generateProfileImageUrl,
-} = require("@/modules/modifyProfile");
-
-const { tryLogin } = require("@/services/auth");
+const { transUserData, tryLogin } = require("@/services/auth");
 const loginReplacePage = require("@/views/loginReplacePage").default;
 
-const createUserData = (id) => {
-  const info = {
-    id: id,
-    sid: id + "-sid",
-    name: id + "-name",
-    nickname: generateNickname(id),
-    profileImageUrl: generateProfileImageUrl(),
-    facebook: id + "-facebook",
-    twitter: id + "-twitter",
-    kaist: "20220411",
-    sparcs: id + "-sparcs",
+const createUserData = (uid) => {
+  const userDataBefore = {
+    uid,
+    sid: uid + "-sid",
     email: "taxi@sparcs.org",
+    first_name: uid + "-firstname",
+    last_name: uid + "-lastname",
+    gender: "*H",
+    birthday: "",
+    flags: ["TEST", "SPARCS"],
+    facebook_id: uid + "-facebook",
+    twitter_id: uid + "-twitter",
+    kaist_id: "20230113",
+    kaist_info: null,
+    kaist_info_time: "",
+    kaist_v2_info: null,
+    kaist_v2_info_time: "",
+    sparcs_id: uid + "-sparcs",
   };
-  return info;
+  const userData = {
+    ...transUserData(userDataBefore),
+    name: uid + "-name",
+    kaist: "20230113",
+  };
+  return { userDataBefore, userData };
 };
 
 const loginReplaceHandler = (req, res) => {
@@ -29,16 +35,12 @@ const loginReplaceHandler = (req, res) => {
   const loginAfterState = req.session?.loginAfterState;
   if (!loginAfterState)
     return res.status(400).send("Auth/login/replace : invalid request");
+
   const { redirectOrigin, redirectPath } = loginAfterState;
   req.session.loginAfterState = undefined;
-  tryLogin(
-    req,
-    res,
-    undefined,
-    createUserData(id),
-    redirectOrigin,
-    redirectPath
-  );
+
+  const { userDataBefore, userData } = createUserData(id);
+  tryLogin(req, res, userDataBefore, userData, redirectOrigin, redirectPath);
 };
 
 const sparcsssoHandler = (req, res) => {

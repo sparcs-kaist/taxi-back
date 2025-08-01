@@ -69,12 +69,12 @@ export const signForOneApp = (payload: PayloadForOneApp) => {
 
 export const verifyForOneApp = (accessToken: string) => {
   try {
-    const { oid, uid } = jwt.verify(
+    const { oid, uid, type } = jwt.verify(
       accessToken,
       secretKeyForOneApp
-    ) as PayloadForOneApp;
+    ) as PayloadForOneApp & { type?: "access" };
     // oid가 없는 토큰은 Taxi에서는 사용할 수 없습니다.
-    if (oid === undefined) {
+    if (type !== "access" || oid === undefined) {
       return TOKEN_INVALID;
     }
     return { oid, uid };
@@ -88,10 +88,6 @@ export const verifyForOneApp = (accessToken: string) => {
 
 // TODO: 타입 수정
 export const signSsoInfo = (ssoInfo: any) => {
-  if (!ssoInfo) {
-    return {};
-  }
-
   const options: SignOptions = {
     ...option,
     expiresIn: ssoInfoExpiry,
