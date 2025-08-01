@@ -1,17 +1,13 @@
 import { expect } from "chai";
-import express, { Express } from "express";
-import * as roomsHandlers from "../../src/services/rooms";
-import {
-  userModel,
-  roomModel,
-  locationModel,
-} from "../../src/modules/stores/mongo";
-import { userGenerator, testRemover, type TestData } from "../utils";
+import express from "express";
 import httpMocks from "node-mocks-http";
+import * as roomsHandlers from "@/services/rooms";
+import { userModel, roomModel, locationModel } from "@/modules/stores/mongo";
+import { userGenerator, testRemover, type TestData } from "../utils";
 
-const app: Express = express();
+const app = express();
 
-let testData: TestData = {
+const testData: TestData = {
   rooms: [],
   users: [],
   chat: [],
@@ -20,7 +16,6 @@ let testData: TestData = {
 };
 
 const removeTestData = async () => {
-  // drop all testData
   await testRemover(testData);
 };
 

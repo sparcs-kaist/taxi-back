@@ -1,15 +1,15 @@
 import { expect } from "chai";
-import * as reportHandlers from "@/services/reports";
+import httpMocks from "node-mocks-http";
 import { userModel } from "@/modules/stores/mongo";
+import * as reportHandlers from "@/services/reports";
 import {
   userGenerator,
   roomGenerator,
   testRemover,
   type TestData,
 } from "../utils";
-import httpMocks from "node-mocks-http";
 
-let testData: TestData = {
+const testData: TestData = {
   rooms: [],
   users: [],
   chat: [],
