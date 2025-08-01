@@ -26,12 +26,6 @@ const eventPeriod = eventConfig && {
   endAt: new Date(eventConfig.period.endAt),
 };
 
-type CustomRequestHandler<Q> = (
-  req: Request<{}, any, any, Q>,
-  res: Response,
-  next: NextFunction
-) => any;
-
 interface candidateRoom {
   from: string;
   to: string;
@@ -475,13 +469,10 @@ export const abortHandler: RequestHandler = async (req, res) => {
   }
 };
 
-export const searchHandler: CustomRequestHandler<SearchQuery> = async (
-  req,
-  res
-) => {
+export const searchHandler: RequestHandler = async (req, res) => {
   try {
     const { name, from, to, time, withTime, maxPartLength, isHome } =
-      req.query as SearchQuery;
+      req.query as unknown as SearchQuery;
 
     // 출발지와 도착지가 같은 경우
     if (from && to && from === to) {
