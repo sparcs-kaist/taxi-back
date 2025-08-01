@@ -1,10 +1,12 @@
-const { zodToJsonSchema } = require("zod-to-json-schema");
-const logger = require("../../modules/logger").default;
-const { z } = require("zod");
+import { z, ZodTypeAny } from "zod";
+import { zodToJsonSchema } from "zod-to-json-schema";
+import logger from "@/modules/logger";
 
-const zodToSchemaObject = (zodObejct) => {
+type ZodObject = Record<string, ZodTypeAny>;
+
+export const zodToSchemaObject = (zodObejct: ZodObject) => {
   try {
-    const schemaObject = {};
+    const schemaObject: Record<string, any> = {};
     Object.keys(zodObejct).forEach((key) => {
       schemaObject[key] = zodToJsonSchema(zodObejct[key]);
     });
@@ -15,8 +17,6 @@ const zodToSchemaObject = (zodObejct) => {
   }
 };
 
-const zStringToBoolean = z
+export const zStringToBoolean = z
   .enum(["true", "false"])
   .transform((value) => value === "true");
-
-module.exports = { zodToSchemaObject, zStringToBoolean };
