@@ -5,7 +5,6 @@ import {
   authMiddleware,
   banMiddleware,
   validateBody,
-  validateParams,
   validateQuery,
 } from "@/middlewares";
 
