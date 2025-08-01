@@ -3,7 +3,11 @@ import { jwt as jwtConfig, oneApp as oneAppConfig } from "@/loadenv";
 import type { PayloadForOneApp } from "@/types/jwt";
 
 const { secretKey, option, TOKEN_EXPIRED, TOKEN_INVALID } = jwtConfig;
-const { tokenSecretKey: secretKeyForOneApp, accessTokenExpiry } = oneAppConfig;
+const {
+  tokenSecretKey: secretKeyForOneApp,
+  accessTokenExpiry,
+  ssoInfoExpiry,
+} = oneAppConfig;
 
 type TokenType = "access" | "refresh";
 
@@ -54,7 +58,11 @@ export const signForOneApp = (payload: PayloadForOneApp) => {
     expiresIn: accessTokenExpiry,
   };
   const result = {
-    accessToken: jwt.sign(payload, secretKeyForOneApp, options),
+    accessToken: jwt.sign(
+      { ...payload, type: "access" },
+      secretKeyForOneApp,
+      options
+    ),
   };
   return result;
 };
@@ -76,4 +84,21 @@ export const verifyForOneApp = (accessToken: string) => {
     }
     return TOKEN_INVALID;
   }
+};
+
+// TODO: 타입 수정
+export const signSsoInfo = (ssoInfo: any) => {
+  if (!ssoInfo) {
+    return {};
+  }
+
+  const options: SignOptions = {
+    ...option,
+    expiresIn: ssoInfoExpiry,
+  };
+  const { sid, ...payload } = ssoInfo; // sid는 Taxi에서만 유효하기 때문에 payload에 포함하지 않습니다.
+  const result = {
+    signedSsoInfo: jwt.sign(payload, secretKeyForOneApp, options),
+  };
+  return result;
 };

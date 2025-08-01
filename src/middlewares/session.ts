@@ -21,7 +21,7 @@ declare module "express-session" {
       codeChallenge: string;
       oid?: string;
       uid?: string;
-      kaistInfoV2?: string;
+      ssoInfo?: any; // TODO: 타입 수정
     };
     /** 앱 로그인용 access token */
     accessToken?: string;

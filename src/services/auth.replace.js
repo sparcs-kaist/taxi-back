@@ -34,8 +34,8 @@ const loginReplaceHandler = (req, res) => {
   tryLogin(
     req,
     res,
-    createUserData(id),
     undefined,
+    createUserData(id),
     redirectOrigin,
     redirectPath
   );

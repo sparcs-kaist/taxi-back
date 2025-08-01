@@ -109,8 +109,8 @@ const update = async (userData) => {
 const tryLogin = async (
   req,
   res,
+  userDataBefore,
   userData,
-  kaistInfoV2,
   redirectOrigin,
   redirectPath
 ) => {
@@ -127,8 +127,8 @@ const tryLogin = async (
         return tryLogin(
           req,
           res,
+          userDataBefore,
           userData,
-          kaistInfoV2,
           redirectOrigin,
           redirectPath
         );
@@ -140,7 +140,7 @@ const tryLogin = async (
         undefined,
         uid,
         sid,
-        kaistInfoV2,
+        userDataBefore,
         redirectOrigin
       );
     }
@@ -156,8 +156,8 @@ const tryLogin = async (
       return tryLogin(
         req,
         res,
+        userDataBefore,
         userData,
-        kaistInfoV2,
         redirectOrigin,
         redirectPath
       );
@@ -170,7 +170,7 @@ const tryLogin = async (
         user._id.toString(),
         uid,
         sid,
-        kaistInfoV2,
+        userDataBefore,
         redirectOrigin
       );
     } else if (req.session.isApp) {
@@ -202,13 +202,16 @@ const tryLogin = async (
 };
 
 const denyLogin = (res, isOneApp, sid, redirectOrigin, code, description) => {
-  const encodedDescription = encodeURIComponent(description);
-  const redirectUrl = isOneApp
-    ? `sparcsapp://error?code=${code}&description=${encodedDescription}`
-    : new URL("/login/fail", redirectOrigin).href;
-  const ssoLogoutUrl =
-    (sid && ssoClient?.getLogoutUrl(sid, redirectUrl)) ?? redirectUrl;
-  return res.redirect(ssoLogoutUrl);
+  if (isOneApp) {
+    const encodedDescription = encodeURIComponent(description);
+    return res.redirect(
+      `sparcsapp://error?code=${code}&description=${encodedDescription}`
+    );
+  } else {
+    const redirectUrl = new URL("/login/fail", redirectOrigin).href;
+    const ssoLogoutUrl = sid && ssoClient?.getLogoutUrl(sid, redirectUrl);
+    return res.redirect(ssoLogoutUrl ?? redirectUrl);
+  }
 };
 
 const grantLoginOnlyForOneApp = (
@@ -217,10 +220,9 @@ const grantLoginOnlyForOneApp = (
   oid,
   uid,
   sid,
-  kaistInfoV2,
+  userDataBefore,
   redirectOrigin
 ) => {
-  let redirectUrl;
   if (req.session.oneAppState) {
     // 원앱에서 로그인하는 경우 토큰 발급을 위해 세션에 정보를 저장합니다.
     // oid가 없는 토큰은 다른 서비스에서의 인증 용도로 발급하는 것이며, Taxi에서는 사용할 수 없습니다.
@@ -228,17 +230,18 @@ const grantLoginOnlyForOneApp = (
       ...req.session.oneAppState,
       oid,
       uid,
-      kaistInfoV2,
+      ssoInfo: userDataBefore,
     };
-    redirectUrl =
+    return res.redirect(
       "sparcsapp://authorize?session=" +
-      encodeURIComponent(req.cookies["connect.sid"]);
+        encodeURIComponent(req.cookies["connect.sid"])
+    );
   } else {
     // 웹에서 로그인하는 경우 로그인 실패 화면으로 이동합니다.
-    redirectUrl = new URL("/login/fail", redirectOrigin).href;
+    const redirectUrl = new URL("/login/fail", redirectOrigin).href;
+    const ssoLogoutUrl = ssoClient?.getLogoutUrl(sid, redirectUrl);
+    return res.redirect(ssoLogoutUrl ?? redirectUrl);
   }
-  const ssoLogoutUrl = ssoClient?.getLogoutUrl(sid, redirectUrl) ?? redirectUrl;
-  return res.redirect(ssoLogoutUrl);
 };
 
 const sparcsssoHandler = (req, res) => {
@@ -283,7 +286,15 @@ const sparcsssoCallbackHandler = (req, res) => {
     const userData = transUserData(userDataBefore);
     const isTestAccount = testAccounts?.includes(userData.email);
     if (userData.isEligible || nodeEnv !== "production" || isTestAccount) {
-      tryLogin(req, res, userData, kaistInfoV2, redirectOrigin, redirectPath);
+      tryLogin(
+        req,
+        res,
+        userDataBefore,
+        userData,
+        kaistInfoV2,
+        redirectOrigin,
+        redirectPath
+      );
       return;
     }
 
@@ -298,7 +309,7 @@ const sparcsssoCallbackHandler = (req, res) => {
         undefined,
         uid,
         sid,
-        kaistInfoV2,
+        userDataBefore,
         redirectOrigin
       );
     }
@@ -363,16 +374,17 @@ const oneAppTokenIssueHandler = async (req, res) => {
       return res.status(400).send("Auth/token/issue : invalid request");
     }
 
-    const { oid, uid, kaistInfoV2 } = req.session.oneAppState;
+    const { oid, uid, ssoInfo } = req.session.oneAppState;
     req.session.oneAppState = undefined;
     req.session.destroy(logger.error);
 
     const tokenPayload = { oid, uid };
     const { accessToken } = jwt.signForOneApp(tokenPayload);
     const { refreshTokenId, refreshToken } = signRefreshToken();
+    const { signedSsoInfo } = jwt.signSsoInfo(ssoInfo);
 
     await tokenStore.insert(refreshTokenId, tokenPayload);
-    return res.json({ accessToken, refreshToken, kaistInfoV2 });
+    return res.json({ accessToken, refreshToken, ssoInfo: signedSsoInfo });
   } catch (e) {
     logger.error(e);
     return res.status(500).send("Auth/token/issue : internal server error");
