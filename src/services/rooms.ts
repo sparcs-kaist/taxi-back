@@ -26,21 +26,21 @@ const eventPeriod = eventConfig && {
   endAt: new Date(eventConfig.period.endAt),
 };
 
-interface candidateRoom {
+interface CandidateRoom {
   from: string;
   to: string;
   time: Date;
   maxPartLength: number;
 }
 
-interface checkIsAbusingInput {
+interface CheckIsAbusingInput {
   from: string;
   to: string;
   time: Date;
   maxPartLength: number;
 }
 
-interface userWithOngoingRooms {
+interface UserWithOngoingRooms {
   _id: Types.ObjectId;
   ongoingRoom?: {
     part: { user: Types.ObjectId; settlementStatus: string }[];
@@ -102,7 +102,7 @@ export const createHandler: RequestHandler = async (req, res) => {
     }
 
     // 사용자가 참여한 진행중인 방 중 송금을 아직 완료하지 않은 방이 있다면 오류를 반환합니다.
-    const isSendRequired = checkIsSendRequired(user as userWithOngoingRooms);
+    const isSendRequired = checkIsSendRequired(user as UserWithOngoingRooms);
     if (isSendRequired) {
       return res.status(400).json({
         error: "Rooms/create : user has send-required rooms",
@@ -189,7 +189,7 @@ export const createTestHandler: RequestHandler = async (req, res) => {
         "from to time maxPartLength"
       )
       .limit(2)
-      .lean<candidateRoom[]>();
+      .lean<CandidateRoom[]>();
     if (!candidateRooms)
       return res
         .status(500)
@@ -288,7 +288,7 @@ export const joinHandler: RequestHandler = async (req, res) => {
     }
 
     // 사용자가 참여한 진행중인 방 중 송금을 아직 완료하지 않은 방이 있다면 오류를 반환합니다.
-    const isSendRequired = checkIsSendRequired(user as userWithOngoingRooms);
+    const isSendRequired = checkIsSendRequired(user as UserWithOngoingRooms);
     if (isSendRequired) {
       return res.status(400).json({
         error: "Rooms/join : user has send-required rooms",
@@ -856,9 +856,9 @@ export const commitPaymentHandler: RequestHandler = async (req, res) => {
 };
 
 const checkIsAbusing = (
-  { from, to, time, maxPartLength }: checkIsAbusingInput,
+  { from, to, time, maxPartLength }: CheckIsAbusingInput,
   countRecentlyMadeRooms: number,
-  candidateRooms: candidateRoom[]
+  candidateRooms: CandidateRoom[]
 ) => {
   /**
    * 방을 생성하였을 때, 다음 조건 중 하나라도 만족하게 되면 어뷰징 가능성이 있다고 판단합니다.
