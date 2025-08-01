@@ -6,19 +6,10 @@ import {
   roomModel,
   locationModel,
 } from "../../src/modules/stores/mongo";
-import { userGenerator, testRemover } from "../utils";
+import { userGenerator, testRemover, type TestData } from "../utils";
 import httpMocks from "node-mocks-http";
-import { describe, it, afterEach } from "mocha";
 
 const app: Express = express();
-
-interface TestData {
-  rooms: any[];
-  users: any[];
-  chat: any[];
-  location: any[];
-  report: any[];
-}
 
 let testData: TestData = {
   rooms: [],
@@ -55,7 +46,7 @@ describe("[rooms] 1.createHandler", () => {
     await roomsHandlers.createHandler(req, res, () => {});
 
     const testRoom = await roomModel.findOne({ name: "test-room" });
-    testData["rooms"].push(testRoom);
+    testData["rooms"].push(testRoom!);
     const resData = res._getData();
     expect(resData).to.has.property("name", "test-room");
   });

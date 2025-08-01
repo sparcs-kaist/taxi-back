@@ -1,18 +1,13 @@
 import { expect } from "chai";
-import * as reportHandlers from "../../src/services/reports";
-import { userModel } from "../../src/modules/stores/mongo";
-import { userGenerator, roomGenerator, testRemover } from "../utils";
+import * as reportHandlers from "@/services/reports";
+import { userModel } from "@/modules/stores/mongo";
+import {
+  userGenerator,
+  roomGenerator,
+  testRemover,
+  type TestData,
+} from "../utils";
 import httpMocks from "node-mocks-http";
-import { describe, it, afterEach } from "mocha";
-import { Types } from "mongoose";
-
-interface TestData {
-  rooms: any[];
-  users: any[];
-  chat: any[];
-  location: any[];
-  report: any[];
-}
 
 let testData: TestData = {
   rooms: [],
@@ -33,7 +28,7 @@ describe("[reports] 1.createHandler", () => {
     const testUser1 = await userGenerator("test1", testData);
     const testUser2 = await userGenerator("test2", testData);
     const testRoom = await roomGenerator("test1", testData);
-    const msg = "Reports/create: report successful";
+    const msg = "Reports/create : report successful";
     let req = httpMocks.createRequest({
       userOid: testUser1._id,
       body: {
@@ -70,7 +65,7 @@ describe("[reports] 2.searchByUserHandler", () => {
     expect(resJson).to.has.property("reported");
     expect(resJson.reporting[0]).to.has.property(
       "creatorId",
-      (testUser1!._id as Types.ObjectId).toString()
+      testUser1!._id.toString()
     );
   });
 });

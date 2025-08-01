@@ -12,7 +12,7 @@ export const createHandler: RequestHandler = async (req, res) => {
     const { reportedId, type, etcDetail, time, roomId }: CreateBody = req.body;
     const user = await userModel.findOne({ _id: req.userOid, withdraw: false });
     if (!user) {
-      return res.status(400).send("Reports/create: no corresponding user");
+      return res.status(400).send("Reports/create : no corresponding user");
     }
 
     const reported = await userModel.findOne({
@@ -20,12 +20,12 @@ export const createHandler: RequestHandler = async (req, res) => {
       withdraw: false,
     });
     if (!reported) {
-      return res.status(400).send("Reports/create: no corresponding user");
+      return res.status(400).send("Reports/create : no corresponding user");
     }
 
     const room = await roomModel.findById(roomId);
     if (!room) {
-      return res.status(400).send("Reports/create: no corresponding room");
+      return res.status(400).send("Reports/create : no corresponding room");
     }
 
     const report = new reportModel({
@@ -53,10 +53,10 @@ export const createHandler: RequestHandler = async (req, res) => {
       sendReportEmail(reported.email, report, emailHtml);
     }
 
-    return res.status(200).send("Reports/create: report successful");
+    return res.status(200).send("Reports/create : report successful");
   } catch (err) {
     logger.error(err);
-    return res.status(500).send("Reports/create: internal server error");
+    return res.status(500).send("Reports/create : internal server error");
   }
 };
 
@@ -67,7 +67,7 @@ export const searchByUserHandler: RequestHandler = async (req, res) => {
     if (!user) {
       return res
         .status(400)
-        .json({ error: "Reports/searchByUser: no corresponding user" });
+        .json({ error: "Reports/searchByUser : no corresponding user" });
     }
 
     const response = {
@@ -83,6 +83,6 @@ export const searchByUserHandler: RequestHandler = async (req, res) => {
     return res.json(response);
   } catch (err) {
     logger.error(err);
-    return res.status(500).send("Reports/searchByUser: internal server error");
+    return res.status(500).send("Reports/searchByUser : internal server error");
   }
 };

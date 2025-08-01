@@ -10,12 +10,12 @@
     "esModuleInterop": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
-    "baseUrl": "./src",
+    "baseUrl": ".",
     "paths": {
-      "@/*": ["./*"]
+      "@/*": ["src/*"]
     }
   },
-  "include": ["src", "scripts"],
+  "include": ["src", "scripts", "test"],
   "exclude": ["dist", "node_modules"],
   "ts-node": {
     "files": true,
