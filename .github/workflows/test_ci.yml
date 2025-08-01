@@ -12,7 +12,7 @@ jobs:
     strategy:
       matrix:
         # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
-        node-version: ['18.x']
+        node-version: ['22.x']
         mongodb-version: ['5.0']
     steps:
     - name: Start MongoDB  
@@ -23,7 +23,7 @@ jobs:
     - name: Install pnpm
       uses: pnpm/action-setup@v2
       with:
-        version: 8
+        version: 10
     - name: Install Node.js ${{ matrix.node-version }}
       uses: actions/setup-node@v3
       with:
