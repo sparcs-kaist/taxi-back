@@ -325,6 +325,34 @@ const isUserInRoom = async (userOid, roomId) => {
     .some((user) => user.equals(userOid));
 };
 
+const getChatCountHandler = async (req, res) => {
+  try {
+    const { userOid } = req;
+    const { roomId } = req.query;
+
+    if (!userOid) {
+      return res.status(500).send("Chat/count : internal server error");
+    }
+
+    const isPart = await isUserInRoom(userOid, roomId);
+    if (!isPart) {
+      return res
+        .status(403)
+        .send("Chat/count : user did not participated in the room");
+    }
+
+    const totalCount = await chatModel.countDocuments({
+      roomId,
+      isValid: true,
+    });
+
+    res.json({ totalCount });
+  } catch (e) {
+    logger.error(e);
+    res.status(500).send("Chat/count : internal server error");
+  }
+};
+
 module.exports = {
   loadRecentChatHandler,
   loadBeforeChatHandler,
@@ -333,4 +361,5 @@ module.exports = {
   uploadChatImgGetPUrlHandler,
   uploadChatImgDoneHandler,
   readChatHandler,
+  getChatCountHandler,
 };

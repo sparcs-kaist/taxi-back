@@ -510,4 +510,58 @@ chatsDocs[`${apiPrefix}/uploadChatImg/done`] = {
   },
 };
 
+chatsDocs[`${apiPrefix}/count`] = {
+  get: {
+    tags: [tag],
+    summary: "방의 전체 채팅 개수 조회",
+    description: `특정 방의 유효한 채팅 개수를 반환합니다.<br/>
+    사용자가 참여한 방에 대해서만 조회할 수 있습니다.`,
+    parameters: [
+      {
+        in: "query",
+        name: "roomId",
+        required: true,
+        schema: {
+          type: "string",
+          pattern: objectId.source,
+        },
+        description: "채팅 개수를 조회할 방의 id",
+      },
+    ],
+    responses: {
+      200: {
+        description: "채팅 개수 조회 성공",
+        content: {
+          "application/json": {
+            schema: {
+              type: "object",
+              properties: {
+                totalCount: {
+                  type: "number",
+                  description: "방의 전체 채팅 개수",
+                  example: 42,
+                },
+              },
+            },
+          },
+        },
+      },
+      403: {
+        content: {
+          "text/html": {
+            example: "Chat/count : user did not participated in the room",
+          },
+        },
+      },
+      500: {
+        content: {
+          "text/html": {
+            example: "Chat/count : internal server error",
+          },
+        },
+      },
+    },
+  },
+};
+
 module.exports = chatsDocs;

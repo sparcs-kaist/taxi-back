@@ -1,5 +1,5 @@
 const express = require("express");
-const { body } = require("express-validator");
+const { body, query } = require("express-validator");
 const validator = require("@/middlewares/validator").default;
 const patterns = require("@/modules/patterns").default;
 const { validateBody } = require("@/middlewares/zod");
@@ -62,6 +62,16 @@ router.post(
   body("roomId").isMongoId(),
   validator,
   chatsHandlers.readChatHandler
+);
+
+/**
+ * 방의 전체 채팅 개수를 반환합니다.
+ */
+router.get(
+  "/count",
+  query("roomId").isMongoId(),
+  validator,
+  chatsHandlers.getChatCountHandler
 );
 
 // 채팅 이미지를 업로드할 수 있는 Presigned-url을 발급합니다.
