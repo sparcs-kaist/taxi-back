@@ -8,7 +8,7 @@
   "scripts": {
     "preinstall": "npx only-allow pnpm",
     "start": "nodemon",
-    "mocha": "cross-env TZ='Asia/Seoul' NODE_ENV=test mocha --require ts-node/register --require tsconfig-paths/register --recursive --reporter spec --exit",
+    "mocha": "cross-env TZ='Asia/Seoul' NODE_ENV=test mocha \"test/**/*.ts\" \"test/**/*.js\" --require ts-node/register --require tsconfig-paths/register --recursive --reporter spec --exit",
     "test": "pnpm run sample && cross-env TZ='Asia/Seoul' pnpm run mocha",
     "build": "tsc --project tsconfig.build.json && tsc-alias",
     "clean": "rimraf dist/",
@@ -60,15 +60,18 @@
     "zod-to-json-schema": "^3.22.4"
   },
   "devDependencies": {
+    "@types/chai": "^5.2.2",
     "@types/cookie-parser": "^1.4.6",
     "@types/cors": "^2.8.16",
     "@types/express": "^4.17.21",
     "@types/express-session": "^1.17.10",
     "@types/jsonwebtoken": "^9.0.5",
+    "@types/mocha": "^10.0.10",
     "@types/node": "^20.9.0",
     "@types/node-cron": "^3.0.11",
     "@types/nodemailer": "^6.4.17",
     "@types/response-time": "^2.3.8",
+    "@types/uuid": "^10.0.0",
     "@typescript-eslint/eslint-plugin": "^6.13.1",
     "@typescript-eslint/parser": "^6.13.1",
     "chai": "^4.3.10",
