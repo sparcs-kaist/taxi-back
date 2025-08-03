@@ -2,7 +2,7 @@ const { reportsSchema } = require("./schemas/reportsSchema");
 const { roomsSchema } = require("./schemas/roomsSchema");
 const { fareSchema } = require("./schemas/fareSchema");
 const { chatsSchema } = require("./schemas/chatsSchema");
-const { emailSchema } = require("./schemas/emailSchema");
+const { emailsSchema } = require("./schemas/emailsSchema");
 const reportsDocs = require("./reports");
 const logininfoDocs = require("./logininfo");
 const locationsDocs = require("./locations");
@@ -13,7 +13,7 @@ const roomsDocs = require("./rooms");
 const chatsDocs = require("./chats");
 const fareDocs = require("./fare");
 const noticeDocs = require("./notice");
-import emailsDocs from "./emails";
+const emailsDocs = require("./emails").default;
 const { port, nodeEnv } = require("@/loadenv");
 
 const serverList = [
@@ -108,7 +108,7 @@ const swaggerDocs = {
       ...roomsSchema,
       ...fareSchema,
       ...chatsSchema,
-      ...emailSchema,
+      ...emailsSchema,
     },
   },
 };
