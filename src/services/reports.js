@@ -10,7 +10,6 @@ const logger = require("@/modules/logger").default;
 const reportEmailPage = require("@/views/reportEmailPage").default;
 const { notifyReportToReportChannel } = require("@/modules/slackNotification");
 const { v4: uuidv4 } = require("uuid");
-const { FRONT_URL } = require("@/loadenv");
 
 const generateUniqueTrackingId = async () => {
   let trackingId;
