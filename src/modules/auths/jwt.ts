@@ -3,45 +3,30 @@ import { jwt as jwtConfig } from "@/loadenv";
 
 const { secretKey, option, TOKEN_EXPIRED, TOKEN_INVALID } = jwtConfig;
 
-type TokenType = "access" | "refresh";
-
-interface SignType {
+interface Payload {
   id: string;
-  type: TokenType;
+  type: "access" | "refresh";
 }
 
-export const sign = async ({ id, type }: SignType) => {
-  const payload = {
-    id,
-    type,
+export const sign = ({ id, type }: Payload) => {
+  const payload = { id, type };
+  const options: SignOptions = {
+    ...option,
+    expiresIn: type === "refresh" ? "30d" : "14d",
   };
-
-  const options: SignOptions = { ...option };
-
-  if (type === "refresh") {
-    options.expiresIn = "30d";
-  }
-  if (type === "access") {
-    options.expiresIn = "14d";
-  }
-
   const result = {
     token: jwt.sign(payload, secretKey, options),
   };
   return result;
 };
 
-export const verify = async (token: string) => {
-  let decoded;
+export const verify = (token: string) => {
   try {
-    decoded = jwt.verify(token, secretKey);
+    return jwt.verify(token, secretKey) as Payload;
   } catch (err) {
-    if (err instanceof Error) {
-      if (err.message === "jwt expired") {
-        return TOKEN_EXPIRED;
-      }
+    if (err instanceof Error && err.message === "jwt expired") {
+      return TOKEN_EXPIRED;
     }
     return TOKEN_INVALID;
   }
-  return decoded;
 };

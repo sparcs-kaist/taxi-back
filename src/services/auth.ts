@@ -1,26 +1,22 @@
-import type { Request, Response, RequestHandler } from "express";
 import { nodeEnv, testAccounts } from "@/loadenv";
+import logger from "@/modules/logger";
+import patterns from "@/modules/patterns";
 import { userModel } from "@/modules/stores/mongo";
 
-import patterns from "@/modules/patterns";
-
-import type {
-  SparcsssoQuery,
-  LogoutQuery,
-} from "@/routes/docs/schemas/authSchema";
-
-import type { QueryHandler } from "@/types/express";
-
+import * as jwt from "@/modules/auths/jwt";
 import { ssoClient, getLoginInfo, logout, login } from "@/modules/auths/login";
-
 import { unregisterDeviceToken } from "@/modules/fcm";
 import {
   generateNickname,
   generateProfileImageUrl,
   getFullUsername,
 } from "@/modules/modifyProfile";
-import * as jwt from "@/modules/auths/jwt";
-import logger from "@/modules/logger";
+
+import type { Request, Response, RequestHandler } from "express";
+import type {
+  SparcsssoQuery,
+  LogoutQuery,
+} from "@/routes/docs/schemas/authSchema";
 
 const { user: userPattern } = patterns;
 
@@ -29,39 +25,39 @@ type UserData = ReturnType<typeof transUserData>;
 interface RawUserData {
   uid: string;
   sid: string;
-  kaist_info?: string | null;
-  kaist_v2_info?: string | null;
+  kaist_info: string | null;
+  kaist_v2_info: string | null;
   first_name: string;
   last_name: string;
-  facebook_id?: string | null;
-  twitter_id?: string | null;
-  sparcs_id?: string | null;
+  facebook_id: string | null;
+  twitter_id: string | null;
+  sparcs_id: string | null;
   email: string;
 }
 
 interface KaistInfoV1 {
-  ku_std_no?: string | null;
-  employeeType?: string | null;
-  mail?: string | null;
+  ku_std_no?: string;
+  employeeType?: string;
+  mail?: string;
 }
 
 interface KaistInfoV2 {
-  std_no?: string | null;
-  socps_cd?: string | null;
-  email?: string | null;
+  std_no?: string;
+  socps_cd?: string;
+  email?: string;
 }
 
 const transKaistInfo = (userData: RawUserData) => {
-  const kaistInfo = userData.kaist_info
-    ? (JSON.parse(userData.kaist_info) as KaistInfoV1)
+  const kaistInfoV1: KaistInfoV1 = userData.kaist_info
+    ? JSON.parse(userData.kaist_info)
     : {};
-  const kaistInfoV2 = userData.kaist_v2_info
-    ? (JSON.parse(userData.kaist_v2_info) as KaistInfoV2)
+  const kaistInfoV2: KaistInfoV2 = userData.kaist_v2_info
+    ? JSON.parse(userData.kaist_v2_info)
     : {};
   return {
-    kaist: kaistInfoV2.std_no || kaistInfo.ku_std_no || "", // 학번 (직원인 경우 빈 문자열)
-    kaistType: kaistInfoV2.socps_cd || kaistInfo.employeeType || "", // 구성원 유형
-    email: kaistInfoV2.email || kaistInfo.mail || "", // 학교 이메일 주소
+    kaist: kaistInfoV2.std_no || kaistInfoV1.ku_std_no || "", // 학번 (직원인 경우 빈 문자열)
+    kaistType: kaistInfoV2.socps_cd || kaistInfoV1.employeeType || "", // 구성원 유형
+    email: kaistInfoV2.email || kaistInfoV1.mail || "", // 학교 이메일 주소
   };
 };
 
@@ -78,7 +74,7 @@ const transUserData = (userData: RawUserData) => {
     kaist: kaistInfo.kaist,
     kaistType: kaistInfo.kaistType, // DB에 저장하지 않음
     sparcs: userData.sparcs_id || "",
-    email: kaistInfo.email || userData.email || "",
+    email: kaistInfo.email || userData.email,
     isEligible: userPattern.allowedEmployeeTypes.test(kaistInfo.kaistType), // DB에 저장하지 않음
   };
   return info;
@@ -97,10 +93,7 @@ const joinus = async (req: Request, userData: UserData) => {
     .lean();
   if (oldUser && oldUser.withdrewAt) {
     // 탈퇴 후 7일이 지나지 않았을 경우, 가입을 거부합니다.
-    if (req.timestamp === undefined) {
-      return false;
-    }
-    const diff = req.timestamp - oldUser.withdrewAt.getTime();
+    const diff = req.timestamp! - oldUser.withdrewAt.getTime();
     if (diff < 7 * 24 * 60 * 60 * 1000) {
       return false;
     }
@@ -124,12 +117,7 @@ const joinus = async (req: Request, userData: UserData) => {
   return true;
 };
 
-const update = async (userData: {
-  name: string;
-  email: string;
-  kaist: string;
-  id: string;
-}) => {
+const update = async (userData: UserData) => {
   const updateInfo = {
     name: userData.name,
     email: userData.email,
@@ -145,8 +133,8 @@ export const tryLogin = async (
   req: Request,
   res: Response,
   userData: UserData,
-  redirectOrigin: string | URL | undefined,
-  redirectPath: string | URL
+  redirectOrigin: string,
+  redirectPath: string
 ): Promise<void> => {
   try {
     const user = await userModel.findOne(
@@ -176,11 +164,11 @@ export const tryLogin = async (
     }
 
     if (req.session.isApp) {
-      const { token: accessToken } = await jwt.sign({
+      const { token: accessToken } = jwt.sign({
         id: user._id.toString(),
         type: "access",
       });
-      const { token: refreshToken } = await jwt.sign({
+      const { token: refreshToken } = jwt.sign({
         id: user._id.toString(),
         type: "refresh",
       });
@@ -189,7 +177,6 @@ export const tryLogin = async (
     }
 
     login(req, user.id, user._id.toString(), userData.sid);
-
     res.redirect(new URL(redirectPath, redirectOrigin).href);
   } catch (err) {
     logger.error(err);
@@ -198,14 +185,10 @@ export const tryLogin = async (
   }
 };
 
-export const sparcsssoHandler: QueryHandler<SparcsssoQuery> = (req, res) => {
-  const { redirect, isApp }: SparcsssoQuery = req.query;
+export const sparcsssoHandler: RequestHandler = (req, res) => {
+  const { redirect, isApp } = req.query as unknown as SparcsssoQuery;
   const redirectPath = decodeURIComponent(redirect || "%2F");
-
-  const { url, state } = ssoClient!.getLoginParams() as {
-    url: string;
-    state: string;
-  };
+  const { url, state } = ssoClient!.getLoginParams();
 
   req.session.loginAfterState = {
     state: state,
@@ -237,7 +220,7 @@ export const sparcsssoCallbackHandler: RequestHandler = (req, res) => {
     return res.redirect(redirectUrl);
   }
 
-  ssoClient!.getUserInfo(code).then((userDataBefore) => {
+  ssoClient!.getUserInfo(code).then((userDataBefore: RawUserData) => {
     logger.info(`Login requested: ${JSON.stringify(userDataBefore)}`);
 
     const userData = transUserData(userDataBefore);
@@ -265,7 +248,7 @@ export const loginReplaceHandler: RequestHandler = (req, res) => {
 };
 
 export const logoutHandler: RequestHandler = async (req, res) => {
-  const { redirect }: LogoutQuery = req.query;
+  const { redirect } = req.query as LogoutQuery;
   const redirectPath = decodeURIComponent(redirect || "%2F");
 
   try {

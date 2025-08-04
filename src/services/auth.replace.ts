@@ -1,22 +1,19 @@
-import type { RequestHandler } from "express";
 import { logout } from "@/modules/auths/login";
-
 import { unregisterDeviceToken } from "@/modules/fcm";
-
-import type { QueryHandler } from "@/types/express";
-
 import { tryLogin } from "@/services/auth";
 import loginReplacePage from "@/views/loginReplacePage";
+
+import type { RequestHandler } from "express";
 import type {
   LoginReplaceBody,
   SparcsssoQuery,
   LogoutQuery,
 } from "@/routes/docs/schemas/authSchema";
 
-// tryLogin의 userdata의 type (UserDataType)을 맞추기 위한 함수
+// tryLogin 함수에 필요한 더미 userData 값을 생성하는 함수
 const createUserData = (id: string) => {
   const info = {
-    id: id,
+    id,
     sid: id + "-sid",
     name: id + "-name",
     facebook: id + "-facebook",
@@ -31,17 +28,17 @@ const createUserData = (id: string) => {
 };
 
 export const loginReplaceHandler: RequestHandler = (req, res) => {
-  const { id }: LoginReplaceBody = req.body;
+  const { id } = req.body as LoginReplaceBody;
   const loginAfterState = req.session?.loginAfterState;
   if (!loginAfterState)
     return res.status(400).send("Auth/login/replace : invalid request");
   const { redirectOrigin, redirectPath } = loginAfterState;
   req.session.loginAfterState = undefined;
-  tryLogin(req, res, createUserData(id), redirectOrigin, redirectPath!);
+  tryLogin(req, res, createUserData(id), redirectOrigin!, redirectPath!);
 };
 
-export const sparcsssoHandler: QueryHandler<SparcsssoQuery> = (req, res) => {
-  const { redirect, isApp }: SparcsssoQuery = req.query;
+export const sparcsssoHandler: RequestHandler = (req, res) => {
+  const { redirect, isApp } = req.query as unknown as SparcsssoQuery;
   const redirectPath = decodeURIComponent(redirect || "%2F");
 
   req.session.loginAfterState = {
@@ -53,7 +50,7 @@ export const sparcsssoHandler: QueryHandler<SparcsssoQuery> = (req, res) => {
 };
 
 export const logoutHandler: RequestHandler = async (req, res) => {
-  const { redirect }: LogoutQuery = req.query;
+  const { redirect } = req.query as LogoutQuery;
   const redirectPath = decodeURIComponent(redirect || "%2F");
 
   try {
