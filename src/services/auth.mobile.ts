@@ -10,6 +10,8 @@ import type {
   RemoveDeviceTokenBody,
 } from "@/routes/docs/schemas/authSchema";
 
+import type { QueryHandler } from "@/types/express";
+
 import { registerDeviceToken, unregisterDeviceToken } from "@/modules/fcm";
 
 import * as jwt from "@/modules/auths/jwt";
@@ -17,10 +19,14 @@ import logger from "@/modules/logger";
 
 import { jwt as jwtValue } from "@/loadenv";
 import type { JwtPayload } from "jsonwebtoken";
+
 const { TOKEN_EXPIRED, TOKEN_INVALID } = jwtValue;
 
-export const tokenLoginHandler: RequestHandler = async (req, res) => {
-  const { accessToken, deviceToken } = req.query as TokenLoginQuery;
+export const tokenLoginHandler: QueryHandler<TokenLoginQuery> = async (
+  req,
+  res
+) => {
+  const { accessToken, deviceToken }: TokenLoginQuery = req.query;
 
   try {
     const data = (await jwt.verify(accessToken)) as JwtPayload | number;
@@ -55,9 +61,12 @@ export const tokenLoginHandler: RequestHandler = async (req, res) => {
   }
 };
 
-export const tokenRefreshHandler: RequestHandler = async (req, res) => {
+export const tokenRefreshHandler: QueryHandler<TokenRefreshQuery> = async (
+  req,
+  res
+) => {
   try {
-    const { accessToken, refreshToken } = req.query as TokenRefreshQuery;
+    const { accessToken, refreshToken }: TokenRefreshQuery = req.query;
     const data = await jwt.verify(refreshToken);
     const accessTokenStatus = await jwt.verify(accessToken);
 
@@ -96,7 +105,7 @@ export const tokenRefreshHandler: RequestHandler = async (req, res) => {
 
 export const registerDeviceTokenHandler: RequestHandler = async (req, res) => {
   try {
-    const { accessToken, deviceToken } = req.body as RegisterDeviceTokenBody;
+    const { accessToken, deviceToken }: RegisterDeviceTokenBody = req.body;
     const accessTokenStatus = (await jwt.verify(accessToken)) as
       | JwtPayload
       | number;
@@ -123,7 +132,7 @@ export const registerDeviceTokenHandler: RequestHandler = async (req, res) => {
 
 export const removeDeviceTokenHandler: RequestHandler = async (req, res) => {
   try {
-    const { accessToken, deviceToken } = req.body as RemoveDeviceTokenBody;
+    const { accessToken, deviceToken }: RemoveDeviceTokenBody = req.body;
     const accessTokenStatus = await jwt.verify(accessToken);
 
     if (

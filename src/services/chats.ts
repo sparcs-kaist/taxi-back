@@ -8,7 +8,7 @@ import {
   emitUpdateEvent,
   type ChatArrayObject,
 } from "@/modules/socket";
-import type { ChatType } from "@/types/mongo";
+
 import logger from "@/modules/logger";
 import type {
   LoadRecentChatBody,
@@ -149,21 +149,6 @@ export const loadAfterChatHandler: RequestHandler = async (req, res) => {
   }
 };
 
-function isChatType(x: unknown): x is ChatType {
-  const chatTypeValues = [
-    "text",
-    "in",
-    "out",
-    "s3img",
-    "payment",
-    "departure",
-    "settlement",
-    "account",
-    "arrival",
-  ];
-  return typeof x === "string" && chatTypeValues.includes(x as string);
-}
-
 export const sendChatHandler: RequestHandler = async (req, res) => {
   try {
     const io = req.app.get("io");
@@ -183,10 +168,6 @@ export const sendChatHandler: RequestHandler = async (req, res) => {
       return res
         .status(403)
         .send("Chat/send : user did not participated in the room");
-    }
-
-    if (!isChatType(type)) {
-      return res.status(403).send("Chat/send : Invalid ChatType");
     }
 
     if (

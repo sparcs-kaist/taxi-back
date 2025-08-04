@@ -22,16 +22,27 @@ export const chatsZod = {
       message: "Invalid ISO date format",
     }),
   }),
+  // sendChatHandler.type should match ChatType at types/mongo.d.ts
   sendChatHandler: z.object({
     roomId: z.string().regex(objectId),
-    type: z.string().regex(chat.chatSendType),
+    type: z.enum([
+      "text",
+      "in",
+      "out",
+      "s3img",
+      "payment",
+      "departure",
+      "settlement",
+      "account",
+      "arrival",
+    ]),
     content: z.string().regex(chat.chatContent).regex(chat.chatContentLength),
   }),
   readChatHandler: z.object({
     roomId: z.string().regex(objectId),
   }),
   uploadChatImgGetPUrlHandler: z.object({
-    type: z.string().regex(chat.chatImgType),
+    type: z.enum(["image/png", "image/jpg", "image/jpeg"]),
     roomId: z.string().regex(objectId),
   }),
   uploadChatImgDoneHandler: z.object({

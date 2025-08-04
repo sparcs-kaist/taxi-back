@@ -3,6 +3,8 @@ import { logout } from "@/modules/auths/login";
 
 import { unregisterDeviceToken } from "@/modules/fcm";
 
+import type { QueryHandler } from "@/types/express";
+
 import { tryLogin } from "@/services/auth";
 import loginReplacePage from "@/views/loginReplacePage";
 import type {
@@ -38,7 +40,7 @@ export const loginReplaceHandler: RequestHandler = (req, res) => {
   tryLogin(req, res, createUserData(id), redirectOrigin, redirectPath!);
 };
 
-export const sparcsssoHandler: RequestHandler = (req, res) => {
+export const sparcsssoHandler: QueryHandler<SparcsssoQuery> = (req, res) => {
   const { redirect, isApp }: SparcsssoQuery = req.query;
   const redirectPath = decodeURIComponent(redirect || "%2F");
 

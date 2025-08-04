@@ -9,6 +9,8 @@ import type {
   LogoutQuery,
 } from "@/routes/docs/schemas/authSchema";
 
+import type { QueryHandler } from "@/types/express";
+
 import { ssoClient, getLoginInfo, logout, login } from "@/modules/auths/login";
 
 import { unregisterDeviceToken } from "@/modules/fcm";
@@ -22,34 +24,34 @@ import logger from "@/modules/logger";
 
 const { user: userPattern } = patterns;
 
-type UserDataType = ReturnType<typeof transUserData>;
+type UserData = ReturnType<typeof transUserData>;
 
-interface RawUserType {
+interface RawUserData {
   uid: string;
   sid: string;
-  kaist_info?: string;
-  kaist_v2_info?: string;
+  kaist_info?: string | null;
+  kaist_v2_info?: string | null;
   first_name: string;
   last_name: string;
-  facebook_id?: string;
-  twitter_id?: string;
-  sparcs_id?: string;
-  email?: string;
+  facebook_id?: string | null;
+  twitter_id?: string | null;
+  sparcs_id?: string | null;
+  email: string;
 }
 
 interface KaistInfoV1 {
-  ku_std_no?: string;
-  employeeType?: string;
-  mail?: string;
+  ku_std_no?: string | null;
+  employeeType?: string | null;
+  mail?: string | null;
 }
 
 interface KaistInfoV2 {
-  std_no?: string;
-  socps_cd?: string;
-  email?: string;
+  std_no?: string | null;
+  socps_cd?: string | null;
+  email?: string | null;
 }
 
-const transKaistInfo = (userData: RawUserType) => {
+const transKaistInfo = (userData: RawUserData) => {
   const kaistInfo = userData.kaist_info
     ? (JSON.parse(userData.kaist_info) as KaistInfoV1)
     : {};
@@ -63,7 +65,7 @@ const transKaistInfo = (userData: RawUserType) => {
   };
 };
 
-const transUserData = (userData: RawUserType) => {
+const transUserData = (userData: RawUserData) => {
   const kaistInfo = transKaistInfo(userData);
 
   // info.isEligible: 카이스트 구성원인지 여부
@@ -82,7 +84,7 @@ const transUserData = (userData: RawUserType) => {
   return info;
 };
 
-const joinus = async (req: Request, userData: UserDataType) => {
+const joinus = async (req: Request, userData: UserData) => {
   const oldUser = await userModel
     .findOne(
       {
@@ -142,7 +144,7 @@ const update = async (userData: {
 export const tryLogin = async (
   req: Request,
   res: Response,
-  userData: UserDataType,
+  userData: UserData,
   redirectOrigin: string | URL | undefined,
   redirectPath: string | URL
 ): Promise<void> => {
@@ -196,7 +198,7 @@ export const tryLogin = async (
   }
 };
 
-export const sparcsssoHandler: RequestHandler = (req, res) => {
+export const sparcsssoHandler: QueryHandler<SparcsssoQuery> = (req, res) => {
   const { redirect, isApp }: SparcsssoQuery = req.query;
   const redirectPath = decodeURIComponent(redirect || "%2F");
 
