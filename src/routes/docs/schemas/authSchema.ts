@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { zodToSchemaObject } from "../utils";
+import { zodToSchemaObject, zStringToBoolean } from "../utils";
 import patterns from "@/modules/patterns";
 
 const { jwtToken } = patterns;
@@ -13,10 +13,7 @@ export const authZod = {
   sparcsssoHandler: z
     .object({
       redirect: z.string(),
-      isApp: z
-        .enum(["true", "false"])
-        .default("false")
-        .transform((value) => value === "true"),
+      isApp: zStringToBoolean.default("false"),
     })
     .partial({
       redirect: true,

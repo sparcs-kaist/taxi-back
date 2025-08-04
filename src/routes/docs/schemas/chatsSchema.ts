@@ -25,17 +25,7 @@ export const chatsZod = {
   // sendChatHandler.type should match ChatType at types/mongo.d.ts
   sendChatHandler: z.object({
     roomId: z.string().regex(objectId),
-    type: z.enum([
-      "text",
-      "in",
-      "out",
-      "s3img",
-      "payment",
-      "departure",
-      "settlement",
-      "account",
-      "arrival",
-    ]),
+    type: z.enum(["text", "account"]),
     content: z.string().regex(chat.chatContent).regex(chat.chatContentLength),
   }),
   readChatHandler: z.object({

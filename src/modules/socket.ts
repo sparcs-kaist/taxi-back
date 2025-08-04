@@ -42,7 +42,6 @@ interface TransformedChat {
 /**
  * Chat Object의 array가 주어졌을 때 클라이언트에서 처리하기 편한 형태로 Chat Object를 가공합니다.
  * @param chats - Chats Document에 lean과 populate(chatPopulateOption)을 차례로 적용한 Chat Object의 배열입니다.
- * @return - {type: String, authorId: String, authorName: String, authorProfileUrl: String, content: string, time: Date}로 이루어진 chat 객체의 배열입니다.
  */
 export const transformChatsForRoom = async (chats: PopulatedChat[]) => {
   return await Promise.all(
@@ -78,7 +77,7 @@ export const transformChatsForRoom = async (chats: PopulatedChat[]) => {
  * FCM 알림으로 보내는 content는 채팅 type에 따라 달라집니다.
  * 예를 들어, type이 "text"인 경우 `${nickname}: ${content}`를 보냅니다.
  */
-const getMessageBody = (type: string, nickname = "", content = "") => {
+const getMessageBody = (type: ChatType, nickname = "", content = "") => {
   // 닉네임이 9글자를 넘어가면 "..."으로 표시합니다.
   const ellipsisedNickname =
     nickname.length > 9 ? nickname.slice(0, 7) + "..." : nickname;
@@ -137,18 +136,18 @@ const getMessageBody = (type: string, nickname = "", content = "") => {
 export const emitChatEvent = async (
   io: Server,
   chat: {
-    roomId: string;
-    type: ChatType;
+    roomId: Types.ObjectId | string;
+    type?: ChatType;
     content: string;
     authorId?: Types.ObjectId | string;
-    time?: Date | null;
+    time?: Date;
   }
 ) => {
   try {
     const { roomId, type, content, authorId } = chat;
 
     // chat must contains roomId, type, and content
-    if (!io || !roomId || !type || !content) {
+    if (!io || !type || !content) {
       throw new IllegalArgumentsException();
     }
 
@@ -156,21 +155,20 @@ export const emitChatEvent = async (
     const time = chat?.time || Date.now();
 
     // roomId must be valid
-    const roomResult = await roomModel.findById(roomId, "name part");
-    if (!roomResult?.name || !roomResult.part) {
+    const room = await roomModel.findById(roomId, "name part");
+    if (!room) {
       throw new IllegalArgumentsException();
     }
-    const { name, part } = roomResult;
+    const { name, part } = room;
 
     // chat optionally contains authorId
-    const author = await userModel.findOne(
-      { _id: authorId, withdraw: false },
-      "nickname profileImageUrl"
-    );
-    if (!author?.nickname || !author.profileImageUrl) {
+    const { nickname, profileImageUrl } =
+      (authorId &&
+        (await userModel.findById(authorId, "nickname profileImageUrl"))) ||
+      {};
+    if (authorId && (!nickname || !profileImageUrl)) {
       throw new IllegalArgumentsException();
     }
-    const { nickname, profileImageUrl } = author;
 
     const chatDocument = await chatModel
       .findOneAndUpdate(
@@ -195,9 +193,7 @@ export const emitChatEvent = async (
 
     const userIds = part.map((participant) => participant.user.toString());
     const userIdsExceptAuthor = authorId
-      ? part
-          .map((participant) => participant.user.toString())
-          .filter((userId) => userId.toString() !== authorId.toString())
+      ? userIds.filter((userId) => userId !== authorId.toString())
       : userIds;
 
     // 방의 모든 사용자에게 socket 메세지 수신 이벤트를 발생시킵니다.
@@ -239,11 +235,11 @@ export const emitUpdateEvent = async (io: Server, roomId: string) => {
       throw new IllegalArgumentsException();
     }
 
-    const roomResult = await roomModel.findById(roomId, "name part");
-    if (!roomResult?.name || !roomResult.part) {
+    const room = await roomModel.findById(roomId, "name part");
+    if (!room) {
       throw new IllegalArgumentsException();
     }
-    const { name, part } = roomResult;
+    const { part } = room;
 
     part.forEach(({ user }) =>
       io.in(`user-${user}`).emit("chat_update", {
