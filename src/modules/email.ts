@@ -152,6 +152,6 @@ export const sendReportEmail = async (
   const result = await transporter.sendMail(mailOptions);
 
   if (result instanceof Error) {
-    notifyEmailFailureToReportChannel(mailOptions, report, result);
+    notifyEmailFailureToReportChannel(mailOptions.to, report, result);
   }
 };

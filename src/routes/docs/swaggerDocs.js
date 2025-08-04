@@ -12,7 +12,7 @@ const usersDocs = require("./users");
 const roomsDocs = require("./rooms");
 const chatsDocs = require("./chats");
 const fareDocs = require("./fare");
-const noticeDocs = require("./notice");
+const noticeDocs = require("./notice").default;
 const emailsDocs = require("./emails").default;
 const { port, nodeEnv } = require("@/loadenv");
 
