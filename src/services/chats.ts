@@ -1,12 +1,14 @@
 import type { RequestHandler } from "express";
 import { chatModel, userModel, roomModel } from "@/modules/stores/mongo";
-import { chatPopulateOption } from "@/modules/populates/chats";
+import {
+  chatPopulateOption,
+  type PopulatedChat,
+} from "@/modules/populates/chats";
 import * as aws from "@/modules/stores/aws";
 import {
   transformChatsForRoom,
   emitChatEvent,
   emitUpdateEvent,
-  type ChatArrayObject,
 } from "@/modules/socket";
 
 import logger from "@/modules/logger";
@@ -46,8 +48,8 @@ export const loadRecentChatHandler: RequestHandler = async (req, res) => {
       .find({ roomId, isValid: true })
       .sort({ time: -1 })
       .limit(chatCount)
-      .populate(chatPopulateOption)
-      .lean<ChatArrayObject[]>();
+      .lean()
+      .populate<PopulatedChat>(chatPopulateOption);
 
     if (chats) {
       chats.reverse();
@@ -90,8 +92,8 @@ export const loadBeforeChatHandler: RequestHandler = async (req, res) => {
       .find({ roomId, time: { $lt: lastMsgDate }, isValid: true })
       .sort({ time: -1 })
       .limit(chatCount)
-      .populate(chatPopulateOption)
-      .lean<ChatArrayObject[]>();
+      .lean()
+      .populate<PopulatedChat>(chatPopulateOption);
 
     if (chats) {
       chats.reverse();
@@ -132,8 +134,8 @@ export const loadAfterChatHandler: RequestHandler = async (req, res) => {
       .find({ roomId, time: { $gt: lastMsgDate }, isValid: true })
       .sort({ time: 1 })
       .limit(chatCount)
-      .populate(chatPopulateOption)
-      .lean<ChatArrayObject[]>();
+      .lean()
+      .populate<PopulatedChat>(chatPopulateOption);
 
     if (chats) {
       io.in(`session-${sessionId}`).emit("chat_push_back", {

@@ -1,8 +1,7 @@
-import http from "http";
-
-import { Server, Socket } from "socket.io";
+import { Server as HttpServer } from "http";
+import { Server } from "socket.io";
 import type { Request } from "express";
-import type { LeanDocument, Types } from "mongoose";
+import { Types } from "mongoose";
 
 import { sessionMiddleware } from "@/middlewares";
 import logger from "@/modules/logger";
@@ -10,12 +9,11 @@ import { getLoginInfo } from "@/modules/auths/login";
 import { roomModel, userModel, chatModel } from "@/modules/stores/mongo";
 import { getTokensOfUsers, sendMessageByTokens } from "@/modules/fcm";
 import { corsWhiteList } from "@/loadenv";
-import { chatPopulateOption } from "@/modules/populates/chats";
-import type { Chat, ChatType } from "@/types/mongo";
-
-interface SessionSocket extends Socket {
-  request: Request;
-}
+import {
+  chatPopulateOption,
+  type PopulatedChat,
+} from "@/modules/populates/chats";
+import type { ChatType } from "@/types/mongo";
 
 /**
  * emitChatEvent의 필수 파라미터가 주어지지 않은 경우 발생하는 예외를 정의하는 클래스입니다.
@@ -28,51 +26,52 @@ class IllegalArgumentsException {
   }
 }
 
-export type ChatArrayObject = Omit<LeanDocument<Chat>, "authorId"> & {
-  inOutNames?: (string | undefined)[];
-  authorId?: {
-    _id?: Types.ObjectId | undefined;
-    nickname: string;
-    profileImageUrl: string;
-    withdraw: boolean;
-  };
-};
+interface TransformedChat {
+  roomId: string;
+  type: ChatType;
+  authorId?: string;
+  authorName?: string;
+  authorProfileUrl?: string;
+  authorIsWithdrew?: boolean;
+  content: string;
+  time: Date;
+  isValid: boolean;
+  inOutNames?: string[];
+}
 
 /**
  * Chat Object의 array가 주어졌을 때 클라이언트에서 처리하기 편한 형태로 Chat Object를 가공합니다.
  * @param chats - Chats Document에 lean과 populate(chatPopulateOption)을 차례로 적용한 Chat Object의 배열입니다.
  * @return - {type: String, authorId: String, authorName: String, authorProfileUrl: String, content: string, time: Date}로 이루어진 chat 객체의 배열입니다.
  */
-export const transformChatsForRoom = async (chats: ChatArrayObject[]) => {
-  const chatsToSend = [];
-
-  for (const chat of chats) {
-    // inOutNames 배열(들어오거나 나간 사용자들의 닉네임으로 이루어진 배열)을 생성합니다.
-    chat.inOutNames = [];
-    if (chat.type === "in" || chat.type === "out") {
-      const inOutUserOids = chat.content.split("|");
-      chat.inOutNames = await Promise.all(
-        inOutUserOids.map(async (userOid) => {
-          const user = await userModel.findById(userOid, "nickname");
-          return user?.nickname;
-        })
-      );
-    }
-    chatsToSend.push({
-      roomId: chat.roomId,
-      type: chat.type,
-      authorId: chat.authorId?._id,
-      authorName: chat.authorId?.nickname,
-      authorProfileUrl: chat.authorId?.profileImageUrl,
-      authorIsWithdrew: chat.authorId?.withdraw,
-      content: chat.content,
-      time: chat.time,
-      isValid: chat.isValid,
-      inOutNames: chat.inOutNames,
-    });
-  }
-
-  return chatsToSend;
+export const transformChatsForRoom = async (chats: PopulatedChat[]) => {
+  return await Promise.all(
+    chats.map(async (chat) => {
+      // inOutNames 배열(들어오거나 나간 사용자들의 닉네임으로 이루어진 배열)을 생성합니다.
+      let inOutNames;
+      if (chat.type === "in" || chat.type === "out") {
+        const inOutUserOids = chat.content.split("|");
+        inOutNames = await Promise.all(
+          inOutUserOids.map(async (userOid) => {
+            const user = await userModel.findById(userOid, "nickname");
+            return user!.nickname;
+          })
+        );
+      }
+      return {
+        roomId: chat.roomId.toString(),
+        type: chat.type!,
+        authorId: chat.authorId?._id?.toString(),
+        authorName: chat.authorId?.nickname,
+        authorProfileUrl: chat.authorId?.profileImageUrl,
+        authorIsWithdrew: chat.authorId?.withdraw,
+        content: chat.content,
+        time: chat.time,
+        isValid: chat.isValid,
+        inOutNames,
+      } satisfies TransformedChat;
+    })
+  );
 };
 
 /**
@@ -191,9 +190,8 @@ export const emitChatEvent = async (
         },
         { upsert: true, new: true }
       )
-      .populate(chatPopulateOption)
-      .lean<ChatArrayObject>()
-      .exec();
+      .lean()
+      .populate<PopulatedChat>(chatPopulateOption);
 
     const userIds = part.map((participant) => participant.user.toString());
     const userIdsExceptAuthor = authorId
@@ -261,7 +259,7 @@ export const emitUpdateEvent = async (io: Server, roomId: string) => {
 };
 
 // https://socket.io/how-to/use-with-express-session 참고
-export const startSocketServer = (server: http.Server) => {
+export const startSocketServer = (server: HttpServer) => {
   const io = new Server(server, {
     cors: {
       origin: corsWhiteList,
@@ -271,10 +269,9 @@ export const startSocketServer = (server: http.Server) => {
   });
   io.engine.use(sessionMiddleware);
 
-  io.on("connection", (defaultsocket) => {
+  io.on("connection", (socket) => {
     try {
-      const socket = <SessionSocket>defaultsocket;
-      const req = socket.request;
+      const req = socket.request as Request;
       req.session.reload((err) => {
         if (err) {
           return socket.disconnect();
