@@ -10,9 +10,9 @@ export interface User extends Document<Types.ObjectId> {
   /** 계정 프로필 이미지 주소. */
   profileImageUrl: string;
   /** 사용자가 참여한 방 중 현재 진행 중인 방의 배열. */
-  ongoingRoom?: Types.Array<Types.ObjectId>;
+  ongoingRoom: Types.Array<Types.ObjectId>;
   /** 사용자가 참여한 방 중 완료된 방의 배열. */
-  doneRoom?: Types.Array<Types.ObjectId>;
+  doneRoom: Types.Array<Types.ObjectId>;
   /** 계정 탈퇴 여부. */
   withdraw: boolean;
   /** 계정 탈퇴 시각. */
@@ -107,7 +107,7 @@ export interface Room extends Document<Types.ObjectId> {
   /** 방의 출발 시각. */
   time: Date;
   /** 방 참여자의 배열. */
-  part?: Types.DocumentArray<Participant>;
+  part: Types.DocumentArray<Participant>;
   /** 방의 생성 시각. */
   madeat: Date;
   /** 방 참여자 중 정산을 완료한 참여자의 수. */
