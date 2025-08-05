@@ -69,7 +69,7 @@ export const naverMap = {
 };
 export const oneApp = {
   tokenSecretKey: process.env.ONEAPP_TOKEN_SECRET || "SPARCS_APP", // optional
-  accessTokenExpiry: "1h", // 1시간
+  accessTokenExpiry: "1h" as const, // 1시간
   refreshTokenExpiry: 30 * 24 * 3600 * 1000, // 30일, ms 단위입니다.
-  ssoInfoExpiry: "5m", // 5분
+  ssoInfoExpiry: "5m" as const, // 5분
 };

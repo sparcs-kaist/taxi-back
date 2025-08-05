@@ -18,9 +18,8 @@ export const ssoClient = !isAuthReplace
 
 export interface LoginInfo {
   id: string;
-  sid: string;
+  sid?: string;
   oid: string;
-  name: string;
   time: number;
 }
 
@@ -38,21 +37,21 @@ export const getLoginInfo = (req: Request) => {
   if (accessTokenForOneApp) {
     const decoded = jwt.verifyForOneApp(accessTokenForOneApp);
     if (decoded === TOKEN_EXPIRED || decoded === TOKEN_INVALID) {
-      return { id: undefined, sid: undefined, oid: undefined, name: undefined };
+      return {};
     }
     const { oid, uid } = decoded;
-    return { id: uid, sid: undefined, oid, name: undefined }; // TODO: name?
+    return { id: uid, oid };
   } else if (req.session.loginInfo) {
-    const { id, sid, oid, name, time } = req.session.loginInfo;
+    const { id, sid, oid, time } = req.session.loginInfo;
     const timeFlow = Date.now() - time;
     // 14일이 지난 세션에 대해서는 로그인 정보를 반환하지 않습니다.
     // 세션은 새로운 요청 시 갱신되지 않습니다.
     if (timeFlow > sessionConfig.expiry) {
-      return { id: undefined, sid: undefined, oid: undefined, name: undefined };
+      return {};
     }
-    return { id, sid, oid, name };
+    return { id, sid, oid };
   }
-  return { id: undefined, sid: undefined, oid: undefined, name: undefined };
+  return {};
 };
 
 export const isLogin = (req: Request) => {
@@ -61,14 +60,8 @@ export const isLogin = (req: Request) => {
   return false;
 };
 
-export const login = (
-  req: Request,
-  sid: string,
-  id: string,
-  oid: string,
-  name: string
-) => {
-  req.session.loginInfo = { sid, id, oid, name, time: Date.now() };
+export const login = (req: Request, id: string, oid: string, sid?: string) => {
+  req.session.loginInfo = { sid, id, oid, time: Date.now() };
 };
 
 export const logout = (req: Request) => {

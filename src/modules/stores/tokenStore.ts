@@ -20,7 +20,7 @@ const getTokenStore = () => {
         limit(async () => {
           const payload = await redisClient!.get(`token:${oldTokenId}`);
           if (!payload) {
-            return {};
+            return { oid: undefined, uid: undefined };
           }
           await Promise.all([
             redisClient!.del(`token:${oldTokenId}`),
@@ -55,7 +55,7 @@ const getTokenStore = () => {
             .findById(oldTokenId, "oid uid")
             .lean();
           if (!payload) {
-            return {};
+            return { oid: undefined, uid: undefined };
           }
 
           const { oid, uid } = payload;
