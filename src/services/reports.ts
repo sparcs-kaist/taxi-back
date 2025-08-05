@@ -1,11 +1,27 @@
 import type { RequestHandler } from "express";
-import { userModel, reportModel, roomModel } from "@/modules/stores/mongo";
+import {
+  userModel,
+  reportModel,
+  roomModel,
+  emailModel,
+} from "@/modules/stores/mongo";
 import { reportPopulateOption } from "@/modules/populates/reports";
 import { sendReportEmail } from "@/modules/email";
 import logger from "@/modules/logger";
 import reportEmailPage from "@/views/reportEmailPage";
 import { notifyReportToReportChannel } from "@/modules/slackNotification";
 import type { CreateBody } from "@/routes/docs/schemas/reportsSchema";
+import { v4 as uuidv4 } from "uuid";
+
+const generateUniqueTrackingId = async () => {
+  let trackingId;
+  let existingTracking;
+  do {
+    trackingId = uuidv4();
+    existingTracking = await emailModel.findOne({ trackingId });
+  } while (existingTracking);
+  return trackingId;
+};
 
 export const createHandler: RequestHandler = async (req, res) => {
   try {
@@ -39,16 +55,28 @@ export const createHandler: RequestHandler = async (req, res) => {
 
     await report.save();
 
+    const trackingId = await generateUniqueTrackingId();
+
+    const email = new emailModel({
+      emailAddress: reported.email,
+      reportId: report,
+      trackingId,
+      sentAt: new Date(),
+      isOpened: false,
+    });
+
+    await email.save();
+
     notifyReportToReportChannel(user.nickname, report);
 
     if (report.type === "no-settlement" || report.type === "no-show") {
       const emailHtml = reportEmailPage[report.type](
-        req.origin ?? "https://taxi.sparcs.org",
         reported.name,
         reported.nickname,
         room.name,
         user.nickname,
-        room._id.toString()
+        room._id.toString(),
+        trackingId
       );
       sendReportEmail(reported.email, report, emailHtml);
     }

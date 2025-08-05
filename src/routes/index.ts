@@ -2,6 +2,7 @@ export { default as adminRouter } from "./admin";
 export { default as authRouter } from "./auth";
 export { default as chatRouter } from "./chats";
 export { default as docsRouter } from "./docs";
+export { default as emailRouter } from "./emails";
 export { default as fareRouter } from "./fare";
 export { default as locationRouter } from "./locations";
 export { default as logininfoRouter } from "./logininfo";

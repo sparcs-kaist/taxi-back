@@ -18,6 +18,7 @@ if (process.env.DB_PATH === undefined) {
   process.exit(1);
 }
 
+export const frontUrl = process.env.FRONT_URL || "http://localhost:3000"; // optional
 export const nodeEnv = process.env.NODE_ENV; // required ("production" or "development" or "test")
 export const mongo = process.env.DB_PATH; // required
 export const session = {
@@ -46,7 +47,7 @@ export const jwt = {
     algorithm: "HS256" as Algorithm,
     // FIXME: remove FRONT_URL from issuer. 단, issuer를 변경하면 이전에 발급했던 모든 JWT가 무효화됩니다.
     // See https://github.com/sparcs-kaist/taxi-back/issues/415
-    issuer: process.env.FRONT_URL || "http://localhost:3000", // optional (default = "http://localhost:3000")
+    issuer: frontUrl, // optional (default = "http://localhost:3000")
   },
   TOKEN_EXPIRED: -3 as const,
   TOKEN_INVALID: -2 as const,
