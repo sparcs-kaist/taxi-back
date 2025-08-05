@@ -1,16 +1,19 @@
-const {
+import {
   eventStatusModel,
   itemModel,
   transactionModel,
-} = require("../modules/stores/mongo");
-const { userModel } = require("../../modules/stores/mongo");
-const { isLogin, getLoginInfo } = require("../../modules/auths/login");
-const logger = require("@/modules/logger").default;
+} from "../modules/stores/mongo";
+import { userModel } from "@/modules/stores/mongo";
+import { isLogin, getLoginInfo } from "@/modules/auths/login";
+import logger from "@/modules/logger";
+import { eventConfig } from "@/loadenv";
+import { completeItemPurchaseQuest } from "../modules/contracts";
 
-const { eventConfig } = require("@/loadenv");
-const contracts = require("../modules/contracts");
+import type { RequestHandler, Request } from "express";
+import type { EventStatus, Item, Transaction } from "../types";
+import type { LeanDocument, Types } from "mongoose";
 
-const getItemsHandler = async (req, res) => {
+export const getItemsHandler: RequestHandler = async (req, res) => {
   try {
     const items = await itemModel
       .find(
@@ -25,7 +28,7 @@ const getItemsHandler = async (req, res) => {
   }
 };
 
-const getItemHandler = async (req, res) => {
+export const getItemHandler: RequestHandler = async (req, res) => {
   try {
     const { itemId } = req.params;
     const item = await itemModel
@@ -44,7 +47,12 @@ const getItemHandler = async (req, res) => {
 };
 
 // 유도 과정은 services/publicNotice.js 파일에 정의된 calculateProbabilityV2 함수의 주석 참조
-const calculateWinProbability = (realStock, users, amount, totalAmount) => {
+export const calculateWinProbability = (
+  realStock: number,
+  users: Transaction[],
+  amount: number,
+  totalAmount: number
+) => {
   if (users.length <= realStock) return 1;
 
   const base = Math.pow(
@@ -54,7 +62,7 @@ const calculateWinProbability = (realStock, users, amount, totalAmount) => {
   return 1 - Math.pow(base, amount);
 };
 
-const getItemLeaderboardHandler = async (req, res) => {
+export const getItemLeaderboardHandler: RequestHandler = async (req, res) => {
   try {
     // 상품 정보를 가져옵니다.
     const { itemId } = req.params;
@@ -121,9 +129,10 @@ const getItemLeaderboardHandler = async (req, res) => {
       ),
       rank: rankMap.get(user.amount),
     }));
+
     const leaderboard = await Promise.all(
       leaderboardBase
-        .filter((user) => user.rank <= 20)
+        .filter((user) => (user.rank as number) <= 20)
         .map(async (user) => {
           const userInfo = await userModel
             .findOne({ _id: user.userId, withdraw: false })
@@ -169,8 +178,8 @@ const getItemLeaderboardHandler = async (req, res) => {
   }
 };
 
-const updateEventStatus = async (
-  userId,
+export const updateEventStatus = async (
+  userId: Types.ObjectId | string,
   { creditDelta = 0, ticket1Delta = 0, ticket2Delta = 0 } = {}
 ) =>
   await eventStatusModel.updateOne(
@@ -266,15 +275,21 @@ const updateEventStatus = async (
 //     return await getRandomItem(req, depth + 1);
 //   }
 // };
-
-const purchaseItem = async (req, item, amount) => {
+export const purchaseItem = async (
+  req: Request,
+  item: LeanDocument<Item & { _id: Types.ObjectId }>,
+  amount: number
+) => {
   const totalPrice = item.price * amount;
+  if (!req.eventStatus) return { error: "no eventStatus" };
+  const requestEventStatus: EventStatus = req.eventStatus;
 
   // 구매 가능 조건: 재화가 충분하며, 재고가 남아있으며, 판매 중인 상품이어야 합니다.
   if (item.isDisabled) return { error: "disabled item" };
-  if (req.eventStatus.creditAmount < totalPrice)
+  if (requestEventStatus.creditAmount < totalPrice)
     return { error: "not enough credit" };
   if (item.stock < amount) return { error: "out of stock" };
+  if (!req.userOid) return { error: "userOid does not exist" };
 
   // 1단계: 재고를 차감합니다.
   const { modifiedCount } = await itemModel.updateOne(
@@ -363,10 +378,7 @@ const purchaseItem = async (req, item, amount) => {
     await transaction.save();
 
     // 4단계: 퀘스트를 완료 처리합니다.
-    await contracts.completeItemPurchaseQuest(
-      req.userOid,
-      transaction.createdAt
-    );
+    await completeItemPurchaseQuest(req.userOid, transaction.createdAt);
 
     return { result: { result: true } };
   }
@@ -398,7 +410,7 @@ const purchaseItem = async (req, item, amount) => {
   // }
 };
 
-const purchaseItemHandler = async (req, res) => {
+export const purchaseItemHandler: RequestHandler = async (req, res) => {
   try {
     const { itemId } = req.params;
     const item = await itemModel
@@ -418,7 +430,7 @@ const purchaseItemHandler = async (req, res) => {
   }
 };
 
-const useCouponHandler = async (req, res) => {
+export const useCouponHandler: RequestHandler = async (req, res) => {
   try {
     const { couponCode } = req.params;
     const coupon = await itemModel.findOne({ couponCode, itemType: 4 }).lean();
@@ -435,12 +447,4 @@ const useCouponHandler = async (req, res) => {
     logger.error(err);
     res.status(500).json({ error: "Items/useCoupon : internal server error" });
   }
-};
-
-module.exports = {
-  getItemsHandler,
-  getItemHandler,
-  getItemLeaderboardHandler,
-  purchaseItemHandler,
-  useCouponHandler,
 };

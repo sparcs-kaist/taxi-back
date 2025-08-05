@@ -1,12 +1,19 @@
-const { eventStatusModel } = require("../modules/stores/mongo");
-const { userModel } = require("../../modules/stores/mongo");
-const logger = require("@/modules/logger").default;
-const { isLogin, getLoginInfo } = require("../../modules/auths/login");
-const { nodeEnv } = require("@/loadenv");
+import { eventStatusModel } from "../modules/stores/mongo";
+import { userModel } from "../../modules/stores/mongo";
+import logger from "@/modules/logger";
+import { isLogin, getLoginInfo } from "@/modules/auths/login";
+import { nodeEnv, eventConfig } from "@/loadenv";
+import {
+  completeEventSharingQuest,
+  completeFirstLoginQuest,
+  completeIndirectEventSharingQuest,
+  quests,
+} from "../modules/contracts";
 
-const { eventConfig } = require("@/loadenv");
-const contracts = require("../modules/contracts");
-const quests = Object.values(contracts.quests);
+import type { Quest } from "../types";
+import type { User } from "@/types/mongo";
+import type { Types } from "mongoose";
+import type { RequestHandler } from "express";
 
 // 아래의 함수는 2025 봄 이벤트에서 사용되지 않습니다.
 //
@@ -19,58 +26,70 @@ const quests = Object.values(contracts.quests);
 //   return 20240001 <= kaistId && kaistId <= 20241500;
 // };
 
-const getUserGlobalStateHandler = async (req, res) => {
+const quests_: Required<Quest>[] = Object.values(quests!);
+
+export const getUserGlobalStateHandler: RequestHandler = async (req, res) => {
   try {
     const userId = isLogin(req) ? getLoginInfo(req).oid : null;
-    const eventStatus =
-      userId &&
-      (await eventStatusModel
-        .findOne({ userId }, "completedQuests creditAmount isBanned")
-        .lean());
-    if (!eventStatus)
+    const eventStatus = userId
+      ? await eventStatusModel
+          .findOne({ userId }, "completedQuests creditAmount isBanned")
+          .lean()
+      : null;
+
+    if (!eventStatus) {
       return res.json({
         isAgreeOnTermsOfEvent: false,
         isBanned: false,
         creditAmount: 0,
-        quests,
+        quests: quests_,
         completedQuests: [],
       });
-
-    // group이 eventStatus.group과 같은 사용자들의 creditAmount를 합산합니다.
-    // const groupCreditAmount = await eventStatusModel.aggregate([
-    //   {
-    //     $match: {
-    //       group: eventStatus.group,
-    //     },
-    //   },
-    //   {
-    //     $group: {
-    //       _id: null,
-    //       creditAmount: { $sum: "$creditAmount" },
-    //     },
-    //   },
-    // ]);
-    // const groupCreditAmountReal = groupCreditAmount?.[0].creditAmount;
-    // if (!groupCreditAmountReal && groupCreditAmountReal !== 0)
-    //   return res
-    //     .status(500)
-    //     .json({ error: "GlobalState/ : internal server error" });
+    }
 
     return res.json({
       ...eventStatus,
       isAgreeOnTermsOfEvent: true,
-      quests,
+      quests: quests_,
     });
   } catch (err) {
     logger.error(err);
-    res.status(500).json({ error: "GlobalState/ : internal server error" });
+    return res
+      .status(500)
+      .json({ error: "GlobalState/ : internal server error" });
   }
 };
 
-const createUserGlobalStateHandler = async (req, res) => {
+// group이 eventStatus.group과 같은 사용자들의 creditAmount를 합산합니다.
+// const groupCreditAmount = await eventStatusModel.aggregate([
+//   {
+//     $match: {
+//       group: eventStatus.group,
+//     },
+//   },
+//   {
+//     $group: {
+//       _id: null,
+//       creditAmount: { $sum: "$creditAmount" },
+//     },
+//   },
+// ]);
+// const groupCreditAmountReal = groupCreditAmount?.[0].creditAmount;
+// if (!groupCreditAmountReal && groupCreditAmountReal !== 0)
+//   return res
+//     .status(500)
+//     .json({ error: "GlobalState/ : internal server error" });
+
+export const createUserGlobalStateHandler: RequestHandler = async (
+  req,
+  res
+) => {
   try {
-    let eventStatus = await eventStatusModel
-      .findOne({ userId: req.userOid })
+    const userOid = req.userOid as string;
+    const timestamp = req.timestamp as number;
+
+    const eventStatus = await eventStatusModel
+      .findOne({ userId: userOid })
       .lean();
     if (eventStatus)
       return res
@@ -82,9 +101,9 @@ const createUserGlobalStateHandler = async (req, res) => {
        2. 해당되는 유저의 이벤트 참여가 제한된 상태이거나,
        3. 해당되는 유저의 초대 링크가 활성화되지 않았으면,
        에러를 발생시킵니다. 개인정보 보호를 위해 오류 메세지는 하나로 통일하였습니다. */
-    const inviterStatus =
-      req.body.inviter &&
-      (await eventStatusModel.findById(req.body.inviter).lean());
+    const inviterStatus = req.body.inviter
+      ? await eventStatusModel.findById(req.body.inviter).lean()
+      : null;
 
     if (
       req.body.inviter &&
@@ -96,7 +115,10 @@ const createUserGlobalStateHandler = async (req, res) => {
         error: "GlobalState/create : invalid inviter",
       });
 
-    const user = await userModel.findOne({ _id: req.userOid, withdraw: false });
+    const user: User | null = await userModel.findOne({
+      _id: userOid,
+      withdraw: false,
+    });
     if (!user)
       return res
         .status(500)
@@ -121,24 +143,21 @@ const createUserGlobalStateHandler = async (req, res) => {
     }
 
     // EventStatus Document를 생성합니다.
-    eventStatus = new eventStatusModel({
-      userId: req.userOid,
+    const neweventStatus = new eventStatusModel({
+      userId: userOid,
       creditAmount: eventConfig?.credit.initialAmount ?? 0,
       inviter: inviterStatus?.userId ?? undefined,
     });
-    await eventStatus.save();
+    await neweventStatus.save();
 
     // 퀘스트를 완료 처리합니다.
-    await contracts.completeFirstLoginQuest(req.userOid, req.timestamp);
+    await completeFirstLoginQuest(userOid, timestamp);
 
     if (inviterStatus) {
-      await contracts.completeEventSharingQuest(req.userOid, req.timestamp);
-      await contracts.completeEventSharingQuest(
-        inviterStatus.userId,
-        req.timestamp
-      );
+      await completeEventSharingQuest(userOid, timestamp);
+      await completeEventSharingQuest(inviterStatus.userId, timestamp);
       let currentInviter = inviterStatus;
-      const ancestorIds = [];
+      const ancestorIds: Types.ObjectId[] = [];
 
       while (currentInviter?.inviter) {
         const higherInviter = await eventStatusModel
@@ -147,11 +166,11 @@ const createUserGlobalStateHandler = async (req, res) => {
         if (!higherInviter) break;
 
         ancestorIds.push(higherInviter.userId);
-        currentInviter = higherInviter;
+        currentInviter = { ...higherInviter };
       }
       await Promise.all(
         ancestorIds.map((ancestorId) =>
-          contracts.completeIndirectEventSharingQuest(ancestorId, req.timestamp)
+          completeIndirectEventSharingQuest(ancestorId, timestamp)
         )
       );
     }
@@ -163,9 +182,4 @@ const createUserGlobalStateHandler = async (req, res) => {
       .status(500)
       .json({ error: "GlobalState/create : internal server error" });
   }
-};
-
-module.exports = {
-  getUserGlobalStateHandler,
-  createUserGlobalStateHandler,
 };

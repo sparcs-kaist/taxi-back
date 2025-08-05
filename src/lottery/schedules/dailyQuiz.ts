@@ -2,6 +2,8 @@ import logger from "@/modules/logger";
 import { completeAnswerCorrectlyQuest } from "../modules/contracts";
 import { getQuizByDate } from "../modules/quizzes";
 
+type CorrectAnswer = "A" | "B" | "draw";
+
 const determineQuizResult = async () => {
   try {
     const quiz = await getQuizByDate(new Date());
@@ -11,7 +13,7 @@ const determineQuizResult = async () => {
       return;
     }
 
-    let correctAnswer: string = "";
+    let correctAnswer: CorrectAnswer = "A";
 
     if (quiz.answer === "A" || quiz.answer === "B") {
       correctAnswer = quiz.answer;

@@ -75,8 +75,8 @@ export const editNicknameHandler: RequestHandler = async (req, res) => {
     if (result) {
       // 이벤트 코드입니다.
       await contracts?.completeNicknameChangingQuest(
-        req.userOid,
-        req.timestamp
+        req.userOid!,
+        req.timestamp!
       );
 
       return res
@@ -104,8 +104,8 @@ export const editAccountHandler: RequestHandler = async (req, res) => {
     if (result) {
       // 이벤트 코드입니다.
       await contracts?.completeAccountChangingQuest(
-        req.userOid,
-        req.timestamp,
+        req.userOid!,
+        req.timestamp!,
         newAccount
       );
 

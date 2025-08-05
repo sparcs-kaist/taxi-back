@@ -2,6 +2,7 @@
 import dotenv from "dotenv";
 import type { ServiceAccount } from "firebase-admin";
 import type { Algorithm } from "jsonwebtoken";
+import type { EventConfig } from "./types";
 
 if (process.env.NODE_ENV === undefined) {
   // logger.ts가 아직 초기화되지 않았으므로 console.error를 사용합니다.
@@ -62,7 +63,8 @@ export const testAccounts =
 export const slackWebhookUrl = {
   report: process.env.SLACK_REPORT_WEBHOOK_URL || "", // optional
 };
-export const eventConfig = (process.env.EVENT_CONFIG &&
+
+export const eventConfig: EventConfig = (process.env.EVENT_CONFIG &&
   JSON.parse(process.env.EVENT_CONFIG)) || {
   mode: "2025spring",
   credit: { name: "넙죽코인", initialAmount: 0 },

@@ -1,77 +1,77 @@
-const {
+import {
   eventStatusModel,
   questModel,
   itemModel,
   transactionModel,
-} = require("./stores/mongo");
-const logger = require("@/modules/logger").default;
-const mongoose = require("mongoose");
+} from "./stores/mongo";
+import logger from "@/modules/logger";
+import type { Types } from "mongoose";
+import { eventConfig } from "@/loadenv";
+import type { EventPeriod, EventStatus, Quest } from "../types";
 
-const { eventConfig } = require("@/loadenv");
-const eventPeriod = eventConfig && {
+const eventPeriod: EventPeriod | null = eventConfig && {
   startAt: new Date(eventConfig.period.startAt),
   endAt: new Date(eventConfig.period.endAt),
 };
 
-const requiredQuestFields = ["name", "description", "imageUrl", "reward"];
+const requiredQuestFields: string[] = [
+  "name",
+  "description",
+  "imageUrl",
+  "reward",
+];
 
-const buildQuests = (quests) => {
+export const buildQuests = (
+  quests: Record<string, Quest>
+): Record<string, Required<Quest>> | null => {
+  const updatedQuests: Record<string, Required<Quest>> = {};
+
   for (const [id, quest] of Object.entries(quests)) {
-    // quest에 필수 필드가 모두 포함되어 있는지 확인합니다.
     const hasError = requiredQuestFields.reduce((before, field) => {
-      if (quest[field] !== undefined) return before;
+      if (quest[field as keyof Quest] !== undefined) return before;
 
       logger.error(`There is no ${field} field in ${id}Quest`);
       return true;
     }, false);
     if (hasError) return null;
 
-    // quest.id 필드를 설정합니다.
-    quest.id = id;
-
-    // quest.reward가 number인 경우, object로 변환합니다.
-    if (typeof quest.reward === "number") {
-      const credit = quest.reward;
-      quest.reward = {
-        credit,
-      };
-    }
-
-    // quest.reward에 누락된 필드가 있는 경우, 기본값(0)으로 설정합니다.
-    quest.reward.credit = quest.reward.credit ?? 0;
-    quest.reward.ticket1 = quest.reward.ticket1 ?? 0;
-
-    // quest.maxCount가 없는 경우, 기본값(1)으로 설정합니다.
-    quest.maxCount = quest.maxCount ?? 1;
-
-    // quest.isApiRequired가 없는 경우, 기본값(false)으로 설정합니다.
-    quest.isApiRequired = quest.isApiRequired ?? false;
+    // 새로운 객체 생성
+    updatedQuests[id] = {
+      ...quest, // 기존 필드 복사
+      id, // id 추가
+      reward:
+        typeof quest.reward === "number"
+          ? { credit: quest.reward, ticket1: 0 }
+          : {
+              credit: quest.reward.credit ?? 0,
+              ticket1: quest.reward.ticket1 ?? 0,
+            },
+      maxCount: quest.maxCount ?? 1,
+      isApiRequired: quest.isApiRequired ?? false,
+      isDisabled: false,
+    };
   }
 
-  return quests;
+  return updatedQuests;
 };
 
 /**
  * 퀘스트 완료를 요청합니다.
- * @param {string|mongoose.Types.ObjectId} userId - 퀘스트를 완료한 사용자의 ObjectId입니다.
- * @param {number|Date} timestamp - 퀘스트 완료를 요청한 시각입니다.
- * @param {Object} quest - 퀘스트의 정보입니다.
- * @param {string} quest.id - 퀘스트의 Id입니다.
- * @param {string} quest.name - 퀘스트의 이름입니다.
- * @param {Object} quest.reward - 퀘스트의 완료 보상입니다.
- * @param {number} quest.reward.credit - 퀘스트의 완료 보상 중 재화의 양입니다.
- * @param {number} quest.reward.ticket1 - 퀘스트의 완료 보상 중 일반 티켓의 개수입니다.
- * @param {number} quest.maxCount - 퀘스트의 최대 완료 가능 횟수입니다.
- * @returns {Object|null} 성공한 경우 Object를, 실패한 경우 null을 반환합니다. 이미 최대 완료 횟수에 도달했거나, 퀘스트가 원격으로 비활성화된 경우에도 실패로 처리됩니다.
  */
-const completeQuest = async (userId, timestamp, quest) => {
+export const completeQuest = async (
+  userId: Types.ObjectId | string,
+  timestamp: number | Date,
+  quest: Required<Quest>
+): Promise<{
+  quest: Quest;
+  questCount: number;
+  transactionsId: string[]; // ObjectId를 가져오기 때문에 number[]가 아닌 string[]로 저장.
+} | null> => {
   try {
-    // 이벤트(2025spring) 기간을 하루 더 연장하여 넙죽코인 소비기한을 보장할 때, completeQuest 함수를 비활성화합니다.
-    // 추후 이벤트에서는 아래 코드를 지워주시길 바랍니다.
-    if (timestamp >= new Date("2025-03-13T00:00:00+09:00")) return null;
-
     // 1단계: 유저의 EventStatus를 가져옵니다. 블록드리스트인지도 확인합니다.
-    const eventStatus = await eventStatusModel.findOne({ userId }).lean();
+    const eventStatus: EventStatus | null = await eventStatusModel
+      .findOne({ userId })
+      .lean();
     if (!eventStatus || eventStatus.isBanned) return null;
 
     // 2단계: 이벤트 기간인지 확인합니다.
@@ -91,6 +91,7 @@ const completeQuest = async (userId, timestamp, quest) => {
     const questCount = eventStatus.completedQuests.filter(
       ({ questId }) => questId === quest.id
     ).length;
+
     if (quest.maxCount > 0 && questCount >= quest.maxCount) {
       logger.info(
         `User ${userId} already completed ${quest.id}Quest ${questCount} times`
@@ -109,8 +110,10 @@ const completeQuest = async (userId, timestamp, quest) => {
     }
 
     // 5단계: 완료 보상 중 티켓이 있는 경우, 티켓 정보를 가져옵니다.
-    const ticket1 =
-      quest.reward.ticket1 && (await itemModel.findOne({ itemType: 1 }).lean());
+    const ticket1 = quest.reward.ticket1
+      ? await itemModel.findOne({ itemType: 1 }).lean()
+      : null;
+
     if (quest.reward.ticket1 && !ticket1)
       throw new Error("Fail to find ticket1");
 
@@ -132,7 +135,7 @@ const completeQuest = async (userId, timestamp, quest) => {
     );
 
     // 7단계: Transaction을 생성합니다.
-    const transactionsId = [];
+    const transactionsId: string[] = [];
     if (quest.reward.credit) {
       const transaction = new transactionModel({
         type: "get",
@@ -142,10 +145,11 @@ const completeQuest = async (userId, timestamp, quest) => {
         comment: `"${quest.name}" 퀘스트를 완료해 ${eventConfig?.credit.name} ${quest.reward.credit}개를 획득했습니다.`,
       });
       await transaction.save();
-
-      transactionsId.push(transaction._id);
+      transactionsId.push(transaction._id.toString());
     }
-    if (quest.reward.ticket1) {
+
+    if (ticket1) {
+      // quest.reward.ticket1가 없는 경우는 이미 앞에서 예외처리를 했으므로.
       const transaction = new transactionModel({
         type: "use",
         amount: 0,
@@ -155,8 +159,7 @@ const completeQuest = async (userId, timestamp, quest) => {
         comment: `"${quest.name}" 퀘스트를 완료해 "${ticket1.name}" ${quest.reward.ticket1}개를 획득했습니다.`,
       });
       await transaction.save();
-
-      transactionsId.push(transaction._id);
+      transactionsId.push(transaction._id.toString());
     }
 
     logger.info(`User ${userId} successfully completed ${quest.id}Quest`);
@@ -172,9 +175,4 @@ const completeQuest = async (userId, timestamp, quest) => {
     );
     return null;
   }
-};
-
-module.exports = {
-  buildQuests,
-  completeQuest,
 };

@@ -1,5 +1,7 @@
-import mongoose, { model, Schema, type Types } from "mongoose";
+import mongoose, { model, Schema } from "mongoose";
 import logger from "@/modules/logger";
+
+import type { Types } from "mongoose";
 import type {
   User,
   Ban,

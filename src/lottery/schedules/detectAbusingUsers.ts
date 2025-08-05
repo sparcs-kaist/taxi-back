@@ -1,15 +1,12 @@
-const { eventStatusModel } = require("../modules/stores/mongo");
-const {
-  roomModel,
-  chatModel,
-  reportModel,
-} = require("../../modules/stores/mongo");
-const {
-  notifyAbuseDetectionResultToReportChannel,
-} = require("../modules/slackNotification");
-const logger = require("@/modules/logger").default;
+import { eventStatusModel } from "../modules/stores/mongo";
+import { roomModel, chatModel, reportModel } from "@/modules/stores/mongo";
+import { notifyAbuseDetectionResultToReportChannel } from "../modules/slackNotification";
+import logger from "@/modules/logger";
+import { eventConfig } from "@/loadenv";
 
-const { eventConfig } = require("@/loadenv");
+import type { Types } from "mongoose";
+import type { EventPeriod } from "../types";
+
 const eventPeriod = eventConfig && {
   startAt: new Date(eventConfig.period.startAt),
   endAt: new Date(eventConfig.period.endAt),
@@ -23,17 +20,21 @@ const eventPeriod = eventConfig && {
  */
 
 // 두 ObjectId가 같은지 비교하는 함수
-const equalsObjectId = (a) => (b) => a.equals(b);
+const equalsObjectId = (a: Types.ObjectId) => (b: Types.ObjectId) =>
+  a.equals(b);
 
 // ObjectId의 배열에서 중복을 제거하는 함수
-const removeObjectIdDuplicates = (array) => {
+const removeObjectIdDuplicates = (array: Types.ObjectId[]) => {
   return array.filter(
     (element, index) => array.findIndex(equalsObjectId(element)) === index
   );
 };
 
 // 기준 1. "기타 사유"로 신고받은 사용자
-const detectReportedUsers = async (period, candidateUserIds) => {
+const detectReportedUsers = async (
+  period: EventPeriod,
+  candidateUserIds: Types.ObjectId[]
+) => {
   const reports = await reportModel.aggregate([
     {
       $match: {
@@ -51,7 +52,10 @@ const detectReportedUsers = async (period, candidateUserIds) => {
 };
 
 // 기준 2. 하루에 탑승 기록이 많은 사용자
-const detectMultiplePartUsers = async (period, candidateUserIds) => {
+const detectMultiplePartUsers = async (
+  period: EventPeriod,
+  candidateUserIds: Types.ObjectId[]
+) => {
   const rooms = await roomModel.aggregate([
     {
       $match: {
@@ -87,6 +91,7 @@ const detectMultiplePartUsers = async (period, candidateUserIds) => {
       },
     }, // 날짜별로 방 참여자들의 목록을 병합
   ]);
+
   const multiplePartUserIdsByDay = rooms.map(
     ({ users }) =>
       removeObjectIdDuplicates(users)
@@ -97,6 +102,7 @@ const detectMultiplePartUsers = async (period, candidateUserIds) => {
             users.findLastIndex(equalsObjectId(userId)) // 두 값이 다르면 중복된 값이 존재
         ) // 하루에 2번 이상 탑승한 사용자
   ); // 날짜별로 하루에 2번 이상 탑승한 후보자만 필터링
+
   const multiplePartRooms = await Promise.all(
     rooms.map(
       async ({ roomIds }, index) =>
@@ -110,18 +116,19 @@ const detectMultiplePartUsers = async (period, candidateUserIds) => {
         })
     )
   ); // 날짜별로 하루에 2번 이상 탑승한 후보자가 참여한 방들을 필터링
+
   const multiplePartUserIds = removeObjectIdDuplicates(
-    multiplePartUserIdsByDay.reduce(
-      (array, userIds) => array.concat(userIds),
-      []
-    )
+    multiplePartUserIdsByDay.flat()
   );
 
   return { multiplePartRooms, multiplePartUserIds };
 };
 
 // 기준 3. 채팅 개수가 5개 미만인 방에 속한 사용자
-const detectLessChatUsers = async (period, candidateUserIds) => {
+const detectLessChatUsers = async (
+  period: EventPeriod,
+  candidateUserIds: Types.ObjectId[]
+) => {
   const chats = await chatModel.aggregate([
     {
       $match: {
@@ -144,39 +151,50 @@ const detectLessChatUsers = async (period, candidateUserIds) => {
       },
     },
   ]);
-  const lessChatRooms = await Promise.all(
-    chats.map(async ({ _id: roomId, count }) => {
-      const room = await roomModel.findById(roomId).lean();
-      if (
-        period.startAt > room.time ||
-        period.endAt <= room.time ||
-        room.part.length < 2 ||
-        room.settlementTotal === 0
-      )
-        return null;
 
-      const parts = room.part
-        .map((part) => part.user)
-        .filter((userId) => candidateUserIds.some(equalsObjectId(userId)));
-      if (parts.length === 0) return null;
+  const lessChatRooms: {
+    roomId: Types.ObjectId;
+    parts: Types.ObjectId[];
+  }[] = (
+    await Promise.all(
+      chats.map(async ({ _id, count }) => {
+        const room = await roomModel.findById(_id).lean();
+        if (
+          room == null ||
+          room.part == null ||
+          period.startAt > room!.time ||
+          period.endAt <= room!.time ||
+          room.part.length < 2 ||
+          room.settlementTotal === 0
+        )
+          return null;
 
-      return {
-        roomId,
-        parts,
-      };
-    })
-  ); // 방 정보에 기반하여 추가적으로 필터링
-  const lessChatUserIds = removeObjectIdDuplicates(
-    lessChatRooms.reduce(
-      (array, day) => (day ? array.concat(day.parts) : array),
-      []
+        const parts = room.part
+          .map((part) => part.user)
+          .filter((userId) => candidateUserIds.some(equalsObjectId(userId)));
+        if (parts.length === 0) return null;
+
+        return {
+          roomId: _id,
+          parts,
+        };
+      })
     )
+  ).filter(
+    (room): room is { roomId: Types.ObjectId; parts: Types.ObjectId[] } =>
+      room !== null
+  );
+
+  // 방 정보에 기반하여 추가적으로 필터링
+
+  const lessChatUserIds = removeObjectIdDuplicates(
+    lessChatRooms.flatMap((room) => (room ? room.parts : []))
   );
 
   return { lessChatRooms, lessChatUserIds };
 };
 
-module.exports = async () => {
+export default async () => {
   try {
     // 오늘 자정(0시)
     const todayMidnight = new Date();
