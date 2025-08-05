@@ -48,8 +48,8 @@ export const jwt = {
     // See https://github.com/sparcs-kaist/taxi-back/issues/415
     issuer: process.env.FRONT_URL || "http://localhost:3000", // optional (default = "http://localhost:3000")
   },
-  TOKEN_EXPIRED: -3,
-  TOKEN_INVALID: -2,
+  TOKEN_EXPIRED: -3 as const,
+  TOKEN_INVALID: -2 as const,
 };
 export const googleApplicationCredentials =
   process.env.GOOGLE_APPLICATION_CREDENTIALS &&

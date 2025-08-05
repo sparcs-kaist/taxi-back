@@ -4,11 +4,11 @@ import logger from "@/modules/logger";
 
 type ZodObject = Record<string, ZodTypeAny>;
 
-export const zodToSchemaObject = (zodObejct: ZodObject) => {
+export const zodToSchemaObject = (zodObject: ZodObject) => {
   try {
     const schemaObject: Record<string, any> = {};
-    Object.keys(zodObejct).forEach((key) => {
-      schemaObject[key] = zodToJsonSchema(zodObejct[key]);
+    Object.keys(zodObject).forEach((key) => {
+      schemaObject[key] = zodToJsonSchema(zodObject[key]);
     });
     return schemaObject;
   } catch (err) {
