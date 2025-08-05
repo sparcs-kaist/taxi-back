@@ -69,7 +69,6 @@ export const notifyEmailFailureToReportChannel = (
     `${to}님께 보내려는 신고 메일이 실패했습니다.
     
     Report ID: ${report._id}
-    
     문제 원인: ${error.message}`
   );
 };
