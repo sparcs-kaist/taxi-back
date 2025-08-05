@@ -5,14 +5,14 @@ import type { RequestHandler } from "express";
 export const emailTrackingHandler: RequestHandler = async (req, res) => {
   const trackingId = req.query.trackingId as string;
   try {
-    const trackingRecord = await emailModel.findOne({ trackingId });
-    if (!trackingRecord) {
-      return res.status(404).send("Emails/openTracking: Tracking ID not found");
-    }
+    const updateResult = await emailModel.updateOne(
+      { trackingId, isOpened: { $ne: true } },
+      { $set: { isOpened: true, openedAt: new Date() } }
+    );
 
-    trackingRecord.isOpened = true;
-    trackingRecord.openedAt = new Date();
-    await trackingRecord.save();
+    if (updateResult.matchedCount === 0) {
+      return res.status(200).send("Emails/openTracking: Already processed");
+    }
 
     res.set("Content-Type", "image/gif");
     return res.send(
