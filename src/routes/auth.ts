@@ -6,6 +6,7 @@ import { authZod } from "./docs/schemas/authSchema";
 import * as authHandlers from "@/services/auth";
 import * as authReplaceHandlers from "@/services/auth.replace";
 import * as mobileAuthHandlers from "@/services/auth.mobile";
+import * as oneAppAuthHandlers from "@/services/auth.oneapp";
 import { isAuthReplace } from "@/modules/auths/login";
 
 const router = express.Router();
@@ -69,14 +70,14 @@ router.get(
 router.post(
   "/sparcsapp/token/issue",
   validateBody(authZod.oneAppTokenIssueHandler),
-  authHandlers.oneAppTokenIssueHandler
+  oneAppAuthHandlers.oneAppTokenIssueHandler
 );
 
 // (원앱 전용) 토큰을 refresh합니다.
 router.post(
   "/sparcsapp/token/refresh",
   validateBody(authZod.oneAppTokenRefreshHandler),
-  authHandlers.oneAppTokenRefreshHandler
+  oneAppAuthHandlers.oneAppTokenRefreshHandler
 );
 
 export default router;

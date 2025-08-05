@@ -1,4 +1,4 @@
-import { nodeEnv, testAccounts, oneApp as oneAppConfig } from "@/loadenv";
+import { nodeEnv, testAccounts } from "@/loadenv";
 import logger from "@/modules/logger";
 import patterns from "@/modules/patterns";
 import { userModel } from "@/modules/stores/mongo";
@@ -17,32 +17,12 @@ import type {
   SparcsssoQuery,
   LogoutQuery,
   OneAppLoginQuery,
-  OneAppTokenIssueBody,
 } from "@/routes/docs/schemas/authSchema";
-
-import base64url from "base64url";
-import crypto from "crypto";
-import { v4 as uuidv4 } from "uuid";
-import { sign, unsign } from "cookie-signature";
-import tokenStore from "@/modules/stores/tokenStore";
-import type { PayloadForOneApp } from "@/types/jwt";
+import type { SparcsssoUserData } from "@/types/sparcssso";
 
 const { user: userPattern } = patterns;
 
 type UserData = ReturnType<typeof transUserData>;
-
-interface RawUserData {
-  uid: string;
-  sid: string;
-  kaist_info: string | null;
-  kaist_v2_info: string | null;
-  first_name: string;
-  last_name: string;
-  facebook_id: string | null;
-  twitter_id: string | null;
-  sparcs_id: string | null;
-  email: string;
-}
 
 interface KaistInfoV1 {
   ku_std_no?: string;
@@ -56,7 +36,7 @@ interface KaistInfoV2 {
   email?: string;
 }
 
-const transKaistInfo = (userData: RawUserData) => {
+const transKaistInfo = (userData: SparcsssoUserData) => {
   const kaistInfoV1: KaistInfoV1 = userData.kaist_info
     ? JSON.parse(userData.kaist_info)
     : {};
@@ -70,7 +50,7 @@ const transKaistInfo = (userData: RawUserData) => {
   };
 };
 
-export const transUserData = (userData: RawUserData) => {
+export const transUserData = (userData: SparcsssoUserData) => {
   const kaistInfo = transKaistInfo(userData);
 
   // info.isEligible: 카이스트 구성원인지 여부
@@ -144,7 +124,7 @@ const update = async (userData: UserData) => {
 export const tryLogin = async (
   req: Request,
   res: Response,
-  userDataBefore: RawUserData,
+  userDataBefore: SparcsssoUserData,
   userData: UserData,
   redirectOrigin: string,
   redirectPath: string
@@ -264,7 +244,7 @@ const grantLoginOnlyForOneApp = (
   oid: string | undefined,
   uid: string,
   sid: string | undefined,
-  userDataBefore: RawUserData,
+  userDataBefore: SparcsssoUserData,
   redirectOrigin: string
 ) => {
   if (req.session.oneAppState) {
@@ -330,7 +310,7 @@ export const sparcsssoCallbackHandler: RequestHandler = (req, res) => {
     return;
   }
 
-  ssoClient!.getUserInfo(code).then((userDataBefore: RawUserData) => {
+  ssoClient!.getUserInfo(code).then((userDataBefore: SparcsssoUserData) => {
     logger.info(`Login requested: ${JSON.stringify(userDataBefore)}`);
     const { kaist_v2_info: kaistInfoV2 } = userDataBefore;
 
@@ -406,75 +386,4 @@ export const oneAppLoginHandler: RequestHandler = (req, res) => {
   req.session.isApp = false;
   req.session.oneAppState = { codeChallenge };
   res.redirect(url + "&social_enabled=0&show_disabled_button=0");
-};
-
-export const oneAppTokenIssueHandler: RequestHandler = async (req, res) => {
-  try {
-    const { codeVerifier } = req.body as OneAppTokenIssueBody;
-    if (!req.session.oneAppState) {
-      return res.status(400).send("Auth/token/issue : invalid request");
-    } else if (
-      !crypto.timingSafeEqual(
-        crypto
-          .createHash("sha256")
-          .update(base64url.toBuffer(codeVerifier))
-          .digest(),
-        base64url.toBuffer(req.session.oneAppState.codeChallenge)
-      )
-    ) {
-      return res.status(400).send("Auth/token/issue : invalid request");
-    }
-
-    const { oid, uid, ssoInfo } = req.session.oneAppState;
-    req.session.oneAppState = undefined;
-    req.session.destroy((e) => e && logger.error(e));
-
-    const tokenPayload = { oid, uid };
-    const { accessToken } = jwt.signForOneApp(tokenPayload as PayloadForOneApp);
-    const { refreshTokenId, refreshToken } = signRefreshToken();
-    const { signedSsoInfo } = jwt.signSsoInfo(ssoInfo);
-
-    await tokenStore.insert(refreshTokenId, tokenPayload as PayloadForOneApp);
-    return res.json({ accessToken, refreshToken, ssoInfo: signedSsoInfo });
-  } catch (e) {
-    logger.error(e);
-    return res.status(500).send("Auth/token/issue : internal server error");
-  }
-};
-
-export const oneAppTokenRefreshHandler: RequestHandler = async (req, res) => {
-  try {
-    const { refreshTokenId: oldRefreshTokenId } = verifyRefreshToken(
-      req.body.refreshToken
-    );
-    if (!oldRefreshTokenId) {
-      return res.status(400).send("Auth/token/refresh : invalid refresh token");
-    }
-
-    const { refreshTokenId, refreshToken } = signRefreshToken();
-    const { oid, uid } = await tokenStore.update(
-      oldRefreshTokenId,
-      refreshTokenId
-    );
-    if (!oid || !uid) {
-      return res.status(403).send("Auth/token/refresh : invalid refresh token");
-    }
-
-    const { accessToken } = jwt.signForOneApp({ oid, uid });
-    return res.json({ accessToken, refreshToken });
-  } catch (e) {
-    return res.status(500).send("Auth/token/refresh : internal server error");
-  }
-};
-
-const signRefreshToken = () => {
-  const refreshTokenId = uuidv4();
-  const refreshToken = sign(refreshTokenId, oneAppConfig.tokenSecretKey);
-  return { refreshTokenId, refreshToken };
-};
-
-const verifyRefreshToken = (refreshToken: string) => {
-  const decoded = unsign(refreshToken, oneAppConfig.tokenSecretKey);
-  if (decoded === false) return {};
-  else return { refreshTokenId: decoded };
 };

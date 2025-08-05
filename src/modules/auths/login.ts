@@ -5,7 +5,7 @@ import {
   jwt as jwtConfig,
 } from "@/loadenv";
 import logger from "@/modules/logger";
-import * as jwt from "@/modules/auths/jwt";
+import * as oneAppJwt from "@/modules/auths/jwt.oneapp";
 import SsoClient from "./sparcssso";
 
 const { TOKEN_EXPIRED, TOKEN_INVALID } = jwtConfig;
@@ -35,7 +35,7 @@ export const getBearerToken = (req: Request) => {
 export const getLoginInfo = (req: Request) => {
   const accessTokenForOneApp = getBearerToken(req);
   if (accessTokenForOneApp) {
-    const decoded = jwt.verifyForOneApp(accessTokenForOneApp);
+    const decoded = oneAppJwt.verify(accessTokenForOneApp);
     if (decoded === TOKEN_EXPIRED || decoded === TOKEN_INVALID) {
       return {};
     }

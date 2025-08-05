@@ -1,7 +1,7 @@
 import { model, Schema } from "mongoose";
 import pLimit from "p-limit";
 import { oneApp as oneAppConfig } from "@/loadenv";
-import type { PayloadForOneApp } from "@/types/jwt";
+import type { OneAppTokenPayload } from "@/types/jwt";
 import redisClient from "./redis";
 
 const getTokenStore = () => {
@@ -11,7 +11,7 @@ const getTokenStore = () => {
   if (redisClient) {
     const expiry = oneAppConfig.refreshTokenExpiry / 1000; // redis는 초 단위로 만료 시간을 설정합니다.
     return {
-      insert: async (tokenId: string, payload: PayloadForOneApp) => {
+      insert: async (tokenId: string, payload: OneAppTokenPayload) => {
         await redisClient!.set(`token:${tokenId}`, JSON.stringify(payload), {
           EX: expiry,
         });
@@ -26,7 +26,7 @@ const getTokenStore = () => {
             redisClient!.del(`token:${oldTokenId}`),
             redisClient!.set(`token:${newTokenId}`, payload, { EX: expiry }),
           ]);
-          return JSON.parse(payload) as PayloadForOneApp;
+          return JSON.parse(payload) as OneAppTokenPayload;
         }),
     };
   } else {
@@ -40,7 +40,7 @@ const getTokenStore = () => {
 
     const tokenModel = model("Token", tokenSchema);
     return {
-      insert: async (tokenId: string, { oid, uid }: PayloadForOneApp) => {
+      insert: async (tokenId: string, { oid, uid }: OneAppTokenPayload) => {
         const newToken = new tokenModel({
           _id: tokenId,
           expiresAt: Date.now() + oneAppConfig.refreshTokenExpiry,
@@ -55,7 +55,7 @@ const getTokenStore = () => {
             .findById(oldTokenId, "oid uid")
             .lean();
           if (!payload) {
-            return { oid: undefined, uid: undefined };
+            return {};
           }
 
           const { oid, uid } = payload;
@@ -70,7 +70,7 @@ const getTokenStore = () => {
             tokenModel.deleteOne({ _id: oldTokenId }),
             newToken.save(),
           ]);
-          return { oid, uid } satisfies PayloadForOneApp;
+          return { oid, uid } satisfies OneAppTokenPayload;
         }),
     };
   }
