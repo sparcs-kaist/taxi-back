@@ -330,8 +330,8 @@ const getChatCountHandler = async (req, res) => {
     const { userOid } = req;
     const { roomId } = req.query;
 
-    if (!userOid) {
-      return res.status(500).send("Chat/count : internal server error");
+    if (!(await roomModel.exists({ _id: roomId }))) {
+      return res.status(404).send("Chat/count : room not found");
     }
 
     const isPart = await isUserInRoom(userOid, roomId);
@@ -341,15 +341,19 @@ const getChatCountHandler = async (req, res) => {
         .send("Chat/count : user did not participated in the room");
     }
 
+    // roomId와 isValid가 true이고, 실제 사용자 메시지(text, s3img)만 카운트
     const totalCount = await chatModel.countDocuments({
       roomId,
       isValid: true,
+      type: { $in: ["text", "s3img"] },
     });
 
-    res.json({ totalCount });
-  } catch (e) {
-    logger.error(e);
-    res.status(500).send("Chat/count : internal server error");
+    return res.status(200).json({
+      totalCount,
+    });
+  } catch (err) {
+    logger.error(err);
+    return res.status(500).send("Chat/count : internal server error");
   }
 };
 

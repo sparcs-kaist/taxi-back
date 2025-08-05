@@ -513,9 +513,13 @@ chatsDocs[`${apiPrefix}/uploadChatImg/done`] = {
 chatsDocs[`${apiPrefix}/count`] = {
   get: {
     tags: [tag],
-    summary: "방의 전체 채팅 개수 조회",
-    description: `특정 방의 유효한 채팅 개수를 반환합니다.<br/>
-    사용자가 참여한 방에 대해서만 조회할 수 있습니다.`,
+    summary: "방의 실제 사용자 채팅 개수 조회",
+    description: `특정 방의 유효한 실제 사용자 채팅 개수를 반환합니다.<br/>
+    시스템 메시지(입장/퇴장, 정산/송금, 출발/도착 알림 등)는 제외하고, 실제 사용자가 작성한 텍스트 메시지와 이미지 메시지만 카운트합니다.<br/>
+    사용자가 참여한 방에 대해서만 조회할 수 있습니다.<br/>
+    <br/>
+    포함되는 메시지 타입: "text", "s3img"<br/>
+    제외되는 메시지 타입: "in", "out", "payment", "settlement", "departure", "arrival", "account", "bot"`,
     parameters: [
       {
         in: "query",
@@ -538,7 +542,8 @@ chatsDocs[`${apiPrefix}/count`] = {
               properties: {
                 totalCount: {
                   type: "number",
-                  description: "방의 전체 채팅 개수",
+                  description:
+                    "방의 실제 사용자 채팅 개수 (시스템 메시지 제외)",
                   example: 42,
                 },
               },
@@ -550,6 +555,13 @@ chatsDocs[`${apiPrefix}/count`] = {
         content: {
           "text/html": {
             example: "Chat/count : user did not participated in the room",
+          },
+        },
+      },
+      404: {
+        content: {
+          "text/html": {
+            example: "Chat/count : room not found",
           },
         },
       },
