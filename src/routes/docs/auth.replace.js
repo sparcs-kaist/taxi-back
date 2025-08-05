@@ -70,40 +70,6 @@ authReplaceDocs[`${apiPrefix}/login/replace`] = {
   },
 };
 
-authReplaceDocs[`${apiPrefix}/logout`] = {
-  get: {
-    tags: [tag],
-    summary: "세션 삭제 및 사용자 로그아웃",
-    description: `<b>Dev 환경에서만 사용할 수 있는 API입니다.</b><br/>
-    세션을 삭제하여 사용자를 로그아웃 시킵니다.`,
-    responses: {
-      200: {
-        content: {
-          "application/json": {
-            schema: {
-              type: "object",
-              properties: {
-                ssoLogoutUrl: {
-                  type: "string",
-                  description: "SSO 로그아웃 URL",
-                  format: "uri",
-                },
-              },
-            },
-          },
-        },
-      },
-      500: {
-        content: {
-          "text/html": {
-            example: "Auth/logout : internal server error",
-          },
-        },
-      },
-    },
-  },
-};
-
 authReplaceDocs[`${apiPrefix}/sparcsapp/login`] = {
   get: {
     tags: [tag],
@@ -118,8 +84,7 @@ authReplaceDocs[`${apiPrefix}/sparcsapp/login`] = {
         schema: {
           type: "string",
           pattern: base64url.source,
-          minLength: 1,
-          maxLength: 128,
+          length: 43,
         },
         description: "Authorization Code Flow에서 사용되는 Challenge 값",
       },

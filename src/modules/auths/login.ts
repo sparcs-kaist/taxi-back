@@ -1,11 +1,12 @@
 import type { Request } from "express";
+import type { Server } from "socket.io";
 import {
-  session as sessionConfig,
   sparcssso as sparcsssoEnv,
+  session as sessionConfig,
   jwt as jwtConfig,
 } from "@/loadenv";
 import logger from "@/modules/logger";
-import * as oneAppJwt from "@/modules/auths/jwt.oneapp";
+import * as oneAppJwt from "./jwt.oneapp";
 import SsoClient from "./sparcssso";
 
 const { TOKEN_EXPIRED, TOKEN_INVALID } = jwtConfig;
@@ -17,15 +18,19 @@ export const ssoClient = !isAuthReplace
   : undefined;
 
 export interface LoginInfo {
+  /** SPARCS SSO에서 넘어온 uid. 불가피한 경우가 아니라면 사용 자제. */
   id: string;
-  sid?: string;
+  /** SPARCS SSO에서 넘어온 sid. 불가피한 경우가 아니라면 사용 자제. Taxi 플러터 앱이나 원앱 사용자의 경우 undefined. */
+  sid: string | undefined;
+  /** User Document의 ObjectId */
   oid: string;
+  /** 로그인 시각 */
   time: number;
 }
 
 export const getBearerToken = (req: Request) => {
   const parts = req.headers.authorization?.split(" ");
-  if (parts && parts.length === 2 && parts[0] === "Bearer") {
+  if (parts?.length === 2 && parts[0].toLowerCase() === "bearer") {
     return parts[1];
   } else {
     return undefined;
@@ -33,15 +38,17 @@ export const getBearerToken = (req: Request) => {
 };
 
 export const getLoginInfo = (req: Request) => {
-  const accessTokenForOneApp = getBearerToken(req);
-  if (accessTokenForOneApp) {
-    const decoded = oneAppJwt.verify(accessTokenForOneApp);
+  const bearerToken = getBearerToken(req);
+  if (bearerToken) {
+    const decoded = oneAppJwt.verify(bearerToken);
     if (decoded === TOKEN_EXPIRED || decoded === TOKEN_INVALID) {
       return {};
     }
     const { oid, uid } = decoded;
-    return { id: uid, oid };
-  } else if (req.session.loginInfo) {
+    return oid ? { id: uid, oid } : {};
+  }
+
+  if (req.session.loginInfo) {
     const { id, sid, oid, time } = req.session.loginInfo;
     const timeFlow = Date.now() - time;
     // 14일이 지난 세션에 대해서는 로그인 정보를 반환하지 않습니다.
@@ -51,6 +58,7 @@ export const getLoginInfo = (req: Request) => {
     }
     return { id, sid, oid };
   }
+
   return {};
 };
 
@@ -61,19 +69,19 @@ export const isLogin = (req: Request) => {
 };
 
 export const login = (req: Request, id: string, oid: string, sid?: string) => {
-  req.session.loginInfo = { sid, id, oid, time: Date.now() };
+  req.session.loginInfo = { id, sid, oid, time: Date.now() };
 };
 
 export const logout = (req: Request) => {
   // 로그아웃 전 socket.io 소켓들 연결부터 끊기
-  const io = req.app.get("io");
+  const io = req.app.get("io") as Server;
   if (io) {
-    const accessTokenForOneApp = getBearerToken(req);
-    if (accessTokenForOneApp) {
-      io.in(`token-${accessTokenForOneApp}`).disconnectSockets(true);
-    } else {
-      io.in(`session-${req.session.id}`).disconnectSockets(true);
-    }
+    // 순환 참조로 인해 socket.ts 파일에 있는 getSessionRoom 함수를 사용할 수 없습니다.
+    const bearerToken = getBearerToken(req);
+    const sessionRoom = bearerToken
+      ? `token-${bearerToken}`
+      : `session-${req.session.id}`;
+    io.in(sessionRoom).disconnectSockets(true);
   }
 
   req.session.destroy((err) => {

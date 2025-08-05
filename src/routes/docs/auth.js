@@ -465,8 +465,7 @@ authDocs[`${apiPrefix}/sparcsapp/login`] = {
         schema: {
           type: "string",
           pattern: base64url.source,
-          minLength: 1,
-          maxLength: 128,
+          length: 43,
         },
         description: "Authorization Code Flow에서 사용되는 Challenge 값",
       },
@@ -502,7 +501,7 @@ authDocs[`${apiPrefix}/sparcsapp/token/issue`] = {
               codeVerifier: {
                 type: "string",
                 pattern: base64url.source,
-                minLength: 1,
+                minLength: 43,
                 maxLength: 128,
                 description: "Authorization Code Flow에서 사용되는 Verifier 값",
               },
@@ -518,7 +517,7 @@ authDocs[`${apiPrefix}/sparcsapp/token/issue`] = {
           "application/json": {
             schema: {
               type: "object",
-              required: ["accessToken", "refreshToken"],
+              required: ["accessToken", "refreshToken", "ssoInfo"],
               properties: {
                 accessToken: {
                   type: "string",

@@ -1,5 +1,3 @@
-import { logout } from "@/modules/auths/login";
-import { unregisterDeviceToken } from "@/modules/fcm";
 import { transUserData, tryLogin } from "@/services/auth";
 import loginReplacePage from "@/views/loginReplacePage";
 
@@ -7,7 +5,6 @@ import type { RequestHandler } from "express";
 import type {
   LoginReplaceBody,
   SparcsssoQuery,
-  LogoutQuery,
   OneAppLoginQuery,
 } from "@/routes/docs/schemas/authSchema";
 
@@ -41,7 +38,7 @@ const createUserData = (uid: string) => {
 
 export const loginReplaceHandler: RequestHandler = (req, res) => {
   const { id } = req.body as LoginReplaceBody;
-  const loginAfterState = req.session?.loginAfterState;
+  const loginAfterState = req.session.loginAfterState;
   if (!loginAfterState)
     return res.status(400).send("Auth/login/replace : invalid request");
 
@@ -49,7 +46,7 @@ export const loginReplaceHandler: RequestHandler = (req, res) => {
   req.session.loginAfterState = undefined;
 
   const { userDataBefore, userData } = createUserData(id);
-  tryLogin(req, res, userDataBefore, userData, redirectOrigin!, redirectPath!);
+  tryLogin(req, res, userDataBefore, userData, redirectOrigin, redirectPath);
 };
 
 export const sparcsssoHandler: RequestHandler = (req, res) => {
@@ -61,27 +58,8 @@ export const sparcsssoHandler: RequestHandler = (req, res) => {
     redirectPath: redirectPath,
   };
   req.session.isApp = isApp;
-  res.end(loginReplacePage);
-};
 
-export const logoutHandler: RequestHandler = async (req, res) => {
-  const { redirect } = req.query as LogoutQuery;
-  const redirectPath = decodeURIComponent(redirect || "%2F");
-
-  try {
-    // DB에서 deviceToken 레코드를 삭제합니다.
-    const deviceToken = req.session?.deviceToken;
-    if (deviceToken) {
-      await unregisterDeviceToken(deviceToken);
-    }
-
-    // sparcs-sso 로그아웃 URL을 생성 및 반환
-    const ssoLogoutUrl = new URL(redirectPath, req.origin).href;
-    logout(req);
-    res.json({ ssoLogoutUrl });
-  } catch (e) {
-    res.status(500).send("Auth/logout : internal server error");
-  }
+  return res.end(loginReplacePage);
 };
 
 export const oneAppLoginHandler: RequestHandler = (req, res) => {
@@ -89,6 +67,7 @@ export const oneAppLoginHandler: RequestHandler = (req, res) => {
 
   req.session.loginAfterState = {};
   req.session.isApp = false;
-  req.session.oneAppState = { codeChallenge };
-  res.end(loginReplacePage);
+  req.session.oneAppLoginState = { codeChallenge };
+
+  return res.end(loginReplacePage);
 };

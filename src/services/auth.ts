@@ -80,15 +80,12 @@ const joinus = async (req: Request, userData: UserData) => {
     )
     .sort({ withdrewAt: -1 })
     .lean();
-  if (oldUser && oldUser.withdrewAt) {
+  if (
+    oldUser?.withdrewAt &&
+    req.timestamp! - oldUser.withdrewAt.getTime() < 7 * 24 * 60 * 60 * 1000
+  ) {
     // 탈퇴 후 7일이 지나지 않았을 경우, 가입을 거부합니다.
-    const diff = req.timestamp! - oldUser.withdrewAt.getTime();
-    if (diff < 7 * 24 * 60 * 60 * 1000) {
-      logger.info(
-        `Login denied: recently withdrawn user (uid: ${userData.id}, sid: ${userData.sid})`
-      );
-      return false;
-    }
+    return false;
   }
 
   const newUser = new userModel({
@@ -126,11 +123,11 @@ export const tryLogin = async (
   res: Response,
   userDataBefore: SparcsssoUserData,
   userData: UserData,
-  redirectOrigin: string,
-  redirectPath: string
+  redirectOrigin: string | undefined,
+  redirectPath: string | undefined
 ): Promise<void> => {
-  const { id: uid, sid } = userData;
-  const isOneApp = !!req.session?.oneAppState;
+  const { id: uid } = userData;
+  const isOneApp = !!req.session.oneAppLoginState;
 
   try {
     const user = await userModel.findOne(
@@ -149,14 +146,13 @@ export const tryLogin = async (
         );
       }
       // 회원가입이 거절된 경우 Taxi를 사용할 수 없습니다.
-      return grantLoginOnlyForOneApp(
-        req,
+      return denyLogin(
         res,
-        undefined,
-        uid,
-        sid,
-        userDataBefore,
-        redirectOrigin
+        isOneApp,
+        userData,
+        redirectOrigin,
+        403,
+        "registration denied"
       );
     }
     if (
@@ -181,14 +177,18 @@ export const tryLogin = async (
     }
 
     if (isOneApp) {
-      return grantLoginOnlyForOneApp(
-        req,
-        res,
-        user._id.toString(),
+      // 원앱에서 로그인하는 경우 토큰 발급을 위해 세션에 정보를 저장합니다.
+      req.session.oneAppLoginState = {
+        ...req.session.oneAppLoginState!,
+        oid: user._id.toString(),
         uid,
-        sid,
-        userDataBefore,
-        redirectOrigin
+        ssoInfo: userDataBefore,
+        time: req.timestamp!,
+      };
+      logger.info(`Tokens for ${uid} are ready to be issued`);
+      return res.redirect(
+        "sparcsapp://authorize?session=" +
+          encodeURIComponent(req.cookies["connect.sid"])
       );
     } else if (req.session.isApp) {
       const { token: accessToken } = jwt.sign({
@@ -204,13 +204,13 @@ export const tryLogin = async (
     }
 
     login(req, user.id, user._id.toString(), userData.sid);
-    return res.redirect(new URL(redirectPath, redirectOrigin).href);
+    return res.redirect(new URL(redirectPath!, redirectOrigin).href);
   } catch (err) {
     logger.error(err);
     return denyLogin(
       res,
       isOneApp,
-      undefined,
+      userData,
       redirectOrigin,
       500,
       "internal server error"
@@ -221,11 +221,14 @@ export const tryLogin = async (
 const denyLogin = (
   res: Response,
   isOneApp: boolean,
-  sid: string | undefined,
-  redirectOrigin: string,
+  userData: UserData | undefined,
+  redirectOrigin: string | undefined,
   code: number,
   description: string
 ) => {
+  logger.info(
+    `Login denied: ${description} (uid: ${userData?.id}, sid: ${userData?.sid})`
+  );
   if (isOneApp) {
     const encodedDescription = encodeURIComponent(description);
     return res.redirect(
@@ -233,37 +236,8 @@ const denyLogin = (
     );
   } else {
     const redirectUrl = new URL("/login/fail", redirectOrigin).href;
-    const ssoLogoutUrl = sid && ssoClient?.getLogoutUrl(sid, redirectUrl);
-    return res.redirect(ssoLogoutUrl ?? redirectUrl);
-  }
-};
-
-const grantLoginOnlyForOneApp = (
-  req: Request,
-  res: Response,
-  oid: string | undefined,
-  uid: string,
-  sid: string | undefined,
-  userDataBefore: SparcsssoUserData,
-  redirectOrigin: string
-) => {
-  if (req.session.oneAppState) {
-    // 원앱에서 로그인하는 경우 토큰 발급을 위해 세션에 정보를 저장합니다.
-    // oid가 없는 토큰은 다른 서비스에서의 인증 용도로 발급하는 것이며, Taxi에서는 사용할 수 없습니다.
-    req.session.oneAppState = {
-      ...req.session.oneAppState,
-      oid,
-      uid,
-      ssoInfo: userDataBefore,
-    };
-    return res.redirect(
-      "sparcsapp://authorize?session=" +
-        encodeURIComponent(req.cookies["connect.sid"])
-    );
-  } else {
-    // 웹에서 로그인하는 경우 로그인 실패 화면으로 이동합니다.
-    const redirectUrl = new URL("/login/fail", redirectOrigin).href;
-    const ssoLogoutUrl = ssoClient?.getLogoutUrl(sid, redirectUrl);
+    const ssoLogoutUrl =
+      userData?.sid && ssoClient?.getLogoutUrl(userData.sid, redirectUrl);
     return res.redirect(ssoLogoutUrl ?? redirectUrl);
   }
 };
@@ -279,12 +253,13 @@ export const sparcsssoHandler: RequestHandler = (req, res) => {
     redirectPath: redirectPath,
   };
   req.session.isApp = isApp;
-  res.redirect(url + "&social_enabled=0&show_disabled_button=0");
+
+  return res.redirect(url + "&social_enabled=0&show_disabled_button=0");
 };
 
 export const sparcsssoCallbackHandler: RequestHandler = (req, res) => {
-  const loginAfterState = req.session?.loginAfterState;
-  const isOneApp = !!req.session?.oneAppState;
+  const loginAfterState = req.session.loginAfterState;
+  const isOneApp = !!req.session.oneAppLoginState;
   const { state: stateForCmp, code } = req.query;
 
   if (!loginAfterState) {
@@ -298,59 +273,40 @@ export const sparcsssoCallbackHandler: RequestHandler = (req, res) => {
   if (!state || (!isOneApp && (!redirectOrigin || !redirectPath))) {
     return res.status(400).send("Auth/sparcssso/callback : invalid request");
   } else if (state !== stateForCmp) {
-    logger.info(`Login denied: state mismatch`);
-    denyLogin(
-      res,
-      isOneApp,
-      undefined,
-      redirectOrigin!,
-      400,
-      "invalid request"
-    ); // FIXME: redirectOrigin can be undefined
+    denyLogin(res, isOneApp, undefined, redirectOrigin, 400, "state mismatch");
     return;
   }
 
   ssoClient!.getUserInfo(code).then((userDataBefore: SparcsssoUserData) => {
     logger.info(`Login requested: ${JSON.stringify(userDataBefore)}`);
-    const { kaist_v2_info: kaistInfoV2 } = userDataBefore;
 
     const userData = transUserData(userDataBefore);
     const isTestAccount = testAccounts?.includes(userData.email);
     if (userData.isEligible || nodeEnv !== "production" || isTestAccount) {
-      tryLogin(
+      return tryLogin(
         req,
         res,
         userDataBefore,
         userData,
-        redirectOrigin!, // FIXME: redirectOrigin can be undefined
-        redirectPath! // FIXME: redirectPath can be undefined
+        redirectOrigin,
+        redirectPath
       );
-      return;
     }
 
     // 카이스트 구성원이 아닌 경우 Taxi를 사용할 수 없습니다.
-    const { id: uid, sid } = userData;
-    logger.info(`Login denied: not a KAIST member (uid: ${uid}, sid: ${sid})`);
-
-    if (kaistInfoV2) {
-      return grantLoginOnlyForOneApp(
-        req,
-        res,
-        undefined,
-        uid,
-        sid,
-        userDataBefore,
-        redirectOrigin! // FIXME: redirectOrigin can be undefined
-      );
-    }
-
-    // 카이스트 정보가 없는 경우 원앱을 사용할 수 없습니다.
-    denyLogin(res, isOneApp, sid, redirectOrigin!, 403, "no KAIST information"); // FIXME: redirectOrigin can be undefined
+    return denyLogin(
+      res,
+      isOneApp,
+      userData,
+      redirectOrigin,
+      403,
+      "not a KAIST member"
+    );
   });
 };
 
 export const loginReplaceHandler: RequestHandler = (req, res) => {
-  res.status(400).json({
+  return res.status(400).json({
     error: "Auth/login/replace : Bad Request",
   });
 };
@@ -363,18 +319,19 @@ export const logoutHandler: RequestHandler = async (req, res) => {
     const { sid } = getLoginInfo(req);
 
     // DB에서 deviceToken 레코드를 삭제합니다.
-    const deviceToken = req.session?.deviceToken;
+    const deviceToken = req.session.deviceToken;
     if (deviceToken) {
       await unregisterDeviceToken(deviceToken);
     }
 
     // 로그아웃 URL을 생성 및 반환
     const redirectUrl = new URL(redirectPath, req.origin).href;
-    const ssoLogoutUrl = ssoClient!.getLogoutUrl(sid, redirectUrl);
+    const ssoLogoutUrl = sid && ssoClient?.getLogoutUrl(sid, redirectUrl);
     logout(req);
-    res.json({ ssoLogoutUrl });
+    return res.json({ ssoLogoutUrl: ssoLogoutUrl ?? redirectUrl });
   } catch (e) {
-    res.status(500).send("Auth/logout : internal server error");
+    logger.error(e);
+    return res.status(500).send("Auth/logout : internal server error");
   }
 };
 
@@ -384,6 +341,7 @@ export const oneAppLoginHandler: RequestHandler = (req, res) => {
 
   req.session.loginAfterState = { state };
   req.session.isApp = false;
-  req.session.oneAppState = { codeChallenge };
-  res.redirect(url + "&social_enabled=0&show_disabled_button=0");
+  req.session.oneAppLoginState = { codeChallenge };
+
+  return res.redirect(url + "&social_enabled=0&show_disabled_button=0");
 };

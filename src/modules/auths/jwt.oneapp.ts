@@ -24,7 +24,7 @@ export const verify = (accessToken: string) => {
       secretKey
     ) as OneAppTokenPayload & { type?: "access" };
     // oid가 없는 토큰은 Taxi에서는 사용할 수 없습니다.
-    if (type !== "access" || oid === undefined) {
+    if (type !== "access" || !oid) {
       return TOKEN_INVALID;
     }
     return { oid, uid };

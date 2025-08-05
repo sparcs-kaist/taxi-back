@@ -45,9 +45,7 @@ export const jwt = {
   secretKey: process.env.JWT_SECRET_KEY || "TAXI_JWT_KEY", // optional
   option: {
     algorithm: "HS256" as Algorithm,
-    // FIXME: remove FRONT_URL from issuer. 단, issuer를 변경하면 이전에 발급했던 모든 JWT가 무효화됩니다.
-    // See https://github.com/sparcs-kaist/taxi-back/issues/415
-    issuer: frontUrl, // optional (default = "http://localhost:3000")
+    issuer: frontUrl,
   },
   TOKEN_EXPIRED: -3 as const,
   TOKEN_INVALID: -2 as const,

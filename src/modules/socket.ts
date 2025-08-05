@@ -1,7 +1,7 @@
-import { Server as HttpServer } from "http";
-import { Server } from "socket.io";
 import type { Request } from "express";
+import type { Server as HttpServer } from "http";
 import { Types } from "mongoose";
+import { Server } from "socket.io";
 
 import { sessionMiddleware } from "@/middlewares";
 import logger from "@/modules/logger";

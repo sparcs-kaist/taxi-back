@@ -39,10 +39,12 @@ export const authZod = {
   registerDeviceTokenHandler: tokenObject,
   removeDeviceTokenHandler: tokenObject,
   oneAppLoginHandler: z.object({
-    codeChallenge: z.string().regex(base64url).min(1).max(128),
+    // RFC 7636: 43 characters for SHA-256 base64url encoding
+    codeChallenge: z.string().regex(base64url).length(43),
   }),
   oneAppTokenIssueHandler: z.object({
-    codeVerifier: z.string().regex(base64url).min(1).max(128),
+    // RFC 7636: between 43 and 128 characters
+    codeVerifier: z.string().regex(base64url).min(43).max(128),
   }),
   oneAppTokenRefreshHandler: z.object({
     refreshToken: z.string().min(1), // Not a JWT

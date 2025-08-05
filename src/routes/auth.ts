@@ -32,7 +32,7 @@ router.post(
 router.get(
   "/logout",
   validateQuery(authZod.logoutHandler),
-  (isAuthReplace ? authReplaceHandlers : authHandlers).logoutHandler
+  authHandlers.logoutHandler
 );
 
 router.get(
