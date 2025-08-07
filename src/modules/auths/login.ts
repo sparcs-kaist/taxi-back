@@ -42,24 +42,25 @@ export const getLoginInfo = (req: Request) => {
   if (bearerToken) {
     const decoded = oneAppJwt.verify(bearerToken);
     if (decoded === TOKEN_EXPIRED || decoded === TOKEN_INVALID) {
-      return {};
+      return { id: undefined, sid: undefined, oid: undefined };
     }
     const { oid, uid } = decoded;
     return oid ? { id: uid, oid } : {};
   }
 
-  if (req.session.loginInfo) {
+  // req.session.destroy를 사용하면 req.session이 undefined가 됩니다.
+  if (req.session?.loginInfo) {
     const { id, sid, oid, time } = req.session.loginInfo;
     const timeFlow = Date.now() - time;
     // 14일이 지난 세션에 대해서는 로그인 정보를 반환하지 않습니다.
     // 세션은 새로운 요청 시 갱신되지 않습니다.
     if (timeFlow > sessionConfig.expiry) {
-      return {};
+      return { id: undefined, sid: undefined, oid: undefined };
     }
     return { id, sid, oid };
   }
 
-  return {};
+  return { id: undefined, sid: undefined, oid: undefined };
 };
 
 export const isLogin = (req: Request) => {
