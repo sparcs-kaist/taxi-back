@@ -22,31 +22,25 @@ export const roomPopulateOption = [
   },
 ];
 
-interface PopulatedParticipant
-  extends Pick<Participant, "settlementStatus" | "readAt"> {
-  user: Pick<
-    User,
-    | "_id"
-    | "id"
-    | "name"
-    | "nickname"
-    | "profileImageUrl"
-    | "withdraw"
-    | "badge"
-  > | null;
-}
+type PopulatedLocation = Pick<
+  Location,
+  "_id" | "koName" | "enName" | "latitude" | "longitude"
+>;
+type PopulatedUser = Pick<
+  User,
+  "_id" | "id" | "name" | "nickname" | "profileImageUrl" | "withdraw" | "badge"
+>;
+type PopulatedParticipant = Pick<Participant, "settlementStatus" | "readAt"> & {
+  user: PopulatedUser | null;
+};
 
 export interface PopulatedRoom extends Omit<Room, "from" | "to" | "part"> {
-  from: Pick<
-    Location,
-    "_id" | "koName" | "enName" | "latitude" | "longitude"
-  > | null;
-  to: Pick<
-    Location,
-    "_id" | "koName" | "enName" | "latitude" | "longitude"
-  > | null;
+  from: PopulatedLocation | null;
+  to: PopulatedLocation | null;
   part: PopulatedParticipant[];
 }
+
+export type RoomPopulatePath = Pick<PopulatedRoom, "from" | "to" | "part">;
 
 interface FormattedLocation {
   _id: string;
