@@ -1,6 +1,11 @@
 import type { RequestHandler } from "express";
 import { Types, type PipelineStage } from "mongoose";
-import { roomModel, locationModel, userModel } from "@/modules/stores/mongo";
+import {
+  roomModel,
+  locationModel,
+  userModel,
+  chatModel,
+} from "@/modules/stores/mongo";
 import { emitChatEvent } from "@/modules/socket";
 import logger from "@/modules/logger";
 import {
@@ -28,6 +33,12 @@ const eventPeriod = eventConfig && {
 };
 
 type CandidateRoom = Pick<Room, "from" | "to" | "time" | "maxPartLength">;
+
+interface SettlementMeta {
+  total: number;
+  perPerson: number;
+  participantCount: number;
+}
 
 export const createHandler: RequestHandler = async (req, res) => {
   const { name, from, to, time, maxPartLength } = req.body as CreateBody;
@@ -637,7 +648,7 @@ export const commitSettlementHandler: RequestHandler = async (req, res) => {
         .json({ error: "Rooms/:id/commitSettlement : User not found" });
     }
 
-    const { roomId } = req.body;
+    const { roomId, settlementAmount } = req.body;
     const roomObject = await roomModel
       .findOneAndUpdate(
         {
@@ -688,11 +699,28 @@ export const commitSettlementHandler: RequestHandler = async (req, res) => {
 
     await user.save();
 
+    const participantCount = roomObject.part.length;
+
+    // 정산 금액이 있을 시 총액, 인당 금액, 인원 수를 포함하는 데이터 생성.
+    const settlementMeta: SettlementMeta | undefined =
+      typeof settlementAmount === "number"
+        ? (() => {
+            const total = Math.trunc(settlementAmount);
+            const perPerson = Math.floor(total / participantCount);
+            return { total, perPerson, participantCount };
+          })()
+        : undefined;
+
+    const content =
+      settlementMeta !== undefined
+        ? JSON.stringify(settlementMeta)
+        : user._id.toString();
+
     // 정산 채팅을 보냅니다.
     await emitChatEvent(req.app.get("io"), {
       roomId,
       type: "settlement",
-      content: user._id.toString(),
+      content,
       authorId: user._id.toString(),
     });
 
@@ -769,11 +797,29 @@ export const commitPaymentHandler: RequestHandler = async (req, res) => {
 
     await user.save();
 
+    const lastSettlement = await chatModel
+      .findOne({ roomId, type: "settlement" })
+      .sort({ time: -1 })
+      .lean();
+
+    const contentForPayment = (() => {
+      try {
+        const parsed = JSON.parse(lastSettlement?.content ?? "");
+        return typeof parsed.total === "number" &&
+          typeof parsed.perPerson === "number" &&
+          typeof parsed.participantCount === "number"
+          ? lastSettlement!.content
+          : user._id.toString();
+      } catch {
+        return user._id.toString();
+      }
+    })();
+
     // 송금 채팅을 보냅니다.
     await emitChatEvent(req.app.get("io"), {
       roomId,
       type: "payment",
-      content: user._id.toString(),
+      content: contentForPayment,
       authorId: user._id.toString(),
     });
 

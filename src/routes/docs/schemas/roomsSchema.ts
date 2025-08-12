@@ -72,6 +72,7 @@ export const roomsZod = {
 
   commitSettlementHandler: z.object({
     roomId: z.string().regex(patterns.objectId),
+    settlementAmount: z.coerce.number().int().positive().optional(),
   }),
 
   commitPaymentHandler: z.object({

@@ -26,6 +26,12 @@ class IllegalArgumentsException {
   }
 }
 
+interface SettlementMeta {
+  total: number;
+  perPerson: number;
+  participantCount: number;
+}
+
 interface TransformedChat {
   roomId: string;
   type: ChatType;
@@ -37,6 +43,7 @@ interface TransformedChat {
   time: Date;
   isValid: boolean;
   inOutNames?: string[];
+  settlementMeta?: SettlementMeta;
 }
 
 /**
@@ -57,6 +64,29 @@ export const transformChatsForRoom = async (chats: PopulatedChat[]) => {
           })
         );
       }
+
+      const settlementMeta: SettlementMeta | undefined =
+        chat.type === "settlement"
+          ? (() => {
+              try {
+                const parsed = JSON.parse(
+                  chat.content
+                ) as Partial<SettlementMeta>;
+                return typeof parsed?.total === "number" &&
+                  typeof parsed?.perPerson === "number" &&
+                  typeof parsed?.participantCount === "number"
+                  ? {
+                      total: parsed.total,
+                      perPerson: parsed.perPerson,
+                      participantCount: parsed.participantCount,
+                    }
+                  : undefined;
+              } catch {
+                return undefined;
+              }
+            })()
+          : undefined;
+
       return {
         roomId: chat.roomId.toString(),
         type: chat.type!,
@@ -68,6 +98,7 @@ export const transformChatsForRoom = async (chats: PopulatedChat[]) => {
         time: chat.time,
         isValid: chat.isValid,
         inOutNames,
+        ...(settlementMeta ? { settlementMeta } : {}),
       } satisfies TransformedChat;
     })
   );
