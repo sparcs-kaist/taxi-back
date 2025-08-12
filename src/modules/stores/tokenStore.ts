@@ -2,7 +2,7 @@ import { model, Schema } from "mongoose";
 import pLimit from "p-limit";
 import { oneApp as oneAppConfig } from "@/loadenv";
 import type { OneAppTokenPayload } from "@/types/jwt";
-import redisClient from "./redis";
+import { redisClient } from "./redis";
 
 const { refreshTokenExpiry: expiry } = oneAppConfig;
 

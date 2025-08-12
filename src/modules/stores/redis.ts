@@ -23,4 +23,4 @@ const getRedisClient = () => {
   return client;
 };
 
-export default getRedisClient();
+export const redisClient = getRedisClient();
