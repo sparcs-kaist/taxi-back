@@ -42,7 +42,7 @@ logininfoDocs[`${apiPrefix}`] = {
                 },
                 badge: {
                   type: "boolean",
-                  description: " 뱃지 on/off",
+                  description: "뱃지 on/off",
                 },
                 residence: {
                   type: "string",
