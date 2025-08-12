@@ -1,13 +1,14 @@
-const { userModel } = require("@/modules/stores/mongo");
-const { notificationOptionModel } = require("@/modules/stores/mongo");
-const logger = require("@/modules/logger").default;
+import { userModel } from "@/modules/stores/mongo";
+import { notificationOptionModel } from "@/modules/stores/mongo";
+import logger from "@/modules/logger";
+import type { RequestHandler } from "express";
 
-const { registerDeviceToken, validateDeviceToken } = require("@/modules/fcm");
+import { registerDeviceToken, validateDeviceToken } from "@/modules/fcm";
 
 // 이벤트 코드입니다.
 import { contracts } from "@/lottery";
 
-const registerDeviceTokenHandler = async (req, res) => {
+export const registerDeviceTokenHandler: RequestHandler = async (req, res) => {
   try {
     // 해당 FCM device token이 유효한지 검사합니다.
     const { deviceToken } = req.body;
@@ -23,7 +24,12 @@ const registerDeviceTokenHandler = async (req, res) => {
       { _id: req.userOid, withdraw: false },
       "_id"
     );
-    const newDeviceToken = await registerDeviceToken(user._id, deviceToken);
+    if (!user)
+      return res.status(400).send("Notifications/userModel : user is invalid");
+    const newDeviceToken = await registerDeviceToken(
+      user._id.toString(),
+      deviceToken
+    );
 
     // 세션에 현재 사용자 기기의 deviceToken을 저장합니다.
     req.session.deviceToken = deviceToken;
@@ -39,7 +45,7 @@ const registerDeviceTokenHandler = async (req, res) => {
   }
 };
 
-const optionsHandler = async (req, res) => {
+export const optionsHandler: RequestHandler = async (req, res) => {
   try {
     // 세션에 deviceToken이 저장되어 있는지 검사합니다.
     const { deviceToken } = req.session;
@@ -71,7 +77,7 @@ const optionsHandler = async (req, res) => {
   }
 };
 
-const editOptionsHandler = async (req, res) => {
+export const editOptionsHandler: RequestHandler = async (req, res) => {
   try {
     const { options } = req.body;
 
@@ -84,14 +90,17 @@ const editOptionsHandler = async (req, res) => {
     }
 
     // FIXME : can refactor with using reduce
-    const newOptions = {};
+    type newOptionsSignature = {
+      [key: string]: string;
+    };
+    const newOptions: newOptionsSignature = {};
     const booleanFields = [
       "chatting",
       "beforeDepart",
       "notice",
       "advertisement",
     ];
-    booleanFields.map((field) => {
+    booleanFields.map((field: string) => {
       if (options[field] === true || options[field] === false) {
         newOptions[field] = options[field];
       }
@@ -124,10 +133,4 @@ const editOptionsHandler = async (req, res) => {
       .status(500)
       .send("Notification/editOptions: internal server error");
   }
-};
-
-module.exports = {
-  registerDeviceTokenHandler,
-  optionsHandler,
-  editOptionsHandler,
 };

@@ -127,6 +127,16 @@ export interface Location extends Document<Types.ObjectId> {
   longitude: number;
 }
 
+export type LocationLean = {
+  _id: Types.ObjectId;
+  enName: string;
+  koName: string;
+  priority: number;
+  isValid: boolean;
+  latitude: number;
+  longitude: number;
+};
+
 export type ChatType =
   | "text"
   | "in"

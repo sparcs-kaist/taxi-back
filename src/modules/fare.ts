@@ -1,8 +1,9 @@
-const axios = require("axios");
-const logger = require("./logger").default;
-
-const { naverMap } = require("@/loadenv");
-const { taxiFareModel, locationModel } = require("./stores/mongo");
+import axios from "axios";
+import logger from "./logger";
+import { naverMap } from "@/loadenv";
+import { taxiFareModel, locationModel } from "./stores/mongo";
+import type { AnyBulkWriteOperation } from "mongodb";
+import type { LocationLean } from "@/types/mongo";
 
 const naverMapApi = {
   "X-NCP-APIGW-API-KEY-ID": naverMap.apiId,
@@ -17,7 +18,7 @@ const timeConstants = 48;
  * @param {Date} time: 시간
  * @returns {number} scaledTime
  */
-const scaledTime = (time) => {
+export const scaledTime = (time: Date) => {
   return (
     timeConstants * time.getDay() +
     time.getHours() * 2 +
@@ -29,7 +30,7 @@ const scaledTime = (time) => {
  * 데이터베이스를 초기화합니다. 존재하지 않는 필드가 있을때, 기존의 값으로 초기화해 놓거나, 아얘 비어있을 경우에 api를 통해 값을 받아와 초기화합니다.
  * @returns
  */
-const initializeDatabase = async () => {
+export const initializeDatabase = async () => {
   try {
     if (
       !naverMapApi["X-NCP-APIGW-API-KEY"] ||
@@ -40,7 +41,7 @@ const initializeDatabase = async () => {
       );
       return;
     }
-    const location = await locationModel
+    const location: LocationLean[] = await locationModel
       .find({ isValid: { $eq: true } })
       .lean();
 
@@ -49,7 +50,7 @@ const initializeDatabase = async () => {
         return Promise.all(
           location.map(async (to) => {
             if (from._id === to._id) return;
-            let tableFare = [];
+            let tableFare: AnyBulkWriteOperation[] = [];
             const prevTaxiFare = (
               await taxiFareModel
                 .findOne(
@@ -113,7 +114,7 @@ const initializeDatabase = async () => {
       })
     );
   } catch (err) {
-    logger.error("Error occured while initializing database: " + err.message);
+    logger.error("Error occured while initializing database: " + err);
   }
 };
 
@@ -124,7 +125,7 @@ const initializeDatabase = async () => {
  * @param {number} sTime - 출발 시간 (scaledTime에 의해 변경된 시간, 0 ~ 6 (Sunday~Saturday) * 48 + 0 ~ 47 (0:00 ~ 23:30))
  * @param {Boolean} isMajor - 카이스트 본원 <-> 대전역 경로 / 이외 경로
  */
-const updateTaxiFare = async (sTime, isMajor) => {
+export const updateTaxiFare = async (sTime: number, isMajor: Boolean) => {
   if (
     !naverMapApi["X-NCP-APIGW-API-KEY"] ||
     !naverMapApi["X-NCP-APIGW-API-KEY-ID"]
@@ -141,8 +142,12 @@ const updateTaxiFare = async (sTime, isMajor) => {
     })
     .lean();
   await prevFares.reduce(async (acc, item) => {
-    const from = await locationModel.findOne({ _id: item.from });
-    const to = await locationModel.findOne({ _id: item.to });
+    const from: LocationLean = await locationModel
+      .findOne({ _id: item.from })
+      .lean();
+    const to: LocationLean = await locationModel
+      .findOne({ _id: item.to })
+      .lean();
 
     await acc;
     await callTaxiFare(from, to)
@@ -163,11 +168,11 @@ const updateTaxiFare = async (sTime, isMajor) => {
 };
 
 /**
- * @param {locationSchema} from : 출발지 (longitude, latitude)
- * @param {locationSchema} to : 도착지 (longitude, latitude)
+ * @param {LocationLean} from : 출발지 (longitude, latitude)
+ * @param {LocationLean} to : 도착지 (longitude, latitude)
  * @returns naver map api call을 통해 받아온 예상 택시 요금
  */
-const callTaxiFare = async (from, to) => {
+export const callTaxiFare = async (from: LocationLean, to: LocationLean) => {
   if (
     !naverMapApi["X-NCP-APIGW-API-KEY"] ||
     !naverMapApi["X-NCP-APIGW-API-KEY-ID"]
@@ -183,11 +188,4 @@ const callTaxiFare = async (from, to) => {
       { headers: naverMapApi }
     )
   ).data.route.traoptimal[0].summary.taxiFare;
-};
-
-module.exports = {
-  scaledTime,
-  initializeDatabase,
-  updateTaxiFare,
-  callTaxiFare,
 };
