@@ -156,13 +156,13 @@ export const getIsOver = (roomObject: PopulatedRoom, userOid: string) => {
  * @param roomId - 방의 ObjectId
  * @param userOid - 사용자의 ObjectId
  * @param userReadAt - 사용자가 마지막으로 읽은 시간 (참여자의 readAt 필드)
- * @return 읽지 않은 메시지 개수를 반환합니다.
+ * @return 읽지 않은 메시지 개수와 중요한 메시지 여부를 반환합니다.
  */
 export const calculateUnreadCount = async (
   roomId: string,
   userOid: string,
   userReadAt?: Date
-): Promise<number> => {
+): Promise<{ unreadCount: number; hasImportantMessage: boolean }> => {
   try {
     // 사용자가 한 번도 읽지 않았다면 (readAt이 없다면) 모든 메시지를 unread로 간주
     if (!userReadAt) {
@@ -171,7 +171,18 @@ export const calculateUnreadCount = async (
         type: { $in: ["text", "s3img"] },
         authorId: { $ne: userOid }, // 본인 메시지는 제외
       });
-      return totalCount;
+
+      // 중요한 메시지가 있는지 확인
+      const importantCount = await chatModel.countDocuments({
+        roomId,
+        type: { $in: ["payment", "settlement", "account", "in", "out"] },
+        authorId: { $ne: userOid }, // 본인 메시지는 제외
+      });
+
+      return {
+        unreadCount: totalCount,
+        hasImportantMessage: importantCount > 0,
+      };
     }
 
     // readAt 이후의 메시지 개수를 계산 (본인 메시지 제외)
@@ -182,9 +193,20 @@ export const calculateUnreadCount = async (
       authorId: { $ne: userOid }, // 본인 메시지는 제외
     });
 
-    return unreadCount;
+    // readAt 이후의 중요한 메시지가 있는지 확인
+    const importantCount = await chatModel.countDocuments({
+      roomId,
+      type: { $in: ["payment", "settlement", "account", "in", "out"] },
+      time: { $gt: userReadAt },
+      authorId: { $ne: userOid }, // 본인 메시지는 제외
+    });
+
+    return {
+      unreadCount,
+      hasImportantMessage: importantCount > 0,
+    };
   } catch (error) {
     console.error(`Error calculating unread count for room ${roomId}:`, error);
-    return 0;
+    return { unreadCount: 0, hasImportantMessage: false };
   }
 };

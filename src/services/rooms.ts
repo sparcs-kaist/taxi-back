@@ -541,8 +541,8 @@ export const searchByUserHandler: RequestHandler = async (req, res) => {
           (participant) => participant.user?._id?.toString() === req.userOid
         );
 
-        const unreadCount = await calculateUnreadCount(
-          room._id?.toString() || "",
+        const { unreadCount, hasImportantMessage } = await calculateUnreadCount(
+          room._id!.toString(),
           req.userOid!,
           userParticipant?.readAt
         );
@@ -550,6 +550,7 @@ export const searchByUserHandler: RequestHandler = async (req, res) => {
         return {
           ...formatSettlement(room, { isOver: false }),
           unreadCount,
+          hasImportantMessage,
         };
       })
     );
@@ -561,8 +562,8 @@ export const searchByUserHandler: RequestHandler = async (req, res) => {
           (participant) => participant.user?._id?.toString() === req.userOid
         );
 
-        const unreadCount = await calculateUnreadCount(
-          room._id?.toString() || "",
+        const { unreadCount, hasImportantMessage } = await calculateUnreadCount(
+          room._id!.toString(),
           req.userOid!,
           userParticipant?.readAt
         );
@@ -570,11 +571,10 @@ export const searchByUserHandler: RequestHandler = async (req, res) => {
         return {
           ...formatSettlement(room, { isOver: true }),
           unreadCount,
+          hasImportantMessage,
         };
       })
-    );
-
-    // 정산완료여부 기준으로 진행중인 방과 완료된 방을 분리해서 응답을 전송합니다.
+    ); // 정산완료여부 기준으로 진행중인 방과 완료된 방을 분리해서 응답을 전송합니다.
     return res.json({
       ongoing: ongoingRoomsWithUnread,
       done: doneRoomsWithUnread,
