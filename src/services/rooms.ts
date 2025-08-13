@@ -7,6 +7,7 @@ import {
   roomPopulateOption,
   formatSettlement,
   getIsOver,
+  calculateUnreadCount,
   type PopulatedRoom,
 } from "@/modules/populates/rooms";
 import type {
@@ -532,14 +533,51 @@ export const searchByUserHandler: RequestHandler = async (req, res) => {
         .json({ error: "Rooms/searchByUser : User not found" });
     }
 
+    // 각 방에 대해 unread count를 계산
+    const ongoingRoomsWithUnread = await Promise.all(
+      user.ongoingRoom.map(async (room) => {
+        // 해당 사용자의 readAt 찾기
+        const userParticipant = room.part.find(
+          (participant) => participant.user?._id?.toString() === req.userOid
+        );
+
+        const unreadCount = await calculateUnreadCount(
+          room._id?.toString() || "",
+          req.userOid!,
+          userParticipant?.readAt
+        );
+
+        return {
+          ...formatSettlement(room, { isOver: false }),
+          unreadCount,
+        };
+      })
+    );
+
+    const doneRoomsWithUnread = await Promise.all(
+      user.doneRoom.map(async (room) => {
+        // 해당 사용자의 readAt 찾기
+        const userParticipant = room.part.find(
+          (participant) => participant.user?._id?.toString() === req.userOid
+        );
+
+        const unreadCount = await calculateUnreadCount(
+          room._id?.toString() || "",
+          req.userOid!,
+          userParticipant?.readAt
+        );
+
+        return {
+          ...formatSettlement(room, { isOver: true }),
+          unreadCount,
+        };
+      })
+    );
+
     // 정산완료여부 기준으로 진행중인 방과 완료된 방을 분리해서 응답을 전송합니다.
     return res.json({
-      ongoing: user.ongoingRoom.map((room) =>
-        formatSettlement(room, { isOver: false })
-      ),
-      done: user.doneRoom.map((room) =>
-        formatSettlement(room, { isOver: true })
-      ),
+      ongoing: ongoingRoomsWithUnread,
+      done: doneRoomsWithUnread,
     });
   } catch (err) {
     logger.error(err);

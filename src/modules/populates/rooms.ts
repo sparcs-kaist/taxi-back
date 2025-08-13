@@ -5,6 +5,7 @@ import type {
   Room,
   Location,
 } from "@/types/mongo";
+import { chatModel } from "@/modules/stores/mongo";
 
 /**
  * 쿼리를 통해 얻은 Room Document를 populate할 설정값을 정의합니다.
@@ -148,4 +149,42 @@ export const getIsOver = (roomObject: PopulatedRoom, userOid: string) => {
 
   // 방에 참여중인 사용자의 경우, 정산 상태가 완료된 것인지("paid"거나 "sent"인지)를 반환합니다.
   return ["paid", "sent"].includes(participantSubDocuments[0].settlementStatus);
+};
+
+/**
+ * 주어진 방에서 사용자의 unread count를 계산합니다.
+ * @param roomId - 방의 ObjectId
+ * @param userOid - 사용자의 ObjectId
+ * @param userReadAt - 사용자가 마지막으로 읽은 시간 (참여자의 readAt 필드)
+ * @return 읽지 않은 메시지 개수를 반환합니다.
+ */
+export const calculateUnreadCount = async (
+  roomId: string,
+  userOid: string,
+  userReadAt?: Date
+): Promise<number> => {
+  try {
+    // 사용자가 한 번도 읽지 않았다면 (readAt이 없다면) 모든 메시지를 unread로 간주
+    if (!userReadAt) {
+      const totalCount = await chatModel.countDocuments({
+        roomId,
+        type: { $in: ["text", "s3img"] },
+        authorId: { $ne: userOid }, // 본인 메시지는 제외
+      });
+      return totalCount;
+    }
+
+    // readAt 이후의 메시지 개수를 계산 (본인 메시지 제외)
+    const unreadCount = await chatModel.countDocuments({
+      roomId,
+      type: { $in: ["text", "s3img"] },
+      time: { $gt: userReadAt },
+      authorId: { $ne: userOid }, // 본인 메시지는 제외
+    });
+
+    return unreadCount;
+  } catch (error) {
+    console.error(`Error calculating unread count for room ${roomId}:`, error);
+    return 0;
+  }
 };
