@@ -1,6 +1,7 @@
 export default {
   objectId: RegExp("^[a-fA-F\\d]{24}$"),
   jwtToken: RegExp("^[\\w-]+\\.[\\w-]+\\.[\\w-]+$"),
+  base64url: RegExp("^[A-Za-z0-9-_]+$"),
   room: {
     name: RegExp(
       "^[A-Za-z0-9가-힣ㄱ-ㅎㅏ-ㅣ,.?! _~/#'\\\\@=\"\\-\\^()+*<>{}[\\]]{1,50}$" // ,.?/#'\@="-^()+*<>{}[] 허용

@@ -8,6 +8,7 @@ import {
   transformChatsForRoom,
   emitChatEvent,
   emitUpdateEvent,
+  getSessionRoom,
 } from "@/modules/socket";
 import logger from "@/modules/logger";
 
@@ -29,7 +30,6 @@ export const loadRecentChatHandler: RequestHandler = async (req, res) => {
     const io = req.app.get("io");
     const { userOid } = req;
     const { roomId }: LoadRecentChatBody = req.body;
-    const { id: sessionId } = req.session;
     if (!userOid) {
       return res.status(500).send("Chat/ : internal server error");
     }
@@ -53,7 +53,7 @@ export const loadRecentChatHandler: RequestHandler = async (req, res) => {
 
     if (chats) {
       chats.reverse();
-      io.in(`session-${sessionId}`).emit("chat_init", {
+      io.in(getSessionRoom(req)).emit("chat_init", {
         chats: await transformChatsForRoom(chats),
       });
       return res.json({ result: true });
@@ -71,7 +71,6 @@ export const loadBeforeChatHandler: RequestHandler = async (req, res) => {
     const io = req.app.get("io");
     const { userOid } = req;
     const { roomId, lastMsgDate }: LoadBeforeChatBody = req.body;
-    const { id: sessionId } = req.session;
     if (!userOid) {
       return res.status(500).send("Chat/load/before : internal server error");
     }
@@ -97,7 +96,7 @@ export const loadBeforeChatHandler: RequestHandler = async (req, res) => {
 
     if (chats) {
       chats.reverse();
-      io.in(`session-${sessionId}`).emit("chat_push_front", {
+      io.in(getSessionRoom(req)).emit("chat_push_front", {
         chats: await transformChatsForRoom(chats),
       });
       return res.json({ result: true });
@@ -115,7 +114,6 @@ export const loadAfterChatHandler: RequestHandler = async (req, res) => {
     const io = req.app.get("io");
     const { userOid } = req;
     const { roomId, lastMsgDate }: LoadAfterChatBody = req.body;
-    const { id: sessionId } = req.session;
     if (!userOid) {
       return res.status(500).send("Chat/load/after : internal server error");
     }
@@ -138,7 +136,7 @@ export const loadAfterChatHandler: RequestHandler = async (req, res) => {
       .populate<ChatPopulatePath>(chatPopulateOption);
 
     if (chats) {
-      io.in(`session-${sessionId}`).emit("chat_push_back", {
+      io.in(getSessionRoom(req)).emit("chat_push_back", {
         chats: await transformChatsForRoom(chats),
       });
       return res.json({ result: true });

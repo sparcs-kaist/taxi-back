@@ -1,11 +1,11 @@
-import { Server as HttpServer } from "http";
-import { Server } from "socket.io";
 import type { Request } from "express";
+import type { Server as HttpServer } from "http";
 import { Types } from "mongoose";
+import { Server } from "socket.io";
 
 import { sessionMiddleware } from "@/middlewares";
 import logger from "@/modules/logger";
-import { getLoginInfo } from "@/modules/auths/login";
+import { getLoginInfo, getBearerToken } from "@/modules/auths/login";
 import { roomModel, userModel, chatModel } from "@/modules/stores/mongo";
 import { getTokensOfUsers, sendMessageByTokens } from "@/modules/fcm";
 import { corsWhiteList } from "@/loadenv";
@@ -269,17 +269,27 @@ export const startSocketServer = (server: HttpServer) => {
   io.on("connection", (socket) => {
     try {
       const req = socket.request as Request;
-      req.session.reload((err) => {
-        if (err) {
+      const bearerToken = getBearerToken(req);
+      const joinRooms = () => {
+        const { oid: userOid } = getLoginInfo(req);
+        if (!userOid) {
           return socket.disconnect();
         }
 
-        const { oid: userOid } = getLoginInfo(req);
-        if (!userOid) return;
-
-        socket.join(`session-${req.session.id}`);
+        socket.join(getSessionRoom(req));
         socket.join(`user-${userOid}`);
-      });
+      };
+
+      if (bearerToken) {
+        joinRooms();
+      } else {
+        req.session.reload((err) => {
+          if (err) {
+            return socket.disconnect();
+          }
+          joinRooms();
+        });
+      }
 
       socket.on("disconnect", () => {});
     } catch (err) {
@@ -288,4 +298,9 @@ export const startSocketServer = (server: HttpServer) => {
   });
 
   return io;
+};
+
+export const getSessionRoom = (req: Request) => {
+  const bearerToken = getBearerToken(req);
+  return bearerToken ? `token-${bearerToken}` : `session-${req.session.id}`;
 };
