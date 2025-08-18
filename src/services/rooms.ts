@@ -705,7 +705,7 @@ export const commitSettlementHandler: RequestHandler = async (req, res) => {
     const settlementMeta: SettlementMeta | undefined =
       typeof settlementAmount === "number"
         ? (() => {
-            const total = Math.trunc(settlementAmount);
+            const total = settlementAmount;
             const perPerson = Math.floor(total / participantCount);
             return { total, perPerson, participantCount };
           })()
