@@ -1,12 +1,11 @@
 import express from "express";
 import { body } from "express-validator";
-import { authMiddleware, validatorMiddleware } from "@/middlewares";
+import { authMiddleware, validateBody } from "@/middlewares";
 import patterns from "@/modules/patterns";
 
 const router = express.Router();
 import * as userHandlers from "@/services/users";
-
-import { replaceSpaceInNickname } from "@/modules/modifyProfile";
+import { usersZod } from "./docs/schemas/usersSchema";
 
 // 라우터 접근 시 로그인 필요
 router.use(authMiddleware);
@@ -24,10 +23,7 @@ router.get(
 // 새 닉네임을 받아 로그인된 유저의 닉네임을 변경합니다.
 router.post(
   "/editNickname",
-  body("nickname")
-    .customSanitizer(replaceSpaceInNickname)
-    .matches(patterns.user.nickname),
-  validatorMiddleware,
+  validateBody(usersZod.editNicknameHandler),
   userHandlers.editNicknameHandler
 );
 
@@ -37,16 +33,14 @@ router.get("/resetNickname", userHandlers.resetNicknameHandler);
 // 새 계좌번호를 받아 로그인된 유저의 계좌번호를 변경합니다.
 router.post(
   "/editAccount",
-  body("account").matches(patterns.user.account),
-  validatorMiddleware,
+  validateBody(usersZod.editAccountHandler),
   userHandlers.editAccountHandler
 );
 
 // 새 전화번호를 받아 로그인된 유저의 전화번호를 저장합니다.
 router.post(
   "/registerPhoneNumber",
-  body("phoneNumber").matches(patterns.user.phoneNumber),
-  validatorMiddleware,
+  validateBody(usersZod.registerPhoneNumberHandler),
   userHandlers.registerPhoneNumberHandler
 );
 
@@ -56,8 +50,7 @@ router.post("/editBadge", userHandlers.editBadgeHandler);
 // 프로필 이미지를 업로드할 수 있는 Presigned-url을 발급합니다.
 router.post(
   "/editProfileImg/getPUrl",
-  body("type").matches(patterns.user.profileImgType),
-  validatorMiddleware,
+  validateBody(usersZod.editProfileImgGetPUrlHandler),
   userHandlers.editProfileImgGetPUrlHandler
 );
 
@@ -71,6 +64,6 @@ router.get("/resetProfileImg", userHandlers.resetProfileImgHandler);
 router.get("/getBanRecord", userHandlers.getBanRecordHandler);
 
 // 회원 탈퇴를 요청합니다.
-router.post("/withdraw", validatorMiddleware, userHandlers.withdrawHandler);
+router.post("/withdraw", userHandlers.withdrawHandler);
 
 export default router;
