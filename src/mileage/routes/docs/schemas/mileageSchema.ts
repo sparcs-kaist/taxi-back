@@ -3,11 +3,11 @@ import { zodToSchemaObject } from "@/routes/docs/utils";
 
 export const mileageZod = {
   transactionCreateHandler: z.object({
-    type: z.enum(["ride", "event"]),
+    type: z.string(),
     amount: z.number(),
   }),
   transactionViewHandler: z.object({
-    type: z.enum(["ride", "event"]),
+    type: z.string(),
     page: z.number(),
   }),
   leaderboardHandler: z.object({

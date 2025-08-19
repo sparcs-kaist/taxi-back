@@ -86,7 +86,7 @@ if (eventConfig) {
 }
 
 // [Router] 마일리지 전용 라우터입니다.
-app.use("mileage", mileageRouter);
+app.use("/mileage", mileageRouter);
 
 // [Middleware] 모든 API 요청에 대하여 origin 검증
 app.use(originValidatorMiddleware);
