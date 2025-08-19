@@ -205,3 +205,14 @@ export interface Notice extends Document<Types.ObjectId> {
   is_pinned: boolean;
   is_active: boolean;
 }
+
+export type MileageType = "ride" | "event";
+
+export interface Mileage extends Document<Types.ObjectId> {
+  /** 대상 유저의 ObjectId */
+  user: Types.ObjectId;
+  amount: number;
+  type: MileageType;
+  createAt: Date;
+  expireAt: Date;
+}

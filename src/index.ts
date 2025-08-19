@@ -40,6 +40,7 @@ import { startSocketServer } from "@/modules/socket";
 import { connectDatabase } from "@/modules/stores/mongo";
 import registerSchedules from "@/schedules";
 import { lotteryRouter } from "@/lottery";
+import mileageRouter from "@/mileage";
 
 // Firebase Admin 초기설정
 initializeFirebase();
@@ -83,6 +84,9 @@ app.use("/docs", docsRouter);
 if (eventConfig) {
   app.use(`/events/${eventConfig.mode}`, lotteryRouter);
 }
+
+// [Router] 마일리지 전용 라우터입니다.
+app.use("mileage", mileageRouter);
 
 // [Middleware] 모든 API 요청에 대하여 origin 검증
 app.use(originValidatorMiddleware);

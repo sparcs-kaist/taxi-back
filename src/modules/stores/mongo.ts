@@ -15,6 +15,7 @@ import type {
   AdminLog,
   TaxiFare,
   Notice,
+  Mileage,
 } from "@/types/mongo";
 
 const userSchema = new Schema<User>({
@@ -266,6 +267,20 @@ const noticeSchema = new Schema<Notice>(
 );
 
 export const noticeModel = model("Notice", noticeSchema);
+
+const mileageSchema = new Schema<Mileage>({
+  user: { type: Schema.Types.ObjectId, ref: "User", required: true },
+  amount: { type: Number, required: true },
+  type: {
+    type: String,
+    enum: ["ride", "event"],
+    required: true,
+  },
+  createAt: { type: Date, required: true },
+  expireAt: { type: Date, required: true },
+});
+
+export const mileageModel = model("Mileage", mileageSchema);
 
 mongoose.set("strictQuery", true);
 
