@@ -540,13 +540,11 @@ export const searchByUserHandler: RequestHandler = async (req, res) => {
         const userParticipant = room.part.find(
           (participant) => participant.user?._id?.toString() === req.userOid
         );
-
         const { unreadCount, hasImportantMessage } = await calculateUnreadCount(
           room._id!.toString(),
           req.userOid!,
           userParticipant?.readAt
         );
-
         return {
           ...formatSettlement(room, { isOver: false }),
           unreadCount,
@@ -561,13 +559,11 @@ export const searchByUserHandler: RequestHandler = async (req, res) => {
         const userParticipant = room.part.find(
           (participant) => participant.user?._id?.toString() === req.userOid
         );
-
         const { unreadCount, hasImportantMessage } = await calculateUnreadCount(
           room._id!.toString(),
           req.userOid!,
           userParticipant?.readAt
         );
-
         return {
           ...formatSettlement(room, { isOver: true }),
           unreadCount,

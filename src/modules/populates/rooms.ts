@@ -5,7 +5,7 @@ import type {
   Room,
   Location,
 } from "@/types/mongo";
-import { chatModel } from "@/modules/stores/mongo";
+import { chatModel, roomModel } from "@/modules/stores/mongo";
 
 /**
  * 쿼리를 통해 얻은 Room Document를 populate할 설정값을 정의합니다.
@@ -155,52 +155,40 @@ export const getIsOver = (roomObject: PopulatedRoom, userOid: string) => {
  * 주어진 방에서 사용자의 unread count를 계산합니다.
  * @param roomId - 방의 ObjectId
  * @param userOid - 사용자의 ObjectId
- * @param userReadAt - 사용자가 마지막으로 읽은 시간 (참여자의 readAt 필드)
  * @return 읽지 않은 메시지 개수와 중요한 메시지 여부를 반환합니다.
  */
 export const calculateUnreadCount = async (
   roomId: string,
   userOid: string,
-  userReadAt?: Date
-): Promise<{ unreadCount: number; hasImportantMessage: boolean }> => {
+  userReadAt: Date | undefined
+): Promise<{
+  unreadCount: number;
+  hasImportantMessage: boolean;
+}> => {
   try {
-    // 사용자가 한 번도 읽지 않았다면 (readAt이 없다면) 모든 메시지를 unread로 간주
-    if (!userReadAt) {
-      const totalCount = await chatModel.countDocuments({
-        roomId,
-        type: { $in: ["text", "s3img"] },
-        authorId: { $ne: userOid }, // 본인 메시지는 제외
-      });
-
-      // 중요한 메시지가 있는지 확인
-      const importantCount = await chatModel.countDocuments({
-        roomId,
-        type: { $in: ["payment", "settlement", "account", "in", "out"] },
-        authorId: { $ne: userOid }, // 본인 메시지는 제외
-      });
-
-      return {
-        unreadCount: totalCount,
-        hasImportantMessage: importantCount > 0,
-      };
+    let readAt = userReadAt;
+    // readAt이 없으면 DB에 현재시간(Date 객체)으로 set
+    if (!readAt) {
+      readAt = new Date();
+      await roomModel.updateOne(
+        { _id: roomId, "part.user": userOid },
+        { $set: { "part.$.readAt": readAt } }
+      );
     }
 
     // readAt 이후의 메시지 개수를 계산 (본인 메시지 제외)
     const unreadCount = await chatModel.countDocuments({
       roomId,
       type: { $in: ["text", "s3img"] },
-      time: { $gt: userReadAt },
-      authorId: { $ne: userOid }, // 본인 메시지는 제외
+      time: { $gt: readAt },
+      authorId: { $ne: userOid },
     });
-
-    // readAt 이후의 중요한 메시지가 있는지 확인
     const importantCount = await chatModel.countDocuments({
       roomId,
       type: { $in: ["payment", "settlement", "account", "in", "out"] },
-      time: { $gt: userReadAt },
-      authorId: { $ne: userOid }, // 본인 메시지는 제외
+      time: { $gt: readAt },
+      authorId: { $ne: userOid },
     });
-
     return {
       unreadCount,
       hasImportantMessage: importantCount > 0,
