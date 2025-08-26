@@ -26,7 +26,6 @@ export const usersZod = {
 
 export const usersSchema = zodToSchemaObject(usersZod);
 
-// 타입 필요하면 이렇게 꺼내서 사용
 export type EditNicknameBody = z.infer<typeof usersZod.editNicknameHandler>;
 export type EditAccountBody = z.infer<typeof usersZod.editAccountHandler>;
 export type RegisterPhoneNumberBody = z.infer<

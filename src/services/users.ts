@@ -12,6 +12,12 @@ import { userModel, banModel } from "@/modules/stores/mongo";
 // 이벤트 코드입니다.
 import { contracts } from "@/lottery";
 import { eventStatusModel } from "@/lottery/modules/stores/mongo";
+import {
+  EditAccountBody,
+  EditNicknameBody,
+  EditProfileImgGetPUrlBody,
+  RegisterPhoneNumberBody,
+} from "@/routes/docs/schemas/usersSchema";
 
 export const agreeOnTermsOfServiceHandler: RequestHandler = async (
   req,
@@ -66,7 +72,7 @@ export const getAgreeOnTermsOfServiceHandler: RequestHandler = async (
 
 export const editNicknameHandler: RequestHandler = async (req, res) => {
   try {
-    const newNickname = req.body.nickname; // TODO: Typing
+    const newNickname = req.body.nickname as EditNicknameBody["nickname"];
     const result = await userModel.findOneAndUpdate(
       { _id: req.userOid, withdraw: false },
       { nickname: newNickname }
@@ -95,7 +101,7 @@ export const editNicknameHandler: RequestHandler = async (req, res) => {
 
 export const editAccountHandler: RequestHandler = async (req, res) => {
   try {
-    const newAccount = req.body.account; // TODO: Typing
+    const newAccount = req.body.account as EditAccountBody["account"];
     const result = await userModel.findOneAndUpdate(
       { _id: req.userOid, withdraw: false },
       { account: newAccount }
@@ -125,7 +131,8 @@ export const editAccountHandler: RequestHandler = async (req, res) => {
 
 export const registerPhoneNumberHandler: RequestHandler = async (req, res) => {
   try {
-    const newPhoneNumber = req.body.phoneNumber;
+    const newPhoneNumber = req.body
+      .phoneNumber as RegisterPhoneNumberBody["phoneNumber"];
     const result = await userModel.findOneAndUpdate(
       { _id: req.userOid, withdraw: false },
       { phoneNumber: newPhoneNumber, badge: true }
@@ -178,7 +185,7 @@ export const editProfileImgGetPUrlHandler: RequestHandler = async (
   res
 ) => {
   try {
-    const type = req.body.type; // TODO: Typing
+    const type = req.body.type as EditProfileImgGetPUrlBody["type"];
     const user = await userModel.findOne(
       { _id: req.userOid, withdraw: false },
       "_id"
