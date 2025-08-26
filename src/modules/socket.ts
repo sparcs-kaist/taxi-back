@@ -14,6 +14,7 @@ import {
   type PopulatedChat,
 } from "@/modules/populates/chats";
 import type { ChatType } from "@/types/mongo";
+import { parseSettlementMeta, SettlementMeta } from "./settlement";
 
 /**
  * emitChatEvent의 필수 파라미터가 주어지지 않은 경우 발생하는 예외를 정의하는 클래스입니다.
@@ -24,12 +25,6 @@ class IllegalArgumentsException {
       return "not enough arguments for emitChatEvent";
     };
   }
-}
-
-interface SettlementMeta {
-  total: number;
-  perPerson: number;
-  participantCount: number;
 }
 
 interface TransformedChat {
@@ -67,24 +62,7 @@ export const transformChatsForRoom = async (chats: PopulatedChat[]) => {
 
       const settlementMeta: SettlementMeta | undefined =
         chat.type === "settlement"
-          ? (() => {
-              try {
-                const parsed = JSON.parse(
-                  chat.content
-                ) as Partial<SettlementMeta>;
-                return typeof parsed?.total === "number" &&
-                  typeof parsed?.perPerson === "number" &&
-                  typeof parsed?.participantCount === "number"
-                  ? {
-                      total: parsed.total,
-                      perPerson: parsed.perPerson,
-                      participantCount: parsed.participantCount,
-                    }
-                  : undefined;
-              } catch {
-                return undefined;
-              }
-            })()
+          ? parseSettlementMeta(chat.content)
           : undefined;
 
       return {

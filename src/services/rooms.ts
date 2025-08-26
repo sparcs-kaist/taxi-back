@@ -25,6 +25,7 @@ import type { Room } from "@/types/mongo";
 import { eventConfig } from "@/loadenv";
 import { contracts } from "@/lottery";
 import { notifyRoomCreationAbuseToReportChannel } from "@/modules/slackNotification";
+import { SettlementMeta, buildPaymentContent } from "@/modules/settlement";
 
 // 이벤트 코드입니다.
 const eventPeriod = eventConfig && {
@@ -33,12 +34,6 @@ const eventPeriod = eventConfig && {
 };
 
 type CandidateRoom = Pick<Room, "from" | "to" | "time" | "maxPartLength">;
-
-interface SettlementMeta {
-  total: number;
-  perPerson: number;
-  participantCount: number;
-}
 
 export const createHandler: RequestHandler = async (req, res) => {
   const { name, from, to, time, maxPartLength } = req.body as CreateBody;
@@ -802,18 +797,10 @@ export const commitPaymentHandler: RequestHandler = async (req, res) => {
       .sort({ time: -1 })
       .lean();
 
-    const contentForPayment = (() => {
-      try {
-        const parsed = JSON.parse(lastSettlement?.content ?? "");
-        return typeof parsed.total === "number" &&
-          typeof parsed.perPerson === "number" &&
-          typeof parsed.participantCount === "number"
-          ? lastSettlement!.content
-          : user._id.toString();
-      } catch {
-        return user._id.toString();
-      }
-    })();
+    const contentForPayment = buildPaymentContent(
+      lastSettlement?.content,
+      user._id.toString()
+    );
 
     // 송금 채팅을 보냅니다.
     await emitChatEvent(req.app.get("io"), {
