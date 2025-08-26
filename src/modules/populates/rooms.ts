@@ -5,7 +5,6 @@ import type {
   Room,
   Location,
 } from "@/types/mongo";
-import { chatModel, roomModel } from "@/modules/stores/mongo";
 
 /**
  * 쿼리를 통해 얻은 Room Document를 populate할 설정값을 정의합니다.
