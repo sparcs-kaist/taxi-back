@@ -1,14 +1,10 @@
 import jwt, { type SignOptions } from "jsonwebtoken";
 import { jwt as jwtConfig } from "@/loadenv";
+import type { TaxiAppTokenPayload } from "@/types/jwt";
 
 const { secretKey, option, TOKEN_EXPIRED, TOKEN_INVALID } = jwtConfig;
 
-interface Payload {
-  id: string;
-  type: "access" | "refresh";
-}
-
-export const sign = ({ id, type }: Payload) => {
+export const sign = ({ id, type }: TaxiAppTokenPayload) => {
   const payload = { id, type };
   const options: SignOptions = {
     ...option,
@@ -22,7 +18,7 @@ export const sign = ({ id, type }: Payload) => {
 
 export const verify = (token: string) => {
   try {
-    return jwt.verify(token, secretKey) as Payload;
+    return jwt.verify(token, secretKey) as TaxiAppTokenPayload;
   } catch (err) {
     if (err instanceof Error && err.message === "jwt expired") {
       return TOKEN_EXPIRED;

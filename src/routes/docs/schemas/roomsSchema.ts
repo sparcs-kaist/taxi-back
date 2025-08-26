@@ -11,16 +11,15 @@ export const roomsZod = {
       time: z.string().datetime({
         message: "Invalid ISO datetime format",
       }),
-      withTime: zStringToBoolean,
+      withTime: zStringToBoolean.default("false"),
       maxPartLength: z.coerce.number().int().min(2).max(4),
-      isHome: zStringToBoolean,
+      isHome: zStringToBoolean.default("false"),
     })
     .partial({
       name: true,
       from: true,
       to: true,
       time: true,
-      withTime: true,
       maxPartLength: true,
     }),
 

@@ -16,24 +16,13 @@ import type { Request, Response, RequestHandler } from "express";
 import type {
   SparcsssoQuery,
   LogoutQuery,
+  OneAppLoginQuery,
 } from "@/routes/docs/schemas/authSchema";
+import type { SparcsssoUserData } from "@/types/sparcssso";
 
 const { user: userPattern } = patterns;
 
 type UserData = ReturnType<typeof transUserData>;
-
-interface RawUserData {
-  uid: string;
-  sid: string;
-  kaist_info: string | null;
-  kaist_v2_info: string | null;
-  first_name: string;
-  last_name: string;
-  facebook_id: string | null;
-  twitter_id: string | null;
-  sparcs_id: string | null;
-  email: string;
-}
 
 interface KaistInfoV1 {
   ku_std_no?: string;
@@ -47,7 +36,7 @@ interface KaistInfoV2 {
   email?: string;
 }
 
-const transKaistInfo = (userData: RawUserData) => {
+const transKaistInfo = (userData: SparcsssoUserData) => {
   const kaistInfoV1: KaistInfoV1 = userData.kaist_info
     ? JSON.parse(userData.kaist_info)
     : {};
@@ -61,7 +50,7 @@ const transKaistInfo = (userData: RawUserData) => {
   };
 };
 
-const transUserData = (userData: RawUserData) => {
+export const transUserData = (userData: SparcsssoUserData) => {
   const kaistInfo = transKaistInfo(userData);
 
   // info.isEligible: 카이스트 구성원인지 여부
@@ -91,12 +80,12 @@ const joinus = async (req: Request, userData: UserData) => {
     )
     .sort({ withdrewAt: -1 })
     .lean();
-  if (oldUser && oldUser.withdrewAt) {
+  if (
+    oldUser?.withdrewAt &&
+    req.timestamp! - oldUser.withdrewAt.getTime() < 7 * 24 * 60 * 60 * 1000
+  ) {
     // 탈퇴 후 7일이 지나지 않았을 경우, 가입을 거부합니다.
-    const diff = req.timestamp! - oldUser.withdrewAt.getTime();
-    if (diff < 7 * 24 * 60 * 60 * 1000) {
-      return false;
-    }
+    return false;
   }
 
   const newUser = new userModel({
@@ -132,22 +121,39 @@ const update = async (userData: UserData) => {
 export const tryLogin = async (
   req: Request,
   res: Response,
+  userDataBefore: SparcsssoUserData,
   userData: UserData,
-  redirectOrigin: string,
-  redirectPath: string
+  redirectOrigin: string | undefined,
+  redirectPath: string | undefined
 ): Promise<void> => {
+  const { id: uid } = userData;
+  const isOneApp = !!req.session.oneAppLoginState;
+
   try {
     const user = await userModel.findOne(
-      { id: userData.id, withdraw: false }, // NOTE: SSO uid 쓰는 곳
+      { id: uid, withdraw: false }, // NOTE: SSO uid 쓰는 곳
       "_id name email subinfo id withdraw ban"
     );
     if (!user) {
       if (await joinus(req, userData)) {
-        return tryLogin(req, res, userData, redirectOrigin, redirectPath);
-      } else {
-        const redirectUrl = new URL("/login/fail", redirectOrigin).href;
-        return res.redirect(redirectUrl);
+        return tryLogin(
+          req,
+          res,
+          userDataBefore,
+          userData,
+          redirectOrigin,
+          redirectPath
+        );
       }
+      // 회원가입이 거절된 경우 Taxi를 사용할 수 없습니다.
+      return denyLogin(
+        res,
+        isOneApp,
+        userData,
+        redirectOrigin,
+        403,
+        "registration denied"
+      );
     }
     if (
       user.name !== userData.name ||
@@ -160,10 +166,31 @@ export const tryLogin = async (
           user.subinfo!.kaist
         }`
       );
-      return tryLogin(req, res, userData, redirectOrigin, redirectPath);
+      return tryLogin(
+        req,
+        res,
+        userDataBefore,
+        userData,
+        redirectOrigin,
+        redirectPath
+      );
     }
 
-    if (req.session.isApp) {
+    if (isOneApp) {
+      // 원앱에서 로그인하는 경우 토큰 발급을 위해 세션에 정보를 저장합니다.
+      req.session.oneAppLoginState = {
+        ...req.session.oneAppLoginState!,
+        oid: user._id.toString(),
+        uid,
+        ssoInfo: userDataBefore,
+        time: req.timestamp!,
+      };
+      logger.info(`Tokens for ${uid} are ready to be issued`);
+      return res.redirect(
+        "sparcsapp://authorize?session=" +
+          encodeURIComponent(req.cookies["connect.sid"])
+      );
+    } else if (req.session.isApp) {
       const { token: accessToken } = jwt.sign({
         id: user._id.toString(),
         type: "access",
@@ -177,11 +204,41 @@ export const tryLogin = async (
     }
 
     login(req, user.id, user._id.toString(), userData.sid);
-    res.redirect(new URL(redirectPath, redirectOrigin).href);
+    return res.redirect(new URL(redirectPath!, redirectOrigin).href);
   } catch (err) {
     logger.error(err);
+    return denyLogin(
+      res,
+      isOneApp,
+      userData,
+      redirectOrigin,
+      500,
+      "internal server error"
+    );
+  }
+};
+
+const denyLogin = (
+  res: Response,
+  isOneApp: boolean,
+  userData: UserData | undefined,
+  redirectOrigin: string | undefined,
+  code: number,
+  description: string
+) => {
+  logger.info(
+    `Login denied: ${description} (uid: ${userData?.id}, sid: ${userData?.sid})`
+  );
+  if (isOneApp) {
+    const encodedDescription = encodeURIComponent(description);
+    return res.redirect(
+      `sparcsapp://error?code=${code}&description=${encodedDescription}`
+    );
+  } else {
     const redirectUrl = new URL("/login/fail", redirectOrigin).href;
-    res.redirect(redirectUrl);
+    const ssoLogoutUrl =
+      userData?.sid && ssoClient?.getLogoutUrl(userData.sid, redirectUrl);
+    return res.redirect(ssoLogoutUrl ?? redirectUrl);
   }
 };
 
@@ -196,53 +253,60 @@ export const sparcsssoHandler: RequestHandler = (req, res) => {
     redirectPath: redirectPath,
   };
   req.session.isApp = isApp;
-  res.redirect(url + "&social_enabled=0&show_disabled_button=0");
+
+  return res.redirect(url + "&social_enabled=0&show_disabled_button=0");
 };
 
 export const sparcsssoCallbackHandler: RequestHandler = (req, res) => {
-  const loginAfterState = req.session?.loginAfterState;
+  const loginAfterState = req.session.loginAfterState;
+  const isOneApp = !!req.session.oneAppLoginState;
   const { state: stateForCmp, code } = req.query;
 
-  if (!loginAfterState)
+  if (!loginAfterState) {
     return res.status(400).send("Auth/sparcssso/callback : invalid request");
+  }
 
   const { state, redirectOrigin, redirectPath } = loginAfterState;
   req.session.loginAfterState = undefined;
 
-  if (!state || !redirectOrigin || !redirectPath) {
+  // 원앱에서 로그인하는 경우 redirectOrigin과 redirectPath가 없음
+  if (!state || (!isOneApp && (!redirectOrigin || !redirectPath))) {
     return res.status(400).send("Auth/sparcssso/callback : invalid request");
+  } else if (state !== stateForCmp) {
+    denyLogin(res, isOneApp, undefined, redirectOrigin, 400, "state mismatch");
+    return;
   }
 
-  if (state !== stateForCmp) {
-    logger.info("Login denied: state mismatch");
-
-    const redirectUrl = new URL("/login/fail", redirectOrigin).href;
-    return res.redirect(redirectUrl);
-  }
-
-  ssoClient!.getUserInfo(code).then((userDataBefore: RawUserData) => {
+  ssoClient!.getUserInfo(code).then((userDataBefore: SparcsssoUserData) => {
     logger.info(`Login requested: ${JSON.stringify(userDataBefore)}`);
 
     const userData = transUserData(userDataBefore);
     const isTestAccount = testAccounts?.includes(userData.email);
     if (userData.isEligible || nodeEnv !== "production" || isTestAccount) {
-      tryLogin(req, res, userData, redirectOrigin, redirectPath);
-    } else {
-      // 카이스트 구성원이 아닌 경우, SSO 로그아웃 이후, 로그인 실패 URI 로 이동합니다
-      const { id, sid, kaist, kaistType } = userData;
-      logger.info(
-        `Login denied: not a KAIST member (uid: ${id}, sid: ${sid}, kaist: ${kaist}, kaistType: ${kaistType})`
+      return tryLogin(
+        req,
+        res,
+        userDataBefore,
+        userData,
+        redirectOrigin,
+        redirectPath
       );
-
-      const redirectUrl = new URL("/login/fail", redirectOrigin).href;
-      const ssoLogoutUrl = ssoClient!.getLogoutUrl(sid, redirectUrl);
-      res.redirect(ssoLogoutUrl);
     }
+
+    // 카이스트 구성원이 아닌 경우 Taxi를 사용할 수 없습니다.
+    return denyLogin(
+      res,
+      isOneApp,
+      userData,
+      redirectOrigin,
+      403,
+      "not a KAIST member"
+    );
   });
 };
 
 export const loginReplaceHandler: RequestHandler = (req, res) => {
-  res.status(400).json({
+  return res.status(400).json({
     error: "Auth/login/replace : Bad Request",
   });
 };
@@ -255,17 +319,29 @@ export const logoutHandler: RequestHandler = async (req, res) => {
     const { sid } = getLoginInfo(req);
 
     // DB에서 deviceToken 레코드를 삭제합니다.
-    const deviceToken = req.session?.deviceToken;
+    const deviceToken = req.session.deviceToken;
     if (deviceToken) {
       await unregisterDeviceToken(deviceToken);
     }
 
     // 로그아웃 URL을 생성 및 반환
     const redirectUrl = new URL(redirectPath, req.origin).href;
-    const ssoLogoutUrl = ssoClient!.getLogoutUrl(sid, redirectUrl);
+    const ssoLogoutUrl = sid && ssoClient?.getLogoutUrl(sid, redirectUrl);
     logout(req);
-    res.json({ ssoLogoutUrl });
+    return res.json({ ssoLogoutUrl: ssoLogoutUrl ?? redirectUrl });
   } catch (e) {
-    res.status(500).send("Auth/logout : internal server error");
+    logger.error(e);
+    return res.status(500).send("Auth/logout : internal server error");
   }
+};
+
+export const oneAppLoginHandler: RequestHandler = (req, res) => {
+  const { codeChallenge } = req.query as OneAppLoginQuery;
+  const { url, state } = ssoClient!.getLoginParams();
+
+  req.session.loginAfterState = { state };
+  req.session.isApp = false;
+  req.session.oneAppLoginState = { codeChallenge };
+
+  return res.redirect(url + "&social_enabled=0&show_disabled_button=0");
 };

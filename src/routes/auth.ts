@@ -6,6 +6,7 @@ import { authZod } from "./docs/schemas/authSchema";
 import * as authHandlers from "@/services/auth";
 import * as authReplaceHandlers from "@/services/auth.replace";
 import * as mobileAuthHandlers from "@/services/auth.mobile";
+import * as oneAppAuthHandlers from "@/services/auth.oneapp";
 import { isAuthReplace } from "@/modules/auths/login";
 
 const router = express.Router();
@@ -31,7 +32,7 @@ router.post(
 router.get(
   "/logout",
   validateQuery(authZod.logoutHandler),
-  (isAuthReplace ? authReplaceHandlers : authHandlers).logoutHandler
+  authHandlers.logoutHandler
 );
 
 router.get(
@@ -56,6 +57,27 @@ router.delete(
   "/app/device",
   validateBody(authZod.removeDeviceTokenHandler),
   mobileAuthHandlers.removeDeviceTokenHandler
+);
+
+// (원앱 전용) 로그인 페이지로 redirect합니다.
+router.get(
+  "/sparcsapp/login",
+  validateQuery(authZod.oneAppLoginHandler),
+  (isAuthReplace ? authReplaceHandlers : authHandlers).oneAppLoginHandler
+);
+
+// (원앱 전용) 토큰을 issue합니다.
+router.post(
+  "/sparcsapp/token/issue",
+  validateBody(authZod.oneAppTokenIssueHandler),
+  oneAppAuthHandlers.oneAppTokenIssueHandler
+);
+
+// (원앱 전용) 토큰을 refresh합니다.
+router.post(
+  "/sparcsapp/token/refresh",
+  validateBody(authZod.oneAppTokenRefreshHandler),
+  oneAppAuthHandlers.oneAppTokenRefreshHandler
 );
 
 export default router;
