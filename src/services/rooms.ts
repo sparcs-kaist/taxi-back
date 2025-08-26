@@ -7,7 +7,6 @@ import {
   roomPopulateOption,
   formatSettlement,
   getIsOver,
-  calculateUnreadCount,
   type PopulatedRoom,
 } from "@/modules/populates/rooms";
 import type {
@@ -21,6 +20,7 @@ import type { Room } from "@/types/mongo";
 import { eventConfig } from "@/loadenv";
 import { contracts } from "@/lottery";
 import { notifyRoomCreationAbuseToReportChannel } from "@/modules/slackNotification";
+import { calculateUnreadCount } from "@/modules/calculateUnreadCount";
 
 // 이벤트 코드입니다.
 const eventPeriod = eventConfig && {

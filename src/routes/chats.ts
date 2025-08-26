@@ -1,9 +1,8 @@
-import express, { query } from "express";
+import express from "express";
 import { validateBody } from "@/middlewares";
 import { chatsZod } from "./docs/schemas/chatsSchema";
 
 import * as chatsHandlers from "@/services/chats";
-import validator from "@/middlewares/validator";
 
 const router = express.Router();
 
