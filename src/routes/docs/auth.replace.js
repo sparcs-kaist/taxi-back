@@ -1,4 +1,6 @@
-const loginReplacePage = require("../../views/loginReplacePage").default;
+const loginReplacePage = require("@/views/loginReplacePage").default;
+const { base64url } = require("@/modules/patterns").default;
+
 const tag = "auth";
 const apiPrefix = "/auth(dev)";
 
@@ -68,33 +70,32 @@ authReplaceDocs[`${apiPrefix}/login/replace`] = {
   },
 };
 
-authReplaceDocs[`${apiPrefix}/logout`] = {
+authReplaceDocs[`${apiPrefix}/sparcsapp/login`] = {
   get: {
     tags: [tag],
-    summary: "세션 삭제 및 사용자 로그아웃",
+    summary: "원앱 사용자를 위해 자체 로그인 페이지의 html 소스 반환",
     description: `<b>Dev 환경에서만 사용할 수 있는 API입니다.</b><br/>
-    세션을 삭제하여 사용자를 로그아웃 시킵니다.`,
+      SSO를 사용하지 않기 위해 자체 제작된 replace 페이지로 리다이렉트합니다. 이 페이지를 통해 로그인하는 경우 원앱 사용자인 것으로 처리합니다.`,
+    parameters: [
+      {
+        in: "query",
+        name: "codeChallenge",
+        required: true,
+        schema: {
+          type: "string",
+          pattern: base64url.source,
+          length: 43,
+        },
+        description: "Authorization Code Flow에서 사용되는 Challenge 값",
+      },
+    ],
     responses: {
       200: {
+        description: "자체 로그인 페이지의 html 소스",
         content: {
-          "application/json": {
-            schema: {
-              type: "object",
-              properties: {
-                ssoLogoutUrl: {
-                  type: "string",
-                  description: "SSO 로그아웃 URL",
-                  format: "uri",
-                },
-              },
-            },
-          },
-        },
-      },
-      500: {
-        content: {
-          "text/html": {
-            example: "Auth/logout : internal server error",
+          "text/plain": {
+            type: "string",
+            example: loginReplacePage,
           },
         },
       },

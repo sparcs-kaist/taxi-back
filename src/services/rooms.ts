@@ -115,7 +115,6 @@ export const createHandler: RequestHandler = async (req, res) => {
       type: "in",
       content: user._id.toString(),
       authorId: user._id.toString(),
-      time: null,
     });
 
     const roomObject = (
@@ -319,7 +318,6 @@ export const joinHandler: RequestHandler = async (req, res) => {
       type: "in",
       content: user._id.toString(),
       authorId: user._id.toString(),
-      time: null,
     });
 
     const roomObject = (
@@ -402,7 +400,6 @@ export const abortHandler: RequestHandler = async (req, res) => {
       type: "out",
       content: user._id.toString(),
       authorId: user._id.toString(),
-      time: null,
     });
 
     const roomObject = (
@@ -731,7 +728,6 @@ export const commitSettlementHandler: RequestHandler = async (req, res) => {
       type: "settlement",
       content: user._id.toString(),
       authorId: user._id.toString(),
-      time: null,
     });
 
     // 이벤트 코드입니다.
@@ -813,7 +809,6 @@ export const commitPaymentHandler: RequestHandler = async (req, res) => {
       type: "payment",
       content: user._id.toString(),
       authorId: user._id.toString(),
-      time: null,
     });
 
     // 이벤트 코드입니다.

@@ -15,6 +15,7 @@ import type {
   AdminLog,
   TaxiFare,
   Notice,
+  Email,
 } from "@/types/mongo";
 
 const userSchema = new Schema<User>({
@@ -213,6 +214,17 @@ const reportSchema = new Schema<Report>({
 });
 
 export const reportModel = model("Report", reportSchema);
+
+const emailSchema = new Schema<Email>({
+  emailAddress: { type: String, required: true }, // 전송된 이메일 주소
+  reportId: { type: Schema.Types.ObjectId, required: true, ref: "Report" },
+  trackingId: { type: String, required: true, unique: true }, // 이메일 id
+  sentAt: { type: Date, required: true }, // 이메일 전송 시간
+  isOpened: { type: Boolean, required: true }, // 이메일 수신 여부
+  openedAt: { type: Date }, // 이메일 수신 시간
+});
+
+export const emailModel = model("Email", emailSchema);
 
 const adminIPWhitelistSchema = new Schema<AdminIPWhitelist>({
   ip: { type: String, required: true }, // IP 주소

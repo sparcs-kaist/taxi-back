@@ -205,3 +205,18 @@ export interface Notice extends Document<Types.ObjectId> {
   is_pinned: boolean;
   is_active: boolean;
 }
+
+export interface Email extends Document<Types.ObjectId> {
+  /** 전송된 이메일 주소. */
+  emailAddress: string;
+  /** 신고 ID. */
+  reportId: Types.ObjectId;
+  /** 이메일 추적 ID. */
+  trackingId: string;
+  /** 이메일 전송 시간. */
+  sentAt: Date;
+  /** 이메일 수신 여부. */
+  isOpened: boolean;
+  /** 이메일 수신 시간. */
+  openedAt?: Date;
+}
