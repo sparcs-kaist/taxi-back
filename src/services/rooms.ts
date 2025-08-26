@@ -7,6 +7,7 @@ import {
   roomPopulateOption,
   formatSettlement,
   getIsOver,
+  type RoomPopulatePath,
   type PopulatedRoom,
 } from "@/modules/populates/rooms";
 import type {
@@ -116,15 +117,13 @@ export const createHandler: RequestHandler = async (req, res) => {
       authorId: user._id.toString(),
     });
 
-    const roomObject = (
-      await room.populate(roomPopulateOption)
-    ).toObject<PopulatedRoom>();
-    const roomObjectFormated = formatSettlement(roomObject);
-
     // 이벤트 코드입니다.
     await contracts?.completeFirstRoomCreationQuest(req.userOid, req.timestamp);
 
-    return res.send(roomObjectFormated);
+    const roomObject = (
+      await room.populate(roomPopulateOption)
+    ).toObject<PopulatedRoom>();
+    return res.send(formatSettlement(roomObject));
   } catch (err) {
     logger.error(err);
     return res.status(500).json({
@@ -204,7 +203,7 @@ export const publicInfoHandler: RequestHandler = async (req, res) => {
     const roomObject = await roomModel
       .findOne({ _id: req.query.id })
       .lean()
-      .populate<PopulatedRoom>(roomPopulateOption);
+      .populate<RoomPopulatePath>(roomPopulateOption);
     if (roomObject) {
       // 방의 정산 정보는 개인정보로 방에 참여하기 전까지는 반환하지 않습니다.
       return res.send(
@@ -233,7 +232,7 @@ export const infoHandler: RequestHandler = async (req, res) => {
     const roomObject = await roomModel
       .findOne({ _id: req.query.id, "part.user": user._id })
       .lean()
-      .populate<PopulatedRoom>(roomPopulateOption);
+      .populate<RoomPopulatePath>(roomPopulateOption);
     if (roomObject) {
       const isOver = getIsOver(roomObject, user._id.toString());
       return res.send(formatSettlement(roomObject, { isOver }));
@@ -488,7 +487,7 @@ export const searchHandler: RequestHandler = async (req, res) => {
       .sort({ time: 1 })
       .limit(1000)
       .lean()
-      .populate<PopulatedRoom>(roomPopulateOption);
+      .populate<RoomPopulatePath>(roomPopulateOption);
     return res.json(
       rooms.map((room) => formatSettlement(room, { includeSettlement: false }))
     );
@@ -612,7 +611,7 @@ export const searchByTimeGapHandler: RequestHandler = async (req, res) => {
 
     const rawRooms = await roomModel.aggregate(agg);
     // Mongoose 6.x 이상이라면, aggregate 결과에도 populate 가능
-    const rooms = await roomModel.populate<PopulatedRoom>(
+    const rooms = await roomModel.populate<RoomPopulatePath>(
       rawRooms,
       roomPopulateOption
     );
@@ -664,7 +663,7 @@ export const commitSettlementHandler: RequestHandler = async (req, res) => {
         }
       )
       .lean()
-      .populate<PopulatedRoom>(roomPopulateOption);
+      .populate<RoomPopulatePath>(roomPopulateOption);
 
     if (!roomObject) {
       return res.status(404).json({
@@ -704,9 +703,7 @@ export const commitSettlementHandler: RequestHandler = async (req, res) => {
     );
 
     // 수정한 방 정보를 반환합니다.
-    return res.send(
-      formatSettlement(roomObject as unknown as PopulatedRoom, { isOver: true })
-    );
+    return res.send(formatSettlement(roomObject, { isOver: true }));
   } catch (err) {
     logger.error(err);
     return res.status(500).json({
@@ -745,7 +742,7 @@ export const commitPaymentHandler: RequestHandler = async (req, res) => {
         }
       )
       .lean()
-      .populate<PopulatedRoom>(roomPopulateOption);
+      .populate<RoomPopulatePath>(roomPopulateOption);
 
     if (!roomObject) {
       return res.status(404).json({

@@ -5,7 +5,10 @@ import {
   roomModel,
   emailModel,
 } from "@/modules/stores/mongo";
-import { reportPopulateOption } from "@/modules/populates/reports";
+import {
+  reportPopulateOption,
+  type ReportPopulatePath,
+} from "@/modules/populates/reports";
 import { sendReportEmail } from "@/modules/email";
 import logger from "@/modules/logger";
 import reportEmailPage from "@/views/reportEmailPage";
@@ -102,11 +105,11 @@ export const searchByUserHandler: RequestHandler = async (req, res) => {
       reporting: await reportModel
         .find({ creatorId: user._id })
         .limit(1000)
-        .populate(reportPopulateOption),
+        .populate<ReportPopulatePath>(reportPopulateOption),
       reported: await reportModel
         .find({ reportedId: user._id })
         .limit(1000)
-        .populate(reportPopulateOption),
+        .populate<ReportPopulatePath>(reportPopulateOption),
     };
     return res.json(response);
   } catch (err) {
