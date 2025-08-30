@@ -19,6 +19,10 @@ export const usersZod = {
     phoneNumber: z.string().regex(patterns.user.phoneNumber),
   }),
 
+  editBadgeHandler: z.object({
+    badge: z.enum(["true", "false"]),
+  }),
+
   editProfileImgGetPUrlHandler: z.object({
     type: z.string().regex(patterns.user.profileImgType),
   }),

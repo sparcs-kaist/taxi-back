@@ -12,7 +12,7 @@ import { userModel, banModel } from "@/modules/stores/mongo";
 // 이벤트 코드입니다.
 import { contracts } from "@/lottery";
 import { eventStatusModel } from "@/lottery/modules/stores/mongo";
-import {
+import type {
   EditAccountBody,
   EditNicknameBody,
   EditProfileImgGetPUrlBody,

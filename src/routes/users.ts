@@ -45,7 +45,11 @@ router.post(
 );
 
 // 뱃지를 부여하거나 회수합니다.
-router.post("/editBadge", userHandlers.editBadgeHandler);
+router.post(
+  "/editBadge",
+  validateBody(usersZod.editBadgeHandler),
+  userHandlers.editBadgeHandler
+);
 
 // 프로필 이미지를 업로드할 수 있는 Presigned-url을 발급합니다.
 router.post(
