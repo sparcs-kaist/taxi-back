@@ -157,23 +157,15 @@ export const registerPhoneNumberHandler: RequestHandler = async (req, res) => {
 
 export const editBadgeHandler: RequestHandler = async (req, res) => {
   try {
-    if (req.body.badge === "true" || req.body.badge === "false") {
-      await userModel.findOneAndUpdate(
-        {
-          _id: req.userOid,
-          withdraw: false,
-          phoneNumber: { $exists: true, $ne: null },
-        },
-        { badge: req.body.badge === "true" ? true : false }
-      );
-      return res
-        .status(200)
-        .send("Users/editBadge : badge successfully applied");
-    } else {
-      return res
-        .status(400)
-        .send("Users/editBadge : invalid request for badge");
-    }
+    await userModel.findOneAndUpdate(
+      {
+        _id: req.userOid,
+        withdraw: false,
+        phoneNumber: { $exists: true, $ne: null },
+      },
+      { badge: req.body.badge }
+    );
+    return res.status(200).send("Users/editBadge : badge successfully applied");
   } catch (err) {
     logger.error(err);
     return res.status(500).send("Users/editBadge : internal server error");
