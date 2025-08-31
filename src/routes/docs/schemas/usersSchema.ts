@@ -1,6 +1,6 @@
 import { z } from "zod";
 import patterns from "@/modules/patterns";
-import { zodToSchemaObject } from "../utils";
+import { zodToSchemaObject, zStringToBoolean } from "../utils";
 import { replaceSpaceInNickname } from "@/modules/modifyProfile";
 
 export const usersZod = {
@@ -20,7 +20,7 @@ export const usersZod = {
   }),
 
   editBadgeHandler: z.object({
-    badge: z.enum(["true", "false"]),
+    badge: zStringToBoolean.default("false"),
   }),
 
   editProfileImgGetPUrlHandler: z.object({
