@@ -11,6 +11,7 @@ import { getTokensOfUsers, sendMessageByTokens } from "@/modules/fcm";
 import { corsWhiteList } from "@/loadenv";
 import {
   chatPopulateOption,
+  type ChatPopulatePath,
   type PopulatedChat,
 } from "@/modules/populates/chats";
 import type { ChatType } from "@/types/mongo";
@@ -198,7 +199,7 @@ export const emitChatEvent = async (
         { upsert: true, new: true }
       )
       .lean()
-      .populate<PopulatedChat>(chatPopulateOption);
+      .populate<ChatPopulatePath>(chatPopulateOption);
 
     const userIds = part.map((participant) => participant.user.toString());
     const userIdsExceptAuthor = authorId

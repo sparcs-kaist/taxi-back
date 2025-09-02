@@ -1,7 +1,7 @@
 import { chatModel, userModel, roomModel } from "@/modules/stores/mongo";
 import {
   chatPopulateOption,
-  type PopulatedChat,
+  type ChatPopulatePath,
 } from "@/modules/populates/chats";
 import * as aws from "@/modules/stores/aws";
 import {
@@ -49,7 +49,7 @@ export const loadRecentChatHandler: RequestHandler = async (req, res) => {
       .sort({ time: -1 })
       .limit(chatCount)
       .lean()
-      .populate<PopulatedChat>(chatPopulateOption);
+      .populate<ChatPopulatePath>(chatPopulateOption);
 
     if (chats) {
       chats.reverse();
@@ -92,7 +92,7 @@ export const loadBeforeChatHandler: RequestHandler = async (req, res) => {
       .sort({ time: -1 })
       .limit(chatCount)
       .lean()
-      .populate<PopulatedChat>(chatPopulateOption);
+      .populate<ChatPopulatePath>(chatPopulateOption);
 
     if (chats) {
       chats.reverse();
@@ -133,7 +133,7 @@ export const loadAfterChatHandler: RequestHandler = async (req, res) => {
       .sort({ time: 1 })
       .limit(chatCount)
       .lean()
-      .populate<PopulatedChat>(chatPopulateOption);
+      .populate<ChatPopulatePath>(chatPopulateOption);
 
     if (chats) {
       io.in(getSessionRoom(req)).emit("chat_push_back", {
