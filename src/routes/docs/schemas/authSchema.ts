@@ -2,7 +2,7 @@ import { z } from "zod";
 import { zodToSchemaObject, zStringToBoolean } from "../utils";
 import patterns from "@/modules/patterns";
 
-const { jwtToken } = patterns;
+const { jwtToken, base64url } = patterns;
 
 const tokenObject = z.object({
   accessToken: z.string().regex(jwtToken),
@@ -38,6 +38,17 @@ export const authZod = {
   }),
   registerDeviceTokenHandler: tokenObject,
   removeDeviceTokenHandler: tokenObject,
+  oneAppLoginHandler: z.object({
+    // RFC 7636: 43 characters for SHA-256 base64url encoding
+    codeChallenge: z.string().regex(base64url).length(43),
+  }),
+  oneAppTokenIssueHandler: z.object({
+    // RFC 7636: between 43 and 128 characters
+    codeVerifier: z.string().regex(base64url).min(43).max(128),
+  }),
+  oneAppTokenRefreshHandler: z.object({
+    refreshToken: z.string().min(1), // Not a JWT
+  }),
 };
 
 export const authSchema = zodToSchemaObject(authZod);
@@ -52,4 +63,11 @@ export type RegisterDeviceTokenBody = z.infer<
 >;
 export type RemoveDeviceTokenBody = z.infer<
   typeof authZod.removeDeviceTokenHandler
+>;
+export type OneAppLoginQuery = z.infer<typeof authZod.oneAppLoginHandler>;
+export type OneAppTokenIssueBody = z.infer<
+  typeof authZod.oneAppTokenIssueHandler
+>;
+export type OneAppTokenRefreshBody = z.infer<
+  typeof authZod.oneAppTokenRefreshHandler
 >;

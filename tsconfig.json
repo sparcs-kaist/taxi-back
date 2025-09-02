@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "target": "es6",
+    "target": "es2023",
     "module": "node16",
     "moduleResolution": "node16",
     "allowJs": true,
@@ -19,6 +19,7 @@
   "exclude": ["dist", "node_modules"],
   "ts-node": {
     "files": true,
-    "transpileOnly": true
+    "transpileOnly": true,
+    "swc": true
   }
 }
