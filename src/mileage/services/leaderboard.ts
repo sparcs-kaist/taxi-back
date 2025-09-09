@@ -1,6 +1,7 @@
 import type { RequestHandler } from "express";
 import { mileageModel } from "@/modules/stores/mongo";
-import { LeaderboardQuery } from "../routes/docs/schemas/mileageSchema";
+import type { LeaderboardQuery } from "../routes/docs/schemas/mileageSchema";
+import { updateOldPendingTransaction } from "./transaction";
 
 type Period = {
   start: Date | null;
@@ -10,14 +11,21 @@ type Period = {
 export const leaderboardHandler: RequestHandler = async (req, res) => {
   const { limit } = req.query as unknown as LeaderboardQuery;
 
-  if (limit <= 0) {
+  if (!Number.isInteger(limit) || limit <= 0) {
     return res.status(400).json({
-      error: "Mileage: limit should be positive integer",
+      error: "Mileage/leaderboard: limit should be positive integer",
     });
   }
+  try {
+    await updateOldPendingTransaction();
 
-  const rows = await getTopN({ start: null, end: null }, limit);
-  return res.json(rows);
+    const rows = await getTopN({ start: null, end: null }, limit);
+    return res.json(rows);
+  } catch (err) {
+    return res
+      .status(500)
+      .json({ error: "Mileage/leaderboard: internal server error" });
+  }
 };
 
 /**
@@ -37,8 +45,12 @@ export const getTopN = async (period: Period, limit: number) => {
     ? { createAt: { $lte: end, $gte: period.start } }
     : { createAt: { $lte: end } };
 
+  const matchQuery = {
+    status: "confirmed",
+    ...query,
+  };
   return mileageModel.aggregate([
-    { $match: query },
+    { $match: matchQuery },
     { $group: { _id: "$user", totalMileage: { $sum: "$amount" } } },
     { $sort: { totalMileage: -1 } },
     {

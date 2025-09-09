@@ -211,6 +211,12 @@ export interface Mileage extends Document<Types.ObjectId> {
   user: Types.ObjectId;
   amount: number;
   type: string;
+  /**
+   * 단순 ride인 경우: source는 room의 ObjectId.
+   * event 등 ride 출처가 아닌 경우: 해당 출처의 이름
+   */
+  source: string;
+  status: "pending" | "confirmed" | "voided";
   createAt: Date;
   expireAt: Date;
 }

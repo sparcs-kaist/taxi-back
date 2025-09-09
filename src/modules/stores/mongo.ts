@@ -276,6 +276,12 @@ const mileageSchema = new Schema<Mileage>({
     enum: ["ride", "event"],
     required: true,
   },
+  source: { type: String, required: true },
+  status: {
+    type: String,
+    enum: ["pending", "confirmed", "voided"],
+    required: true,
+  },
   createAt: { type: Date, required: true },
   expireAt: { type: Date, required: true },
 });
