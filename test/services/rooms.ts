@@ -1,18 +1,21 @@
-const expect = require("chai").expect;
-const express = require("express");
-const roomsHandlers = require("../../src/services/rooms");
-const {
-  userModel,
-  roomModel,
-  locationModel,
-} = require("../../src/modules/stores/mongo");
-const { userGenerator, testRemover } = require("../utils");
-const app = express();
-const httpMocks = require("node-mocks-http");
+import { expect } from "chai";
+import express from "express";
+import httpMocks from "node-mocks-http";
+import * as roomsHandlers from "@/services/rooms";
+import { userModel, roomModel, locationModel } from "@/modules/stores/mongo";
+import { userGenerator, testRemover, type TestData } from "../utils";
 
-let testData = { rooms: [], users: [], chat: [], location: [], report: [] };
+const app = express();
+
+const testData: TestData = {
+  rooms: [],
+  users: [],
+  chat: [],
+  location: [],
+  report: [],
+};
+
 const removeTestData = async () => {
-  // drop all testData
   await testRemover(testData);
 };
 
@@ -26,8 +29,8 @@ describe("[rooms] 1.createHandler", () => {
     let req = httpMocks.createRequest({
       body: {
         name: "test-room",
-        from: testFrom._id,
-        to: testTo._id,
+        from: testFrom!._id,
+        to: testTo!._id,
         time: Date.now() + 60 * 1000,
         maxPartLength: 4,
       },
@@ -38,10 +41,10 @@ describe("[rooms] 1.createHandler", () => {
       userOid: testUser1._id,
     });
     let res = httpMocks.createResponse();
-    await roomsHandlers.createHandler(req, res);
+    await roomsHandlers.createHandler(req, res, () => {});
 
     const testRoom = await roomModel.findOne({ name: "test-room" });
-    testData["rooms"].push(testRoom);
+    testData["rooms"].push(testRoom!);
     const resData = res._getData();
     expect(resData).to.has.property("name", "test-room");
   });
@@ -53,11 +56,11 @@ describe("[rooms] 2.infoHandler", () => {
     const testUser1 = await userModel.findOne({ id: "test1" });
     const testRoom = await roomModel.findOne({ name: "test-room" });
     let req = httpMocks.createRequest({
-      query: { id: testRoom._id },
-      userOid: testUser1._id,
+      query: { id: testRoom!._id },
+      userOid: testUser1!._id,
     });
     let res = httpMocks.createResponse();
-    await roomsHandlers.infoHandler(req, res);
+    await roomsHandlers.infoHandler(req, res, () => {});
 
     const resData = res._getData();
     expect(resData).to.has.property("name", "test-room");
@@ -70,10 +73,10 @@ describe("[rooms] 3.publicInfoHandler", () => {
   it("should return information of room", async () => {
     const testRoom = await roomModel.findOne({ name: "test-room" });
     let req = httpMocks.createRequest({
-      query: { id: testRoom._id },
+      query: { id: testRoom!._id },
     });
     let res = httpMocks.createResponse();
-    await roomsHandlers.publicInfoHandler(req, res);
+    await roomsHandlers.publicInfoHandler(req, res, () => {});
 
     const resData = res._getData();
     expect(resData).to.has.property("name", "test-room");
@@ -88,7 +91,7 @@ describe("[rooms] 4.joinHandler", () => {
     const testRoom = await roomModel.findOne({ name: "test-room" });
     let req = httpMocks.createRequest({
       body: {
-        roomId: testRoom._id,
+        roomId: testRoom!._id,
       },
       userOid: testUser2._id,
       app,
@@ -102,7 +105,7 @@ describe("[rooms] 4.joinHandler", () => {
       userOid: testUser2._id,
     });
     let res = httpMocks.createResponse();
-    await roomsHandlers.joinHandler(req, res);
+    await roomsHandlers.joinHandler(req, res, () => {});
 
     const resData = res._getData();
     expect(resData).to.has.property("name", "test-room");
@@ -118,15 +121,15 @@ describe("[rooms] 5.searchHandler", () => {
     let req = httpMocks.createRequest({
       query: {
         name: "test-room",
-        from: testFrom._id,
-        to: testTo._id,
+        from: testFrom!._id,
+        to: testTo!._id,
         time: Date.now(),
         withTime: true,
         maxPartLength: 4,
       },
     });
     let res = httpMocks.createResponse();
-    await roomsHandlers.searchHandler(req, res);
+    await roomsHandlers.searchHandler(req, res, () => {});
 
     const resJson = res._getJSONData();
     expect(resJson[0]).to.has.property("name", "test-room");
@@ -140,10 +143,10 @@ describe("[rooms] 6.searchByUserHandler", () => {
   it("should return information of searching room", async () => {
     const testUser1 = await userModel.findOne({ id: "test1" });
     let req = httpMocks.createRequest({
-      userOid: testUser1._id,
+      userOid: testUser1!._id,
     });
     let res = httpMocks.createResponse();
-    await roomsHandlers.searchByUserHandler(req, res);
+    await roomsHandlers.searchByUserHandler(req, res, () => {});
 
     const resJson = res._getJSONData();
     expect(resJson["ongoing"][0]).to.has.property("name", "test-room");
@@ -157,8 +160,8 @@ describe("[rooms] 7.commitSettlementHandler", () => {
     const testUser1 = await userModel.findOne({ id: "test1" });
     const testRoom = await roomModel.findOne({ name: "test-room" });
     let req = httpMocks.createRequest({
-      body: { roomId: testRoom._id },
-      userOid: testUser1._id,
+      body: { roomId: testRoom!._id },
+      userOid: testUser1!._id,
       timestamp: Date.now() + 60 * 1000,
       app,
       session: {
@@ -171,7 +174,7 @@ describe("[rooms] 7.commitSettlementHandler", () => {
       userOid: testUser1._id,
     });
     let res = httpMocks.createResponse();
-    await roomsHandlers.commitSettlementHandler(req, res);
+    await roomsHandlers.commitSettlementHandler(req, res, () => {});
 
     const resData = res._getData();
     expect(resData).to.has.property("name", "test-room");
@@ -186,8 +189,8 @@ describe("[rooms] 8.commitPaymentHandler", () => {
     const testUser2 = await userModel.findOne({ id: "test2" });
     const testRoom = await roomModel.findOne({ name: "test-room" });
     let req = httpMocks.createRequest({
-      body: { roomId: testRoom._id },
-      userOid: testUser2._id,
+      body: { roomId: testRoom!._id },
+      userOid: testUser2!._id,
       app,
       session: {
         loginInfo: {
@@ -199,7 +202,7 @@ describe("[rooms] 8.commitPaymentHandler", () => {
       userOid: testUser2._id,
     });
     let res = httpMocks.createResponse();
-    await roomsHandlers.commitPaymentHandler(req, res);
+    await roomsHandlers.commitPaymentHandler(req, res, () => {});
 
     const resData = res._getData();
     expect(resData).to.has.property("name", "test-room");
@@ -214,8 +217,8 @@ describe("[rooms] 9.abortHandler", () => {
     const testUser2 = await userModel.findOne({ id: "test2" });
     const testRoom = await roomModel.findOne({ name: "test-room" });
     let req = httpMocks.createRequest({
-      body: { roomId: testRoom._id },
-      userOid: testUser2._id,
+      body: { roomId: testRoom!._id },
+      userOid: testUser2!._id,
       session: {},
       app,
       session: {
@@ -228,7 +231,7 @@ describe("[rooms] 9.abortHandler", () => {
       userOid: testUser2._id,
     });
     let res = httpMocks.createResponse();
-    await roomsHandlers.abortHandler(req, res);
+    await roomsHandlers.abortHandler(req, res, () => {});
     afterEach(removeTestData);
 
     const resData = res._getData();

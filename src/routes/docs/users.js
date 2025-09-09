@@ -194,6 +194,106 @@ usersDocs[`${apiPrefix}/editAccount`] = {
   },
 };
 
+usersDocs[`${apiPrefix}/registerPhoneNumber`] = {
+  post: {
+    tags: [tag],
+    summary: "유저의 전화 번호 등록",
+    description: "유저의 전화 번호를 요청한 전화 번호로 등록합니다.",
+    requestBody: {
+      content: {
+        "application/json": {
+          schema: {
+            type: "object",
+            properties: {
+              phoneNumber: {
+                type: "string",
+                description: "유저의 전화 번호",
+              },
+            },
+          },
+        },
+      },
+    },
+    responses: {
+      200: {
+        content: {
+          "text/html": {
+            example:
+              "Users/registerPhoneNumber : create user phoneNumber successful",
+          },
+        },
+      },
+      400: {
+        content: {
+          "text/html": {
+            example: "Users/registerPhoneNumber : such user id does not exist",
+          },
+        },
+      },
+      500: {
+        content: {
+          "text/html": {
+            example: "Users/registerPhoneNumber : internal server error",
+          },
+        },
+      },
+    },
+  },
+};
+
+usersDocs[`${apiPrefix}/editBadge`] = {
+  post: {
+    tags: [tag],
+    summary: "유저의 뱃지 적용 상태 변경",
+    description: "유저의 뱃지를 탈부착합니다.",
+    requestBody: {
+      content: {
+        "application/json": {
+          schema: {
+            type: "object",
+            properties: {
+              badge: {
+                type: "string",
+                description: "뱃지 상태",
+              },
+            },
+          },
+        },
+      },
+    },
+    responses: {
+      200: {
+        content: {
+          "text/html": {
+            example: "Users/editBadge : badge successfully applied",
+          },
+        },
+      },
+      400: {
+        content: {
+          "text/html": {
+            example: "Users/editBadge : invalid request for badge",
+          },
+        },
+      },
+      400: {
+        content: {
+          "text/html": {
+            example: "Users/editBadge : Unauthorized user",
+          },
+        },
+      },
+      500: {
+        content: {
+          "text/html": {
+            example: "Users/editBadge : internal server error",
+          },
+        },
+      },
+    },
+  },
+};
+
 usersDocs[`${apiPrefix}/editProfileImg/getPUrl`] = {
   post: {
     tags: [tag],

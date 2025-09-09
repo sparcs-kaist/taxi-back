@@ -9,11 +9,13 @@ const {
   locationModel,
   chatModel,
   reportModel,
+  emailModel,
   adminIPWhitelistModel,
   adminLogModel,
   deviceTokenModel,
   notificationOptionModel,
   taxiFareModel,
+  noticeModel,
 } = require("@/modules/stores/mongo");
 const { buildResource } = require("@/modules/adminResource");
 
@@ -33,11 +35,13 @@ const resources = [
   locationModel,
   chatModel,
   reportModel,
+  emailModel,
   adminIPWhitelistModel,
   adminLogModel,
   deviceTokenModel,
   notificationOptionModel,
   taxiFareModel,
+  noticeModel,
 ]
   .map(buildResource())
   .concat(require("@/lottery").resources);

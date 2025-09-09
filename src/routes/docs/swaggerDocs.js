@@ -2,6 +2,7 @@ const { reportsSchema } = require("./schemas/reportsSchema");
 const { roomsSchema } = require("./schemas/roomsSchema");
 const { fareSchema } = require("./schemas/fareSchema");
 const { chatsSchema } = require("./schemas/chatsSchema");
+const { emailsSchema } = require("./schemas/emailsSchema");
 const reportsDocs = require("./reports");
 const logininfoDocs = require("./logininfo");
 const locationsDocs = require("./locations");
@@ -11,6 +12,8 @@ const usersDocs = require("./users");
 const roomsDocs = require("./rooms");
 const chatsDocs = require("./chats");
 const fareDocs = require("./fare");
+const noticeDocs = require("./notice").default;
+const emailsDocs = require("./emails").default;
 const { port, nodeEnv } = require("@/loadenv");
 
 const serverList = [
@@ -75,6 +78,14 @@ const swaggerDocs = {
       name: "fare",
       description: "예상 택시 금액 계산",
     },
+    {
+      name: "notice",
+      description: "공지사항 조회",
+    },
+    {
+      name: "emails",
+      description: "이메일 관련 기능 (트래킹 등)",
+    },
   ],
   consumes: ["application/json"],
   produces: ["application/json"],
@@ -88,6 +99,8 @@ const swaggerDocs = {
     ...chatsDocs,
     ...roomsDocs,
     ...fareDocs,
+    ...noticeDocs,
+    ...emailsDocs,
   },
   components: {
     schemas: {
@@ -95,6 +108,7 @@ const swaggerDocs = {
       ...roomsSchema,
       ...fareSchema,
       ...chatsSchema,
+      ...emailsSchema,
     },
   },
 };

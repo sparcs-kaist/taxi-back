@@ -24,9 +24,11 @@ import {
   authRouter,
   chatRouter,
   docsRouter,
+  emailRouter,
   fareRouter,
   locationRouter,
   logininfoRouter,
+  noticeRouter,
   notificationRouter,
   reportRouter,
   roomRouter,
@@ -90,12 +92,19 @@ if (eventConfig) {
   app.use(`/events/${eventConfig.mode}`, lotteryRouter);
 }
 
+// [Router] 이메일 수신 확인은 origin 검사 거치지 않기
+app.use("/emails", emailRouter);
+
+// [Middleware] 모든 API 요청에 대하여 origin 검증
+app.use(originValidatorMiddleware);
+
 // [Router] APIs
 app.use("/auth", authRouter);
 app.use("/chats", chatRouter);
 app.use("/fare", fareRouter);
 app.use("/locations", locationRouter);
 app.use("/logininfo", logininfoRouter);
+app.use("/notice", noticeRouter);
 app.use("/notifications", notificationRouter);
 app.use("/reports", reportRouter);
 app.use("/rooms", roomRouter);

@@ -1,10 +1,22 @@
-const expect = require("chai").expect;
-const reportHandlers = require("../../src/services/reports");
-const { userModel } = require("../../src/modules/stores/mongo");
-const { userGenerator, roomGenerator, testRemover } = require("../utils");
-const httpMocks = require("node-mocks-http");
+import { expect } from "chai";
+import httpMocks from "node-mocks-http";
+import { userModel } from "@/modules/stores/mongo";
+import * as reportHandlers from "@/services/reports";
+import {
+  userGenerator,
+  roomGenerator,
+  testRemover,
+  type TestData,
+} from "../utils";
 
-let testData = { rooms: [], users: [], chat: [], location: [], report: [] };
+const testData: TestData = {
+  rooms: [],
+  users: [],
+  chat: [],
+  location: [],
+  report: [],
+};
+
 const removeTestData = async () => {
   await testRemover(testData);
 };
@@ -16,7 +28,7 @@ describe("[reports] 1.createHandler", () => {
     const testUser1 = await userGenerator("test1", testData);
     const testUser2 = await userGenerator("test2", testData);
     const testRoom = await roomGenerator("test1", testData);
-    const msg = "User/report : report successful";
+    const msg = "Reports/create : report successful";
     let req = httpMocks.createRequest({
       userOid: testUser1._id,
       body: {
@@ -28,7 +40,7 @@ describe("[reports] 1.createHandler", () => {
       },
     });
     let res = httpMocks.createResponse();
-    await reportHandlers.createHandler(req, res);
+    await reportHandlers.createHandler(req, res, () => {});
 
     const resData = res._getData();
     expect(res).to.has.property("statusCode", 200);
@@ -41,10 +53,10 @@ describe("[reports] 2.searchByUserHandler", () => {
   it("should return correct reporting/reported reports of users", async () => {
     const testUser1 = await userModel.findOne({ id: "test1" });
     let req = httpMocks.createRequest({
-      userOid: testUser1._id,
+      userOid: testUser1!._id,
     });
     let res = httpMocks.createResponse();
-    await reportHandlers.searchByUserHandler(req, res);
+    await reportHandlers.searchByUserHandler(req, res, () => {});
     afterEach(removeTestData);
 
     const resJson = res._getJSONData();
@@ -53,7 +65,7 @@ describe("[reports] 2.searchByUserHandler", () => {
     expect(resJson).to.has.property("reported");
     expect(resJson.reporting[0]).to.has.property(
       "creatorId",
-      testUser1._id.toString()
+      testUser1!._id.toString()
     );
   });
 });
