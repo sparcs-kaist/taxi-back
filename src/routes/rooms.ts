@@ -34,7 +34,8 @@ router.get(
 router.use(authMiddleware);
 
 // 방 생성/참여전 ban 여부 확인
-router.use(banMiddleware);
+// FIXME: sid를 사용하는 코드가 모두 수정될 때까지 비활성화 합니다.
+// router.use(banMiddleware);
 
 // 특정 id 방 세부사항 보기
 router.get(

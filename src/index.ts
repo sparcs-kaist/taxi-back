@@ -23,6 +23,7 @@ import {
   authRouter,
   chatRouter,
   docsRouter,
+  emailRouter,
   fareRouter,
   locationRouter,
   logininfoRouter,
@@ -87,6 +88,9 @@ if (eventConfig) {
 
 // [Router] 마일리지 전용 라우터입니다.
 app.use("/mileage", mileageRouter);
+
+// [Router] 이메일 수신 확인은 origin 검사 거치지 않기
+app.use("/emails", emailRouter);
 
 // [Middleware] 모든 API 요청에 대하여 origin 검증
 app.use(originValidatorMiddleware);
