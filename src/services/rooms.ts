@@ -54,12 +54,6 @@ const getExpectedAmount = async (from: Types.ObjectId, to: Types.ObjectId) => {
     return -1;
   }
 
-  locationModel
-    .find({})
-    .then((users) => {
-      console.log(JSON.stringify(users, null, 2));
-    })
-    .catch((err) => console.error(err));
   const route = [fromLocation.koName, toLocation.koName].sort().join(",");
   return fareTable[route] ?? 0;
 };
