@@ -15,7 +15,7 @@ import {
   type PopulatedChat,
 } from "@/modules/populates/chats";
 import type { ChatType } from "@/types/mongo";
-import { parseSettlementMeta, SettlementMeta } from "./settlement";
+import { parseSettlementMeta, type SettlementMeta } from "./settlement";
 
 /**
  * emitChatEvent의 필수 파라미터가 주어지지 않은 경우 발생하는 예외를 정의하는 클래스입니다.
