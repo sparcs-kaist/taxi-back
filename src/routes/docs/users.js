@@ -342,7 +342,7 @@ usersDocs[`${apiPrefix}/registerResidence`] = {
 };
 
 usersDocs[`${apiPrefix}/deleteResidence`] = {
-  get: {
+  post: {
     tags: [tag],
     summary: "유저의 승하차 선호 장소 정보 삭제",
     description: "유저의 승하차 선호 장소 정보를 삭제합니다.",

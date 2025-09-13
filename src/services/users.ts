@@ -17,6 +17,7 @@ import type {
   EditNicknameBody,
   EditProfileImgGetPUrlBody,
   RegisterPhoneNumberBody,
+  RegisterResidenceBody,
 } from "@/routes/docs/schemas/usersSchema";
 
 export const agreeOnTermsOfServiceHandler: RequestHandler = async (
@@ -175,14 +176,15 @@ export const editBadgeHandler: RequestHandler = async (req, res) => {
 export const registerResidenceHandler: RequestHandler = async (req, res) => {
   try {
     const userId = req.userOid;
-    const newResidence = req.body.residence;
+    const newResidence = req.body
+      .residence as RegisterResidenceBody["residence"];
 
-    const result = await userModel.findOneAndUpdate(
+    const result = await userModel.updateOne(
       { _id: userId, withdraw: false },
       { residence: newResidence }
     );
 
-    if (result) {
+    if (result.matchedCount > 0) {
       return res
         .status(200)
         .send("Users/registerResidence: residenceInfo registered successfully");
@@ -203,11 +205,11 @@ export const deleteResidenceHandler: RequestHandler = async (req, res) => {
   try {
     const userId = req.userOid;
 
-    const result = await userModel.findOneAndUpdate(
+    const result = await userModel.updateOne(
       { _id: userId, withdraw: false },
       { $unset: { residence: "" } }
     );
-    if (result) {
+    if (result.matchedCount > 0) {
       return res
         .status(200)
         .send("Users/deleteResidence: residenceInfo deleted successfully");

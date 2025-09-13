@@ -54,8 +54,7 @@ router.post(
 // 거주지 정보를 등록합니다.
 router.post(
   "/registerResidence",
-  body("residence").isString().notEmpty(),
-  validatorMiddleware,
+  validateBody(usersZod.registerResidenceHandler),
   userHandlers.registerResidenceHandler
 );
 
