@@ -11,7 +11,10 @@ import { userModel, banModel } from "@/modules/stores/mongo";
 import { favoriteRouteModel, locationModel } from "@/modules/stores/mongo";
 import { Types } from "mongoose";
 import { favoriteRoutesPopulateOption } from "@/modules/populates/favoriteRoutes";
-import { CreateHandlerSchema, DeleteHandlerSchema } from "@/routes/docs/schemas/favoriteRoutesSchema";
+import {
+  CreateFavoriteBody,
+  DeleteFavoriteParam,
+} from "@/routes/docs/schemas/favoriteRoutesSchema";
 
 // 이벤트 코드입니다.
 import { contracts } from "@/lottery";
@@ -354,13 +357,10 @@ export const withdrawHandler: RequestHandler = async (req, res) => {
 };
 
 // 즐겨찾기 생성
-export const createFavoriteHandler: RequestHandler = async (
-  req,
-  res
-) => {
+export const createFavoriteHandler: RequestHandler = async (req, res) => {
   try {
     const userId = req.userOid;
-    const { from, to }: CreateHandlerSchema = req.body;
+    const { from, to } = req.body as CreateFavoriteBody;
 
     if (!from || !to) {
       return res
@@ -408,10 +408,7 @@ export const createFavoriteHandler: RequestHandler = async (
 };
 
 // 즐겨찾기 조회
-export const getFavoriteHandler: RequestHandler = async (
-  req,
-  res
-) => {
+export const getFavoriteHandler: RequestHandler = async (req, res) => {
   try {
     const userId = req.userOid;
     const routes = await favoriteRouteModel
@@ -427,13 +424,10 @@ export const getFavoriteHandler: RequestHandler = async (
 };
 
 // 즐겨찾기 삭제
-export const deleteFavoriteHandler: RequestHandler = async (
-  req,
-  res
-) => {
+export const deleteFavoriteHandler: RequestHandler = async (req, res) => {
   try {
     const userId = req.userOid;
-    const { id } = req.params as DeleteHandlerSchema;
+    const { id } = req.params as DeleteFavoriteParam;
 
     const route = await favoriteRouteModel.findOneAndDelete({
       _id: id,

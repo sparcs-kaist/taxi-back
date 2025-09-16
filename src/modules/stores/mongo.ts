@@ -295,7 +295,7 @@ database.on("error", function (err) {
   mongoose.disconnect();
 });
 
-const favoriteRouteSchema = new Schema<FavoriteRoute>({
+const favoriteRouteSchema = new Schema({
   user: {
     type: Schema.Types.ObjectId,
     ref: "User",
@@ -320,6 +320,7 @@ favoriteRouteSchema.set("timestamps", {
 
 // 즐겨찾기 모델 생성
 export const favoriteRouteModel = model("FavoriteRoute", favoriteRouteSchema);
+export type FavoriteRoute = InferSchemaType<typeof favoriteRouteSchema>;
 
 export const connectDatabase = (mongoUrl: string) => {
   database.on("disconnected", () => {

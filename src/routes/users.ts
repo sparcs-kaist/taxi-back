@@ -1,7 +1,5 @@
 import express from "express";
-import { body } from "express-validator";
-import { authMiddleware, validateBody } from "@/middlewares";
-import patterns from "@/modules/patterns";
+import { authMiddleware, validateBody, validateParams } from "@/middlewares";
 import { favoriteRoutesZod } from "./docs/schemas/favoriteRoutesSchema";
 const router = express.Router();
 import * as userHandlers from "@/services/users";

@@ -1,5 +1,6 @@
 import { z } from "zod";
 import patterns from "@/modules/patterns";
+import { zodToSchemaObject } from "../utils";
 
 const objectId = patterns.objectId;
 
@@ -13,10 +14,11 @@ export const favoriteRoutesZod = {
   }),
 };
 
-export type FavoriteRoutesSchema = typeof favoriteRoutesZod;
-export type CreateHandlerSchema = z.infer<
+export const favoriteRoutesSchema = zodToSchemaObject(favoriteRoutesZod);
+
+export type CreateFavoriteBody = z.infer<
   typeof favoriteRoutesZod.createFavoriteHandler
 >;
-export type DeleteHandlerSchema = z.infer<
+export type DeleteFavoriteParam = z.infer<
   typeof favoriteRoutesZod.deleteFavoriteHandler
 >;
