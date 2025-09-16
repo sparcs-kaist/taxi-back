@@ -2,6 +2,8 @@ import type { RequestHandler } from "express";
 
 import { validateServiceBanRecord } from "@/modules/ban";
 
+import logger from "@/modules/logger";
+
 const serviceMapper = new Map([
   ["/rooms/create", "service"],
   ["/rooms/join", "service"],
@@ -12,31 +14,43 @@ const serviceMapper = new Map([
   ["/events/2025spring/quests", "2025-spring-event"],
 ]);
 
+type IsBannedCheck = {
+  url: string;
+  value: string;
+};
+
+const testBanArray: IsBannedCheck[] = [
+  { url: "/rooms/create", value: "service" },
+  { url: "/rooms/join", value: "service" },
+  { url: "/events/2025spring/globalState/create", value: "2025-spring-event" },
+  { url: "/events/2025spring/items/purchase", value: "2025-spring-event" },
+  { url: "/events/2025spring/items/purchase", value: "2025-spring-event" },
+  { url: "/events/2025spring/items/useCoupon", value: "2025-spring-event" },
+  { url: "/events/2025spring/quests", value: "2025-spring-event" },
+];
+
 const banMiddleware: RequestHandler = async (req, res, next) => {
-  let responseSent = false;
-  let count = 0;
-
-  console.log(req.originalUrl);
-
-  serviceMapper.forEach(async (value, key, map) => {
-    if (responseSent) return;
-
-    if (req.originalUrl.startsWith(key)) {
-      const banErrorMessage = await validateServiceBanRecord(req, value);
-      console.log(`banErrorMessage: ${banErrorMessage}`);
-
-      if (banErrorMessage !== undefined) {
-        responseSent = true;
-        console.log(`Banned at ${req.originalUrl}`);
-        return res.status(400).json({ error: banErrorMessage });
-      }
+  const targetUrl = testBanArray.find((banArray) =>
+    req.originalUrl.startsWith(banArray.url)
+  );
+  if (targetUrl !== undefined) {
+    const banErrorMessage = await validateServiceBanRecord(
+      req,
+      targetUrl.value
+    );
+    logger.info(
+      `originalUrl: ${req.originalUrl}, target: ${targetUrl.value}, banErrorMessage: ${banErrorMessage}`
+    );
+    if (banErrorMessage !== undefined) {
+      logger.info(`banErrorMessage: ${banErrorMessage}`);
+      logger.info(`Banned at ${req.originalUrl}`);
+      return res.status(400).json({
+        error: banErrorMessage,
+      });
     }
-    count++;
-
-    if (count == serviceMapper.size) {
-      next();
-    }
-  });
+  }
+  // targetUrl: undefined or targetUrl: IsBannedCheck & banErrorMessage: string
+  next();
 };
 
 export default banMiddleware;
