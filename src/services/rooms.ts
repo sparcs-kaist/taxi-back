@@ -28,7 +28,7 @@ import type { Room } from "@/types/mongo";
 import { eventConfig } from "@/loadenv";
 import { contracts } from "@/lottery";
 import { notifyRoomCreationAbuseToReportChannel } from "@/modules/slackNotification";
-import { SettlementMeta, buildPaymentContent } from "@/modules/settlement";
+import { type SettlementMeta, buildPaymentContent } from "@/modules/settlement";
 
 // 이벤트 코드입니다.
 const eventPeriod = eventConfig && {
@@ -644,7 +644,8 @@ export const commitSettlementHandler: RequestHandler = async (req, res) => {
         .json({ error: "Rooms/:id/commitSettlement : User not found" });
     }
 
-    const { roomId: roomIdStr, settlementAmount } = req.body as CommitSettlementBody;
+    const { roomId: roomIdStr, settlementAmount } =
+      req.body as CommitSettlementBody;
     const roomId = new Types.ObjectId(roomIdStr);
     const roomObject = await roomModel
       .findOneAndUpdate(
@@ -793,21 +794,11 @@ export const commitPaymentHandler: RequestHandler = async (req, res) => {
 
     await user.save();
 
-    const lastSettlement = await chatModel
-      .findOne({ roomId, type: "settlement" })
-      .sort({ time: -1 })
-      .lean();
-
-    const contentForPayment = buildPaymentContent(
-      lastSettlement?.content,
-      user._id.toString()
-    );
-
     // 송금 채팅을 보냅니다.
     await emitChatEvent(req.app.get("io"), {
       roomId,
       type: "payment",
-      content: contentForPayment,
+      content: user._id.toString(),
       authorId: user._id.toString(),
     });
 

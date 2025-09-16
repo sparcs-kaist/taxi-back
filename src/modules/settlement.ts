@@ -7,10 +7,9 @@ export interface SettlementMeta {
 /**
  * SettlementMeta를 파싱하는 함수입니다.
  * 
- * @param {string | undefined | null} content - JSON string to parse, or null/undefined.
- * @returns {SettlementMeta | undefined} - Returns a valid `SettlementMeta` object
- * if all required fields are present and numbers; otherwise returns `undefined`.
- * 
+ * @param content SettlementMeta가 들어있는 content입니다.
+ * SettlementMeta가 있으면 파싱 후 리턴하고, 없다면 undefined를 반환합니다.
+
  * total: 전체 금액,
  * perPerson: 인당 금액 (floor),
  * participantCount: 탑승 인원,
@@ -35,7 +34,7 @@ export const parseSettlementMeta = (content: string | undefined | null) => {
   } catch {
     return undefined;
   }
-}
+};
 
 export const buildPaymentContent = (
   content: string | undefined | null,
@@ -43,4 +42,4 @@ export const buildPaymentContent = (
 ) => {
   const meta = parseSettlementMeta(content);
   return meta ? (content as string) : fallback;
-}
+};
