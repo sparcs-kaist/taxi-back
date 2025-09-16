@@ -16,6 +16,12 @@ import { CreateHandlerSchema, DeleteHandlerSchema } from "@/routes/docs/schemas/
 // 이벤트 코드입니다.
 import { contracts } from "@/lottery";
 import { eventStatusModel } from "@/lottery/modules/stores/mongo";
+import type {
+  EditAccountBody,
+  EditNicknameBody,
+  EditProfileImgGetPUrlBody,
+  RegisterPhoneNumberBody,
+} from "@/routes/docs/schemas/usersSchema";
 
 export const agreeOnTermsOfServiceHandler: RequestHandler = async (
   req,
@@ -70,7 +76,7 @@ export const getAgreeOnTermsOfServiceHandler: RequestHandler = async (
 
 export const editNicknameHandler: RequestHandler = async (req, res) => {
   try {
-    const newNickname = req.body.nickname; // TODO: Typing
+    const newNickname = req.body.nickname as EditNicknameBody["nickname"];
     const result = await userModel.findOneAndUpdate(
       { _id: req.userOid, withdraw: false },
       { nickname: newNickname }
@@ -99,7 +105,7 @@ export const editNicknameHandler: RequestHandler = async (req, res) => {
 
 export const editAccountHandler: RequestHandler = async (req, res) => {
   try {
-    const newAccount = req.body.account; // TODO: Typing
+    const newAccount = req.body.account as EditAccountBody["account"];
     const result = await userModel.findOneAndUpdate(
       { _id: req.userOid, withdraw: false },
       { account: newAccount }
@@ -129,7 +135,8 @@ export const editAccountHandler: RequestHandler = async (req, res) => {
 
 export const registerPhoneNumberHandler: RequestHandler = async (req, res) => {
   try {
-    const newPhoneNumber = req.body.phoneNumber;
+    const newPhoneNumber = req.body
+      .phoneNumber as RegisterPhoneNumberBody["phoneNumber"];
     const result = await userModel.findOneAndUpdate(
       { _id: req.userOid, withdraw: false },
       { phoneNumber: newPhoneNumber, badge: true }
@@ -154,23 +161,15 @@ export const registerPhoneNumberHandler: RequestHandler = async (req, res) => {
 
 export const editBadgeHandler: RequestHandler = async (req, res) => {
   try {
-    if (req.body.badge === "true" || req.body.badge === "false") {
-      await userModel.findOneAndUpdate(
-        {
-          _id: req.userOid,
-          withdraw: false,
-          phoneNumber: { $exists: true, $ne: null },
-        },
-        { badge: req.body.badge === "true" ? true : false }
-      );
-      return res
-        .status(200)
-        .send("Users/editBadge : badge successfully applied");
-    } else {
-      return res
-        .status(400)
-        .send("Users/editBadge : invalid request for badge");
-    }
+    await userModel.findOneAndUpdate(
+      {
+        _id: req.userOid,
+        withdraw: false,
+        phoneNumber: { $exists: true, $ne: null },
+      },
+      { badge: req.body.badge }
+    );
+    return res.status(200).send("Users/editBadge : badge successfully applied");
   } catch (err) {
     logger.error(err);
     return res.status(500).send("Users/editBadge : internal server error");
@@ -182,7 +181,7 @@ export const editProfileImgGetPUrlHandler: RequestHandler = async (
   res
 ) => {
   try {
-    const type = req.body.type; // TODO: Typing
+    const type = req.body.type as EditProfileImgGetPUrlBody["type"];
     const user = await userModel.findOne(
       { _id: req.userOid, withdraw: false },
       "_id"

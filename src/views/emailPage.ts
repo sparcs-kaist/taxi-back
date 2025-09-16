@@ -1,8 +1,10 @@
 import { getS3Url } from "@/modules/stores/aws";
+import { frontUrl as origin } from "@/loadenv";
 
 const emailPage = (
   title: string,
-  content: string
+  content: string,
+  trackingId: string
 ) => `<div style="font-family: system-ui; position: relative; background: #ffffff; margin: 0; padding: 72px;">
   <div style="width: max(min(100%, 800px), 320px); margin: 0 auto; padding 0;">
     <div style="height: 102px; background: #6E3678; margin: 0 0 48px; padding: 0;">
@@ -27,6 +29,13 @@ const emailPage = (
       </a>
       <div style="font-family: system-ui; font-size: 12px; font-weight: lighter; color: #999999; margin: 0; padding: 0;">taxi.sparcs@gmail.com</div>
     </div>
+    <!-- Tracking pixel to detect email opens -->
+    <img src="${
+      new URL(
+        `/api/emails/openTracking?trackingId=${encodeURIComponent(trackingId)}`,
+        origin
+      ).href
+    }" width="1" height="1" alt="pixel" />
   </div>
 </div>`;
 
