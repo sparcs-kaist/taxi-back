@@ -12,7 +12,6 @@ export const validateServiceBanRecord = async (
 
   const userId = getLoginInfo(req);
   if (userId.id === undefined) {
-    logger.info("undefined");
     return "undefined id"; // do we need to ban the undefined?
   }
 
@@ -27,10 +26,6 @@ export const validateServiceBanRecord = async (
         serviceName: service,
       })
       .sort({ expireAt: -1 });
-    const all = await banModel.find();
-    logger.info(
-      `userId: ${userId.id}, len: ${bans.length}, total: ${all.length}`
-    );
     if (bans.length > 0) {
       // 가장 expireAt이 큰 정지 기록만 반환함.
       banRecord = bans[0];

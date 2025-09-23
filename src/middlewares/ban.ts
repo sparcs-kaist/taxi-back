@@ -4,16 +4,6 @@ import { validateServiceBanRecord } from "@/modules/ban";
 
 import logger from "@/modules/logger";
 
-const serviceMapper = new Map([
-  ["/rooms/create", "service"],
-  ["/rooms/join", "service"],
-  ["/events/2025spring/globalState/create", "2025-spring-event"],
-  ["/events/2025spring/invites/create", "2025-spring-event"],
-  ["/events/2025spring/items/purchase", "2025-spring-event"],
-  ["/events/2025spring/items/useCoupon", "2025-spring-event"],
-  ["/events/2025spring/quests", "2025-spring-event"],
-]);
-
 type IsBannedCheck = {
   url: string;
   value: string;
@@ -38,12 +28,10 @@ const banMiddleware: RequestHandler = async (req, res, next) => {
       req,
       targetUrl.value
     );
-    logger.info(
-      `originalUrl: ${req.originalUrl}, target: ${targetUrl.value}, banErrorMessage: ${banErrorMessage}`
-    );
     if (banErrorMessage !== undefined) {
-      logger.info(`banErrorMessage: ${banErrorMessage}`);
-      logger.info(`Banned at ${req.originalUrl}`);
+      logger.info(
+        `Banned at ${req.originalUrl}, banErrorMessage: ${banErrorMessage}`
+      );
       return res.status(400).json({
         error: banErrorMessage,
       });
