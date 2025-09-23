@@ -87,7 +87,9 @@ const createUserGlobalStateHandler = async (req, res) => {
       (await eventStatusModel.findById(req.body.inviter).lean());
     if (
       req.body.inviter &&
-      (!inviterStatus || !inviterStatus.isInviteUrlEnabled)
+      (!inviterStatus ||
+        inviterStatus.isBanned ||
+        !inviterStatus.isInviteUrlEnabled)
     )
       return res.status(400).json({
         error: "GlobalState/create : invalid inviter",

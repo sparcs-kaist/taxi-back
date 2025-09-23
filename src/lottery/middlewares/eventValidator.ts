@@ -26,7 +26,7 @@ const eventBanMiddleware: RequestHandler = async (req, res, next) => {
     next();
   } catch (err) {
     logger.error(err);
-    res.status(500).json({
+    return res.status(500).json({
       error: "eventValidator: internal server error",
     });
   }
