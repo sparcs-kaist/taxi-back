@@ -1,4 +1,6 @@
 /node_modules
+/dist
+.env
 .env.test
 .env.production
 .env.development
@@ -6,6 +8,7 @@
 *.code-workspace
 *.swp
 /logs/*.log
+.vscode
 
 # AdminJS 관련 디렉토리
 .adminjs

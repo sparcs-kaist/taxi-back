@@ -1,4 +1,8 @@
 /node_modules
+/dist
+.tsbuildinfo
+/dump
+.env
 .env.test
 .env.production
 .env.development

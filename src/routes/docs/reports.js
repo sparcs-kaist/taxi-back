@@ -1,4 +1,4 @@
-const { objectIdPattern } = require("./utils");
+const { objectId } = require("@/modules/patterns").default;
 
 const tag = "reports";
 const apiPrefix = "/reports";
@@ -61,14 +61,14 @@ reportsDocs[`${apiPrefix}/searchByUser`] = {
                   type: "array",
                   items: {
                     type: "string",
-                    pattern: objectIdPattern,
+                    pattern: objectId.source,
                   },
                 },
                 reported: {
                   type: "array",
                   items: {
                     type: "string",
-                    pattern: objectIdPattern,
+                    pattern: objectId.source,
                   },
                 },
               },

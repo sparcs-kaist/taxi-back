@@ -1,5 +1,5 @@
-const { locationModel } = require("../modules/stores/mongo");
-const logger = require("../modules/logger");
+const { locationModel } = require("@/modules/stores/mongo");
+const logger = require("@/modules/logger").default;
 
 const getAllLocationsHandler = async (_, res) => {
   try {

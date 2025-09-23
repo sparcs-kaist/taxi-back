@@ -1,4 +1,4 @@
-const { eventConfig } = require("../../../../loadenv");
+const { eventConfig } = require("@/loadenv");
 const apiPrefix = `/events/${eventConfig?.mode}/transactions`;
 
 const transactionsDocs = {};
@@ -6,10 +6,9 @@ transactionsDocs[`${apiPrefix}/`] = {
   get: {
     tags: [`${apiPrefix}`],
     summary: "재화 입출금 내역 반환",
-    description: "유저의 재화 입출금 내역을 가져옵니다.",
+    description: "재화 입출금 내역을 가져옵니다.",
     responses: {
       200: {
-        description: "",
         content: {
           "application/json": {
             schema: {
@@ -18,16 +17,11 @@ transactionsDocs[`${apiPrefix}/`] = {
               properties: {
                 transactions: {
                   type: "array",
-                  description: "유저의 재화 입출금 기록의 배열",
+                  description: "유저의 재화 입출금 내역의 배열",
                   items: {
                     type: "object",
-                    required: ["_id", "type", "amount", "comment", "createAt"],
+                    required: ["type", "amount", "comment", "createdAt"],
                     properties: {
-                      _id: {
-                        type: "string",
-                        description: "Transaction의 ObjectId",
-                        example: "OBJECT ID",
-                      },
                       type: {
                         type: "string",
                         description:
@@ -41,18 +35,33 @@ transactionsDocs[`${apiPrefix}/`] = {
                       },
                       questId: {
                         type: "string",
-                        description:
-                          "Transaction과 관련된 퀘스트의 Id. 퀘스트와 관련된 Transaction인 경우에만 포함됩니다.",
+                        description: "입출금 내역과 관련된 퀘스트의 Id",
                         example: "QUEST ID",
+                      },
+                      item: {
+                        type: "object",
+                        required: ["name", "imageUrl"],
+                        properties: {
+                          name: {
+                            type: "string",
+                            description: "상품의 이름",
+                            example: "랜덤 상자",
+                          },
+                          imageUrl: {
+                            type: "string",
+                            description: "상품의 썸네일 이미지 URL",
+                            example: "IMAGE URL",
+                          },
+                        },
                       },
                       comment: {
                         type: "string",
                         description: "입출금 내역에 대한 설명",
                         example: "랜덤 상자 구입 - 50개 차감",
                       },
-                      createAt: {
+                      createdAt: {
                         type: "string",
-                        description: "입출금이 일어난 시각",
+                        description: "입출금 내역이 생성된 시각",
                         example: "2023-01-01 00:00:00",
                       },
                     },

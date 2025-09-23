@@ -1,5 +1,6 @@
 const tag = "users";
 const apiPrefix = "/users";
+const { objectId } = require("../../modules/patterns").default;
 
 const usersDocs = {};
 usersDocs[`${apiPrefix}/agreeOnTermsOfService`] = {
@@ -193,6 +194,106 @@ usersDocs[`${apiPrefix}/editAccount`] = {
   },
 };
 
+usersDocs[`${apiPrefix}/registerPhoneNumber`] = {
+  post: {
+    tags: [tag],
+    summary: "유저의 전화 번호 등록",
+    description: "유저의 전화 번호를 요청한 전화 번호로 등록합니다.",
+    requestBody: {
+      content: {
+        "application/json": {
+          schema: {
+            type: "object",
+            properties: {
+              phoneNumber: {
+                type: "string",
+                description: "유저의 전화 번호",
+              },
+            },
+          },
+        },
+      },
+    },
+    responses: {
+      200: {
+        content: {
+          "text/html": {
+            example:
+              "Users/registerPhoneNumber : create user phoneNumber successful",
+          },
+        },
+      },
+      400: {
+        content: {
+          "text/html": {
+            example: "Users/registerPhoneNumber : such user id does not exist",
+          },
+        },
+      },
+      500: {
+        content: {
+          "text/html": {
+            example: "Users/registerPhoneNumber : internal server error",
+          },
+        },
+      },
+    },
+  },
+};
+
+usersDocs[`${apiPrefix}/editBadge`] = {
+  post: {
+    tags: [tag],
+    summary: "유저의 뱃지 적용 상태 변경",
+    description: "유저의 뱃지를 탈부착합니다.",
+    requestBody: {
+      content: {
+        "application/json": {
+          schema: {
+            type: "object",
+            properties: {
+              badge: {
+                type: "string",
+                description: "뱃지 상태",
+              },
+            },
+          },
+        },
+      },
+    },
+    responses: {
+      200: {
+        content: {
+          "text/html": {
+            example: "Users/editBadge : badge successfully applied",
+          },
+        },
+      },
+      400: {
+        content: {
+          "text/html": {
+            example: "Users/editBadge : invalid request for badge",
+          },
+        },
+      },
+      400: {
+        content: {
+          "text/html": {
+            example: "Users/editBadge : Unauthorized user",
+          },
+        },
+      },
+      500: {
+        content: {
+          "text/html": {
+            example: "Users/editBadge : internal server error",
+          },
+        },
+      },
+    },
+  },
+};
+
 usersDocs[`${apiPrefix}/editProfileImg/getPUrl`] = {
   post: {
     tags: [tag],
@@ -322,6 +423,108 @@ usersDocs[`${apiPrefix}/resetProfileImg`] = {
         content: {
           "text/html": {
             example: "Users/resetProfileImg : internal server error",
+          },
+        },
+      },
+    },
+  },
+};
+
+usersDocs[`${apiPrefix}/getBanRecord`] = {
+  get: {
+    tags: [tag],
+    summary: "본인의 현재 정지 기록을 가져움",
+    description:
+      "정지 기록들 중 본인이고, 서버 시간을 기준으로 expireAt 보다 작은 경우에 해당하는 정지 기록을 모두 가져옴",
+    responses: {
+      200: {
+        content: {
+          "application/json": {
+            schema: {
+              type: "array",
+              items: {
+                properties: {
+                  userSid: {
+                    type: "string",
+                    description: "사용자의 SSO ID",
+                    pattern: "monday-sid",
+                  },
+                  reason: {
+                    type: "string",
+                    description: "정지 사유",
+                    example: "미정산",
+                  },
+                  bannedAt: {
+                    type: "date",
+                    description: "정지 당한 시각",
+                    example: "2024-05-20 12:00",
+                  },
+                  expireAt: {
+                    type: "date",
+                    description: "정지 만료 시각",
+                    example: "2024-05-21 12:00",
+                  },
+                  serviceName: {
+                    type: "string",
+                    description: "정지를 당한 서비스 또는 이벤트 이름",
+                    example: "2023-fall-event",
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+      400: {
+        content: {
+          "text/html": {
+            example: "Users/getBanRecord : there is no ban record",
+          },
+        },
+      },
+      500: {
+        content: {
+          "text/html": {
+            example: "Users/getBanRecord : internal server error",
+          },
+        },
+      },
+    },
+  },
+};
+
+usersDocs[`${apiPrefix}/withdraw`] = {
+  post: {
+    tags: [tag],
+    summary: "회원 탈퇴",
+    description: "회원 탈퇴를 요청합니다.",
+    responses: {
+      200: {
+        content: {
+          "application/json": {
+            schema: {
+              type: "object",
+              properties: {
+                ssoLogoutUrl: {
+                  type: "string",
+                  description: "SSO 로그아웃 URL",
+                },
+              },
+            },
+          },
+        },
+      },
+      400: {
+        content: {
+          "text/html": {
+            example: "Users/withdraw : ongoing room exists",
+          },
+        },
+      },
+      500: {
+        content: {
+          "text/html": {
+            example: "Users/withdraw : internal server error",
           },
         },
       },

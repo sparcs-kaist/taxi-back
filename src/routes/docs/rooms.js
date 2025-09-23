@@ -1,4 +1,4 @@
-const { objectIdPattern, roomsPattern } = require("./utils");
+const { objectId, room } = require("@/modules/patterns").default;
 
 const tag = "rooms";
 const apiPrefix = "/rooms";
@@ -18,18 +18,19 @@ roomsDocs[`${apiPrefix}/create`] = {
             properties: {
               name: {
                 type: "string",
-                pattern: roomsPattern.rooms.name,
+                pattern: room.name.source,
                 description: `방 이름<br/>
                 1~50 글자로 구성되며 영어 대소문자, 숫자, 한글, 특정 특수기호("-", ",", ".", "?", "!", "_")만 가능`,
+                example: "함께 타는 택시의 여유",
               },
               from: {
                 type: "string",
-                pattern: roomsPattern.rooms.from,
+                pattern: objectId.source,
                 description: "출발지 location Document의 ObjectId",
               },
               to: {
                 type: "string",
-                pattern: roomsPattern.rooms.to,
+                pattern: objectId.source,
                 description: "도착지 location Document의 ObjectId",
               },
               time: {
@@ -71,6 +72,12 @@ roomsDocs[`${apiPrefix}/create`] = {
               },
             },
             examples: {
+              "방 생성 기능이 정지당한 경우": {
+                value: {
+                  error:
+                    "Rooms/join : user monday is temporarily restricted from creating rooms until 2024-08-23 15:00:00.",
+                },
+              },
               "출발지와 도착지가 같음": {
                 value: {
                   error: "Rooms/create : locations are same",
@@ -95,6 +102,11 @@ roomsDocs[`${apiPrefix}/create`] = {
               "사용자가 참여하는 진행 중 방이 5개 이상": {
                 value: {
                   error: "Rooms/create : participating in too many rooms",
+                },
+              },
+              "사용자가 아직 송금하지 않은 방이 존재": {
+                value: {
+                  error: "Rooms/create : user has send-required rooms",
                 },
               },
             },
@@ -135,7 +147,7 @@ roomsDocs[`${apiPrefix}/publicInfo`] = {
         name: "id",
         schema: {
           type: "string",
-          pattern: objectIdPattern,
+          pattern: objectId.source,
         },
         description: "찾고 싶은 방의 Object id",
       },
@@ -202,7 +214,7 @@ roomsDocs[`${apiPrefix}/info`] = {
         name: "id",
         schema: {
           type: "string",
-          pattern: objectIdPattern,
+          pattern: objectId.source,
         },
         description: "찾고 싶은 방의 Object id",
       },
@@ -273,7 +285,7 @@ roomsDocs[`${apiPrefix}/join`] = {
             properties: {
               roomId: {
                 type: "string",
-                pattern: objectIdPattern,
+                pattern: objectId.source,
               },
             },
           },
@@ -303,9 +315,20 @@ roomsDocs[`${apiPrefix}/join`] = {
               },
             },
             examples: {
+              "방 참여 기능이 정지당한 경우": {
+                value: {
+                  error:
+                    "Rooms/join : user monday is temporarily restricted from joining rooms until 2024-08-23 15:00:00.",
+                },
+              },
               "사용자가 참여하는 진행 중 방이 5개 이상": {
                 value: {
                   error: "Rooms/join : participating in too many rooms",
+                },
+              },
+              "사용자가 아직 송금하지 않은 방이 존재": {
+                value: {
+                  error: "Rooms/join : user has send-required rooms",
                 },
               },
               "입력한 시간의 방이 이미 출발함": {
@@ -384,7 +407,7 @@ roomsDocs[`${apiPrefix}/abort`] = {
             properties: {
               roomId: {
                 type: "string",
-                pattern: objectIdPattern,
+                pattern: objectId.source,
               },
             },
           },
@@ -509,7 +532,7 @@ roomsDocs[`${apiPrefix}/search`] = {
         name: "from",
         schema: {
           type: "string",
-          pattern: objectIdPattern,
+          pattern: objectId.source,
         },
         description: `출발지 Document의 ObjectId<br/>
         주어진 경우 출발지가 일치하는 방들만 반환.<br/>
@@ -520,7 +543,7 @@ roomsDocs[`${apiPrefix}/search`] = {
         name: "to",
         schema: {
           type: "string",
-          pattern: objectIdPattern,
+          pattern: objectId.source,
         },
         description: `도착지 Document의 ObjectId<br/>
         주어진 경우 도착지가 일치하는 방들만 반환.<br/>
@@ -682,11 +705,136 @@ roomsDocs[`${apiPrefix}/searchByUser`] = {
   },
 };
 
-roomsDocs[`${apiPrefix}/commitPayment`] = {
+roomsDocs[`${apiPrefix}/searchByTimeGap`] = {
+  get: {
+    tags: [tag],
+    summary: "검색하려는 시간 범위에 따른 방 검색",
+    description: `출발지/도착지/날짜를 받아 조건에 맞는 방을 검색합니다.<br/>
+    조건에 맞는 방이 있을 경우, 방들의 정보를 반환하고 없다면 빈 배열을 반환합니다.<br/>
+    로그인을 하지 않아도 접근 가능합니다.`,
+    parameters: [
+      {
+        in: "query",
+        name: "from",
+        schema: {
+          type: "string",
+          pattern: objectId.source,
+        },
+        description: `출발지 Document의 ObjectId<br/>
+        주어진 경우 출발지가 일치하는 방들만 반환.<br/>
+        주어지지 않은 경우 예외처리.`,
+      },
+      {
+        in: "query",
+        name: "to",
+        schema: {
+          type: "string",
+          pattern: objectId.source,
+        },
+        description: `도착지 Document의 ObjectId<br/>
+        주어진 경우 도착지가 일치하는 방들만 반환.<br/>
+        주어지지 않은 경우 예외처리.`,
+      },
+      {
+        in: "query",
+        name: "time",
+        schema: {
+          type: "string",
+          format: "date-time",
+        },
+        description: `출발 시각<br/>
+        주어지지 않은 경우 예외처리.`,
+      },
+      {
+        in: "query",
+        name: "timeGap",
+        schema: {
+          type: "integer",
+          minimum: 0,
+          maximum: 60,
+        },
+        description: `검색하려는 시간 범위<br/>
+        주어진 경우 현재 시각부터 \`timeGap\` 시간 이후까지의 방들을 검색.<br/>
+        주어지지 않은 경우 앞뒤로 25분 범위의 방들을 검색.`,
+      },
+    ],
+    responses: {
+      200: {
+        content: {
+          "application/json": {
+            schema: {
+              type: "object",
+              properties: {
+                ongoing: {
+                  type: "array",
+                  items: {
+                    $ref: "#/components/schemas/room",
+                  },
+                },
+                done: {
+                  type: "array",
+                  items: {
+                    $ref: "#/components/schemas/room",
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+      400: {
+        content: {
+          "application/json": {
+            schema: {
+              type: "object",
+              properties: {
+                error: {
+                  type: "string",
+                },
+              },
+            },
+            examples: {
+              "출발지와 도착지가 같음": {
+                value: {
+                  error: "Rooms/searchByTimeGap : Bad request",
+                },
+              },
+              "출발/도착지가 존재하지 않는 장소": {
+                value: {
+                  error: "Rooms/searchByTimeGap : Invalid 'from/to' location",
+                },
+              },
+            },
+          },
+        },
+      },
+      500: {
+        description: "내부 서버 오류",
+        content: {
+          "application/json": {
+            schema: {
+              type: "object",
+              properties: {
+                error: {
+                  type: "string",
+                },
+              },
+            },
+            example: {
+              error: "Rooms/searchByTimeGap : internal server error",
+            },
+          },
+        },
+      },
+    },
+  },
+};
+
+roomsDocs[`${apiPrefix}/commitSettlement`] = {
   post: {
     tags: [tag],
-    summary: "방 결제 처리",
-    description: `해당 방에 요청을 보낸 유저를 결제자로 처리합니다.<br/>
+    summary: "방 정산 요청 처리",
+    description: `해당 방에 요청을 보낸 유저를 결제자로 처리하여, 다른 유저들에게 정산을 요청합니다.<br/>
     이미 출발한 방에 대해서만 요청을 처리합니다.<br/>
     방의 \`part\` 배열에서 요청을 보낸 유저의 \`isSettlement\` 속성은 \`paid\`로 설정됩니다.<br/>
     나머지 유저들의 \`isSettlement\` 속성을 \`send-required\`로 설정합니다.`,
@@ -698,7 +846,7 @@ roomsDocs[`${apiPrefix}/commitPayment`] = {
             properties: {
               roomId: {
                 type: "string",
-                pattern: objectIdPattern,
+                pattern: objectId.source,
               },
             },
           },
@@ -730,7 +878,7 @@ roomsDocs[`${apiPrefix}/commitPayment`] = {
               },
             },
             example: {
-              error: "Rooms/:id/commitPayment : cannot find settlement info",
+              error: "Rooms/:id/commitSettlement : cannot find settlement info",
             },
           },
         },
@@ -748,7 +896,7 @@ roomsDocs[`${apiPrefix}/commitPayment`] = {
               },
             },
             example: {
-              error: "Rooms/:id/commitPayment : internal server error",
+              error: "Rooms/:id/commitSettlement : internal server error",
             },
           },
         },
@@ -757,11 +905,11 @@ roomsDocs[`${apiPrefix}/commitPayment`] = {
   },
 };
 
-roomsDocs[`${apiPrefix}/commitSettlement`] = {
+roomsDocs[`${apiPrefix}/commitPayment`] = {
   post: {
     tags: [tag],
-    summary: "방 정산 완료 처리",
-    description: `해당 방에 요청을 보낸 유저를 정산 완료로 처리합니다.<br/>
+    summary: "방 송금 처리",
+    description: `해당 방에 요청을 보낸 유저를 송금을 완료한 정산 완료로 처리합니다.<br/>
     방의 \`part\` 배열에서 요청을 보낸 유저의 \`isSettlement\` 속성은 \`send-required\`에서 \`sent\`로 변경합니다.<br/>
     방의 참여한 유저들이 모두 정산완료를 하면 방의 \`isOver\` 속성이 \`true\`로 변경되며, 과거 방으로 취급됩니다.`,
     requestBody: {
@@ -772,7 +920,7 @@ roomsDocs[`${apiPrefix}/commitSettlement`] = {
             properties: {
               roomId: {
                 type: "string",
-                pattern: objectIdPattern,
+                pattern: objectId.source,
               },
             },
           },
@@ -804,7 +952,7 @@ roomsDocs[`${apiPrefix}/commitSettlement`] = {
               },
             },
             example: {
-              error: "Rooms/:id/settlement : cannot find settlement info",
+              error: "Rooms/:id/commitPayment : cannot find settlement info",
             },
           },
         },
@@ -822,7 +970,7 @@ roomsDocs[`${apiPrefix}/commitSettlement`] = {
               },
             },
             example: {
-              error: "Rooms/:id/settlement : internal server error",
+              error: "Rooms/:id/commitPayment : internal server error",
             },
           },
         },

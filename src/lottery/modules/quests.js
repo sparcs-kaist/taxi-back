@@ -4,16 +4,17 @@ const {
   itemModel,
   transactionModel,
 } = require("./stores/mongo");
-const logger = require("../../modules/logger");
+const logger = require("@/modules/logger").default;
 const mongoose = require("mongoose");
 
-const { eventConfig } = require("../../../loadenv");
+const { eventConfig } = require("@/loadenv");
 const eventPeriod = eventConfig && {
   startAt: new Date(eventConfig.period.startAt),
   endAt: new Date(eventConfig.period.endAt),
 };
 
 const requiredQuestFields = ["name", "description", "imageUrl", "reward"];
+
 const buildQuests = (quests) => {
   for (const [id, quest] of Object.entries(quests)) {
     // quest에 필수 필드가 모두 포함되어 있는지 확인합니다.
@@ -61,10 +62,14 @@ const buildQuests = (quests) => {
  * @param {number} quest.reward.credit - 퀘스트의 완료 보상 중 재화의 양입니다.
  * @param {number} quest.reward.ticket1 - 퀘스트의 완료 보상 중 일반 티켓의 개수입니다.
  * @param {number} quest.maxCount - 퀘스트의 최대 완료 가능 횟수입니다.
- * @returns {Object|null} 성공한 경우 Object를, 실패한 경우 null을 반환합니다. 이미 최대 완료 횟수에 도달했거나, 퀘스트가 원격으로 비활성화 된 경우에도 실패로 처리됩니다.
+ * @returns {Object|null} 성공한 경우 Object를, 실패한 경우 null을 반환합니다. 이미 최대 완료 횟수에 도달했거나, 퀘스트가 원격으로 비활성화된 경우에도 실패로 처리됩니다.
  */
 const completeQuest = async (userId, timestamp, quest) => {
   try {
+    // 이벤트(2025spring) 기간을 하루 더 연장하여 넙죽코인 소비기한을 보장할 때, completeQuest 함수를 비활성화합니다.
+    // 추후 이벤트에서는 아래 코드를 지워주시길 바랍니다.
+    if (timestamp >= new Date("2025-03-13T00:00:00+09:00")) return null;
+
     // 1단계: 유저의 EventStatus를 가져옵니다. 블록드리스트인지도 확인합니다.
     const eventStatus = await eventStatusModel.findOne({ userId }).lean();
     if (!eventStatus || eventStatus.isBanned) return null;
@@ -84,7 +89,7 @@ const completeQuest = async (userId, timestamp, quest) => {
     // 3단계: 유저의 퀘스트 완료 횟수를 확인합니다.
     // maxCount가 0인 경우, 무제한으로 퀘스트를 완료할 수 있습니다.
     const questCount = eventStatus.completedQuests.filter(
-      (completedQuestId) => completedQuestId === quest.id
+      ({ questId }) => questId === quest.id
     ).length;
     if (quest.maxCount > 0 && questCount >= quest.maxCount) {
       logger.info(
@@ -118,7 +123,10 @@ const completeQuest = async (userId, timestamp, quest) => {
           ticket1Amount: quest.reward.ticket1,
         },
         $push: {
-          completedQuests: quest.id,
+          completedQuests: {
+            questId: quest.id,
+            completedAt: timestamp,
+          },
         },
       }
     );
@@ -143,7 +151,7 @@ const completeQuest = async (userId, timestamp, quest) => {
         amount: 0,
         userId,
         questId: quest.id,
-        item: ticket1._id,
+        itemId: ticket1._id,
         comment: `"${quest.name}" 퀘스트를 완료해 "${ticket1.name}" ${quest.reward.ticket1}개를 획득했습니다.`,
       });
       await transaction.save();

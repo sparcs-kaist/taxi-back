@@ -1,4 +1,4 @@
-const { objectIdPattern } = require("./utils");
+const { objectId } = require("@/modules/patterns").default;
 
 const tag = "chats";
 const apiPrefix = "/chats";
@@ -17,7 +17,7 @@ chatsDocs[`${apiPrefix}`] = {
             properties: {
               roomId: {
                 type: "string",
-                pattern: objectIdPattern,
+                pattern: objectId.source,
                 description: "채팅을 보내는 방의 id",
               },
             },
@@ -77,7 +77,7 @@ chatsDocs[`${apiPrefix}/load/before`] = {
             properties: {
               roomId: {
                 type: "string",
-                pattern: objectIdPattern,
+                pattern: objectId.source,
                 description: "채팅을 보내는 방의 id",
               },
               lastMsgDate: {
@@ -145,7 +145,7 @@ chatsDocs[`${apiPrefix}/load/after`] = {
             properties: {
               roomId: {
                 type: "string",
-                pattern: objectIdPattern,
+                pattern: objectId.source,
                 description: "채팅을 보내는 방의 id",
               },
               lastMsgDate: {
@@ -211,7 +211,7 @@ chatsDocs[`${apiPrefix}/send`] = {
 
     Chat {
       roomId: ObjectId, //방의 objectId
-      type: String, // 메시지 종류 ("text": 일반 메시지, "s3img": S3에 업로드된 이미지, "in": 입장 메시지, "out": 퇴장 메시지, "payment": 결제 메시지, "settlement": 정산 완료 메시지, "account": 계좌 전송 메시지)
+      type: String, // 메시지 종류 ("text": 일반 메시지, "s3img": S3에 업로드된 이미지, "in": 입장 메시지, "out": 퇴장 메시지, "settlement": 정산 메시지, "payment": 송금 메시지, "account": 계좌 전송 메시지)
       authorId: ObejctId, //작성자의 objectId
       content: String, // 메시지 내용 (메시지 종류에 따라 포맷이 상이함)
       time: String(ISO 8601), // ex) 2024-01-08T01:52:00.000Z
@@ -226,7 +226,7 @@ chatsDocs[`${apiPrefix}/send`] = {
             properties: {
               roomId: {
                 type: "string",
-                pattern: objectIdPattern,
+                pattern: objectId.source,
                 description: "채팅을 보내는 방의 id",
               },
               type: {
@@ -311,7 +311,7 @@ chatsDocs[`${apiPrefix}/read`] = {
             properties: {
               roomId: {
                 type: "string",
-                pattern: objectIdPattern,
+                pattern: objectId.source,
                 description: "채팅을 보내는 방의 id",
               },
             },
@@ -382,7 +382,7 @@ chatsDocs[`${apiPrefix}/uploadChatImg/getPUrl`] = {
             properties: {
               roomId: {
                 type: "string",
-                pattern: objectIdPattern,
+                pattern: objectId.source,
                 description: "채팅 이미지를 보내는 방의 id",
               },
               type: {
@@ -404,7 +404,7 @@ chatsDocs[`${apiPrefix}/uploadChatImg/getPUrl`] = {
               properties: {
                 id: {
                   type: "string",
-                  pattern: objectIdPattern,
+                  pattern: objectId.source,
                   description: "생성된 chat Document의 object id",
                 },
                 url: {
@@ -468,7 +468,7 @@ chatsDocs[`${apiPrefix}/uploadChatImg/done`] = {
             properties: {
               roomId: {
                 type: "string",
-                pattern: objectIdPattern,
+                pattern: objectId.source,
                 description: "채팅 이미지를 보내는 방의 id",
               },
             },

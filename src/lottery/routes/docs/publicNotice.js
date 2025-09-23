@@ -1,8 +1,8 @@
-const { eventConfig } = require("../../../../loadenv");
+const { eventConfig } = require("@/loadenv");
 const apiPrefix = `/events/${eventConfig?.mode}/publicNotice`;
 
 const publicNoticeDocs = {};
-// 다음 Endpoint는 2024 봄학기 이벤트에서 사용되지 않습니다.
+// 다음 Endpoint들은 2024 추석 이벤트에서 사용되지 않습니다.
 //
 // publicNoticeDocs[`${apiPrefix}/recentTransactions`] = {
 //   get: {
@@ -35,75 +35,75 @@ const publicNoticeDocs = {};
 //     },
 //   },
 // };
-publicNoticeDocs[`${apiPrefix}/leaderboard`] = {
-  get: {
-    tags: [`${apiPrefix}`],
-    summary: "리더보드 반환",
-    description:
-      "새터반 별 재화 개수 기준의 리더보드와 관련된 정보를 가져옵니다.",
-    responses: {
-      200: {
-        description: "",
-        content: {
-          "application/json": {
-            schema: {
-              type: "object",
-              required: ["leaderboard"],
-              properties: {
-                leaderboard: {
-                  type: "array",
-                  description: "이벤트에 참여한 새터반 전체가 포함된 리더보드",
-                  items: {
-                    type: "object",
-                    required: [
-                      "group",
-                      "creditAmount",
-                      "mvpNickname",
-                      "mvpProfileImageUrl",
-                    ],
-                    properties: {
-                      group: {
-                        type: "number",
-                        description: "새터반",
-                        example: 16,
-                      },
-                      creditAmount: {
-                        type: "number",
-                        description: "새터반에 소속된 유저의 전체 재화 개수",
-                        example: 3000,
-                      },
-                      mvpNickname: {
-                        type: "string",
-                        description:
-                          "MVP(새터반 내에서 가장 많은 재화를 가진 유저)의 닉네임",
-                        example: "asdf",
-                      },
-                      mvpProfileImageUrl: {
-                        type: "string",
-                        description: "MVP의 프로필 이미지 URL",
-                        example: "IMAGE URL",
-                      },
-                    },
-                  },
-                },
-                group: {
-                  type: "number",
-                  description: "유저의 소속 새터반",
-                  example: 16,
-                },
-                rank: {
-                  type: "number",
-                  description:
-                    "유저의 소속 새터반의 리더보드 순위. 1부터 시작합니다.",
-                  example: 1,
-                },
-              },
-            },
-          },
-        },
-      },
-    },
-  },
-};
+// publicNoticeDocs[`${apiPrefix}/leaderboard`] = {
+//   get: {
+//     tags: [`${apiPrefix}`],
+//     summary: "리더보드 반환",
+//     description:
+//       "새터반 별 재화 개수 기준의 리더보드와 관련된 정보를 가져옵니다.",
+//     responses: {
+//       200: {
+//         description: "",
+//         content: {
+//           "application/json": {
+//             schema: {
+//               type: "object",
+//               required: ["leaderboard"],
+//               properties: {
+//                 leaderboard: {
+//                   type: "array",
+//                   description: "이벤트에 참여한 새터반 전체가 포함된 리더보드",
+//                   items: {
+//                     type: "object",
+//                     required: [
+//                       "group",
+//                       "creditAmount",
+//                       "mvpNickname",
+//                       "mvpProfileImageUrl",
+//                     ],
+//                     properties: {
+//                       group: {
+//                         type: "number",
+//                         description: "새터반",
+//                         example: 16,
+//                       },
+//                       creditAmount: {
+//                         type: "number",
+//                         description: "새터반에 소속된 유저의 전체 재화 개수",
+//                         example: 3000,
+//                       },
+//                       mvpNickname: {
+//                         type: "string",
+//                         description:
+//                           "MVP(새터반 내에서 가장 많은 재화를 가진 유저)의 닉네임",
+//                         example: "asdf",
+//                       },
+//                       mvpProfileImageUrl: {
+//                         type: "string",
+//                         description: "MVP의 프로필 이미지 URL",
+//                         example: "IMAGE URL",
+//                       },
+//                     },
+//                   },
+//                 },
+//                 group: {
+//                   type: "number",
+//                   description: "유저의 소속 새터반",
+//                   example: 16,
+//                 },
+//                 rank: {
+//                   type: "number",
+//                   description:
+//                     "유저의 소속 새터반의 리더보드 순위. 1부터 시작합니다.",
+//                   example: 1,
+//                 },
+//               },
+//             },
+//           },
+//         },
+//       },
+//     },
+//   },
+// };
 
 module.exports = publicNoticeDocs;
