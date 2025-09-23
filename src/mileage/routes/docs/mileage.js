@@ -3,66 +3,6 @@ const apiPrefix = "/mileage";
 
 const mileageDocs = {};
 
-mileageDocs[`${apiPrefix}/transactions`] = {
-  post: {
-    tags: [tag],
-    summary: "마일리지 트랜잭션 기록",
-    description: "마일리지 적립, 사용, 출석, 이벤트 발생 시 호출하는 API",
-    requestBody: {
-      description: "마일리지 트랜잭션 생성 요청 바디",
-      required: true,
-      content: {
-        "application/json": {
-          schema: {
-            type: "object",
-            required: ["type", "amount"],
-            properties: {
-              type: {
-                type: "string",
-                enum: ["earn", "use", "event", "attendance"],
-                description: "트랜잭션 타입",
-              },
-              amount: {
-                type: "integer",
-                minimum: 1,
-                description: "변동 마일리지(양수)",
-                example: 30,
-              },
-            },
-          },
-        },
-      },
-    },
-    responses: {
-      200: {
-        description: "트랜잭션 기록 성공",
-        content: {
-          "application/json": {
-            schema: {
-              type: "object",
-              properties: {
-                success: { type: "boolean", example: true },
-                message: {
-                  type: "string",
-                  example: "마일리지가 성공적으로 기록되었습니다.",
-                },
-              },
-            },
-          },
-        },
-      },
-      500: {
-        description: "internal server error",
-        content: {
-          "text/html": {
-            example: "mileage/transactions : internal server error",
-          },
-        },
-      },
-    },
-  },
-};
-
 mileageDocs[`${apiPrefix}/summary`] = {
   get: {
     tags: [tag],
