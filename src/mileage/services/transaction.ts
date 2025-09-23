@@ -1,6 +1,7 @@
 import logger from "@/modules/logger";
 import type { RequestHandler } from "express";
-import { mileageModel, userModel } from "@/modules/stores/mongo";
+import { userModel } from "@/modules/stores/mongo";
+import { mileageModel } from "../modules/mongo";
 import { TransactionViewQuery } from "../routes/docs/schemas/mileageSchema";
 import { Types } from "mongoose";
 

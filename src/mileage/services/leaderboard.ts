@@ -1,5 +1,5 @@
 import type { RequestHandler } from "express";
-import { mileageModel } from "@/modules/stores/mongo";
+import { mileageModel } from "../modules/mongo";
 import type { LeaderboardQuery } from "../routes/docs/schemas/mileageSchema";
 import { updateOldPendingTransaction } from "./transaction";
 

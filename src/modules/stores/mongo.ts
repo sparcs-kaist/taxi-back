@@ -282,27 +282,6 @@ const noticeSchema = new Schema(
 export const noticeModel = model("Notice", noticeSchema);
 export type Notice = InferSchemaType<typeof noticeSchema>;
 
-const mileageSchema = new Schema({
-  user: { type: Schema.Types.ObjectId, ref: "User", required: true },
-  amount: { type: Number, required: true },
-  type: {
-    type: String,
-    enum: ["ride", "event"],
-    required: true,
-  },
-  source: { type: String, required: true },
-  status: {
-    type: String,
-    enum: ["pending", "confirmed", "voided"],
-    required: true,
-  },
-  createAt: { type: Date, required: true },
-  expireAt: { type: Date, required: true },
-});
-
-export const mileageModel = model("Mileage", mileageSchema);
-export type Mileage = InferSchemaType<typeof mileageSchema>;
-
 mongoose.set("strictQuery", true);
 
 const database = mongoose.connection;

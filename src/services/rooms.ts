@@ -1,11 +1,7 @@
 import type { RequestHandler } from "express";
 import { Types, type PipelineStage } from "mongoose";
-import {
-  roomModel,
-  locationModel,
-  userModel,
-  mileageModel,
-} from "@/modules/stores/mongo";
+import { roomModel, locationModel, userModel } from "@/modules/stores/mongo";
+import { mileageModel } from "@/mileage/modules/mongo";
 import { emitChatEvent } from "@/modules/socket";
 import logger from "@/modules/logger";
 import {
@@ -160,7 +156,9 @@ export const createHandler: RequestHandler = async (req, res) => {
         source: room._id,
         amount: 0,
       });
-    } catch (err) {}
+    } catch (err) {
+      logger.error(err);
+    }
 
     const roomObject = (
       await room.populate(roomPopulateOption)
@@ -377,7 +375,9 @@ export const joinHandler: RequestHandler = async (req, res) => {
         source: room._id,
         amount: amount,
       });
-    } catch (err) {}
+    } catch (err) {
+      logger.error(err);
+    }
 
     const updates = room.part
       .filter((part) => part.user.toString() !== user._id.toString())
@@ -478,7 +478,9 @@ export const abortHandler: RequestHandler = async (req, res) => {
           status: "voided",
         },
       ]);
-    } catch (err) {}
+    } catch (err) {
+      logger.error(err);
+    }
 
     if (N > 0) {
       const updates = room.part
@@ -495,6 +497,7 @@ export const abortHandler: RequestHandler = async (req, res) => {
         }
       } catch (err) {
         // room 로직에 영향 없게 조용히 처리
+        logger.error(err);
       }
     }
     await emitChatEvent(req.app.get("io"), {
@@ -817,7 +820,9 @@ export const commitSettlementHandler: RequestHandler = async (req, res) => {
           amount: (req.body.settlementAmount / N) * (N - 1),
         },
       ]);
-    } catch (err) {}
+    } catch (err) {
+      logger.error(err);
+    }
 
     // 수정한 방 정보를 반환합니다.
     return res.send(formatSettlement(roomObject, { isOver: true }));
@@ -917,7 +922,9 @@ export const commitPaymentHandler: RequestHandler = async (req, res) => {
           },
         ]);
       }
-    } catch (err) {}
+    } catch (err) {
+      logger.error(err);
+    }
 
     // 수정한 방 정보를 반환합니다.
     return res.send(formatSettlement(roomObject, { isOver: true }));

@@ -1,5 +1,6 @@
 import type { RequestHandler } from "express";
-import { mileageModel, userModel } from "@/modules/stores/mongo";
+import { userModel } from "@/modules/stores/mongo";
+import { mileageModel } from "../modules/mongo";
 import { updateOldPendingTransaction } from "./transaction";
 
 export const summaryHandler: RequestHandler = async (req, res) => {
