@@ -24,7 +24,7 @@ export const usersZod = {
   }),
 
   registerResidenceHandler: z.object({
-    residence: z.string(),
+    residence: z.string().trim().min(1).max(15),
   }),
 
   editProfileImgGetPUrlHandler: z.object({
