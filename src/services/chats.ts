@@ -293,8 +293,13 @@ export const uploadChatImgDoneHandler: RequestHandler = async (req, res) => {
         error: "Chat/uploadChatImg/done : no corresponding chat",
       });
     }
+
     const key = `chat-img/${chat._id}`;
-    await aws.foundObject(key);
+    if (!(await aws.foundObject(key))) {
+      return res
+        .status(400)
+        .send("Chat/uploadChatImg/done : no such image uploaded");
+    }
 
     chat.content = chat._id.toString();
     await emitChatEvent(req.app.get("io"), chat);

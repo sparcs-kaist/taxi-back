@@ -35,13 +35,20 @@ export const getUploadPUrlPost = async (
 
 // function to check exist of Object
 export const foundObject = async (filePath: string) => {
-  const data = await s3.send(
-    new HeadObjectCommand({
-      Bucket: awsEnv.s3BucketName,
-      Key: filePath,
-    })
-  );
-  return data;
+  try {
+    await s3.send(
+      new HeadObjectCommand({
+        Bucket: awsEnv.s3BucketName,
+        Key: filePath,
+      })
+    );
+    return true;
+  } catch (err) {
+    if (err instanceof Error && err.name === "NotFound") {
+      return false;
+    }
+    throw err;
+  }
 };
 
 // function to return full URL of the object

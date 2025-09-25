@@ -209,8 +209,13 @@ export const editProfileImgDoneHandler: RequestHandler = async (req, res) => {
         .status(500)
         .send("Users/editProfileImg/done : internal server error");
     }
+
     const key = `profile-img/${user._id}`;
-    await aws.foundObject(key);
+    if (!(await aws.foundObject(key))) {
+      return res
+        .status(400)
+        .send("Users/editProfileImg/done : no such image uploaded");
+    }
 
     const userAfter = await userModel.findOneAndUpdate(
       { _id: req.userOid, withdraw: false },

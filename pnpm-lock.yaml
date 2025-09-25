@@ -17,9 +17,6 @@ importers:
       '@aws-sdk/client-s3':
         specifier: ^3.391.0
         version: 3.894.0
-      '@aws-sdk/client-ses':
-        specifier: ^3.391.0
-        version: 3.894.0
       '@aws-sdk/s3-request-presigner':
         specifier: ^3.391.0
         version: 3.894.0
@@ -53,9 +50,6 @@ importers:
       express:
         specifier: ^4.21.2
         version: 4.21.2
-      express-formidable:
-        specifier: ^1.2.0
-        version: 1.2.0
       express-rate-limit:
         specifier: ^7.5.1
         version: 7.5.1(express@4.21.2)
@@ -98,9 +92,6 @@ importers:
       uuid:
         specifier: ^11.1.0
         version: 11.1.0
-      validator:
-        specifier: ^13.15.15
-        version: 13.15.15
       winston:
         specifier: ^3.17.0
         version: 3.17.0
@@ -277,10 +268,6 @@ packages:
 
   '@aws-sdk/client-s3@3.894.0':
     resolution: {integrity: sha512-SCNiNYm2lFVoRXU6QMSi3EpLDxqZ1g/ZaagyAZoFHHPWoLZAodHA4H20o/dAemGZTAoCNYsEZccPQ63i36zDHw==}
-    engines: {node: '>=18.0.0'}
-
-  '@aws-sdk/client-ses@3.894.0':
-    resolution: {integrity: sha512-1WL+2CQOn99VV2WqLXn9XmWiqmtyjAL4SGEE1fb7+dXLkcmtBRYTO28/x7jLU09EREsIk7x3Dqlr8lC/1OJ5FQ==}
     engines: {node: '>=18.0.0'}
 
   '@aws-sdk/client-sso@3.864.0':
@@ -5704,51 +5691,6 @@ snapshots:
       '@types/uuid': 9.0.8
       tslib: 2.8.1
       uuid: 9.0.1
-    transitivePeerDependencies:
-      - aws-crt
-
-  '@aws-sdk/client-ses@3.894.0':
-    dependencies:
-      '@aws-crypto/sha256-browser': 5.2.0
-      '@aws-crypto/sha256-js': 5.2.0
-      '@aws-sdk/core': 3.894.0
-      '@aws-sdk/credential-provider-node': 3.894.0
-      '@aws-sdk/middleware-host-header': 3.893.0
-      '@aws-sdk/middleware-logger': 3.893.0
-      '@aws-sdk/middleware-recursion-detection': 3.893.0
-      '@aws-sdk/middleware-user-agent': 3.894.0
-      '@aws-sdk/region-config-resolver': 3.893.0
-      '@aws-sdk/types': 3.893.0
-      '@aws-sdk/util-endpoints': 3.893.0
-      '@aws-sdk/util-user-agent-browser': 3.893.0
-      '@aws-sdk/util-user-agent-node': 3.894.0
-      '@smithy/config-resolver': 4.2.2
-      '@smithy/core': 3.11.1
-      '@smithy/fetch-http-handler': 5.2.1
-      '@smithy/hash-node': 4.1.1
-      '@smithy/invalid-dependency': 4.1.1
-      '@smithy/middleware-content-length': 4.1.1
-      '@smithy/middleware-endpoint': 4.2.3
-      '@smithy/middleware-retry': 4.2.4
-      '@smithy/middleware-serde': 4.1.1
-      '@smithy/middleware-stack': 4.1.1
-      '@smithy/node-config-provider': 4.2.2
-      '@smithy/node-http-handler': 4.2.1
-      '@smithy/protocol-http': 5.2.1
-      '@smithy/smithy-client': 4.6.3
-      '@smithy/types': 4.5.0
-      '@smithy/url-parser': 4.1.1
-      '@smithy/util-base64': 4.1.0
-      '@smithy/util-body-length-browser': 4.1.0
-      '@smithy/util-body-length-node': 4.1.0
-      '@smithy/util-defaults-mode-browser': 4.1.3
-      '@smithy/util-defaults-mode-node': 4.1.3
-      '@smithy/util-endpoints': 3.1.2
-      '@smithy/util-middleware': 4.1.1
-      '@smithy/util-retry': 4.1.2
-      '@smithy/util-utf8': 4.1.0
-      '@smithy/util-waiter': 4.1.1
-      tslib: 2.8.1
     transitivePeerDependencies:
       - aws-crt
 
