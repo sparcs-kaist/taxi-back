@@ -122,7 +122,217 @@ const quests = buildQuests({
       "https://sparcs-taxi-prod.s3.ap-northeast-2.amazonaws.com/assets/event-2025spring/quest_itemPurchase.png",
     reward: 500,
   },
+  //이벤트 코드입니다.(sori)
+  phoneVerification: {
+    name: "전화번호 인증 완료",
+    description: "전화번호 인증을 완료하면 응모권을 드려요.",
+    imageUrl:
+      "https://sparcs-taxi-prod.s3.ap-northeast-2.amazonaws.com/assets/event-2025spring/quest_itemPurchase.png",
+    reward: { ticket1: 10 },
+    maxCount: 1,
+    isApiRequired: true,
+  },
+  referralInviteeBonus: {
+    name: "초대로 합류했어요",
+    description: "초대 링크로 참여해 전화번호 인증을 완료하면 응모권을 받아요.",
+    imageUrl:
+      "https://sparcs-taxi-prod.s3.ap-northeast-2.amazonaws.com/assets/event-2025spring/quest_itemPurchase.png",
+    reward: { ticket1: 20 },
+    maxCount: 1,
+    isApiRequired: true,
+  },
+  allBadgedSettlement: {
+    name: "전원 인증 뱃지 정산",
+    description:
+      "방의 모든 인원이 인증 뱃지를 보유한 상태에서 정산하면 응모권을 받아요.",
+    imageUrl:
+      "https://sparcs-taxi-prod.s3.ap-northeast-2.amazonaws.com/assets/event-2025spring/quest_itemPurchase.png",
+    reward: { ticket1: 5 },
+    maxCount: 0,
+    isApiRequired: true,
+  },
 });
+
+//2025 가을 이벤트 코드입니다.(sori)
+
+/*
+기존 퀘스트 보상 방식 사용 안하는 방식으로 동작하는 함수들입니다.
+function isWithinEvent(ts) {
+  if (!eventPeriod) return false;
+  const t = new Date(ts);
+  return t >= eventPeriod.startAt && t < eventPeriod.endAt;
+}
+
+async function awardTicketsOnce({ userId, amount, dedupKey }) {
+  const existed = await transactionModel
+    .findOne({
+      userId,
+      type: "get",
+      amount,
+      comment: dedupKey,
+    })
+    .lean();
+  if (existed) return;
+  await transactionModel.create({
+    userId,
+    type: "get",
+    amount,
+    comment: dedupKey,
+  });
+  await eventStatusModel.updateOne(
+    { userId },
+    { $inc: { ticket1Amount: amount } },
+    { upsert: true }
+  );
+}
+
+async function awardPhoneVerification(userId, timestamp) {
+  if (!isWithinEvent(timestamp)) return null;
+  const dedupKey = `phone_verified:${eventConfig.mode}`;
+  await awardTicketsOnce({ userId, amount: 10, dedupKey });
+  return true;
+}
+
+const awardReferralPhoneVerification = async (inviteeId, timestamp) => {
+  const inviteeStatus = await eventStatusModel.findOne({ userId: inviteeId });
+  if (!inviteeStatus) return null;
+
+  // 초대한 사람 찾기
+  const inviterId = inviteeStatus.inviter;
+  if (!inviterId) return null;
+
+  // 자기 자신을 초대한 경우 무시
+  if (String(inviterId) === String(inviteeId)) return null;
+
+  // 초대한 사람에게 +20
+  await awardTicketsOnce(
+    inviterId,
+    20,
+    `referral_verified:${inviteeId}:${eventConfig.mode}`,
+    timestamp
+  );
+
+  // 피초대자 본인에게도 +20
+  await awardTicketsOnce(
+    inviteeId,
+    20,
+    `referral_self_bonus:${eventConfig.mode}`,
+    timestamp
+  );
+
+  return true;
+};
+
+async function awardAllBadgedSettlement(roomId, timestamp) {
+  if (!isWithinEvent(timestamp)) return null;
+
+  logger.info(
+    "[EVENT] awardAllBadgedSettlement 시작: room=%s, ts=%d",
+    roomId,
+    timestamp
+  );
+
+  const room = await roomModel.findById(roomId, "part event").lean();
+  if (!room) return null;
+  if (room?.event?.badgeAllBonusGiven) return null;
+
+  const ids = room.part.map((p) => p.user);
+  const users = await userModel.find({ _id: { $in: ids } }, "badge").lean();
+  const allHave = users.every((u) => !!u.badge);
+  if (!allHave) return null;
+
+  for (const uid of ids) {
+    const dedupKey = `all_badged_settlement:${roomId}:${uid}:${eventConfig.mode}`;
+    await awardTicketsOnce({ userId: uid, amount: 5, dedupKey });
+  }
+  await roomModel.updateOne(
+    { _id: roomId },
+    {
+      $set: {
+        "event.badgeAllBonusGiven": true,
+        "event.mode": eventConfig.mode,
+      },
+    }
+  );
+  return true;
+}
+*/
+
+/**
+ * 전화번호 인증 완료(최초 1회) → ticket1 +10
+ */
+const completePhoneVerificationQuest = async (userId, timestamp) => {
+  // 이벤트 기간은 completeQuest 내부에서 한 번 더 체크됨
+  return await completeQuest(userId, timestamp, quests.phoneVerification);
+};
+
+/**
+ * 초대 보상(피초대자 인증 시):
+ *  - 초대한 사람: ticket1 +20 (무제한, 각 피초대자 최초 인증 시 1회 트리거)
+ *  - 피초대자: ticket1 +20 (본인 1회)
+ * @param {ObjectId} inviterId  초대한 사람
+ * @param {ObjectId} inviteeId  피초대자(이번에 인증 완료한 사람)
+ */
+const completeReferralVerificationQuests = async (
+  inviterId,
+  inviteeId,
+  timestamp
+) => {
+  if (!inviterId || String(inviterId) === String(inviteeId)) return null;
+  // 초대한 사람 보상(+20)
+  await completeQuest(inviterId, timestamp, quests.referralInviterBonus);
+  // 피초대자 보상(+20)
+  await completeQuest(inviteeId, timestamp, quests.referralInviteeBonus);
+  return true;
+};
+
+/**
++ * 방 전원 뱃지면 정산 보너스(+5) 전원 지급 (방당 1회)
++ * - 방에 플래그를 세워 중복 호출 방지: room.event.badgeAllBonusGiven
++ * @param {Object} roomObject - populate된 룸
++ */
+const completeAllBadgedSettlementQuest = async (
+  timestamp,
+  roomObject,
+  roomModel,
+  userModel
+) => {
+  // 참가자 2명 미만이면 무시(정산 조건과 맞춤)
+  if (!roomObject?.part || roomObject.part.length < 2) return null;
+  if (
+    !eventPeriod ||
+    roomObject.time >= eventPeriod.endAt ||
+    roomObject.time < eventPeriod.startAt
+  )
+    return null;
+
+  // 이미 지급했으면 중복 방지
+  if (roomObject?.event?.badgeAllBonusGiven) return null;
+
+  // 전원 뱃지 여부 확인 (user.badge === true)
+  const userIds = roomObject.part.map((p) => p.user._id ?? p.user);
+  const users = await userModel.find({ _id: { $in: userIds } }, "badge").lean();
+  const allHave =
+    users.length === userIds.length && users.every((u) => !!u.badge);
+  if (!allHave) return null;
+
+  // 전원에게 퀘스트 완료 처리
+  for (const uid of userIds) {
+    await completeQuest(uid, timestamp, quests.allBadgedSettlement);
+  }
+  // 방 플래그 세팅
+  await roomModel.updateOne(
+    { _id: roomObject._id },
+    {
+      $set: {
+        "event.badgeAllBonusGiven": true,
+        "event.mode": eventConfig?.mode,
+      },
+    }
+  );
+  return true;
+};
+//
 
 /**
  * firstLogin 퀘스트의 완료를 요청합니다.
@@ -306,4 +516,10 @@ module.exports = {
   completeIndirectEventSharingQuest,
   completeAnswerCorrectlyQuest,
   completeItemPurchaseQuest,
+  awardPhoneVerification,
+  awardReferralPhoneVerification,
+  awardAllBadgedSettlement,
+  completePhoneVerificationQuest,
+  completeReferralVerificationQuests,
+  completeAllBadgedSettlementQuest,
 };

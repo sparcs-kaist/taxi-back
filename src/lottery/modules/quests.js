@@ -68,12 +68,29 @@ const completeQuest = async (userId, timestamp, quest) => {
   try {
     // 이벤트(2025spring) 기간을 하루 더 연장하여 넙죽코인 소비기한을 보장할 때, completeQuest 함수를 비활성화합니다.
     // 추후 이벤트에서는 아래 코드를 지워주시길 바랍니다.
-    if (timestamp >= new Date("2025-03-13T00:00:00+09:00")) return null;
+    //if (timestamp >= new Date("2025-03-13T00:00:00+09:00")) return null;
 
-    // 1단계: 유저의 EventStatus를 가져옵니다. 블록드리스트인지도 확인합니다.
-    const eventStatus = await eventStatusModel.findOne({ userId }).lean();
+    console.log("0");
+    const eventStatus = await eventStatusModel.findOneAndUpdate(
+      { userId },
+      {
+        $setOnInsert: {
+          userId,
+          completedQuests: [],
+          creditAmount: 0,
+          ticket1Amount: 0,
+          ticket2Amount: 0,
+          isBanned: false,
+        },
+      },
+      { new: true, upsert: true, lean: true }
+    );
     if (!eventStatus || eventStatus.isBanned) return null;
+    // 1단계: 유저의 EventStatus를 가져옵니다. 블록드리스트인지도 확인합니다.
+    //const eventStatus = await eventStatusModel.findOne({ userId }).lean();
+    //if (!eventStatus || eventStatus.isBanned) return null;
 
+    console.log("1");
     // 2단계: 이벤트 기간인지 확인합니다.
     if (
       !eventPeriod ||
@@ -86,6 +103,7 @@ const completeQuest = async (userId, timestamp, quest) => {
       return null;
     }
 
+    console.log("2");
     // 3단계: 유저의 퀘스트 완료 횟수를 확인합니다.
     // maxCount가 0인 경우, 무제한으로 퀘스트를 완료할 수 있습니다.
     const questCount = eventStatus.completedQuests.filter(
@@ -98,6 +116,7 @@ const completeQuest = async (userId, timestamp, quest) => {
       return null;
     }
 
+    console.log("3");
     // 4단계: 원격으로 비활성화된 퀘스트인지 확인합니다.
     // 비활성화된 퀘스트만 DB에 저장할 것이기 때문에, questDoc이 null이어도 오류를 발생시키면 안됩니다.
     const questDoc = await questModel.findOne({ id: quest.id }).lean();
@@ -108,12 +127,14 @@ const completeQuest = async (userId, timestamp, quest) => {
       return null;
     }
 
+    console.log("4");
     // 5단계: 완료 보상 중 티켓이 있는 경우, 티켓 정보를 가져옵니다.
     const ticket1 =
       quest.reward.ticket1 && (await itemModel.findOne({ itemType: 1 }).lean());
     if (quest.reward.ticket1 && !ticket1)
       throw new Error("Fail to find ticket1");
 
+    console.log("5");
     // 6단계: 유저의 EventStatus를 업데이트합니다.
     await eventStatusModel.updateOne(
       { userId },
@@ -131,6 +152,7 @@ const completeQuest = async (userId, timestamp, quest) => {
       }
     );
 
+    console.log("6");
     // 7단계: Transaction을 생성합니다.
     const transactionsId = [];
     if (quest.reward.credit) {

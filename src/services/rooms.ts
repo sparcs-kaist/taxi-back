@@ -123,6 +123,7 @@ export const createHandler: RequestHandler = async (req, res) => {
     const roomObject = (
       await room.populate(roomPopulateOption)
     ).toObject<PopulatedRoom>();
+
     return res.send(formatSettlement(roomObject));
   } catch (err) {
     logger.error(err);
@@ -694,14 +695,19 @@ export const commitSettlementHandler: RequestHandler = async (req, res) => {
       content: user._id.toString(),
       authorId: user._id.toString(),
     });
-
+    //이벤트 코드입니다(sori).
+    await contracts?.completeAllBadgedSettlementQuest(
+      req.timestamp,
+      roomObject,
+      roomModel,
+      userModel
+    );
     // 이벤트 코드입니다.
     await contracts?.completeFareSettlementQuest(
       req.userOid,
       req.timestamp,
       roomObject
     );
-
     // 수정한 방 정보를 반환합니다.
     return res.send(formatSettlement(roomObject, { isOver: true }));
   } catch (err) {
@@ -773,6 +779,14 @@ export const commitPaymentHandler: RequestHandler = async (req, res) => {
       content: user._id.toString(),
       authorId: user._id.toString(),
     });
+
+    //이벤트 코드입니다(sori).
+    await contracts?.completeAllBadgedSettlementQuest(
+      req.timestamp,
+      roomObject,
+      roomModel,
+      userModel
+    );
 
     // 이벤트 코드입니다.
     await contracts?.completeFarePaymentQuest(

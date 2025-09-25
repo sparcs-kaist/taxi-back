@@ -137,6 +137,19 @@ export const registerPhoneNumberHandler: RequestHandler = async (req, res) => {
       { _id: req.userOid, withdraw: false },
       { phoneNumber: newPhoneNumber, badge: true }
     );
+    //이벤트 코드입니다(sori)
+    await contracts?.completePhoneVerificationQuest(req.userOid, req.timestamp);
+    const status = await eventStatusModel
+      .findOne({ userId: req.userOid }, "inviter")
+      .lean();
+    if (status?.inviter) {
+      await contracts?.completeReferralVerificationQuests(
+        status.inviter, // inviter
+        req.userOid, // invitee
+        req.timestamp
+      );
+    }
+    //
 
     if (result) {
       return res
