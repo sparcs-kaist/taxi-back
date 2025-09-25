@@ -161,7 +161,9 @@ const completeQuest = async (userId, timestamp, quest) => {
         amount: quest.reward.credit,
         userId,
         questId: quest.id,
-        comment: `"${quest.name}" 퀘스트를 완료해 ${eventConfig?.credit.name} ${quest.reward.credit}개를 획득했습니다.`,
+        comment: `"${quest.name}" 퀘스트를 완료해 ${
+          eventConfig?.credit?.name ?? "응모권"
+        } ${quest.reward.credit}개를 획득했습니다.`,
       });
       await transaction.save();
 

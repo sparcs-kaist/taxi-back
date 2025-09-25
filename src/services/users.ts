@@ -139,6 +139,7 @@ export const registerPhoneNumberHandler: RequestHandler = async (req, res) => {
     );
     //이벤트 코드입니다(sori)
     await contracts?.completePhoneVerificationQuest(req.userOid, req.timestamp);
+    /*
     const status = await eventStatusModel
       .findOne({ userId: req.userOid }, "inviter")
       .lean();
@@ -149,6 +150,7 @@ export const registerPhoneNumberHandler: RequestHandler = async (req, res) => {
         req.timestamp
       );
     }
+    */
     //
 
     if (result) {

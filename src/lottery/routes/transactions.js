@@ -8,8 +8,4 @@ router.use(require("../../middlewares/auth").default);
 
 router.get("/", transactionsHandlers.getUserTransactionsHandler);
 
-// 이벤트 코드입니다.(sori)
-router.post("/enter", transactionsHandlers.enterRaffleHandler);
-//
-
 module.exports = router;

@@ -10,6 +10,7 @@ const eventPeriod = eventConfig && {
 
 /** 전체 퀘스트 목록입니다. */
 const quests = buildQuests({
+  /*
   firstLogin: {
     name: "첫 발걸음",
     description:
@@ -122,24 +123,23 @@ const quests = buildQuests({
       "https://sparcs-taxi-prod.s3.ap-northeast-2.amazonaws.com/assets/event-2025spring/quest_itemPurchase.png",
     reward: 500,
   },
-  //이벤트 코드입니다.(sori)
+  */
+  //2025 가을 이벤트 코드입니다.(sori)
   phoneVerification: {
     name: "전화번호 인증 완료",
     description: "전화번호 인증을 완료하면 응모권을 드려요.",
     imageUrl:
       "https://sparcs-taxi-prod.s3.ap-northeast-2.amazonaws.com/assets/event-2025spring/quest_itemPurchase.png",
-    reward: { ticket1: 10 },
+    reward: 5,
     maxCount: 1,
-    isApiRequired: true,
   },
   referralInviteeBonus: {
     name: "초대로 합류했어요",
     description: "초대 링크로 참여해 전화번호 인증을 완료하면 응모권을 받아요.",
     imageUrl:
       "https://sparcs-taxi-prod.s3.ap-northeast-2.amazonaws.com/assets/event-2025spring/quest_itemPurchase.png",
-    reward: { ticket1: 20 },
+    reward: 10,
     maxCount: 1,
-    isApiRequired: true,
   },
   allBadgedSettlement: {
     name: "전원 인증 뱃지 정산",
@@ -147,122 +147,15 @@ const quests = buildQuests({
       "방의 모든 인원이 인증 뱃지를 보유한 상태에서 정산하면 응모권을 받아요.",
     imageUrl:
       "https://sparcs-taxi-prod.s3.ap-northeast-2.amazonaws.com/assets/event-2025spring/quest_itemPurchase.png",
-    reward: { ticket1: 5 },
+    reward: 3,
     maxCount: 0,
-    isApiRequired: true,
   },
 });
-
-//2025 가을 이벤트 코드입니다.(sori)
-
-/*
-기존 퀘스트 보상 방식 사용 안하는 방식으로 동작하는 함수들입니다.
-function isWithinEvent(ts) {
-  if (!eventPeriod) return false;
-  const t = new Date(ts);
-  return t >= eventPeriod.startAt && t < eventPeriod.endAt;
-}
-
-async function awardTicketsOnce({ userId, amount, dedupKey }) {
-  const existed = await transactionModel
-    .findOne({
-      userId,
-      type: "get",
-      amount,
-      comment: dedupKey,
-    })
-    .lean();
-  if (existed) return;
-  await transactionModel.create({
-    userId,
-    type: "get",
-    amount,
-    comment: dedupKey,
-  });
-  await eventStatusModel.updateOne(
-    { userId },
-    { $inc: { ticket1Amount: amount } },
-    { upsert: true }
-  );
-}
-
-async function awardPhoneVerification(userId, timestamp) {
-  if (!isWithinEvent(timestamp)) return null;
-  const dedupKey = `phone_verified:${eventConfig.mode}`;
-  await awardTicketsOnce({ userId, amount: 10, dedupKey });
-  return true;
-}
-
-const awardReferralPhoneVerification = async (inviteeId, timestamp) => {
-  const inviteeStatus = await eventStatusModel.findOne({ userId: inviteeId });
-  if (!inviteeStatus) return null;
-
-  // 초대한 사람 찾기
-  const inviterId = inviteeStatus.inviter;
-  if (!inviterId) return null;
-
-  // 자기 자신을 초대한 경우 무시
-  if (String(inviterId) === String(inviteeId)) return null;
-
-  // 초대한 사람에게 +20
-  await awardTicketsOnce(
-    inviterId,
-    20,
-    `referral_verified:${inviteeId}:${eventConfig.mode}`,
-    timestamp
-  );
-
-  // 피초대자 본인에게도 +20
-  await awardTicketsOnce(
-    inviteeId,
-    20,
-    `referral_self_bonus:${eventConfig.mode}`,
-    timestamp
-  );
-
-  return true;
-};
-
-async function awardAllBadgedSettlement(roomId, timestamp) {
-  if (!isWithinEvent(timestamp)) return null;
-
-  logger.info(
-    "[EVENT] awardAllBadgedSettlement 시작: room=%s, ts=%d",
-    roomId,
-    timestamp
-  );
-
-  const room = await roomModel.findById(roomId, "part event").lean();
-  if (!room) return null;
-  if (room?.event?.badgeAllBonusGiven) return null;
-
-  const ids = room.part.map((p) => p.user);
-  const users = await userModel.find({ _id: { $in: ids } }, "badge").lean();
-  const allHave = users.every((u) => !!u.badge);
-  if (!allHave) return null;
-
-  for (const uid of ids) {
-    const dedupKey = `all_badged_settlement:${roomId}:${uid}:${eventConfig.mode}`;
-    await awardTicketsOnce({ userId: uid, amount: 5, dedupKey });
-  }
-  await roomModel.updateOne(
-    { _id: roomId },
-    {
-      $set: {
-        "event.badgeAllBonusGiven": true,
-        "event.mode": eventConfig.mode,
-      },
-    }
-  );
-  return true;
-}
-*/
 
 /**
  * 전화번호 인증 완료(최초 1회) → ticket1 +10
  */
 const completePhoneVerificationQuest = async (userId, timestamp) => {
-  // 이벤트 기간은 completeQuest 내부에서 한 번 더 체크됨
   return await completeQuest(userId, timestamp, quests.phoneVerification);
 };
 
@@ -516,9 +409,9 @@ module.exports = {
   completeIndirectEventSharingQuest,
   completeAnswerCorrectlyQuest,
   completeItemPurchaseQuest,
-  awardPhoneVerification,
-  awardReferralPhoneVerification,
-  awardAllBadgedSettlement,
+  //awardPhoneVerification,
+  //awardReferralPhoneVerification,
+  //awardAllBadgedSettlement,
   completePhoneVerificationQuest,
   completeReferralVerificationQuests,
   completeAllBadgedSettlementQuest,
