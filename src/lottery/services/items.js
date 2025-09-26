@@ -363,10 +363,12 @@ const purchaseItem = async (req, item, amount) => {
     await transaction.save();
 
     // 4단계: 퀘스트를 완료 처리합니다.
+    /* 아이템 구매 퀘스트는 2025 가을 이벤트에서는 사용되지 않습니다.
     await contracts.completeItemPurchaseQuest(
       req.userOid,
       transaction.createdAt
     );
+    */
 
     return { result: { result: true } };
   }

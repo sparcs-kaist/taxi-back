@@ -80,10 +80,12 @@ export const editNicknameHandler: RequestHandler = async (req, res) => {
 
     if (result) {
       // 이벤트 코드입니다.
+      /*
       await contracts?.completeNicknameChangingQuest(
         req.userOid,
         req.timestamp
       );
+      */
 
       return res
         .status(200)
@@ -109,12 +111,13 @@ export const editAccountHandler: RequestHandler = async (req, res) => {
 
     if (result) {
       // 이벤트 코드입니다.
+      /*
       await contracts?.completeAccountChangingQuest(
         req.userOid,
         req.timestamp,
         newAccount
       );
-
+      */
       return res
         .status(200)
         .send("Users/editAccount : edit user account successful");
@@ -137,21 +140,6 @@ export const registerPhoneNumberHandler: RequestHandler = async (req, res) => {
       { _id: req.userOid, withdraw: false },
       { phoneNumber: newPhoneNumber, badge: true }
     );
-    //이벤트 코드입니다(sori)
-    await contracts?.completePhoneVerificationQuest(req.userOid, req.timestamp);
-    /*
-    const status = await eventStatusModel
-      .findOne({ userId: req.userOid }, "inviter")
-      .lean();
-    if (status?.inviter) {
-      await contracts?.completeReferralVerificationQuests(
-        status.inviter, // inviter
-        req.userOid, // invitee
-        req.timestamp
-      );
-    }
-    */
-    //
 
     if (result) {
       return res

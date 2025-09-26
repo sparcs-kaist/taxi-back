@@ -115,7 +115,7 @@ const createUserGlobalStateHandler = async (req, res) => {
         logger.info(`Past user phone number: ${user.phoneNumber}`);
         logger.info(`Update user phone number: ${req.body.phoneNumber}`);
       }
-
+      user.badge = true;
       user.phoneNumber = req.body.phoneNumber;
       await user.save();
     }
@@ -130,16 +130,30 @@ const createUserGlobalStateHandler = async (req, res) => {
 
     // 퀘스트를 완료 처리합니다.
     // 해당 퀘스트는 2025 Fall Event에는 존재하지 않습니다.
-    // await contracts.completeFirstLoginQuest(req.userOid, req.timestamp);
-
     // 마찬가지로 EventSharingQuest는 2025 Fall Event에는 존재하지 않습니다.
     // Referral로 바꾸기? - sori님 확인 부탁드립니다.
+    console.log("Inviter Status:", inviterStatus);
     if (inviterStatus) {
+      /*
       await contracts.completeEventSharingQuest(req.userOid, req.timestamp);
       await contracts.completeEventSharingQuest(
         inviterStatus.userId,
         req.timestamp
       );
+      */
+      await contracts?.completeReferralInviteeCredit?.(
+        req.userOid,
+        req.timestamp
+      );
+      await contracts?.completeReferralInviterCredit?.(
+        inviterStatus.userId,
+        req.timestamp
+      );
+      await contracts?.completePhoneVerificationQuest?.(
+        req.userOid,
+        req.timestamp
+      );
+
       let currentInviter = inviterStatus;
       const ancestorIds = [];
 
@@ -152,10 +166,17 @@ const createUserGlobalStateHandler = async (req, res) => {
         ancestorIds.push(higherInviter.userId);
         currentInviter = higherInviter;
       }
+      /* 다단계 이벤트는 2025 가을 이벤트에는 존재하지 않습니다.
       await Promise.all(
         ancestorIds.map((ancestorId) =>
           contracts.completeIndirectEventSharingQuest(ancestorId, req.timestamp)
         )
+      );
+      */
+    } else {
+      await contracts?.completePhoneVerificationQuest?.(
+        req.userOid,
+        req.timestamp
       );
     }
 

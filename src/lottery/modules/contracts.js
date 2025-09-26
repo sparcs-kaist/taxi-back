@@ -84,7 +84,7 @@ const quests = buildQuests({
       "내가 초대한 사람이 이벤트에 참여하면 넙죽코인을 드려요. 다른 사람의 초대를 받아 이벤트에 참여한 경우에도 이 퀘스트가 달성돼요.",
     imageUrl:
       "https://sparcs-taxi-prod.s3.ap-northeast-2.amazonaws.com/assets/event-2025spring/quest_eventSharing.png",
-    reward: 700,
+    reward: 20,
     maxCount: 0,
   },
   indirectEventSharing: {
@@ -133,14 +133,6 @@ const quests = buildQuests({
     reward: 5,
     maxCount: 1,
   },
-  referralInviteeBonus: {
-    name: "초대로 합류했어요",
-    description: "초대 링크로 참여해 전화번호 인증을 완료하면 응모권을 받아요.",
-    imageUrl:
-      "https://sparcs-taxi-prod.s3.ap-northeast-2.amazonaws.com/assets/event-2025spring/quest_itemPurchase.png",
-    reward: 10,
-    maxCount: 1,
-  },
   allBadgedSettlement: {
     name: "전원 인증 뱃지 정산",
     description:
@@ -149,6 +141,22 @@ const quests = buildQuests({
       "https://sparcs-taxi-prod.s3.ap-northeast-2.amazonaws.com/assets/event-2025spring/quest_itemPurchase.png",
     reward: 3,
     maxCount: 0,
+  },
+  referralInviterCredit: {
+    name: "친구 인증 완료 보상(초대한 사람)",
+    description: "초대한 친구가 전화번호 인증을 완료하면 코인을 받아요.",
+    imageUrl:
+      "https://sparcs-taxi-prod.s3.ap-northeast-2.amazonaws.com/assets/event-2025spring/quest_itemPurchase.png",
+    reward: 10,
+    maxCount: 0, // 여러 명 초대 가능
+  },
+  referralInviteeCredit: {
+    name: "초대 인증 보상(초대받은 사람)",
+    description: "초대 링크로 참여해 전화번호 인증을 완료하면 코인을 받아요.",
+    imageUrl:
+      "https://sparcs-taxi-prod.s3.ap-northeast-2.amazonaws.com/assets/event-2025spring/quest_itemPurchase.png",
+    reward: 10,
+    maxCount: 1, // 본인 1회
   },
 });
 
@@ -159,25 +167,11 @@ const completePhoneVerificationQuest = async (userId, timestamp) => {
   return await completeQuest(userId, timestamp, quests.phoneVerification);
 };
 
-/**
- * 초대 보상(피초대자 인증 시):
- *  - 초대한 사람: ticket1 +20 (무제한, 각 피초대자 최초 인증 시 1회 트리거)
- *  - 피초대자: ticket1 +20 (본인 1회)
- * @param {ObjectId} inviterId  초대한 사람
- * @param {ObjectId} inviteeId  피초대자(이번에 인증 완료한 사람)
- */
-const completeReferralVerificationQuests = async (
-  inviterId,
-  inviteeId,
-  timestamp
-) => {
-  if (!inviterId || String(inviterId) === String(inviteeId)) return null;
-  // 초대한 사람 보상(+20)
-  await completeQuest(inviterId, timestamp, quests.referralInviterBonus);
-  // 피초대자 보상(+20)
-  await completeQuest(inviteeId, timestamp, quests.referralInviteeBonus);
-  return true;
-};
+const completeReferralInviterCredit = async (inviterId, timestamp) =>
+  await completeQuest(inviterId, timestamp, quests.referralInviterCredit);
+
+const completeReferralInviteeCredit = async (inviteeId, timestamp) =>
+  await completeQuest(inviteeId, timestamp, quests.referralInviteeCredit);
 
 /**
 + * 방 전원 뱃지면 정산 보너스(+5) 전원 지급 (방당 1회)
@@ -398,6 +392,7 @@ const completeItemPurchaseQuest = async (userId, timestamp) => {
 
 module.exports = {
   quests,
+  /*
   completeFirstLoginQuest,
   completeFirstRoomCreationQuest,
   completeFareSettlementQuest,
@@ -409,10 +404,9 @@ module.exports = {
   completeIndirectEventSharingQuest,
   completeAnswerCorrectlyQuest,
   completeItemPurchaseQuest,
-  //awardPhoneVerification,
-  //awardReferralPhoneVerification,
-  //awardAllBadgedSettlement,
+  */
   completePhoneVerificationQuest,
-  completeReferralVerificationQuests,
   completeAllBadgedSettlementQuest,
+  completeReferralInviterCredit,
+  completeReferralInviteeCredit,
 };

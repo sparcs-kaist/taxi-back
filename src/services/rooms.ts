@@ -118,7 +118,7 @@ export const createHandler: RequestHandler = async (req, res) => {
     });
 
     // 이벤트 코드입니다.
-    await contracts?.completeFirstRoomCreationQuest(req.userOid, req.timestamp);
+    //await contracts?.completeFirstRoomCreationQuest(req.userOid, req.timestamp);
 
     const roomObject = (
       await room.populate(roomPopulateOption)
@@ -703,11 +703,13 @@ export const commitSettlementHandler: RequestHandler = async (req, res) => {
       userModel
     );
     // 이벤트 코드입니다.
+    /*
     await contracts?.completeFareSettlementQuest(
       req.userOid,
       req.timestamp,
       roomObject
     );
+    */
     // 수정한 방 정보를 반환합니다.
     return res.send(formatSettlement(roomObject, { isOver: true }));
   } catch (err) {
@@ -789,11 +791,13 @@ export const commitPaymentHandler: RequestHandler = async (req, res) => {
     );
 
     // 이벤트 코드입니다.
+    /*
     await contracts?.completeFarePaymentQuest(
       req.userOid,
       req.timestamp,
       roomObject
     );
+    */
 
     // 수정한 방 정보를 반환합니다.
     return res.send(formatSettlement(roomObject, { isOver: true }));
