@@ -128,37 +128,33 @@ const createUserGlobalStateHandler = async (req, res) => {
     });
     await eventStatus.save();
 
-    // 첫 로그인 퀘스트를 완료 처리합니다.
-    // 2025 Fall에는 해당 Quest가 존재하지 않습니다.
-    // await contracts.completeFirstLoginQuest(req.userOid, req.timestamp);
+    // 퀘스트를 완료 처리합니다.
+    await contracts.completeFirstLoginQuest(req.userOid, req.timestamp);
 
-    // sori님 이 부분 로직 확인 후 재 작성 부탁드립니다!
-    // FE 테스트 때문에 일단 비활성화 해두었습니다.
-    
-    // if (inviterStatus) {
-    //   await contracts.completeEventSharingQuest(req.userOid, req.timestamp);
-    //   await contracts.completeEventSharingQuest(
-    //     inviterStatus.userId,
-    //     req.timestamp
-    //   );
-    //   let currentInviter = inviterStatus;
-    //   const ancestorIds = [];
+    if (inviterStatus) {
+      await contracts.completeEventSharingQuest(req.userOid, req.timestamp);
+      await contracts.completeEventSharingQuest(
+        inviterStatus.userId,
+        req.timestamp
+      );
+      let currentInviter = inviterStatus;
+      const ancestorIds = [];
 
-    //   while (currentInviter?.inviter) {
-    //     const higherInviter = await eventStatusModel
-    //       .findOne({ userId: currentInviter.inviter })
-    //       .lean();
-    //     if (!higherInviter) break;
+      while (currentInviter?.inviter) {
+        const higherInviter = await eventStatusModel
+          .findOne({ userId: currentInviter.inviter })
+          .lean();
+        if (!higherInviter) break;
 
-    //     ancestorIds.push(higherInviter.userId);
-    //     currentInviter = higherInviter;
-    //   }
-    //   await Promise.all(
-    //     ancestorIds.map((ancestorId) =>
-    //       contracts.completeIndirectEventSharingQuest(ancestorId, req.timestamp)
-    //     )
-    //   );
-    // }
+        ancestorIds.push(higherInviter.userId);
+        currentInviter = higherInviter;
+      }
+      await Promise.all(
+        ancestorIds.map((ancestorId) =>
+          contracts.completeIndirectEventSharingQuest(ancestorId, req.timestamp)
+        )
+      );
+    }
 
     return res.json({ result: true });
   } catch (err) {
