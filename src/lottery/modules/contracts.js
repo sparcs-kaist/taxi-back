@@ -87,15 +87,6 @@ const quests = buildQuests({
     reward: 20,
     maxCount: 0,
   },
-  indirectEventSharing: {
-    name: "코인이 복사가 된다고?",
-    description:
-      "내가 초대한 사람이 다른 누군가를 이벤트에 초대하면 넙죽코인을 받아요. 그 사람이 또 다른 누군가를 초대하면 또 넙죽코인을 받아요. 그 사람이 또 …",
-    imageUrl:
-      "https://sparcs-taxi-prod.s3.ap-northeast-2.amazonaws.com/assets/event-2025spring/quest_indirectEventSharing.png",
-    reward: 300,
-    maxCount: 10,
-  },
   dailyAttendance: {
     name: "매일매일 출석 췤!",
     description:
@@ -157,6 +148,15 @@ const quests = buildQuests({
       "https://sparcs-taxi-prod.s3.ap-northeast-2.amazonaws.com/assets/event-2025spring/quest_itemPurchase.png",
     reward: 10,
     maxCount: 1, // 본인 1회
+  },
+  indirectEventSharing: {
+    name: "코인이 복사가 된다고?",
+    description:
+      "내가 초대한 사람이 다른 누군가를 이벤트에 초대하면 응모권을 받아요. 그 사람이 또 다른 누군가를 초대하면 또 응모권을 받아요. 그 사람이 또 …",
+    imageUrl:
+      "https://sparcs-taxi-prod.s3.ap-northeast-2.amazonaws.com/assets/event-2025spring/quest_indirectEventSharing.png",
+    reward: 5,
+    maxCount: 0,
   },
 });
 
@@ -401,10 +401,10 @@ module.exports = {
   completeAccountChangingQuest,
   completeAdPushAgreementQuest,
   completeEventSharingQuest,
-  completeIndirectEventSharingQuest,
   completeAnswerCorrectlyQuest,
   completeItemPurchaseQuest,
   */
+  completeIndirectEventSharingQuest,
   completePhoneVerificationQuest,
   completeAllBadgedSettlementQuest,
   completeReferralInviterCredit,

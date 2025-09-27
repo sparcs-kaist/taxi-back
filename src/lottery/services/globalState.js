@@ -166,13 +166,12 @@ const createUserGlobalStateHandler = async (req, res) => {
         ancestorIds.push(higherInviter.userId);
         currentInviter = higherInviter;
       }
-      /* 다단계 이벤트는 2025 가을 이벤트에는 존재하지 않습니다.
+
       await Promise.all(
         ancestorIds.map((ancestorId) =>
           contracts.completeIndirectEventSharingQuest(ancestorId, req.timestamp)
         )
       );
-      */
     } else {
       await contracts?.completePhoneVerificationQuest?.(
         req.userOid,
