@@ -117,7 +117,7 @@ const quests = buildQuests({
   */
   //2025 가을 이벤트 코드입니다.(sori)
   phoneVerification: {
-    name: "전화번호 인증 완료",
+    name: "뱃지 인증해서 응모권 낳음",
     description: "전화번호 인증을 완료하면 응모권을 드려요.",
     imageUrl:
       "https://sparcs-taxi-prod.s3.ap-northeast-2.amazonaws.com/assets/event-2025spring/quest_itemPurchase.png",
@@ -125,7 +125,7 @@ const quests = buildQuests({
     maxCount: 1,
   },
   allBadgedSettlement: {
-    name: "전원 인증 뱃지 정산",
+    name: "동승자에게: 뱃지를 낋여오거라",
     description:
       "방의 모든 인원이 인증 뱃지를 보유한 상태에서 정산하면 응모권을 받아요.",
     imageUrl:
@@ -134,10 +134,10 @@ const quests = buildQuests({
     maxCount: 0,
   },
   referralInviterCredit: {
-    name: "친구 인증 완료 보상(초대한 사람)",
+    name: "친구 초대 보상(초대한 사람)",
     description: "초대한 친구가 전화번호 인증을 완료하면 코인을 받아요.",
     imageUrl:
-      "https://sparcs-taxi-prod.s3.ap-northeast-2.amazonaws.com/assets/event-2025spring/quest_itemPurchase.png",
+      "https://sparcs-taxi-prod.s3.ap-northeast-2.amazonaws.com/assets/event-2025spring/quest_eventSharing.png",
     reward: 10,
     maxCount: 0, // 여러 명 초대 가능
   },
@@ -145,7 +145,7 @@ const quests = buildQuests({
     name: "초대 인증 보상(초대받은 사람)",
     description: "초대 링크로 참여해 전화번호 인증을 완료하면 코인을 받아요.",
     imageUrl:
-      "https://sparcs-taxi-prod.s3.ap-northeast-2.amazonaws.com/assets/event-2025spring/quest_itemPurchase.png",
+      "https://sparcs-taxi-prod.s3.ap-northeast-2.amazonaws.com/assets/event-2025spring/quest_eventSharing.png",
     reward: 10,
     maxCount: 1, // 본인 1회
   },
