@@ -358,7 +358,8 @@ const purchaseItem = async (req, item, amount) => {
       userId: req.userOid,
       itemId: item._id,
       itemAmount: amount,
-      comment: `${eventConfig?.credit.name} ${totalPrice}개를 사용해 "${item.name}" ${amount}개를 획득했습니다.`,
+      // comment: `${eventConfig?.credit.name} ${totalPrice}개를 사용해 "${item.name}" ${amount}개를 획득했습니다.`,
+      comment: `${eventConfig?.credit.name} ${totalPrice}개를 사용해 "${item.name}"에 응모했습니다.`, // 2025 Fall
     });
     await transaction.save();
 
