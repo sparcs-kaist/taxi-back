@@ -1,15 +1,14 @@
 import type { ObjectId } from "mongoose";
 import emailPage from "./emailPage";
-import { frontUrl as origin } from "@/loadenv";
 
 interface ReportEmailPage {
   [key: string]: (
+    origin: string,
     name: string,
     nickname: string,
     roomName: string,
     payer: string,
-    roomId: string | ObjectId,
-    trackingId: string
+    roomId: string | ObjectId
   ) => string;
 }
 
@@ -17,12 +16,12 @@ const reportEmailPage: ReportEmailPage = {};
 
 /* 미정산 알림 메일을 위한 템플릿 */
 reportEmailPage["no-settlement"] = (
+  origin,
   name,
   nickname,
   roomName,
   payer,
-  roomId,
-  trackingId
+  roomId
 ) =>
   emailPage(
     "미정산 내역 관련 안내",
@@ -53,18 +52,17 @@ reportEmailPage["no-settlement"] = (
   }" target="_blank">채널톡 문의하기</a>를 통해 채팅을 남겨주시거나, 또는 이 메일에 회신해 주셔도 됩니다.<br /><br />
   감사합니다.<br />
   SPARCS Taxi팀 드림.
-  `,
-    trackingId
+  `
   );
 
 /* 미탑승 알림 메일을 위한 템플릿 */
 reportEmailPage["no-show"] = (
+  origin,
   name,
   nickname,
   roomName,
   payer,
-  roomId,
-  trackingId
+  roomId
 ) =>
   emailPage(
     "미탑승 내역 관련 안내",
@@ -94,8 +92,7 @@ reportEmailPage["no-show"] = (
     }" target="_blank">채널톡 문의하기</a>를 통해 채팅을 남겨주시거나, 또는 이 메일에 회신해 주셔도 됩니다.<br /><br />
     감사합니다.<br />
     SPARCS Taxi팀 드림.
-    `,
-    trackingId
+    `
   );
 
 export default reportEmailPage;

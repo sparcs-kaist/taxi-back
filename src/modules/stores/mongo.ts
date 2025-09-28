@@ -1,9 +1,23 @@
-import mongoose, { model, Schema, Types } from "mongoose";
+import mongoose, { model, Schema, type Types } from "mongoose";
 import logger from "@/modules/logger";
+import type {
+  User,
+  Ban,
+  Participant,
+  DeviceToken,
+  NotificationOption,
+  TopicSubscription,
+  Room,
+  Location,
+  Chat,
+  Report,
+  AdminIPWhitelist,
+  AdminLog,
+  TaxiFare,
+  Notice,
+} from "@/types/mongo";
 
-type InferSchemaType<T> = mongoose.InferSchemaType<T> & { _id: Types.ObjectId };
-
-const userSchema = new Schema({
+const userSchema = new Schema<User>({
   name: { type: String, required: true }, //실명
   nickname: { type: String, required: true }, //닉네임
   id: { type: String, required: true }, //택시 서비스에서만 사용되는 id
@@ -29,9 +43,8 @@ const userSchema = new Schema({
 });
 
 export const userModel = model("User", userSchema);
-export type User = InferSchemaType<typeof userSchema>;
 
-const banSchema = new Schema({
+const banSchema = new Schema<Ban>({
   // 정지 시킬 사용자를 기제함.
   userSid: { type: String, required: true },
   // 정지 사유
@@ -51,9 +64,19 @@ const banSchema = new Schema({
 });
 
 export const banModel = model("Ban", banSchema);
-export type Ban = InferSchemaType<typeof banSchema>;
 
-const deviceTokenSchema = new Schema({
+const participantSchema = new Schema<Participant>({
+  user: { type: Schema.Types.ObjectId, ref: "User", required: true },
+  settlementStatus: {
+    type: String,
+    required: true,
+    enum: ["not-departed", "paid", "send-required", "sent"],
+    default: "not-departed",
+  },
+  readAt: { type: Date },
+});
+
+const deviceTokenSchema = new Schema<DeviceToken>({
   userId: {
     type: Schema.Types.ObjectId,
     ref: "User",
@@ -64,10 +87,9 @@ const deviceTokenSchema = new Schema({
 });
 
 export const deviceTokenModel = model("DeviceToken", deviceTokenSchema);
-export type DeviceToken = InferSchemaType<typeof deviceTokenSchema>;
 
 // 각 디바이스의 알림 설정
-const notificationOptionSchema = new Schema({
+const notificationOptionSchema = new Schema<NotificationOption>({
   deviceToken: {
     type: String,
     required: true,
@@ -105,11 +127,8 @@ export const notificationOptionModel = model(
   "NotificationOption",
   notificationOptionSchema
 );
-export type NotificationOption = InferSchemaType<
-  typeof notificationOptionSchema
->;
 
-const topicSubscriptionSchema = new Schema({
+const topicSubscriptionSchema = new Schema<TopicSubscription>({
   deviceToken: String,
   topic: String,
   subscribedAt: {
@@ -123,22 +142,8 @@ export const topicSubscriptionModel = model(
   "TopicSubscription",
   topicSubscriptionSchema
 );
-export type TopicSubscription = InferSchemaType<typeof topicSubscriptionSchema>;
 
-const participantSchema = new Schema({
-  user: { type: Schema.Types.ObjectId, ref: "User", required: true },
-  settlementStatus: {
-    type: String,
-    required: true,
-    enum: ["not-departed", "paid", "send-required", "sent"],
-    default: "not-departed",
-  },
-  readAt: { type: Date },
-});
-
-export type Participant = InferSchemaType<typeof participantSchema>;
-
-const roomSchema = new Schema({
+const roomSchema = new Schema<Room>({
   name: { type: String, required: true, default: "이름 없음", text: true },
   from: { type: Schema.Types.ObjectId, ref: "Location", required: true },
   to: { type: Schema.Types.ObjectId, ref: "Location", required: true },
@@ -146,7 +151,7 @@ const roomSchema = new Schema({
   part: {
     type: [participantSchema],
     validate: [
-      function (this: Room, value: Participant[]) {
+      function (this: Room, value: Types.DocumentArray<Participant>) {
         return value.length <= this.maxPartLength;
       },
     ],
@@ -157,9 +162,8 @@ const roomSchema = new Schema({
 });
 
 export const roomModel = model("Room", roomSchema);
-export type Room = InferSchemaType<typeof roomSchema>;
 
-const locationSchema = new Schema({
+const locationSchema = new Schema<Location>({
   enName: { type: String, required: true },
   koName: { type: String, required: true },
   priority: { type: Number, default: 0 },
@@ -169,9 +173,8 @@ const locationSchema = new Schema({
 });
 
 export const locationModel = model("Location", locationSchema);
-export type Location = InferSchemaType<typeof locationSchema>;
 
-const chatSchema = new Schema({
+const chatSchema = new Schema<Chat>({
   roomId: { type: Schema.Types.ObjectId, ref: "Room", required: true },
   type: {
     type: String,
@@ -195,9 +198,8 @@ const chatSchema = new Schema({
 chatSchema.index({ roomId: 1, time: -1 });
 
 export const chatModel = model("Chat", chatSchema);
-export type Chat = InferSchemaType<typeof chatSchema>;
 
-const reportSchema = new Schema({
+const reportSchema = new Schema<Report>({
   creatorId: { type: Schema.Types.ObjectId, ref: "User", required: true }, // 신고한 사람 id
   reportedId: { type: Schema.Types.ObjectId, ref: "User", required: true }, // 신고받은 사람 id
   type: {
@@ -211,21 +213,8 @@ const reportSchema = new Schema({
 });
 
 export const reportModel = model("Report", reportSchema);
-export type Report = InferSchemaType<typeof reportSchema>;
 
-const emailSchema = new Schema({
-  emailAddress: { type: String, required: true }, // 전송된 이메일 주소
-  reportId: { type: Schema.Types.ObjectId, required: true, ref: "Report" },
-  trackingId: { type: String, required: true, unique: true }, // 이메일 id
-  sentAt: { type: Date, required: true }, // 이메일 전송 시간
-  isOpened: { type: Boolean, required: true }, // 이메일 수신 여부
-  openedAt: { type: Date }, // 이메일 수신 시간
-});
-
-export const emailModel = model("Email", emailSchema);
-export type Email = InferSchemaType<typeof emailSchema>;
-
-const adminIPWhitelistSchema = new Schema({
+const adminIPWhitelistSchema = new Schema<AdminIPWhitelist>({
   ip: { type: String, required: true }, // IP 주소
   description: { type: String, default: "" }, // 설명
 });
@@ -234,9 +223,8 @@ export const adminIPWhitelistModel = model(
   "AdminIPWhitelist",
   adminIPWhitelistSchema
 );
-export type AdminIPWhitelist = InferSchemaType<typeof adminIPWhitelistSchema>;
 
-const adminLogSchema = new Schema({
+const adminLogSchema = new Schema<AdminLog>({
   user: { type: Schema.Types.ObjectId, ref: "User", required: true }, // Log 취급자 User
   time: { type: Date, required: true }, // Log 발생 시각
   ip: { type: String, required: true }, // 접속 IP 주소
@@ -249,9 +237,8 @@ const adminLogSchema = new Schema({
 });
 
 export const adminLogModel = model("AdminLog", adminLogSchema);
-export type AdminLog = InferSchemaType<typeof adminLogSchema>;
 
-const taxiFareSchema = new Schema(
+const taxiFareSchema = new Schema<TaxiFare>(
   {
     from: { type: Schema.Types.ObjectId, ref: "Location", required: true }, // 출발지
     to: { type: Schema.Types.ObjectId, ref: "Location", required: true }, // 도착지
@@ -265,9 +252,8 @@ const taxiFareSchema = new Schema(
 );
 
 export const taxiFareModel = model("TaxiFare", taxiFareSchema);
-export type TaxiFare = InferSchemaType<typeof taxiFareSchema>;
 
-const noticeSchema = new Schema(
+const noticeSchema = new Schema<Notice>(
   {
     title: { type: String, required: true },
     notion_url: { type: String, required: true },
@@ -280,7 +266,6 @@ const noticeSchema = new Schema(
 );
 
 export const noticeModel = model("Notice", noticeSchema);
-export type Notice = InferSchemaType<typeof noticeSchema>;
 
 mongoose.set("strictQuery", true);
 

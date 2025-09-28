@@ -1,25 +1,20 @@
-import { jwt as jwtValue } from "@/loadenv";
-import * as jwt from "@/modules/auths/jwt";
-import { login } from "@/modules/auths/login";
-import { registerDeviceToken, unregisterDeviceToken } from "@/modules/fcm";
-import logger from "@/modules/logger";
-import { userModel } from "@/modules/stores/mongo";
+const { userModel } = require("@/modules/stores/mongo");
+const { login } = require("@/modules/auths/login");
 
-import type { RequestHandler } from "express";
-import type {
-  TokenLoginQuery,
-  TokenRefreshQuery,
-  RegisterDeviceTokenBody,
-  RemoveDeviceTokenBody,
-} from "@/routes/docs/schemas/authSchema";
+const { registerDeviceToken, unregisterDeviceToken } = require("@/modules/fcm");
+const jwt = require("@/modules/auths/jwt");
+const logger = require("@/modules/logger").default;
 
-const { TOKEN_EXPIRED, TOKEN_INVALID } = jwtValue;
+const { TOKEN_EXPIRED, TOKEN_INVALID } = require("@/loadenv").jwt;
 
-export const tokenLoginHandler: RequestHandler = async (req, res) => {
-  const { accessToken, deviceToken } = req.query as TokenLoginQuery;
-
+const tokenLoginHandler = async (req, res) => {
+  const { accessToken, deviceToken } = req.query;
   try {
-    const data = jwt.verify(accessToken);
+    if (!accessToken || !deviceToken) {
+      return res.status(400).send("invalid request");
+    }
+
+    const data = await jwt.verify(accessToken);
     if (data === TOKEN_INVALID) {
       return res.status(401).json({ message: "Invalid token" });
     }
@@ -35,7 +30,7 @@ export const tokenLoginHandler: RequestHandler = async (req, res) => {
       return res.status(401).json({ message: "No corresponding user" });
     }
 
-    login(req, user.id, user._id.toString());
+    login(req, user.sid, user.id, user._id, user.name);
     req.session.isApp = true;
     req.session.deviceToken = deviceToken;
 
@@ -46,12 +41,15 @@ export const tokenLoginHandler: RequestHandler = async (req, res) => {
   }
 };
 
-export const tokenRefreshHandler: RequestHandler = async (req, res) => {
+const tokenRefreshHandler = async (req, res) => {
   try {
-    const { accessToken, refreshToken } = req.query as TokenRefreshQuery;
-    const data = jwt.verify(refreshToken);
-    const accessTokenStatus = jwt.verify(accessToken);
+    const { accessToken, refreshToken } = req.query;
+    if (!accessToken || !refreshToken) {
+      return res.status(400).send("invalid request");
+    }
 
+    const data = await jwt.verify(refreshToken);
+    const accessTokenStatus = await jwt.verify(accessToken);
     if (accessTokenStatus === TOKEN_INVALID) {
       return res.status(401).json({ message: "Invalid access token" });
     }
@@ -65,28 +63,31 @@ export const tokenRefreshHandler: RequestHandler = async (req, res) => {
       return res.status(401).json({ message: "Not Refresh token" });
     }
 
-    const { token: newAccessToken } = jwt.sign({
+    const { token: newAccessToken } = await jwt.sign({
       id: data.id,
       type: "access",
     });
-    const { token: newRefreshToken } = jwt.sign({
+    const { token: newRefreshToken } = await jwt.sign({
       id: data.id,
       type: "refresh",
     });
-    return res.json({
+    res.json({
       accessToken: newAccessToken,
       refreshToken: newRefreshToken,
     });
   } catch (e) {
     logger.error(e);
-    return res.status(500).send("server error");
+    res.status(501).send("server error");
   }
 };
 
-export const registerDeviceTokenHandler: RequestHandler = async (req, res) => {
+const registerDeviceTokenHandler = async (req, res) => {
   try {
-    const { accessToken, deviceToken } = req.body as RegisterDeviceTokenBody;
-    const accessTokenStatus = jwt.verify(accessToken);
+    const { accessToken, deviceToken } = req.body;
+    const accessTokenStatus = await jwt.verify(accessToken);
+    if (!deviceToken) {
+      return res.status(400).send("invalid request");
+    }
     if (
       accessTokenStatus === TOKEN_EXPIRED ||
       accessTokenStatus === TOKEN_INVALID
@@ -95,18 +96,20 @@ export const registerDeviceTokenHandler: RequestHandler = async (req, res) => {
     }
 
     await registerDeviceToken(accessTokenStatus.id, deviceToken);
-    return res.status(200).send("success");
+    res.status(200).send("success");
   } catch (e) {
     logger.error(e);
-    return res.status(500).send("server error");
+    res.status(500).send("server error");
   }
 };
 
-export const removeDeviceTokenHandler: RequestHandler = async (req, res) => {
+const removeDeviceTokenHandler = async (req, res) => {
   try {
-    const { accessToken, deviceToken } = req.body as RemoveDeviceTokenBody;
-    const accessTokenStatus = jwt.verify(accessToken);
-
+    const { accessToken, deviceToken } = req.body;
+    const accessTokenStatus = await jwt.verify(accessToken);
+    if (!deviceToken) {
+      return res.status(400).send("invalid request");
+    }
     if (
       accessTokenStatus === TOKEN_EXPIRED ||
       accessTokenStatus === TOKEN_INVALID
@@ -115,9 +118,16 @@ export const removeDeviceTokenHandler: RequestHandler = async (req, res) => {
     }
 
     await unregisterDeviceToken(deviceToken);
-    return res.status(200).send("success");
+    res.status(200).send("success");
   } catch (e) {
     logger.error(e);
-    return res.status(500).send("server error");
+    res.status(500).send("server error");
   }
+};
+
+module.exports = {
+  tokenLoginHandler,
+  tokenRefreshHandler,
+  registerDeviceTokenHandler,
+  removeDeviceTokenHandler,
 };

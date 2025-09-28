@@ -10,8 +10,8 @@ import type {
  * 쿼리를 통해 얻은 Room Document를 populate할 설정값을 정의합니다.
  */
 export const roomPopulateOption = [
-  { path: "from", select: "_id koName enName latitude longitude" },
-  { path: "to", select: "_id koName enName latitude longitude" },
+  { path: "from", select: "_id koName enName" },
+  { path: "to", select: "_id koName enName" },
   {
     path: "part",
     select: "-_id user settlementStatus readAt",
@@ -22,25 +22,31 @@ export const roomPopulateOption = [
   },
 ];
 
-type PopulatedLocation = Pick<
-  Location,
-  "_id" | "koName" | "enName" | "latitude" | "longitude"
->;
-type PopulatedUser = Pick<
-  User,
-  "_id" | "id" | "name" | "nickname" | "profileImageUrl" | "withdraw" | "badge"
->;
-type PopulatedParticipant = Pick<Participant, "settlementStatus" | "readAt"> & {
-  user: PopulatedUser | null;
-};
-
-export interface PopulatedRoom extends Omit<Room, "from" | "to" | "part"> {
-  from: PopulatedLocation | null;
-  to: PopulatedLocation | null;
-  part: PopulatedParticipant[];
+interface PopulatedParticipant
+  extends Pick<Participant, "settlementStatus" | "readAt"> {
+  user: Pick<
+    User,
+    | "_id"
+    | "id"
+    | "name"
+    | "nickname"
+    | "profileImageUrl"
+    | "withdraw"
+    | "badge"
+  > | null;
 }
 
-export type RoomPopulatePath = Pick<PopulatedRoom, "from" | "to" | "part">;
+export interface PopulatedRoom extends Omit<Room, "from" | "to" | "part"> {
+  from: Pick<
+    Location,
+    "_id" | "koName" | "enName" | "latitude" | "longitude"
+  > | null;
+  to: Pick<
+    Location,
+    "_id" | "koName" | "enName" | "latitude" | "longitude"
+  > | null;
+  part: PopulatedParticipant[];
+}
 
 interface FormattedLocation {
   _id: string;

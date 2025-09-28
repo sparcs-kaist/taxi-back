@@ -13,5 +13,3 @@ export interface PopulatedReport extends Omit<Report, "reportedId"> {
     "_id" | "id" | "name" | "nickname" | "profileImageUrl" | "withdraw"
   > | null;
 }
-
-export type ReportPopulatePath = Pick<PopulatedReport, "reportedId">;

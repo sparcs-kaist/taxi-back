@@ -1,10 +1,12 @@
-import express from "express";
-import { validateBody } from "@/middlewares";
-import { chatsZod } from "./docs/schemas/chatsSchema";
-
-import * as chatsHandlers from "@/services/chats";
+const express = require("express");
+const { body } = require("express-validator");
+const validator = require("@/middlewares/validator").default;
+const patterns = require("@/modules/patterns").default;
+const { validateBody } = require("@/middlewares/zod");
+const { chatsZod } = require("./docs/schemas/chatsSchema");
 
 const router = express.Router();
+const chatsHandlers = require("@/services/chats");
 
 // 라우터 접근 시 로그인 필요
 router.use(require("@/middlewares/auth").default);
@@ -14,7 +16,8 @@ router.use(require("@/middlewares/auth").default);
  */
 router.post(
   "/",
-  validateBody(chatsZod.loadRecentChatHandler),
+  body("roomId").isMongoId(),
+  validator,
   chatsHandlers.loadRecentChatHandler
 );
 
@@ -23,7 +26,9 @@ router.post(
  */
 router.post(
   "/load/before",
-  validateBody(chatsZod.loadBeforeChatHandler),
+  body("roomId").isMongoId(),
+  body("lastMsgDate").isISO8601(),
+  validator,
   chatsHandlers.loadBeforeChatHandler
 );
 
@@ -32,7 +37,9 @@ router.post(
  */
 router.post(
   "/load/after",
-  validateBody(chatsZod.loadAfterChatHandler),
+  body("roomId").isMongoId(),
+  body("lastMsgDate").isISO8601(),
+  validator,
   chatsHandlers.loadAfterChatHandler
 );
 
@@ -52,22 +59,25 @@ router.post(
  */
 router.post(
   "/read",
-  validateBody(chatsZod.readChatHandler),
+  body("roomId").isMongoId(),
+  validator,
   chatsHandlers.readChatHandler
 );
 
 // 채팅 이미지를 업로드할 수 있는 Presigned-url을 발급합니다.
 router.post(
   "/uploadChatImg/getPUrl",
-  validateBody(chatsZod.uploadChatImgGetPUrlHandler),
+  body("type").matches(patterns.chat.chatImgType),
+  validator,
   chatsHandlers.uploadChatImgGetPUrlHandler
 );
 
 // 채팅 이미지가 S3에 정상적으로 업로드가 되었는지 확인합니다.
 router.post(
   "/uploadChatImg/done",
-  validateBody(chatsZod.uploadChatImgDoneHandler),
+  body("id").isMongoId(),
+  validator,
   chatsHandlers.uploadChatImgDoneHandler
 );
 
-export default router;
+module.exports = router;

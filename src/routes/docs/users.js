@@ -218,8 +218,7 @@ usersDocs[`${apiPrefix}/registerPhoneNumber`] = {
       200: {
         content: {
           "text/html": {
-            example:
-              "Users/registerPhoneNumber : create user phoneNumber successful",
+            example: "Users/registerPhoneNumber : create user phoneNumber successful",
           },
         },
       },
@@ -252,7 +251,7 @@ usersDocs[`${apiPrefix}/editBadge`] = {
           schema: {
             type: "object",
             properties: {
-              badge: {
+               badge: {
                 type: "string",
                 description: "뱃지 상태",
               },
