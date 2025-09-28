@@ -138,7 +138,7 @@ const quests = buildQuests({
     description: "초대한 친구가 전화번호 인증을 완료하면 코인을 받아요.",
     imageUrl:
       "https://sparcs-taxi-prod.s3.ap-northeast-2.amazonaws.com/assets/event-2025spring/quest_eventSharing.png",
-    reward: 10,
+    reward: 3,
     maxCount: 0, // 여러 명 초대 가능
   },
   referralInviteeCredit: {
@@ -146,7 +146,7 @@ const quests = buildQuests({
     description: "초대 링크로 참여해 전화번호 인증을 완료하면 코인을 받아요.",
     imageUrl:
       "https://sparcs-taxi-prod.s3.ap-northeast-2.amazonaws.com/assets/event-2025spring/quest_eventSharing.png",
-    reward: 10,
+    reward: 3,
     maxCount: 1, // 본인 1회
   },
   indirectEventSharing: {
@@ -155,7 +155,7 @@ const quests = buildQuests({
       "내가 초대한 사람이 다른 누군가를 이벤트에 초대하면 응모권을 받아요. 그 사람이 또 다른 누군가를 초대하면 또 응모권을 받아요. 그 사람이 또 …",
     imageUrl:
       "https://sparcs-taxi-prod.s3.ap-northeast-2.amazonaws.com/assets/event-2025spring/quest_indirectEventSharing.png",
-    reward: 5,
+    reward: 2,
     maxCount: 0,
   },
 });
