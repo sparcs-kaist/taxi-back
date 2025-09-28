@@ -1,87 +1,60 @@
-const express = require("express");
-const { query, body } = require("express-validator");
-const { validateBody } = require("../middlewares/zod");
-const { roomsZod } = require("./docs/schemas/roomsSchema");
-const router = express.Router();
+import express from "express";
+import { roomsZod } from "./docs/schemas/roomsSchema";
+import * as roomHandlers from "@/services/rooms";
+import {
+  authMiddleware,
+  banMiddleware,
+  validateBody,
+  validateQuery,
+} from "@/middlewares";
 
-const roomHandlers = require("@/services/rooms");
-const validator = require("@/middlewares/validator").default;
-const patterns = require("@/modules/patterns").default;
+const router = express.Router();
 
 // 조건(이름, 출발지, 도착지, 날짜)에 맞는 방들을 모두 반환한다.
 router.get(
   "/search",
-  [
-    query("name").optional().matches(patterns.room.name),
-    query("from").optional().isMongoId(),
-    query("to").optional().isMongoId(),
-    query("time").optional().isISO8601(),
-    query("withTime").toBoolean().optional().isBoolean(),
-    query("maxPartLength").optional().isInt({ min: 2, max: 4 }),
-    query("isHome").toBoolean().isBoolean(),
-  ],
-  validator,
+  validateQuery(roomsZod.searchHandler),
   roomHandlers.searchHandler
 );
 
 router.get(
   "/searchByTimeGap",
-  [
-    query("from").isMongoId(),
-    query("to").isMongoId(),
-    query("time").isISO8601(),
-    query("timeGap").optional().isInt({ min: 0, max: 60 }),
-  ],
-  validator,
+  validateQuery(roomsZod.searchByTimeGapHandler),
   roomHandlers.searchByTimeGapHandler
 );
 
 // 특정 id 방의 정산 정보를 제외한 세부사항을 반환한다.
 router.get(
   "/publicInfo",
-  query("id").isMongoId(),
-  validator,
+  validateQuery(roomsZod.publicInfoHandler),
   roomHandlers.publicInfoHandler
 );
 
 // 이후 API 접근 시 로그인 필요
-router.use(require("@/middlewares/auth").default);
+router.use(authMiddleware);
 
 // 방 생성/참여전 ban 여부 확인
-router.use(require("@/middlewares/ban").default);
+// FIXME: sid를 사용하는 코드가 모두 수정될 때까지 비활성화 합니다.
+// router.use(banMiddleware);
 
 // 특정 id 방 세부사항 보기
 router.get(
   "/info",
-  query("id").isMongoId(),
-  validator,
+  validateQuery(roomsZod.infoHandler),
   roomHandlers.infoHandler
 );
 
 // JSON으로 받은 정보로 방을 생성한다.
 router.post(
   "/create",
-  [
-    body("name").matches(patterns.room.name),
-    body("from").isMongoId(),
-    body("to").isMongoId(),
-    body("time").isISO8601(),
-    body("maxPartLength").isInt({ min: 2, max: 4 }),
-  ],
-  validator,
+  validateBody(roomsZod.createHandler),
   roomHandlers.createHandler
 );
 
 // 방을 생성하기 전, 생성하고자 하는 방이 실제로 택시 탑승의 목적성을 갖고 있는지 예측한다.
 router.post(
   "/create/test",
-  [
-    body("from").isMongoId(),
-    body("to").isMongoId(),
-    body("time").isISO8601(),
-    body("maxPartLength").isInt({ min: 2, max: 4 }),
-  ],
-  validator,
+  validateBody(roomsZod.createTestHandler),
   roomHandlers.createTestHandler
 );
 
@@ -89,8 +62,7 @@ router.post(
 // FIXME: req.body.users 검증할 때 SSO ID 규칙 반영하기
 router.post(
   "/join",
-  [body("roomId").isMongoId()],
-  validator,
+  validateBody(roomsZod.joinHandler),
   roomHandlers.joinHandler
 );
 
@@ -100,8 +72,7 @@ router.post(
 // 모든 사람이 나갈 경우에도 방을 삭제하지 않는다.
 router.post(
   "/abort",
-  body("roomId").isMongoId(),
-  validator,
+  validateBody(roomsZod.abortHandler),
   roomHandlers.abortHandler
 );
 
@@ -111,14 +82,14 @@ router.get("/searchByUser", roomHandlers.searchByUserHandler);
 // 해당 방에 요청을 보낸 유저의 정산을 처리한다.
 router.post(
   "/commitSettlement",
-  validateBody(roomsZod.commitSettlement),
+  validateBody(roomsZod.commitSettlementHandler),
   roomHandlers.commitSettlementHandler
 );
 
 // 해당 방에 요청을 보낸 유저의 송금을 처리한다.
 router.post(
   "/commitPayment",
-  validateBody(roomsZod.commitPayment),
+  validateBody(roomsZod.commitPaymentHandler),
   roomHandlers.commitPaymentHandler
 );
 
@@ -142,4 +113,4 @@ router.post(
 //   roomHandlers.editHandler
 // );
 
-module.exports = router;
+export default router;

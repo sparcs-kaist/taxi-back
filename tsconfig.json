@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "target": "es6",
+    "target": "es2023",
     "module": "node16",
     "moduleResolution": "node16",
     "allowJs": true,
@@ -10,15 +10,16 @@
     "esModuleInterop": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
-    "baseUrl": "./src",
+    "baseUrl": ".",
     "paths": {
-      "@/*": ["./*"]
+      "@/*": ["src/*"]
     }
   },
-  "include": ["src", "scripts"],
+  "include": ["src", "scripts", "test"],
   "exclude": ["dist", "node_modules"],
   "ts-node": {
     "files": true,
-    "transpileOnly": true
+    "transpileOnly": true,
+    "swc": true
   }
 }
