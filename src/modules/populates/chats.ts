@@ -16,5 +16,3 @@ export interface PopulatedChat extends Omit<Chat, "authorId"> {
     "_id" | "nickname" | "profileImageUrl" | "withdraw"
   > | null;
 }
-
-export type ChatPopulatePath = Pick<PopulatedChat, "authorId">;

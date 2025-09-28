@@ -1,37 +1,30 @@
-import type { RequestHandler } from "express";
-import { Types, type PipelineStage } from "mongoose";
-import { roomModel, locationModel, userModel } from "@/modules/stores/mongo";
-import { emitChatEvent } from "@/modules/socket";
-import logger from "@/modules/logger";
-import {
+const {
+  roomModel,
+  locationModel,
+  userModel,
+} = require("@/modules/stores/mongo");
+const { emitChatEvent } = require("@/modules/socket");
+const logger = require("@/modules/logger").default;
+const {
   roomPopulateOption,
   formatSettlement,
   getIsOver,
-  type RoomPopulatePath,
-  type PopulatedRoom,
-} from "@/modules/populates/rooms";
-import type {
-  CreateBody,
-  CreateTestBody,
-  SearchByTimeGapQuery,
-  SearchQuery,
-} from "@/routes/docs/schemas/roomsSchema";
-import type { Room } from "@/types/mongo";
-
-import { eventConfig } from "@/loadenv";
-import { contracts } from "@/lottery";
-import { notifyRoomCreationAbuseToReportChannel } from "@/modules/slackNotification";
+} = require("@/modules/populates/rooms");
+const {
+  notifyRoomCreationAbuseToReportChannel,
+} = require("@/modules/slackNotification");
 
 // 이벤트 코드입니다.
+const { eventConfig } = require("@/loadenv");
 const eventPeriod = eventConfig && {
   startAt: new Date(eventConfig.period.startAt),
   endAt: new Date(eventConfig.period.endAt),
 };
+const { contracts } = require("@/lottery");
+const mongoose = require("mongoose");
 
-type CandidateRoom = Pick<Room, "from" | "to" | "time" | "maxPartLength">;
-
-export const createHandler: RequestHandler = async (req, res) => {
-  const { name, from, to, time, maxPartLength } = req.body as CreateBody;
+const createHandler = async (req, res) => {
+  const { name, from, to, time, maxPartLength } = req.body;
 
   try {
     if (from === to) {
@@ -40,7 +33,7 @@ export const createHandler: RequestHandler = async (req, res) => {
       });
     }
 
-    if (req.timestamp! > Date.parse(time)) {
+    if (req.timestamp > Date.parse(req.body.time)) {
       return res.status(400).json({
         error: "Rooms/create : invalid timestamp",
       });
@@ -71,10 +64,7 @@ export const createHandler: RequestHandler = async (req, res) => {
     // 방 생성 요청을 한 사용자의 ObjectID를 room의 part 리스트에 추가
     const user = await userModel
       .findOne({ _id: req.userOid, withdraw: false })
-      .populate<{ ongoingRoom: Room[] }>("ongoingRoom");
-    if (!user) {
-      return res.status(400).json({ error: "Rooms/create : User not found" });
-    }
+      .populate("ongoingRoom");
 
     // 사용자의 참여중인 진행중인 방이 5개 이상이면 오류를 반환합니다.
     if (user.ongoingRoom.length >= 5) {
@@ -106,47 +96,48 @@ export const createHandler: RequestHandler = async (req, res) => {
     await room.save();
 
     // 방의 ObjectID를 방 생성 요청을 한 사용자의 room 배열에 추가
-    (user.ongoingRoom as unknown as Types.ObjectId[]).push(room._id);
+    user.ongoingRoom.push(room._id);
     await user.save();
 
     // 입장 채팅을 보냅니다.
     await emitChatEvent(req.app.get("io"), {
-      roomId: room._id.toString(),
+      roomId: room._id,
       type: "in",
-      content: user._id.toString(),
-      authorId: user._id.toString(),
+      content: user._id,
+      authorId: user._id,
     });
+
+    const roomObject = (await room.populate(roomPopulateOption)).toObject();
+    const roomObjectFormated = formatSettlement(roomObject);
 
     // 이벤트 코드입니다.
     await contracts?.completeFirstRoomCreationQuest(req.userOid, req.timestamp);
 
-    const roomObject = (
-      await room.populate(roomPopulateOption)
-    ).toObject<PopulatedRoom>();
-    return res.send(formatSettlement(roomObject));
+    return res.send(roomObjectFormated);
   } catch (err) {
     logger.error(err);
     return res.status(500).json({
       error: "Rooms/create : internal server error",
     });
+    return;
   }
 };
 
-export const createTestHandler: RequestHandler = async (req, res) => {
+const createTestHandler = async (req, res) => {
   // 이 Handler에서는 Parameter에 대해 추가적인 Validation을 하지 않습니다.
-  const { time } = req.body as CreateTestBody;
+  const { time } = req.body;
 
   try {
     // 이벤트 코드입니다.
     if (
       !eventPeriod ||
-      req.timestamp! >= eventPeriod.endAt ||
-      req.timestamp! < eventPeriod.startAt
+      req.timestamp >= eventPeriod.endAt ||
+      req.timestamp < eventPeriod.startAt
     )
       return res.json({ result: true });
 
     const countRecentlyMadeRooms = await roomModel.countDocuments({
-      madeat: { $gte: new Date(req.timestamp! - 86400000) }, // 밀리초 단위로 24시간을 나타냅니다.
+      madeat: { $gte: new Date(req.timestamp - 86400000) }, // 밀리초 단위로 24시간을 나타냅니다.
       "part.0.user": req.userOid, // 방 최초 생성자를 저장하는 필드가 없으므로, 첫 번째 참여자를 생성자로 간주합니다.
     });
     if (!countRecentlyMadeRooms && countRecentlyMadeRooms !== 0)
@@ -167,7 +158,7 @@ export const createTestHandler: RequestHandler = async (req, res) => {
         "from to time maxPartLength"
       )
       .limit(2)
-      .lean<CandidateRoom[]>();
+      .lean();
     if (!candidateRooms)
       return res
         .status(500)
@@ -183,13 +174,14 @@ export const createTestHandler: RequestHandler = async (req, res) => {
         .findOne({ _id: req.userOid, withdraw: false })
         .lean();
       notifyRoomCreationAbuseToReportChannel(
-        req.userOid!,
-        user?.nickname ?? req.userOid!,
+        req.userOid,
+        user?.nickname ?? req.userOid,
         req.body
       );
     }
 
     return res.json({ result: !isAbusing });
+    return res.json({ result: true });
   } catch (err) {
     logger.error(err);
     return res.status(500).json({
@@ -198,19 +190,17 @@ export const createTestHandler: RequestHandler = async (req, res) => {
   }
 };
 
-export const publicInfoHandler: RequestHandler = async (req, res) => {
+const publicInfoHandler = async (req, res) => {
   try {
     const roomObject = await roomModel
       .findOne({ _id: req.query.id })
       .lean()
-      .populate<RoomPopulatePath>(roomPopulateOption);
+      .populate(roomPopulateOption);
     if (roomObject) {
       // 방의 정산 정보는 개인정보로 방에 참여하기 전까지는 반환하지 않습니다.
-      return res.send(
-        formatSettlement(roomObject, { includeSettlement: false })
-      );
+      res.send(formatSettlement(roomObject, { includeSettlement: false }));
     } else {
-      return res.status(404).json({
+      res.status(404).json({
         error: "Rooms/publicInfo : id does not exist",
       });
     }
@@ -222,22 +212,18 @@ export const publicInfoHandler: RequestHandler = async (req, res) => {
   }
 };
 
-export const infoHandler: RequestHandler = async (req, res) => {
+const infoHandler = async (req, res) => {
   try {
     const user = await userModel.findOne({ _id: req.userOid, withdraw: false });
-    if (!user) {
-      return res.status(400).json({ error: "Rooms/info : User not found" });
-    }
-
     const roomObject = await roomModel
       .findOne({ _id: req.query.id, "part.user": user._id })
       .lean()
-      .populate<RoomPopulatePath>(roomPopulateOption);
+      .populate(roomPopulateOption);
     if (roomObject) {
       const isOver = getIsOver(roomObject, user._id.toString());
-      return res.send(formatSettlement(roomObject, { isOver }));
+      res.send(formatSettlement(roomObject, { isOver }));
     } else {
-      return res.status(404).json({
+      res.status(404).json({
         error: "Rooms/info : id does not exist",
       });
     }
@@ -249,14 +235,11 @@ export const infoHandler: RequestHandler = async (req, res) => {
   }
 };
 
-export const joinHandler: RequestHandler = async (req, res) => {
+const joinHandler = async (req, res) => {
   try {
     const user = await userModel
       .findOne({ _id: req.userOid, withdraw: false })
-      .populate<{ ongoingRoom: Room[] }>("ongoingRoom");
-    if (!user) {
-      return res.status(400).json({ error: "Rooms/join : User not found" });
-    }
+      .populate("ongoingRoom");
 
     // 사용자의 참여중인 진행중인 방이 5개 이상이면 오류를 반환합니다.
     if (user.ongoingRoom.length >= 5) {
@@ -275,9 +258,10 @@ export const joinHandler: RequestHandler = async (req, res) => {
 
     const room = await roomModel.findById(req.body.roomId);
     if (!room) {
-      return res.status(404).json({
+      res.status(404).json({
         error: "Rooms/join : no corresponding room",
       });
+      return;
     }
 
     // 사용자가 이미 참여중인 방인 경우, 409 Conflict 오류를 반환합니다.
@@ -292,36 +276,36 @@ export const joinHandler: RequestHandler = async (req, res) => {
     }
 
     // 방이 이미 출발한 경우, 400 오류를 반환합니다.
-    if (req.timestamp! >= room.time.getTime()) {
-      return res.status(400).json({
+    if (req.timestamp >= room.time) {
+      res.status(400).json({
         error: "Rooms/join : The room has already departed",
       });
+      return;
     }
 
     // 방의 인원이 모두 찬 경우, 400 오류를 반환합니다.
     if (room.part.length + 1 > room.maxPartLength) {
-      return res.status(400).json({
+      res.status(400).json({
         error: "Rooms/join : The room is already full",
       });
+      return;
     }
 
     room.part.push({ user: user._id });
-    (user.ongoingRoom as unknown as Types.ObjectId[]).push(room._id);
+    user.ongoingRoom.push(room._id);
     await user.save();
     await room.save();
 
     // 입장 채팅을 보냅니다.
     await emitChatEvent(req.app.get("io"), {
-      roomId: room._id.toString(),
+      roomId: room._id,
       type: "in",
-      content: user._id.toString(),
-      authorId: user._id.toString(),
+      content: user._id,
+      authorId: user._id,
     });
 
-    const roomObject = (
-      await room.populate(roomPopulateOption)
-    ).toObject<PopulatedRoom>();
-    return res.send(formatSettlement(roomObject));
+    const roomObject = (await room.populate(roomPopulateOption)).toObject();
+    res.send(formatSettlement(roomObject));
   } catch (err) {
     logger.error(err);
     return res.status(500).json({
@@ -330,19 +314,26 @@ export const joinHandler: RequestHandler = async (req, res) => {
   }
 };
 
-export const abortHandler: RequestHandler = async (req, res) => {
+const abortHandler = async (req, res) => {
+  const isOvertime = (room, time) => {
+    if (new Date(room.time) <= time) return true;
+    else return false;
+  };
+
   try {
     const user = await userModel.findOne({ _id: req.userOid, withdraw: false });
     const room = await roomModel.findById(req.body.roomId);
     if (!user) {
-      return res.status(400).json({
+      res.status(400).json({
         error: "Rooms/abort : Bad request",
       });
+      return;
     }
     if (!room) {
-      return res.status(404).json({
+      res.status(404).json({
         error: "Rooms/abort : no corresponding room",
       });
+      return;
     }
 
     // 해당 방의 참여자 목록에서 사용자를 제거합니다.
@@ -360,7 +351,7 @@ export const abortHandler: RequestHandler = async (req, res) => {
     const userDoneRoomIndex = user.doneRoom.indexOf(room._id);
 
     // 방의 출발시간이 지나고 정산이 되지 않으면 나갈 수 없음
-    if (room.time.getTime() <= req.timestamp! && userOngoingRoomIndex !== -1) {
+    if (isOvertime(room, req.timestamp) && userOngoingRoomIndex !== -1) {
       return res.status(400).json({
         error: "Rooms/abort : cannot exit room. Settlement is not done",
       });
@@ -375,7 +366,7 @@ export const abortHandler: RequestHandler = async (req, res) => {
     } else {
       // room.part에는 user가 있지만 user.ongoingRoom이나 user.doneRoom에는 room이 없는 상황.
       logger.error(
-        `Rooms/abort : referential integrity error (user: ${user._id}, room: ${room._id})`
+        `Rooms/abort: referential integrity error (user: ${user._id}, room: ${room._id})`
       );
       return res.status(500).json({
         error: "Rooms/abort : internal server error",
@@ -394,18 +385,16 @@ export const abortHandler: RequestHandler = async (req, res) => {
 
     // 퇴장 채팅을 보냅니다.
     await emitChatEvent(req.app.get("io"), {
-      roomId: room._id.toString(),
+      roomId: room._id,
       type: "out",
-      content: user._id.toString(),
-      authorId: user._id.toString(),
+      content: user._id,
+      authorId: user._id,
     });
 
-    const roomObject = (
-      await room.populate(roomPopulateOption)
-    ).toObject<PopulatedRoom>();
+    const roomObject = (await room.populate(roomPopulateOption)).toObject();
     const isOver = getIsOver(roomObject, user._id.toString());
 
-    return res.send(formatSettlement(roomObject, { isOver }));
+    res.send(formatSettlement(roomObject, { isOver }));
   } catch (err) {
     logger.error(err);
     return res.status(500).json({
@@ -414,10 +403,9 @@ export const abortHandler: RequestHandler = async (req, res) => {
   }
 };
 
-export const searchHandler: RequestHandler = async (req, res) => {
+const searchHandler = async (req, res) => {
   try {
-    const { name, from, to, time, withTime, maxPartLength, isHome } =
-      req.query as unknown as SearchQuery;
+    const { name, from, to, time, withTime, maxPartLength, isHome } = req.query;
 
     // 출발지와 도착지가 같은 경우
     if (from && to && from === to) {
@@ -473,7 +461,7 @@ export const searchHandler: RequestHandler = async (req, res) => {
     maxTime.setMilliseconds(0);
 
     // 검색 쿼리를 설정합니다.
-    const query: Record<string, any> = {};
+    const query = {};
     if (name) query.name = { $regex: new RegExp(name, "i") }; // 'i': 대소문자 무시
     if (maxPartLength) query.maxPartLength = { $eq: maxPartLength };
     if (from) query.from = from;
@@ -486,8 +474,8 @@ export const searchHandler: RequestHandler = async (req, res) => {
       .find(query)
       .sort({ time: 1 })
       .limit(1000)
-      .lean()
-      .populate<RoomPopulatePath>(roomPopulateOption);
+      .populate(roomPopulateOption)
+      .lean();
     return res.json(
       rooms.map((room) => formatSettlement(room, { includeSettlement: false }))
     );
@@ -498,13 +486,12 @@ export const searchHandler: RequestHandler = async (req, res) => {
   }
 };
 
-export const searchByUserHandler: RequestHandler = async (req, res) => {
+const searchByUserHandler = async (req, res) => {
   try {
     // lean()이 적용된 user를 response에 반환해줘야 하기 때문에 user를 한 번 더 지정한다.
     const user = await userModel
       .findOne({ _id: req.userOid, withdraw: false })
-      .lean()
-      .populate<{ ongoingRoom: PopulatedRoom[] }>({
+      .populate({
         path: "ongoingRoom",
         options: {
           limit: 1000,
@@ -513,7 +500,7 @@ export const searchByUserHandler: RequestHandler = async (req, res) => {
         },
         populate: roomPopulateOption,
       })
-      .populate<{ doneRoom: PopulatedRoom[] }>({
+      .populate({
         path: "doneRoom",
         options: {
           limit: 1000,
@@ -521,22 +508,18 @@ export const searchByUserHandler: RequestHandler = async (req, res) => {
           sort: { time: -1 },
         },
         populate: roomPopulateOption,
-      });
-    if (!user) {
-      return res
-        .status(400)
-        .json({ error: "Rooms/searchByUser : User not found" });
-    }
+      })
+      .lean();
 
     // 정산완료여부 기준으로 진행중인 방과 완료된 방을 분리해서 응답을 전송합니다.
-    return res.json({
-      ongoing: user.ongoingRoom.map((room) =>
-        formatSettlement(room, { isOver: false })
-      ),
-      done: user.doneRoom.map((room) =>
-        formatSettlement(room, { isOver: true })
-      ),
-    });
+    const response = {};
+    response.ongoing = user.ongoingRoom.map((room) =>
+      formatSettlement(room, { isOver: false })
+    );
+    response.done = user.doneRoom.map((room) =>
+      formatSettlement(room, { isOver: true })
+    );
+    res.json(response);
   } catch (err) {
     logger.error(err);
     return res.status(500).json({
@@ -545,15 +528,10 @@ export const searchByUserHandler: RequestHandler = async (req, res) => {
   }
 };
 
-export const searchByTimeGapHandler: RequestHandler = async (req, res) => {
+const searchByTimeGapHandler = async (req, res) => {
   try {
     // timeGap(단위: 분)은 기본적으로 25분으로 설정되어 있습니다.
-    const {
-      from,
-      to,
-      time,
-      timeGap = 25,
-    } = req.query as unknown as SearchByTimeGapQuery;
+    const { from, to, time, timeGap = 25 } = req.query;
 
     // Check if from and to are different
     if (from === to) {
@@ -588,13 +566,13 @@ export const searchByTimeGapHandler: RequestHandler = async (req, res) => {
 
     // Build query
     const query = {
-      from: new Types.ObjectId(from),
-      to: new Types.ObjectId(to),
+      from: mongoose.Types.ObjectId(from),
+      to: mongoose.Types.ObjectId(to),
       time: { $gte: minTime, $lte: maxTime },
       "part.0": { $exists: true }, // Ensure at least one participant exists
     };
 
-    const agg: PipelineStage[] = [
+    const agg = [
       { $match: query },
       {
         $addFields: {
@@ -611,10 +589,7 @@ export const searchByTimeGapHandler: RequestHandler = async (req, res) => {
 
     const rawRooms = await roomModel.aggregate(agg);
     // Mongoose 6.x 이상이라면, aggregate 결과에도 populate 가능
-    const rooms = await roomModel.populate<RoomPopulatePath>(
-      rawRooms,
-      roomPopulateOption
-    );
+    const rooms = await roomModel.populate(rawRooms, roomPopulateOption);
 
     return res.json(
       rooms.map((room) => formatSettlement(room, { includeSettlement: false }))
@@ -627,15 +602,9 @@ export const searchByTimeGapHandler: RequestHandler = async (req, res) => {
   }
 };
 
-export const commitSettlementHandler: RequestHandler = async (req, res) => {
+const commitSettlementHandler = async (req, res) => {
   try {
     const user = await userModel.findOne({ _id: req.userOid, withdraw: false });
-    if (!user) {
-      return res
-        .status(400)
-        .json({ error: "Rooms/:id/commitSettlement : User not found" });
-    }
-
     const { roomId } = req.body;
     const roomObject = await roomModel
       .findOneAndUpdate(
@@ -663,7 +632,7 @@ export const commitSettlementHandler: RequestHandler = async (req, res) => {
         }
       )
       .lean()
-      .populate<RoomPopulatePath>(roomPopulateOption);
+      .populate(roomPopulateOption);
 
     if (!roomObject) {
       return res.status(404).json({
@@ -691,8 +660,8 @@ export const commitSettlementHandler: RequestHandler = async (req, res) => {
     await emitChatEvent(req.app.get("io"), {
       roomId,
       type: "settlement",
-      content: user._id.toString(),
-      authorId: user._id.toString(),
+      content: user._id,
+      authorId: user._id,
     });
 
     // 이벤트 코드입니다.
@@ -703,7 +672,7 @@ export const commitSettlementHandler: RequestHandler = async (req, res) => {
     );
 
     // 수정한 방 정보를 반환합니다.
-    return res.send(formatSettlement(roomObject, { isOver: true }));
+    res.send(formatSettlement(roomObject, { isOver: true }));
   } catch (err) {
     logger.error(err);
     return res.status(500).json({
@@ -712,16 +681,10 @@ export const commitSettlementHandler: RequestHandler = async (req, res) => {
   }
 };
 
-export const commitPaymentHandler: RequestHandler = async (req, res) => {
+const commitPaymentHandler = async (req, res) => {
   try {
     const { roomId } = req.body;
     const user = await userModel.findOne({ _id: req.userOid, withdraw: false });
-    if (!user) {
-      return res
-        .status(400)
-        .json({ error: "Rooms/:id/commitPayment : User not found" });
-    }
-
     let roomObject = await roomModel
       .findOneAndUpdate(
         {
@@ -742,7 +705,7 @@ export const commitPaymentHandler: RequestHandler = async (req, res) => {
         }
       )
       .lean()
-      .populate<RoomPopulatePath>(roomPopulateOption);
+      .populate(roomPopulateOption);
 
     if (!roomObject) {
       return res.status(404).json({
@@ -770,8 +733,8 @@ export const commitPaymentHandler: RequestHandler = async (req, res) => {
     await emitChatEvent(req.app.get("io"), {
       roomId,
       type: "payment",
-      content: user._id.toString(),
-      authorId: user._id.toString(),
+      content: user._id,
+      authorId: user._id,
     });
 
     // 이벤트 코드입니다.
@@ -782,7 +745,7 @@ export const commitPaymentHandler: RequestHandler = async (req, res) => {
     );
 
     // 수정한 방 정보를 반환합니다.
-    return res.send(formatSettlement(roomObject, { isOver: true }));
+    res.send(formatSettlement(roomObject, { isOver: true }));
   } catch (err) {
     logger.error(err);
     return res.status(500).json({
@@ -792,9 +755,9 @@ export const commitPaymentHandler: RequestHandler = async (req, res) => {
 };
 
 const checkIsAbusing = (
-  { from, to, time, maxPartLength }: CreateTestBody,
-  countRecentlyMadeRooms: number,
-  candidateRooms: CandidateRoom[]
+  { from, to, time, maxPartLength },
+  countRecentlyMadeRooms,
+  candidateRooms
 ) => {
   /**
    * 방을 생성하였을 때, 다음 조건 중 하나라도 만족하게 되면 어뷰징 가능성이 있다고 판단합니다.
@@ -830,8 +793,7 @@ const checkIsAbusing = (
     [firstRoom, secondRoom] = [secondRoom, firstRoom];
   }
 
-  if (secondRoom.time.getTime() - firstRoom.time.getTime() <= 3600000)
-    return true; // 조건 2-a
+  if (secondRoom.time - firstRoom.time <= 3600000) return true; // 조건 2-a
   if (
     firstRoom.from === secondRoom.from ||
     firstRoom.to === secondRoom.to ||
@@ -846,13 +808,10 @@ const checkIsAbusing = (
 
 /**
  * User Object가 주어졌을 때, 해당 유저가 참여한 방 중 아직 유저가 송금하지 않은 방이 있는지 확인합니다.
- * @param userObject - userObject입니다. ongoingRoom 정보를 포함한 형태의 object여야 합니다.
- * @return 송금해야 하는 방이 있는지 여부를 반환합니다.
+ * @param {Object} userObject - userObject입니다. ongoingRoom 정보를 포함한 형태의 object여야 합니다.
+ * @return {Boolean} 송금해야 하는 방이 있는지 여부를 반환합니다.
  */
-const checkIsSendRequired = (userObject: {
-  _id: Types.ObjectId;
-  ongoingRoom: { part: { user: Types.ObjectId; settlementStatus: string }[] }[];
-}) => {
+const checkIsSendRequired = (userObject) => {
   // user의 참여중인 방의 part 정보만 가져오기
   const ongoingRoomParts = userObject.ongoingRoom.map((room) => room.part);
   // part에서 자신의 id에 해당하는 part만 가져오기
@@ -872,13 +831,14 @@ const checkIsSendRequired = (userObject: {
 /**
  * @todo Unused -> Maybe used in the future?
  */
-// export const editHandler: RequestHandler = async (req, res) => {
+// const editHandler = async (req, res) => {
 //   const { roomId, name, from, to, time, maxPartLength } = req.body;
 //   // 수정할 값이 주어지지 않은 경우
 //   if (!name && !from && !to && !time && !maxPartLength) {
-//     return res.status(400).json({
+//     res.status(400).json({
 //       error: "Rooms/edit : Bad request",
 //     });
+//     return;
 //   }
 
 //   // 출발지와 도착지가 같은 경우
@@ -934,16 +894,31 @@ const checkIsSendRequired = (userObject: {
 //     if (result) {
 //       const roomObject = (await result.populate(roomPopulateOption)).toObject();
 //       const isOver = getIsOver(room, user._id);
-//       return res.send(formatSettlement(roomObject, { isOver }));
+//       res.send(formatSettlement(roomObject, { isOver }));
 //     } else {
-//       return res.status(404).json({
+//       res.status(404).json({
 //         error: "Rooms/edit : such room not exist",
 //       });
 //     }
 //   } catch (err) {
 //     logger.error(err);
-//     return res.status(500).json({
+//     res.status(500).json({
 //       error: "Rooms/edit : internal server error",
 //     });
 //   }
 // };
+
+module.exports = {
+  publicInfoHandler,
+  infoHandler,
+  createHandler,
+  createTestHandler,
+  joinHandler,
+  abortHandler,
+  searchHandler,
+  searchByUserHandler,
+  commitPaymentHandler,
+  commitSettlementHandler,
+  searchByTimeGapHandler,
+  // editHandler,
+};

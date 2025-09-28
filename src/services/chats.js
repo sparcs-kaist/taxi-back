@@ -1,35 +1,21 @@
-import { chatModel, userModel, roomModel } from "@/modules/stores/mongo";
-import {
-  chatPopulateOption,
-  type ChatPopulatePath,
-} from "@/modules/populates/chats";
-import * as aws from "@/modules/stores/aws";
-import {
+const { chatModel, userModel, roomModel } = require("@/modules/stores/mongo");
+const { chatPopulateOption } = require("@/modules/populates/chats");
+const aws = require("@/modules/stores/aws");
+const {
   transformChatsForRoom,
   emitChatEvent,
   emitUpdateEvent,
-  getSessionRoom,
-} from "@/modules/socket";
-import logger from "@/modules/logger";
-
-import type { RequestHandler } from "express";
-import type {
-  LoadRecentChatBody,
-  LoadAfterChatBody,
-  LoadBeforeChatBody,
-  SendChatBody,
-  ReadChatBody,
-  UploadChatImgGetPUrlBody,
-  UploadChatImgDoneBody,
-} from "@/routes/docs/schemas/chatsSchema";
+} = require("@/modules/socket");
+const logger = require("@/modules/logger").default;
 
 const chatCount = 60;
 
-export const loadRecentChatHandler: RequestHandler = async (req, res) => {
+const loadRecentChatHandler = async (req, res) => {
   try {
     const io = req.app.get("io");
     const { userOid } = req;
-    const { roomId }: LoadRecentChatBody = req.body;
+    const { roomId } = req.body;
+    const { id: sessionId } = req.session;
     if (!userOid) {
       return res.status(500).send("Chat/ : internal server error");
     }
@@ -49,28 +35,29 @@ export const loadRecentChatHandler: RequestHandler = async (req, res) => {
       .sort({ time: -1 })
       .limit(chatCount)
       .lean()
-      .populate<ChatPopulatePath>(chatPopulateOption);
+      .populate(chatPopulateOption);
 
     if (chats) {
       chats.reverse();
-      io.in(getSessionRoom(req)).emit("chat_init", {
+      io.in(`session-${sessionId}`).emit("chat_init", {
         chats: await transformChatsForRoom(chats),
       });
-      return res.json({ result: true });
+      res.json({ result: true });
     } else {
-      return res.status(500).send("Chat/ : internal server error");
+      res.status(500).send("Chat/ : internal server error");
     }
   } catch (e) {
     logger.error(e);
-    return res.status(500).send("Chat/ : internal server error");
+    res.status(500).send("Chat/ : internal server error");
   }
 };
 
-export const loadBeforeChatHandler: RequestHandler = async (req, res) => {
+const loadBeforeChatHandler = async (req, res) => {
   try {
     const io = req.app.get("io");
     const { userOid } = req;
-    const { roomId, lastMsgDate }: LoadBeforeChatBody = req.body;
+    const { roomId, lastMsgDate } = req.body;
+    const { id: sessionId } = req.session;
     if (!userOid) {
       return res.status(500).send("Chat/load/before : internal server error");
     }
@@ -92,28 +79,29 @@ export const loadBeforeChatHandler: RequestHandler = async (req, res) => {
       .sort({ time: -1 })
       .limit(chatCount)
       .lean()
-      .populate<ChatPopulatePath>(chatPopulateOption);
+      .populate(chatPopulateOption);
 
     if (chats) {
       chats.reverse();
-      io.in(getSessionRoom(req)).emit("chat_push_front", {
+      io.in(`session-${sessionId}`).emit("chat_push_front", {
         chats: await transformChatsForRoom(chats),
       });
-      return res.json({ result: true });
+      res.json({ result: true });
     } else {
-      return res.status(500).send("Chat/load/before : internal server error");
+      res.status(500).send("Chat/load/before : internal server error");
     }
   } catch (e) {
     logger.error(e);
-    return res.status(500).send("Chat/load/before : internal server error");
+    res.status(500).send("Chat/load/before : internal server error");
   }
 };
 
-export const loadAfterChatHandler: RequestHandler = async (req, res) => {
+const loadAfterChatHandler = async (req, res) => {
   try {
     const io = req.app.get("io");
     const { userOid } = req;
-    const { roomId, lastMsgDate }: LoadAfterChatBody = req.body;
+    const { roomId, lastMsgDate } = req.body;
+    const { id: sessionId } = req.session;
     if (!userOid) {
       return res.status(500).send("Chat/load/after : internal server error");
     }
@@ -133,27 +121,27 @@ export const loadAfterChatHandler: RequestHandler = async (req, res) => {
       .sort({ time: 1 })
       .limit(chatCount)
       .lean()
-      .populate<ChatPopulatePath>(chatPopulateOption);
+      .populate(chatPopulateOption);
 
     if (chats) {
-      io.in(getSessionRoom(req)).emit("chat_push_back", {
+      io.in(`session-${sessionId}`).emit("chat_push_back", {
         chats: await transformChatsForRoom(chats),
       });
-      return res.json({ result: true });
+      res.json({ result: true });
     } else {
-      return res.status(500).send("Chat/load/after : internal server error");
+      res.status(500).send("Chat/load/after : internal server error");
     }
   } catch (e) {
     logger.error(e);
-    return res.status(500).send("Chat/load/after : internal server error");
+    res.status(500).send("Chat/load/after : internal server error");
   }
 };
 
-export const sendChatHandler: RequestHandler = async (req, res) => {
+const sendChatHandler = async (req, res) => {
   try {
     const io = req.app.get("io");
     const { userOid } = req;
-    const { roomId, type, content }: SendChatBody = req.body;
+    const { roomId, type, content } = req.body;
     const user = await userModel.findOne({ _id: userOid, withdraw: false });
 
     if (!userOid || !user) {
@@ -178,19 +166,19 @@ export const sendChatHandler: RequestHandler = async (req, res) => {
         authorId: user._id,
       })
     )
-      return res.json({ result: true });
-    else return res.status(500).send("Chat/send : internal server error");
+      res.json({ result: true });
+    else res.status(500).send("Chat/send : internal server error");
   } catch (e) {
     logger.error(e);
-    return res.status(500).send("Chat/send : internal server error");
+    res.status(500).send("Chat/send : internal server error");
   }
 };
 
-export const readChatHandler: RequestHandler = async (req, res) => {
+const readChatHandler = async (req, res) => {
   try {
     const io = req.app.get("io");
     const { userOid } = req;
-    const { roomId }: ReadChatBody = req.body;
+    const { roomId } = req.body;
     const user = await userModel.findOne({ _id: userOid, withdraw: false });
 
     if (!userOid || !user) {
@@ -224,18 +212,16 @@ export const readChatHandler: RequestHandler = async (req, res) => {
       return res.status(404).send("Chat/read : cannot find room info");
     }
 
-    if (await emitUpdateEvent(io, roomId)) return res.json({ result: true });
-    else
-      return res.status(500).send("Chat/read : failed to emit socket events");
+    if (await emitUpdateEvent(io, roomId)) res.json({ result: true });
+    else res.status(500).send("Chat/read : failed to emit socket events");
   } catch (e) {
-    logger.error(e);
-    return res.status(500).send("Chat/read : internal server error");
+    res.status(500).send("Chat/read : internal server error");
   }
 };
 
-export const uploadChatImgGetPUrlHandler: RequestHandler = async (req, res) => {
+const uploadChatImgGetPUrlHandler = async (req, res) => {
   try {
-    const { type, roomId }: UploadChatImgGetPUrlBody = req.body;
+    const { type, roomId } = req.body;
     const user = await userModel.findOne({ _id: req.userOid, withdraw: false });
     if (!roomId) {
       return res
@@ -264,7 +250,7 @@ export const uploadChatImgGetPUrlHandler: RequestHandler = async (req, res) => {
       }
       data.fields["Content-Type"] = type;
       data.fields["key"] = key;
-      return res.json({
+      res.json({
         id: chat._id,
         url: data.url,
         fields: data.fields,
@@ -272,20 +258,17 @@ export const uploadChatImgGetPUrlHandler: RequestHandler = async (req, res) => {
     });
   } catch (e) {
     logger.error(e);
-    return res
-      .status(500)
-      .send("Chat/uploadChatImg/getPUrl : internal server error");
+    res.status(500).send("Chat/uploadChatImg/getPUrl : internal server error");
   }
 };
 
-export const uploadChatImgDoneHandler: RequestHandler = async (req, res) => {
+const uploadChatImgDoneHandler = async (req, res) => {
   try {
-    const { id }: UploadChatImgDoneBody = req.body;
     const user = await userModel.findOne(
       { _id: req.userOid, withdraw: false },
       "_id nickname profileImageUrl"
     );
-    const chat = await chatModel.findById(id).lean();
+    const chat = await chatModel.findById(req.body.id).lean();
     if (!user) {
       return res
         .status(500)
@@ -297,9 +280,9 @@ export const uploadChatImgDoneHandler: RequestHandler = async (req, res) => {
       });
     }
     if (
-      chat.type !== "s3img" ||
-      chat.isValid !== false ||
-      chat.authorId!.toString() !== user._id.toString()
+      chat.type != "s3img" ||
+      chat.isValid != false ||
+      chat.authorId.toString() != user._id.toString()
     ) {
       return res.status(404).json({
         error: "Chat/uploadChatImg/done : no corresponding chat",
@@ -313,33 +296,41 @@ export const uploadChatImgDoneHandler: RequestHandler = async (req, res) => {
           .send("Chat/uploadChatImg/done : internal server error");
       }
 
-      chat.content = chat._id.toString();
+      chat.content = chat._id;
       emitChatEvent(req.app.get("io"), chat);
 
-      return res.json({
+      res.json({
         result: true,
       });
     });
   } catch (e) {
     logger.error(e);
-    return res
-      .status(500)
-      .send("Chat/uploadChatImg/done : internal server error");
+    res.status(500).send("Chat/uploadChatImg/done : internal server error");
   }
 };
 
 /**
  * 주어진 유저가 주어진 방에 참여하는 중인지 확인합니다.
  * @summary 채팅 load/send 관련 api에서 검증을 위하여 함수로 분리하였습니다.
- * @param userOid - 확인하고픈 user의 objectId 입니다.
- * @param roomId - 참여하는지 확인하고픈 방의 objectId 입니다.
- * @return userId가 방에 포함되어 있다면 true, 그 외의 경우 false를 반환합니다.
+ * @param {string} userOid - 확인하고픈 user의 objectId 입니다.
+ * @param {string} roomId - 참여하는지 확인하고픈 방의 objectId 입니다.
+ * @return {Promise<Boolean>} userId가 방에 포함되어 있다면 true, 그 외의 경우 false를 반환합니다.
  */
-const isUserInRoom = async (userOid: string, roomId: string) => {
-  const result = await roomModel.findById(roomId);
-  return (
-    result?.part
-      .map((participant) => participant.user)
-      .some((user) => user.equals(userOid)) ?? false
-  );
+const isUserInRoom = async (userOid, roomId) => {
+  const { part } = await roomModel.findById(roomId);
+
+  if (!part) return false;
+  return part
+    .map((participant) => participant.user)
+    .some((user) => user.equals(userOid));
+};
+
+module.exports = {
+  loadRecentChatHandler,
+  loadBeforeChatHandler,
+  loadAfterChatHandler,
+  sendChatHandler,
+  uploadChatImgGetPUrlHandler,
+  uploadChatImgDoneHandler,
+  readChatHandler,
 };

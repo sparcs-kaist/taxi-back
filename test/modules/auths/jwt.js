@@ -11,19 +11,19 @@ describe("[jwt] 1.sign & verify", () => {
     };
 
     // 토큰 생성이 성공적으로 되는지 테스트
-    const { token: accessToken } = sign({
+    const { token: accessToken } = await sign({
       id: user._id,
       type: "access",
     });
-    const { token: refreshToken } = sign({
+    const { token: refreshToken } = await sign({
       id: user._id,
       type: "refresh",
     });
 
     // 토큰 검증이 성공적으로 되는지 테스트
-    const accessTokenStatus = verify(accessToken);
+    const accessTokenStatus = await verify(accessToken);
     expect(accessTokenStatus).to.has.property("id", user._id);
-    const refreshTokenStatus = verify(refreshToken);
+    const refreshTokenStatus = await verify(refreshToken);
     expect(refreshTokenStatus).to.has.property("id", user._id);
   });
 });
