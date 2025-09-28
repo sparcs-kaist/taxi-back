@@ -9,10 +9,9 @@ Taxi는 KAIST 구성원들의 택시 동승 인원 모집을 위한 서비스입
 - Notion : [Sparcs Notion Taxi page](https://www.notion.so/sparcs/Taxi-9d371e8ac5ac4f0c9b9c35869682a0eb) (Only SPARCS members can access it)
 - Slack : #taxi-main, #taxi-notice, #taxi-bug-report, #taxi-github-bot, #taxi-notion-bot (Only SPARCS members can access it)
 
-## Prerequisite
-
-- Recommended node version : >=18.0.0 (Node v18.18.0, for example)
-- Recommended pnpm version : >=8.0.0 (pmpm v8.8.0, for example)
+## Prerequisites
+- Recommended node version : >=22.0.0 (Node v22.17.1, for example)
+- Recommended pnpm version : ^10.0.0 (pnpm v10.13.1, for example)
 - Recommended mongoDB version : 5.0.8
 
 ## Project Setup
@@ -35,7 +34,6 @@ Refer to [.env.example](.env.example) and write your own `.env`.
 ## Backend Route Information
 API specification is defined on Swagger.
 Start development server and visit `/docs` to see the specification of each endpoint.
-Some endpoints are not documented in Swagger yet. For those endpoints, refer to [routes/docs/README.md](./src/routes/docs/README.md).
 
 ## License
 This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details
@@ -44,8 +42,9 @@ This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md
 See [contributors](https://github.com/sparcs-kaist/taxi-front/graphs/contributors) of frontend and [contributors](https://github.com/sparcs-kaist/taxi-back/graphs/contributors) of backend.
 
 ## Accompanying Project
- - frontend : https://github.com/sparcs-kaist/taxi-front
- - backend : https://github.com/sparcs-kaist/taxi-back
- - app : https://github.com/sparcs-kaist/taxi-app
- - docker : https://github.com/sparcs-kaist/taxi-docker
- - figma : https://www.figma.com/file/li34hP1oStJAzLNjcG5KjN/SPARCS-Taxi?node-id=0%3A1
+- frontend : https://github.com/sparcs-kaist/taxi-front
+- backend : https://github.com/sparcs-kaist/taxi-back
+- app : https://github.com/sparcs-kaist/taxi-app
+- infra : https://github.com/sparcs-kaist/taxi-infra
+- devcenter : https://github.com/sparcs-kaist/taxi-dc
+- figma : https://www.figma.com/file/li34hP1oStJAzLNjcG5KjN/SPARCS-Taxi?node-id=0%3A1
