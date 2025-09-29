@@ -41,6 +41,9 @@ importers:
       cors:
         specifier: ^2.8.5
         version: 2.8.5
+      cross-env:
+        specifier: ^10.0.0
+        version: 10.0.0
       dotenv:
         specifier: ^16.6.1
         version: 16.6.1
@@ -159,9 +162,6 @@ importers:
       chai:
         specifier: ^4.5.0
         version: 4.5.0
-      cross-env:
-        specifier: ^10.0.0
-        version: 10.0.0
       eslint:
         specifier: ^8.57.1
         version: 8.57.1
