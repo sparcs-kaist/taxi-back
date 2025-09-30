@@ -141,8 +141,8 @@ export const createTestHandler: RequestHandler = async (req, res) => {
     // 이벤트 코드입니다.
     if (
       !eventPeriod ||
-      req.timestamp! >= eventPeriod.endAt ||
-      req.timestamp! < eventPeriod.startAt
+      req.timestamp! >= eventPeriod.endAt.getTime() ||
+      req.timestamp! < eventPeriod.startAt.getTime()
     )
       return res.json({ result: true });
 
@@ -695,11 +695,11 @@ export const commitSettlementHandler: RequestHandler = async (req, res) => {
       content: user._id.toString(),
       authorId: user._id.toString(),
     });
+
     //이벤트 코드입니다(sori).
     await contracts?.completeAllBadgedSettlementQuest(
       req.timestamp,
       roomObject,
-      roomModel,
       userModel
     );
     // 이벤트 코드입니다.
@@ -783,12 +783,13 @@ export const commitPaymentHandler: RequestHandler = async (req, res) => {
     });
 
     //이벤트 코드입니다(sori).
+    /*
     await contracts?.completeAllBadgedSettlementQuest(
       req.timestamp,
       roomObject,
-      roomModel,
       userModel
     );
+    */
 
     // 이벤트 코드입니다.
     /*

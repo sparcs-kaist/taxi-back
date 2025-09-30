@@ -66,26 +66,6 @@ const buildQuests = (quests) => {
  */
 const completeQuest = async (userId, timestamp, quest) => {
   try {
-    // 이벤트(2025spring) 기간을 하루 더 연장하여 넙죽코인 소비기한을 보장할 때, completeQuest 함수를 비활성화합니다.
-    // 추후 이벤트에서는 아래 코드를 지워주시길 바랍니다.
-    //if (timestamp >= new Date("2025-03-13T00:00:00+09:00")) return null;
-
-    // const eventStatus = await eventStatusModel.findOneAndUpdate(
-    //   { userId },
-    //   {
-    //     $setOnInsert: {
-    //       userId,
-    //       completedQuests: [],
-    //       creditAmount: 0,
-    //       ticket1Amount: 0,
-    //       ticket2Amount: 0,
-    //       isBanned: false,
-    //     },
-    //   },
-    //   { new: true, upsert: true, lean: true }
-    // );
-    // if (!eventStatus || eventStatus.isBanned) return null;
-
     // 1단계: 유저의 EventStatus를 가져옵니다. 블록드리스트인지도 확인합니다.
     const eventStatus = await eventStatusModel.findOne({ userId }).lean();
     if (!eventStatus || eventStatus.isBanned) return null;

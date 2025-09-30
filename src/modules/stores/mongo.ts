@@ -154,12 +154,6 @@ const roomSchema = new Schema({
   madeat: { type: Date, required: true }, // 생성 날짜
   settlementTotal: { type: Number, default: 0, required: true },
   maxPartLength: { type: Number, required: true, default: 4 },
-  // 이벤트 코드입니다.(sori)
-  event: {
-    badgeAllBonusGiven: { type: Boolean, default: false }, // 뱃지 인증자 전원 보너스 지급 여부
-    mode: { type: String }, // 이벤트 모드
-  },
-  //
 });
 
 export const roomModel = model("Room", roomSchema);

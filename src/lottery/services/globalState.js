@@ -132,7 +132,6 @@ const createUserGlobalStateHandler = async (req, res) => {
     // 해당 퀘스트는 2025 Fall Event에는 존재하지 않습니다.
     // 마찬가지로 EventSharingQuest는 2025 Fall Event에는 존재하지 않습니다.
     // Referral로 바꾸기? - sori님 확인 부탁드립니다.
-    console.log("Inviter Status:", inviterStatus);
     if (inviterStatus) {
       /*
       await contracts.completeEventSharingQuest(req.userOid, req.timestamp);

@@ -117,10 +117,11 @@ const quests = buildQuests({
   */
   //2025 가을 이벤트 코드입니다.(sori)
   phoneVerification: {
-    name: "뱃지 인증해서 응모권 낳음",
-    description: "전화번호 인증을 완료하면 응모권을 드려요.",
+    name: "첫 발걸음",
+    description:
+      "이벤트 참여만 해도 응모권을 얻을 수 있다고?? 전화번호를 인증해서 응모권을 받아보세요.",
     imageUrl:
-      "https://sparcs-taxi-prod.s3.ap-northeast-2.amazonaws.com/assets/event-2025spring/quest_itemPurchase.png",
+      "https://sparcs-taxi-prod.s3.ap-northeast-2.amazonaws.com/assets/event-2025fall/quest_phoneVerification.png",
     reward: 5,
     maxCount: 1,
   },
@@ -129,7 +130,7 @@ const quests = buildQuests({
     description:
       "방의 모든 인원이 인증 뱃지를 보유한 상태에서 정산하면 응모권을 받아요.",
     imageUrl:
-      "https://sparcs-taxi-prod.s3.ap-northeast-2.amazonaws.com/assets/event-2025spring/quest_itemPurchase.png",
+      "https://sparcs-taxi-prod.s3.ap-northeast-2.amazonaws.com/assets/event-2025fall/quest_allBadgedSettlement.png",
     reward: 3,
     maxCount: 0,
   },
@@ -181,7 +182,6 @@ const completeReferralInviteeCredit = async (inviteeId, timestamp) =>
 const completeAllBadgedSettlementQuest = async (
   timestamp,
   roomObject,
-  roomModel,
   userModel
 ) => {
   // 참가자 2명 미만이면 무시(정산 조건과 맞춤)
@@ -192,9 +192,6 @@ const completeAllBadgedSettlementQuest = async (
     roomObject.time < eventPeriod.startAt
   )
     return null;
-
-  // 이미 지급했으면 중복 방지
-  if (roomObject?.event?.badgeAllBonusGiven) return null;
 
   // 전원 뱃지 여부 확인 (user.badge === true)
   const userIds = roomObject.part.map((p) => p.user._id ?? p.user);
@@ -207,16 +204,6 @@ const completeAllBadgedSettlementQuest = async (
   for (const uid of userIds) {
     await completeQuest(uid, timestamp, quests.allBadgedSettlement);
   }
-  // 방 플래그 세팅
-  await roomModel.updateOne(
-    { _id: roomObject._id },
-    {
-      $set: {
-        "event.badgeAllBonusGiven": true,
-        "event.mode": eventConfig?.mode,
-      },
-    }
-  );
   return true;
 };
 //
@@ -375,9 +362,12 @@ const completeIndirectEventSharingQuest = async (userId, timestamp) => {
  * @returns {Promise}
  * @usage lottery/schedules/dailyQuiz - determineQuizResult
  */
+//2025 가을 이벤트에서는 퀴즈가 없습니다.
+/*
 export const completeAnswerCorrectlyQuest = async (userId, timestamp) => {
   return await completeQuest(userId, timestamp, quests.answerCorrectly);
 };
+*/
 
 /**
  * itemPurchase 퀘스트의 완료를 요청합니다.
@@ -392,6 +382,11 @@ const completeItemPurchaseQuest = async (userId, timestamp) => {
 
 module.exports = {
   quests,
+  completeIndirectEventSharingQuest,
+  completePhoneVerificationQuest,
+  completeAllBadgedSettlementQuest,
+  completeReferralInviterCredit,
+  completeReferralInviteeCredit,
   /*
   completeFirstLoginQuest,
   completeFirstRoomCreationQuest,
@@ -404,9 +399,4 @@ module.exports = {
   completeAnswerCorrectlyQuest,
   completeItemPurchaseQuest,
   */
-  completeIndirectEventSharingQuest,
-  completePhoneVerificationQuest,
-  completeAllBadgedSettlementQuest,
-  completeReferralInviterCredit,
-  completeReferralInviteeCredit,
 };
