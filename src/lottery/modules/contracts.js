@@ -126,7 +126,7 @@ const quests = buildQuests({
     maxCount: 1,
   },
   allBadgedSettlement: {
-    name: "동승자에게: 뱃지를 낋여오거라",
+    name: "동승자 안심돼서 응모권 낳음",
     description:
       "방의 모든 인원이 인증 뱃지를 보유한 상태에서 정산하면 응모권을 받아요.",
     imageUrl:
