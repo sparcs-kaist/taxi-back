@@ -178,13 +178,12 @@ transactionSchema.set("timestamps", {
   updatedAt: false,
 });
 
-// 이벤트 코드입니다.(sori)
+// 이벤트 코드입니다.
 transactionSchema.index(
   { userId: 1, type: 1, amount: 1, comment: 1 },
   { unique: true, partialFilterExpression: { type: "get" } }
 );
 transactionSchema.index({ userId: 1, createdAt: -1 });
-//
 
 const quizSchema = Schema({
   quizDate: { type: Date, required: true, unique: true },

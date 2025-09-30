@@ -115,7 +115,7 @@ const quests = buildQuests({
     reward: 500,
   },
   */
-  //2025 가을 이벤트 코드입니다.(sori)
+  //2025 가을 이벤트 코드입니다.
   phoneVerification: {
     name: "첫 발걸음",
     description:
@@ -162,23 +162,45 @@ const quests = buildQuests({
 });
 
 /**
- * 전화번호 인증 완료(최초 1회) → ticket1 +10
+ * phoneVerification 퀘스트의 완료를 요청합니다.
+ * @param {string|mongoose.Types.ObjectId} userId - 퀘스트를 완료한 사용자의 ObjectId입니다.
+ * @param {number|Date} timestamp - 퀘스트 완료를 요청한 시각입니다.
+ * @returns {Promise}
+ * @usage lottery/globalState - createUserGlobalStateHandler
  */
 const completePhoneVerificationQuest = async (userId, timestamp) => {
   return await completeQuest(userId, timestamp, quests.phoneVerification);
 };
 
+/**
+ * ReferralInviter 퀘스트의 완료를 요청합니다.
+ * @param {string|mongoose.Types.ObjectId} inviterId - 퀘스트를 완료한 사용자의 ObjectId입니다.
+ * @param {number|Date} timestamp - 퀘스트 완료를 요청한 시각입니다.
+ * @returns {Promise}
+ * @usage lottery/globalState - createUserGlobalStateHandler
+ */
 const completeReferralInviterCredit = async (inviterId, timestamp) =>
   await completeQuest(inviterId, timestamp, quests.referralInviterCredit);
 
+/**
+ * ReferralInvitee 퀘스트의 완료를 요청합니다.
+ * @param {string|mongoose.Types.ObjectId} inviteeId - 퀘스트를 완료한 사용자의 ObjectId입니다.
+ * @param {number|Date} timestamp - 퀘스트 완료를 요청한 시각입니다.
+ * @returns {Promise}
+ * @usage lottery/globalState - createUserGlobalStateHandler
+ */
 const completeReferralInviteeCredit = async (inviteeId, timestamp) =>
   await completeQuest(inviteeId, timestamp, quests.referralInviteeCredit);
 
 /**
-+ * 방 전원 뱃지면 정산 보너스(+5) 전원 지급 (방당 1회)
-+ * - 방에 플래그를 세워 중복 호출 방지: room.event.badgeAllBonusGiven
-+ * @param {Object} roomObject - populate된 룸
-+ */
+ * AllBadgedSettlement 퀘스트 완료를 요청합니다.
+ * @param {number|Date} timestamp - 퀘스트 완료를 요청한 시각입니다.
+ * @param {Object} roomObject - populate된 방 정보입니다.
+ * @param {Object} userModel - 사용자 모델입니다.
+ * @returns {Promise}
+ * @description 정산 요청이 이루어질 때마다 호출해 주세요.
+ * @usage rooms - commitSettlementHandler
+ */
 const completeAllBadgedSettlementQuest = async (
   timestamp,
   roomObject,
@@ -201,9 +223,11 @@ const completeAllBadgedSettlementQuest = async (
   if (!allHave) return null;
 
   // 전원에게 퀘스트 완료 처리
-  for (const uid of userIds) {
-    await completeQuest(uid, timestamp, quests.allBadgedSettlement);
-  }
+  await Promise.all(
+    userIds.map((uid) =>
+      completeQuest(uid, timestamp, quests.allBadgedSettlement)
+    )
+  );
   return true;
 };
 //

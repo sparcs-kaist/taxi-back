@@ -696,9 +696,9 @@ export const commitSettlementHandler: RequestHandler = async (req, res) => {
       authorId: user._id.toString(),
     });
 
-    //이벤트 코드입니다(sori).
+    //이벤트 코드입니다.
     await contracts?.completeAllBadgedSettlementQuest(
-      req.timestamp,
+      req.timestamp!,
       roomObject,
       userModel
     );
@@ -781,15 +781,6 @@ export const commitPaymentHandler: RequestHandler = async (req, res) => {
       content: user._id.toString(),
       authorId: user._id.toString(),
     });
-
-    //이벤트 코드입니다(sori).
-    /*
-    await contracts?.completeAllBadgedSettlementQuest(
-      req.timestamp,
-      roomObject,
-      userModel
-    );
-    */
 
     // 이벤트 코드입니다.
     /*
