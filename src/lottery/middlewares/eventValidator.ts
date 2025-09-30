@@ -10,7 +10,7 @@ import logger from "@/modules/logger";
  * @param next
  * @returns
  */
-const eventBanMiddleware: RequestHandler = async (req, res, next) => {
+const eventValidator: RequestHandler = async (req, res, next) => {
   try {
     const eventStatus = await eventStatusModel
       .findOne({ userId: req.userOid })
@@ -32,4 +32,4 @@ const eventBanMiddleware: RequestHandler = async (req, res, next) => {
   }
 };
 
-export default eventBanMiddleware;
+export default eventValidator;

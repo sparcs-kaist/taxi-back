@@ -157,7 +157,7 @@ importers:
         specifier: ^6.21.0
         version: 6.21.0(eslint@8.57.1)(typescript@5.9.2)
       chai:
-        specifier: ^4.5.0
+        specifier: '4'
         version: 4.5.0
       cross-env:
         specifier: ^10.0.0

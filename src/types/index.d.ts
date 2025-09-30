@@ -7,7 +7,7 @@ declare global {
       /** 사용자의 ObjectID. MongoDB에서 사용됩니다. */
       userOid?: string;
       /** 사용자의 UserID */
-      userId?: string;
+      userUid?: string;
       /** 요청의 origin. */
       origin?: string;
       /** 사용자의 IP 주소. */
@@ -17,7 +17,7 @@ declare global {
       /** EventStatus */
       eventStatus?: {
         userId: Schema.Types.ObjectId;
-        completedQuests: completedQuestSchema; 
+        completedQuests: completedQuestSchema;
         creditAmount: Number;
         ticket1Amount: Number;
         ticket2Amount: Number;

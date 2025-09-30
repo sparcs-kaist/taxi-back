@@ -32,8 +32,8 @@ export const userModel = model("User", userSchema);
 export type User = InferSchemaType<typeof userSchema>;
 
 const banSchema = new Schema({
-  // 정지 시킬 사용자를 기제함.
-  userId: { type: String, required: true },
+  // 정지 시킬 사용자를 기재함.
+  userUid: { type: String, required: true },
   // 정지 사유
   reason: { type: String, required: true },
   bannedAt: { type: Date, required: true }, // 정지 당한 시각
@@ -45,8 +45,7 @@ const banSchema = new Schema({
     // 필요시 이곳에 정지를 시킬 서비스를 추가함.
     enum: [
       "service", // service: 방 생성/참여 제한
-      "2025-spring-event", // xxxx-xxxx-event: 특정 이벤트 참여 제한
-      "2024-fall-event"
+      "2025-fall-event", // xxxx-xxxx-event: 특정 이벤트 참여 제한
     ],
   },
 });

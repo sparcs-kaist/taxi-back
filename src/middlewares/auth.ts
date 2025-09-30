@@ -10,7 +10,7 @@ const authMiddleware: RequestHandler = (req, res, next) => {
 
   const { id, oid } = getLoginInfo(req);
   req.userOid = oid;
-  req.userId = id;
+  req.userUid = id;
 
   next();
 };

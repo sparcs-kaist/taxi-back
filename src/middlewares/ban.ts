@@ -12,11 +12,10 @@ type IsBannedCheck = {
 const testBanArray: IsBannedCheck[] = [
   { url: "/rooms/create", value: "service" },
   { url: "/rooms/join", value: "service" },
-  { url: "/events/2025spring/globalState/create", value: "2025-spring-event" },
-  { url: "/events/2025spring/items/purchase", value: "2025-spring-event" },
-  { url: "/events/2025spring/items/purchase", value: "2025-spring-event" },
-  { url: "/events/2025spring/items/useCoupon", value: "2025-spring-event" },
-  { url: "/events/2025spring/quests", value: "2025-spring-event" },
+  { url: "/events/2025fall/globalState/create", value: "2025-fall-event" },
+  { url: "/events/2025fall/items/purchase", value: "2025-fall-event" },
+  { url: "/events/2025fall/items/useCoupon", value: "2025-fall-event" },
+  // { url: "/events/2025fall/quests", value: "2025-fall-event" }, // No quiz at 2025-fall-event
 ];
 
 const banMiddleware: RequestHandler = async (req, res, next) => {
