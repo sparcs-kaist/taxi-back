@@ -115,7 +115,7 @@ const createUserGlobalStateHandler = async (req, res) => {
         logger.info(`Past user phone number: ${user.phoneNumber}`);
         logger.info(`Update user phone number: ${req.body.phoneNumber}`);
       }
-
+      user.badge = true;
       user.phoneNumber = req.body.phoneNumber;
       await user.save();
     }
@@ -129,14 +129,29 @@ const createUserGlobalStateHandler = async (req, res) => {
     await eventStatus.save();
 
     // 퀘스트를 완료 처리합니다.
-    await contracts.completeFirstLoginQuest(req.userOid, req.timestamp);
-
+    // 해당 퀘스트는 2025 Fall Event에는 존재하지 않습니다.
+    // 마찬가지로 EventSharingQuest는 2025 Fall Event에는 존재하지 않습니다.
     if (inviterStatus) {
+      /*
       await contracts.completeEventSharingQuest(req.userOid, req.timestamp);
       await contracts.completeEventSharingQuest(
         inviterStatus.userId,
         req.timestamp
       );
+      */
+      await contracts?.completeReferralInviteeCredit?.(
+        req.userOid,
+        req.timestamp
+      );
+      await contracts?.completeReferralInviterCredit?.(
+        inviterStatus.userId,
+        req.timestamp
+      );
+      await contracts?.completePhoneVerificationQuest?.(
+        req.userOid,
+        req.timestamp
+      );
+
       let currentInviter = inviterStatus;
       const ancestorIds = [];
 
@@ -149,10 +164,16 @@ const createUserGlobalStateHandler = async (req, res) => {
         ancestorIds.push(higherInviter.userId);
         currentInviter = higherInviter;
       }
+
       await Promise.all(
         ancestorIds.map((ancestorId) =>
           contracts.completeIndirectEventSharingQuest(ancestorId, req.timestamp)
         )
+      );
+    } else {
+      await contracts?.completePhoneVerificationQuest?.(
+        req.userOid,
+        req.timestamp
       );
     }
 
