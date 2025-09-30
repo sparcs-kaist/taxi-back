@@ -1,3 +1,5 @@
+import { transactionModel } from "./stores/mongo";
+
 const { buildQuests, completeQuest } = require("./quests");
 const mongoose = require("mongoose");
 const logger = require("@/modules/logger").default;
@@ -222,15 +224,25 @@ const completeAllBadgedSettlementQuest = async (
     users.length === userIds.length && users.every((u) => !!u.badge);
   if (!allHave) return null;
 
-  // 전원에게 퀘스트 완료 처리
-  await Promise.all(
-    userIds.map((uid) =>
-      completeQuest(uid, timestamp, quests.allBadgedSettlement)
-    )
-  );
+  // 퀘스트 완료
+  for (const uid of userIds) {
+    const alreadyGiven = await transactionModel.findOne({
+      userId: uid,
+      questId: quests.allBadgedSettlement.id,
+    });
+    if (!alreadyGiven) {
+      await completeQuest(uid, timestamp, quests.allBadgedSettlement);
+    } else {
+      const givenDate = alreadyGiven.createdAt;
+      const givenDateKST = new Date(givenDate.getTime() + 9 * 60 * 60 * 1000);
+      const nowKST = new Date(Date.now() + 9 * 60 * 60 * 1000);
+      if (givenDateKST.toDateString() === nowKST.toDateString()) {
+        continue; //이미 오늘 받음
+      }
+    }
+  }
   return true;
 };
-//
 
 /**
  * firstLogin 퀘스트의 완료를 요청합니다.
