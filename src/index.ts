@@ -10,6 +10,7 @@ import {
   eventConfig,
 } from "@/loadenv";
 import {
+  banMiddleware,
   corsMiddleware,
   errorHandler,
   informationMiddleware,
@@ -79,6 +80,9 @@ app.use(limitRateMiddleware);
 
 // [Router] Swagger (API 문서)
 app.use("/docs", docsRouter);
+
+// [Middleware] API 요청에 대하여 Ban 여부 검증
+app.use(banMiddleware);
 
 // [Router] 이벤트 전용 라우터입니다.
 if (eventConfig) {

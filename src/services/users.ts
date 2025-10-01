@@ -295,10 +295,10 @@ export const resetProfileImgHandler: RequestHandler = async (req, res) => {
 
 export const getBanRecordHandler: RequestHandler = async (req, res) => {
   try {
-    // 본인인 경우(ban의 userId가 userSid랑 같은 경우)의 record를 모두 가져옴
+    // 본인인 경우(ban의 userId가 userId랑 같은 경우)의 record를 모두 가져옴
     const result = await banModel
       .find({
-        userSid: req.session.loginInfo!.sid,
+        userId: req.userUid,
       })
       .sort({ expireAt: -1 });
     if (!result)
