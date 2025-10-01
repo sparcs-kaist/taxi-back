@@ -130,7 +130,7 @@ const quests = buildQuests({
   allBadgedSettlement: {
     name: "동승자 안심돼서 응모권 낳음",
     description:
-      "방의 모든 인원이 인증 뱃지를 보유한 상태에서 정산하면 응모권을 받아요.",
+      "방의 모든 인원이 인증 뱃지를 보유한 상태에서 정산하면 응모권을 받아요. (1일 최대 1회)",
     imageUrl:
       "https://sparcs-taxi-prod.s3.ap-northeast-2.amazonaws.com/assets/event-2025fall/quest_allBadgedSettlement.png",
     reward: 3,
@@ -153,7 +153,7 @@ const quests = buildQuests({
     maxCount: 1, // 본인 1회
   },
   indirectEventSharing: {
-    name: "코인이 복사가 된다고?",
+    name: "응모권이 복사가 된다고?",
     description:
       "내가 초대한 사람이 다른 누군가를 이벤트에 초대하면 응모권을 받아요. 그 사람이 또 다른 누군가를 초대하면 또 응모권을 받아요. 그 사람이 또 …",
     imageUrl:
