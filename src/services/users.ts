@@ -17,6 +17,7 @@ import type {
   EditNicknameBody,
   EditProfileImgGetPUrlBody,
   RegisterPhoneNumberBody,
+  RegisterResidenceBody,
 } from "@/routes/docs/schemas/usersSchema";
 
 export const agreeOnTermsOfServiceHandler: RequestHandler = async (
@@ -172,6 +173,57 @@ export const editBadgeHandler: RequestHandler = async (req, res) => {
   } catch (err) {
     logger.error(err);
     return res.status(500).send("Users/editBadge : internal server error");
+  }
+};
+
+export const registerResidenceHandler: RequestHandler = async (req, res) => {
+  try {
+    const userId = req.userOid;
+    const newResidence = req.body
+      .residence as RegisterResidenceBody["residence"];
+
+    const result = await userModel.updateOne(
+      { _id: userId, withdraw: false },
+      { residence: newResidence }
+    );
+
+    if (result.matchedCount > 0) {
+      return res
+        .status(200)
+        .send("Users/registerResidence: residenceInfo registered successfully");
+    } else {
+      return res
+        .status(400)
+        .send("Users/registerResidence: user not found or update failed");
+    }
+  } catch (err) {
+    logger.error(err);
+    return res
+      .status(500)
+      .send("Users/registerResidence: internal server error");
+  }
+};
+
+export const deleteResidenceHandler: RequestHandler = async (req, res) => {
+  try {
+    const userId = req.userOid;
+
+    const result = await userModel.updateOne(
+      { _id: userId, withdraw: false },
+      { $unset: { residence: "" } }
+    );
+    if (result.matchedCount > 0) {
+      return res
+        .status(200)
+        .send("Users/deleteResidence: residenceInfo deleted successfully");
+    } else {
+      return res
+        .status(400)
+        .send("Users/deleteResidence: user not found or update failed");
+    }
+  } catch (err) {
+    logger.error(err);
+    return res.status(500).send("Users/deleteResidence: internal server error");
   }
 };
 

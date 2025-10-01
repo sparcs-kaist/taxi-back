@@ -6,14 +6,14 @@ import type { User, Chat } from "@/types/mongo";
 export const chatPopulateOption = [
   {
     path: "authorId",
-    select: "_id nickname profileImageUrl withdraw",
+    select: "_id nickname profileImageUrl withdraw residence",
   },
 ];
 
 export interface PopulatedChat extends Omit<Chat, "authorId"> {
   authorId: Pick<
     User,
-    "_id" | "nickname" | "profileImageUrl" | "withdraw"
+    "_id" | "nickname" | "profileImageUrl" | "withdraw" | "residence"
   > | null;
 }
 
