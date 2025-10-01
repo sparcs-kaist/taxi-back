@@ -11,6 +11,7 @@
 *.swp
 /logs/*.log
 .vscode
+docker-compose.yaml
 
 # AdminJS 관련 디렉토리
 .adminjs

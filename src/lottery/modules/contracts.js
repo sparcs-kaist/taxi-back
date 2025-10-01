@@ -1,3 +1,5 @@
+import { transactionModel } from "./stores/mongo";
+
 const { buildQuests, completeQuest } = require("./quests");
 const mongoose = require("mongoose");
 const logger = require("@/modules/logger").default;
@@ -10,6 +12,7 @@ const eventPeriod = eventConfig && {
 
 /** 전체 퀘스트 목록입니다. */
 const quests = buildQuests({
+  /*
   firstLogin: {
     name: "첫 발걸음",
     description:
@@ -83,17 +86,8 @@ const quests = buildQuests({
       "내가 초대한 사람이 이벤트에 참여하면 넙죽코인을 드려요. 다른 사람의 초대를 받아 이벤트에 참여한 경우에도 이 퀘스트가 달성돼요.",
     imageUrl:
       "https://sparcs-taxi-prod.s3.ap-northeast-2.amazonaws.com/assets/event-2025spring/quest_eventSharing.png",
-    reward: 700,
+    reward: 20,
     maxCount: 0,
-  },
-  indirectEventSharing: {
-    name: "코인이 복사가 된다고?",
-    description:
-      "내가 초대한 사람이 다른 누군가를 이벤트에 초대하면 넙죽코인을 받아요. 그 사람이 또 다른 누군가를 초대하면 또 넙죽코인을 받아요. 그 사람이 또 …",
-    imageUrl:
-      "https://sparcs-taxi-prod.s3.ap-northeast-2.amazonaws.com/assets/event-2025spring/quest_indirectEventSharing.png",
-    reward: 300,
-    maxCount: 10,
   },
   dailyAttendance: {
     name: "매일매일 출석 췤!",
@@ -122,7 +116,133 @@ const quests = buildQuests({
       "https://sparcs-taxi-prod.s3.ap-northeast-2.amazonaws.com/assets/event-2025spring/quest_itemPurchase.png",
     reward: 500,
   },
+  */
+  //2025 가을 이벤트 코드입니다.
+  phoneVerification: {
+    name: "첫 발걸음",
+    description:
+      "이벤트 참여만 해도 응모권을 얻을 수 있다고?? 전화번호를 인증해서 응모권을 받아보세요.",
+    imageUrl:
+      "https://sparcs-taxi-prod.s3.ap-northeast-2.amazonaws.com/assets/event-2025fall/quest_phoneVerification.png",
+    reward: 5,
+    maxCount: 1,
+  },
+  allBadgedSettlement: {
+    name: "동승자 안심돼서 응모권 낳음",
+    description:
+      "방의 모든 인원이 인증 뱃지를 보유한 상태에서 정산하면 응모권을 받아요. (1일 최대 1회)",
+    imageUrl:
+      "https://sparcs-taxi-prod.s3.ap-northeast-2.amazonaws.com/assets/event-2025fall/quest_allBadgedSettlement.png",
+    reward: 3,
+    maxCount: 0,
+  },
+  referralInviterCredit: {
+    name: "친구 초대 보상(초대한 사람)",
+    description: "초대한 친구가 전화번호 인증을 완료하면 코인을 받아요.",
+    imageUrl:
+      "https://sparcs-taxi-prod.s3.ap-northeast-2.amazonaws.com/assets/event-2025spring/quest_eventSharing.png",
+    reward: 3,
+    maxCount: 0, // 여러 명 초대 가능
+  },
+  referralInviteeCredit: {
+    name: "초대 인증 보상(초대받은 사람)",
+    description: "초대 링크로 참여해 전화번호 인증을 완료하면 코인을 받아요.",
+    imageUrl:
+      "https://sparcs-taxi-prod.s3.ap-northeast-2.amazonaws.com/assets/event-2025spring/quest_eventSharing.png",
+    reward: 3,
+    maxCount: 1, // 본인 1회
+  },
+  indirectEventSharing: {
+    name: "응모권이 복사가 된다고?",
+    description:
+      "내가 초대한 사람이 다른 누군가를 이벤트에 초대하면 응모권을 받아요. 그 사람이 또 다른 누군가를 초대하면 또 응모권을 받아요. 그 사람이 또 …",
+    imageUrl:
+      "https://sparcs-taxi-prod.s3.ap-northeast-2.amazonaws.com/assets/event-2025spring/quest_indirectEventSharing.png",
+    reward: 2,
+    maxCount: 0,
+  },
 });
+
+/**
+ * phoneVerification 퀘스트의 완료를 요청합니다.
+ * @param {string|mongoose.Types.ObjectId} userId - 퀘스트를 완료한 사용자의 ObjectId입니다.
+ * @param {number|Date} timestamp - 퀘스트 완료를 요청한 시각입니다.
+ * @returns {Promise}
+ * @usage lottery/globalState - createUserGlobalStateHandler
+ */
+const completePhoneVerificationQuest = async (userId, timestamp) => {
+  return await completeQuest(userId, timestamp, quests.phoneVerification);
+};
+
+/**
+ * ReferralInviter 퀘스트의 완료를 요청합니다.
+ * @param {string|mongoose.Types.ObjectId} inviterId - 퀘스트를 완료한 사용자의 ObjectId입니다.
+ * @param {number|Date} timestamp - 퀘스트 완료를 요청한 시각입니다.
+ * @returns {Promise}
+ * @usage lottery/globalState - createUserGlobalStateHandler
+ */
+const completeReferralInviterCredit = async (inviterId, timestamp) =>
+  await completeQuest(inviterId, timestamp, quests.referralInviterCredit);
+
+/**
+ * ReferralInvitee 퀘스트의 완료를 요청합니다.
+ * @param {string|mongoose.Types.ObjectId} inviteeId - 퀘스트를 완료한 사용자의 ObjectId입니다.
+ * @param {number|Date} timestamp - 퀘스트 완료를 요청한 시각입니다.
+ * @returns {Promise}
+ * @usage lottery/globalState - createUserGlobalStateHandler
+ */
+const completeReferralInviteeCredit = async (inviteeId, timestamp) =>
+  await completeQuest(inviteeId, timestamp, quests.referralInviteeCredit);
+
+/**
+ * AllBadgedSettlement 퀘스트 완료를 요청합니다.
+ * @param {number|Date} timestamp - 퀘스트 완료를 요청한 시각입니다.
+ * @param {Object} roomObject - populate된 방 정보입니다.
+ * @param {Object} userModel - 사용자 모델입니다.
+ * @returns {Promise}
+ * @description 정산 요청이 이루어질 때마다 호출해 주세요.
+ * @usage rooms - commitSettlementHandler
+ */
+const completeAllBadgedSettlementQuest = async (
+  timestamp,
+  roomObject,
+  userModel
+) => {
+  // 참가자 2명 미만이면 무시(정산 조건과 맞춤)
+  if (!roomObject?.part || roomObject.part.length < 2) return null;
+  if (
+    !eventPeriod ||
+    roomObject.time >= eventPeriod.endAt ||
+    roomObject.time < eventPeriod.startAt
+  )
+    return null;
+
+  // 전원 뱃지 여부 확인 (user.badge === true)
+  const userIds = roomObject.part.map((p) => p.user._id ?? p.user);
+  const users = await userModel.find({ _id: { $in: userIds } }, "badge").lean();
+  const allHave =
+    users.length === userIds.length && users.every((u) => !!u.badge);
+  if (!allHave) return null;
+
+  // 퀘스트 완료
+  for (const uid of userIds) {
+    const alreadyGiven = await transactionModel.findOne({
+      userId: uid,
+      questId: quests.allBadgedSettlement.id,
+    });
+    if (!alreadyGiven) {
+      await completeQuest(uid, timestamp, quests.allBadgedSettlement);
+    } else {
+      const givenDate = alreadyGiven.createdAt;
+      const givenDateKST = new Date(givenDate.getTime() + 9 * 60 * 60 * 1000);
+      const nowKST = new Date(Date.now() + 9 * 60 * 60 * 1000);
+      if (givenDateKST.toDateString() === nowKST.toDateString()) {
+        continue; //이미 오늘 받음
+      }
+    }
+  }
+  return true;
+};
 
 /**
  * firstLogin 퀘스트의 완료를 요청합니다.
@@ -278,9 +398,12 @@ const completeIndirectEventSharingQuest = async (userId, timestamp) => {
  * @returns {Promise}
  * @usage lottery/schedules/dailyQuiz - determineQuizResult
  */
+//2025 가을 이벤트에서는 퀴즈가 없습니다.
+/*
 export const completeAnswerCorrectlyQuest = async (userId, timestamp) => {
   return await completeQuest(userId, timestamp, quests.answerCorrectly);
 };
+*/
 
 /**
  * itemPurchase 퀘스트의 완료를 요청합니다.
@@ -295,6 +418,12 @@ const completeItemPurchaseQuest = async (userId, timestamp) => {
 
 module.exports = {
   quests,
+  completeIndirectEventSharingQuest,
+  completePhoneVerificationQuest,
+  completeAllBadgedSettlementQuest,
+  completeReferralInviterCredit,
+  completeReferralInviteeCredit,
+  /*
   completeFirstLoginQuest,
   completeFirstRoomCreationQuest,
   completeFareSettlementQuest,
@@ -303,7 +432,7 @@ module.exports = {
   completeAccountChangingQuest,
   completeAdPushAgreementQuest,
   completeEventSharingQuest,
-  completeIndirectEventSharingQuest,
   completeAnswerCorrectlyQuest,
   completeItemPurchaseQuest,
+  */
 };

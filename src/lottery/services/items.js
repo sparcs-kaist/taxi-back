@@ -358,15 +358,18 @@ const purchaseItem = async (req, item, amount) => {
       userId: req.userOid,
       itemId: item._id,
       itemAmount: amount,
-      comment: `${eventConfig?.credit.name} ${totalPrice}개를 사용해 "${item.name}" ${amount}개를 획득했습니다.`,
+      // comment: `${eventConfig?.credit.name} ${totalPrice}개를 사용해 "${item.name}" ${amount}개를 획득했습니다.`,
+      comment: `${eventConfig?.credit.name} ${totalPrice}개를 사용해 "${item.name}"에 응모했습니다.`, // 2025 Fall
     });
     await transaction.save();
 
     // 4단계: 퀘스트를 완료 처리합니다.
+    /* 아이템 구매 퀘스트는 2025 가을 이벤트에서는 사용되지 않습니다.
     await contracts.completeItemPurchaseQuest(
       req.userOid,
       transaction.createdAt
     );
+    */
 
     return { result: { result: true } };
   }
