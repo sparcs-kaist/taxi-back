@@ -256,20 +256,8 @@ export const uploadChatImgGetPUrlHandler: RequestHandler = async (req, res) => {
     });
     const chat = await chatDocument.save();
     const key = `chat-img/${chat._id}`;
-    aws.getUploadPUrlPost(key, type, (err, data) => {
-      if (err) {
-        return res
-          .status(500)
-          .send("Chat/uploadChatImg/getPUrl : internal server error");
-      }
-      data.fields["Content-Type"] = type;
-      data.fields["key"] = key;
-      return res.json({
-        id: chat._id,
-        url: data.url,
-        fields: data.fields,
-      });
-    });
+    const data = await aws.getUploadPUrlPost(key, type);
+    return res.json({ url: data, id: chat._id });
   } catch (e) {
     logger.error(e);
     return res
@@ -305,21 +293,17 @@ export const uploadChatImgDoneHandler: RequestHandler = async (req, res) => {
         error: "Chat/uploadChatImg/done : no corresponding chat",
       });
     }
+
     const key = `chat-img/${chat._id}`;
-    aws.foundObject(key, async (err, data) => {
-      if (err) {
-        return res
-          .status(500)
-          .send("Chat/uploadChatImg/done : internal server error");
-      }
+    if (!(await aws.foundObject(key))) {
+      return res
+        .status(400)
+        .send("Chat/uploadChatImg/done : no such image uploaded");
+    }
 
-      chat.content = chat._id.toString();
-      emitChatEvent(req.app.get("io"), chat);
-
-      return res.json({
-        result: true,
-      });
-    });
+    chat.content = chat._id.toString();
+    await emitChatEvent(req.app.get("io"), chat);
+    return res.json({ result: true });
   } catch (e) {
     logger.error(e);
     return res

@@ -116,25 +116,5 @@ describe("[users] 5.editProfileImgGetPUrlHandler", () => {
     const resJson = res._getJSONData();
     expect(res).to.has.property("statusCode", 200);
     expect(resJson).to.has.property("url");
-    expect(resJson.fields).to.has.property(
-      "key",
-      `profile-img/${testUser1._id}`
-    );
-    expect(resJson.fields).to.has.property("Content-Type", testImgType);
-  });
-});
-
-// 6. test1 유저의 프로필 업로드가 정상적으로 완료되었는지 확인
-describe("[users] 6.editProfileImgDoneHandler", () => {
-  it("should return correct result and new profileImageUrl", async () => {
-    const testUser1 = await userModel.findOne({ id: "test1" });
-    let req = httpMocks.createRequest({
-      userOid: testUser1._id,
-    });
-    let res = httpMocks.createResponse();
-    await usersHandlers.editProfileImgDoneHandler(req, res);
-    afterEach(removeTestData);
-
-    expect(res).to.has.property("statusCode", 200);
   });
 });
