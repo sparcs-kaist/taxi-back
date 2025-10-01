@@ -1,6 +1,11 @@
 import type { RequestHandler } from "express";
 import { Types, type PipelineStage } from "mongoose";
-import { roomModel, locationModel, userModel } from "@/modules/stores/mongo";
+import {
+  roomModel,
+  locationModel,
+  userModel,
+  chatModel,
+} from "@/modules/stores/mongo";
 import { emitChatEvent } from "@/modules/socket";
 import logger from "@/modules/logger";
 import {
@@ -501,6 +506,51 @@ export const searchHandler: RequestHandler = async (req, res) => {
 
 export const searchByUserHandler: RequestHandler = async (req, res) => {
   try {
+    const calculateUnreadCount = async (
+      roomId: string,
+      userOid: string,
+      userReadAt: Date | undefined
+    ): Promise<{
+      unreadCount: number;
+      hasImportantMessage: boolean;
+    }> => {
+      try {
+        let readAt = userReadAt;
+        // readAt이 없으면 DB에 현재시간(Date 객체)으로 set
+        // 즉 이전 메시지들은 모두 읽은 것으로 간주
+        // unread가 설정되지 않은 오래된 방들에 대해서 이전 메시지들에 대해 unread count가 쌓이는 것을 방지하기 위함
+        if (!readAt) {
+          readAt = new Date();
+          await roomModel.updateOne(
+            { _id: roomId, "part.user": userOid },
+            { $set: { "part.$.readAt": readAt } }
+          );
+        }
+
+        // readAt 이후의 메시지 개수를 계산 (본인 메시지 제외)
+        const unreadCount = await chatModel.countDocuments({
+          roomId,
+          type: { $in: ["text", "s3img"] },
+          time: { $gt: readAt },
+          authorId: { $ne: userOid },
+        });
+        const importantCount = await chatModel.countDocuments({
+          roomId,
+          type: { $in: ["payment", "settlement", "account", "in", "out"] },
+          time: { $gt: readAt },
+          authorId: { $ne: userOid },
+        });
+        return {
+          unreadCount,
+          hasImportantMessage: importantCount > 0,
+        };
+      } catch (error) {
+        logger.error(`Error calculating unread count for room ${roomId}`);
+        logger.error(error);
+        return { unreadCount: 0, hasImportantMessage: false };
+      }
+    };
+
     // lean()이 적용된 user를 response에 반환해줘야 하기 때문에 user를 한 번 더 지정한다.
     const user = await userModel
       .findOne({ _id: req.userOid, withdraw: false })
@@ -529,14 +579,47 @@ export const searchByUserHandler: RequestHandler = async (req, res) => {
         .json({ error: "Rooms/searchByUser : User not found" });
     }
 
-    // 정산완료여부 기준으로 진행중인 방과 완료된 방을 분리해서 응답을 전송합니다.
+    // 각 방에 대해 unread count를 계산
+    const ongoingRoomsWithUnread = await Promise.all(
+      user.ongoingRoom.map(async (room) => {
+        // 해당 사용자의 readAt 찾기
+        const userParticipant = room.part.find(
+          (participant) => participant.user?._id?.toString() === req.userOid
+        );
+        const { unreadCount, hasImportantMessage } = await calculateUnreadCount(
+          room._id!.toString(),
+          req.userOid!,
+          userParticipant?.readAt
+        );
+        return {
+          ...formatSettlement(room, { isOver: false }),
+          unreadCount,
+          hasImportantMessage,
+        };
+      })
+    );
+
+    const doneRoomsWithUnread = await Promise.all(
+      user.doneRoom.map(async (room) => {
+        // 해당 사용자의 readAt 찾기
+        const userParticipant = room.part.find(
+          (participant) => participant.user?._id?.toString() === req.userOid
+        );
+        const { unreadCount, hasImportantMessage } = await calculateUnreadCount(
+          room._id!.toString(),
+          req.userOid!,
+          userParticipant?.readAt
+        );
+        return {
+          ...formatSettlement(room, { isOver: true }),
+          unreadCount,
+          hasImportantMessage,
+        };
+      })
+    ); // 정산완료여부 기준으로 진행중인 방과 완료된 방을 분리해서 응답을 전송합니다.
     return res.json({
-      ongoing: user.ongoingRoom.map((room) =>
-        formatSettlement(room, { isOver: false })
-      ),
-      done: user.doneRoom.map((room) =>
-        formatSettlement(room, { isOver: true })
-      ),
+      ongoing: ongoingRoomsWithUnread,
+      done: doneRoomsWithUnread,
     });
   } catch (err) {
     logger.error(err);
