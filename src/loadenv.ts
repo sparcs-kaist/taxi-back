@@ -66,7 +66,7 @@ export const eventConfig = (process.env.EVENT_CONFIG &&
   credit: { name: "응모권", initialAmount: 0 },
   period: {
     startAt: "2025-09-01T00:00:00+09:00",
-    endAt: "2025-10-27T00:00:00+09:00",
+    endAt: "2025-10-30T00:00:00+09:00",
   },
 };
 export const naverMap = {
