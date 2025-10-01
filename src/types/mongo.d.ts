@@ -14,6 +14,7 @@ export type {
   AdminLog,
   TaxiFare,
   Notice,
+  FavoriteRoute,
 } from "@/modules/stores/mongo";
 
 import type { Participant, Chat } from "@/modules/stores/mongo";

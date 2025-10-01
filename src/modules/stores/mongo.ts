@@ -4,6 +4,7 @@ import logger from "@/modules/logger";
 type InferSchemaType<T> = mongoose.InferSchemaType<T> & { _id: Types.ObjectId };
 
 const userSchema = new Schema({
+
   name: { type: String, required: true }, //실명
   nickname: { type: String, required: true }, //닉네임
   id: { type: String, required: true }, //택시 서비스에서만 사용되는 id
@@ -293,6 +294,33 @@ database.on("error", function (err) {
   logger.error("Database connection error occurred: " + err);
   mongoose.disconnect();
 });
+
+const favoriteRouteSchema = new Schema({
+  user: {
+    type: Schema.Types.ObjectId,
+    ref: "User",
+    required: true,
+  },
+  from: {
+    type: Schema.Types.ObjectId,
+    ref: "Location",
+    required: true,
+  },
+  to: {
+    type: Schema.Types.ObjectId,
+    ref: "Location",
+    required: true,
+  },
+  createdAt: { type: Date },
+});
+favoriteRouteSchema.set("timestamps", {
+  createdAt: "createdAt",
+  updatedAt: false,
+});
+
+// 즐겨찾기 모델 생성
+export const favoriteRouteModel = model("FavoriteRoute", favoriteRouteSchema);
+export type FavoriteRoute = InferSchemaType<typeof favoriteRouteSchema>;
 
 export const connectDatabase = (mongoUrl: string) => {
   database.on("disconnected", () => {

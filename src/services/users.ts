@@ -8,6 +8,13 @@ import {
 } from "@/modules/modifyProfile";
 import * as aws from "@/modules/stores/aws";
 import { userModel, banModel } from "@/modules/stores/mongo";
+import { favoriteRouteModel, locationModel } from "@/modules/stores/mongo";
+import { Types } from "mongoose";
+import { favoriteRoutesPopulateOption } from "@/modules/populates/favoriteRoutes";
+import {
+  CreateFavoriteBody,
+  DeleteFavoriteParam,
+} from "@/routes/docs/schemas/favoriteRoutesSchema";
 
 // 이벤트 코드입니다.
 import { contracts } from "@/lottery";
@@ -349,5 +356,97 @@ export const withdrawHandler: RequestHandler = async (req, res) => {
     res.json({ ssoLogoutUrl });
   } catch (err) {
     res.status(500).send("Users/withdraw : internal server error");
+  }
+};
+
+// 즐겨찾기 생성
+export const createFavoriteHandler: RequestHandler = async (req, res) => {
+  try {
+    const userId = req.userOid;
+    const { from, to } = req.body as CreateFavoriteBody;
+
+    if (!from || !to) {
+      return res
+        .status(400)
+        .json({ error: "Users/createFavorite: Wrong location" });
+    } else if (from === to) {
+      return res
+        .status(400)
+        .json({ error: "Users/createFavorite: Same location" });
+    }
+
+    const fromLocation = await locationModel.findOne({ _id: from });
+    const toLocation = await locationModel.findOne({ _id: to });
+
+    if (!fromLocation || !toLocation) {
+      return res
+        .status(400)
+        .json({ error: "Users/createFavorite: Location not found" });
+    }
+
+    const existingRoute = await favoriteRouteModel.findOne({
+      user: userId,
+      from,
+      to,
+    });
+    if (existingRoute) {
+      return res
+        .status(400)
+        .json({ error: "Users/createFavorite: route already exists" });
+    }
+
+    const newRoute = new favoriteRouteModel({
+      user: userId,
+      from,
+      to,
+    });
+    await newRoute.save();
+
+    return res.status(200).json(newRoute);
+  } catch (error) {
+    return res
+      .status(500)
+      .json({ error: "Users/createFavorite: internal server error" });
+  }
+};
+
+// 즐겨찾기 조회
+export const getFavoriteHandler: RequestHandler = async (req, res) => {
+  try {
+    const userId = req.userOid;
+    const routes = await favoriteRouteModel
+      .find({ user: userId })
+      .populate(favoriteRoutesPopulateOption);
+
+    return res.status(200).json(routes);
+  } catch (error) {
+    return res
+      .status(500)
+      .json({ error: "Users/getFavorite: internal server error" });
+  }
+};
+
+// 즐겨찾기 삭제
+export const deleteFavoriteHandler: RequestHandler = async (req, res) => {
+  try {
+    const userId = req.userOid;
+    const { id } = req.params as DeleteFavoriteParam;
+
+    const route = await favoriteRouteModel.findOneAndDelete({
+      _id: id,
+      user: userId,
+    });
+
+    if (!route) {
+      return res
+        .status(400)
+        .json({ error: "Users/deleteFavorite: no corresponding route" });
+    }
+
+    return res.status(200).json(route);
+  } catch (error) {
+    return res
+      .status(500)
+      .json({ error: "Users/deleteFavorite: internal server error" });
   }
 };

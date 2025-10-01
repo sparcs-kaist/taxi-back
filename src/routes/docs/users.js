@@ -532,4 +532,261 @@ usersDocs[`${apiPrefix}/withdraw`] = {
   },
 };
 
+usersDocs[`${apiPrefix}/createFavorite`] = {
+  post: {
+    tags: [tag],
+    summary: "즐겨찾기 생성",
+    description: "즐겨찾기를 생성합니다.",
+    requestBody: {
+      content: {
+        "application/json": {
+          schema: {
+            type: "object",
+            properties: {
+              from: {
+                type: "string",
+                description: "출발 지점",
+              },
+              to: {
+                type: "string",
+                description: "도착 지점",
+              },
+            },
+          },
+        },
+      },
+    },
+    responses: {
+      200: {
+        content: {
+          "application/json": {
+          schema: {
+            type: "object",
+            properties: {
+              user: {
+                type: "string",
+                description: "유저 objectId",
+              },
+              from: {
+                type: "string",
+                description: "출발 지점",
+              },
+              to: {
+                type: "string",
+                description: "도착 지점",
+              },
+              _id: {
+                type: "string",
+                description: "즐겨찾기 objectId",
+              },
+              createdAt: {
+                type: "string",
+                description: "즐겨찾기 생성시간",
+              },
+              __v: {
+                type: "string",
+                description: "변경 횟수",
+              },
+            },
+          },
+        },
+        },
+      },
+      400: {
+        content: {
+          "text/html": {
+            example: "Users/createFavorite: Wrong location",
+          },
+        },
+      },
+      400: {
+        content: {
+          "text/html": {
+            example: "Users/createFavorite: Same location",
+          },
+        },
+      },
+      400: {
+        content: {
+          "text/html": {
+            example: "Users/createFavorite: Location not found",
+          },
+        },
+      },
+      400: {
+        content: {
+          "text/html": {
+            example: "Users/createFavorite: route already exists",
+          },
+        },
+      },
+      500: {
+        content: {
+          "text/html": {
+            example: "Users/createFavorite: internal server error",
+          },
+        },
+      },
+    },
+  },
+};
+
+usersDocs[`${apiPrefix}/getFavorite`] = {
+  get: {
+    tags: [tag],
+    summary: "즐겨찾기 조회",
+    description:
+      "본인의 즐겨찾기 목록을 가져옴",
+    responses: {
+      200: {
+        content: {
+          "application/json": {
+            schema: {
+              type: "array",
+              items: {
+                properties: {
+                  _id: {
+                    type: "string",
+                    description: "즐겨찾기의 objectId",
+                  },
+                  user: {
+                    type: "string",
+                    description: "유저 objectId",
+                  },
+                  from: {
+                    type: "object",
+                    properties: {
+                      _id: {
+                        type: "string",
+                        description: "location objectId"
+                      },
+                      enName: {
+                        type: "string",
+                        description: "location 영문 이름"
+                      },
+                      koName: {
+                        type: "string",
+                        description: "location 국문 이름"
+                      },
+                    },
+                    description: "출발 지점",
+                  },
+                  to: {
+                    type: "object",
+                    properties: {
+                      _id: {
+                        type: "string",
+                        description: "location objectId"
+                      },
+                      enName: {
+                        type: "string",
+                        description: "location 영문 이름"
+                      },
+                      koName: {
+                        type: "string",
+                        description: "location 국문 이름"
+                      },
+                    },
+                    description: "도착 지점",
+                  },
+                  createdAt: {
+                    type: "string",
+                    description: "즐겨찾기 생성시간",
+                  },
+                  __v: {
+                    type: "string",
+                    description: "변경 횟수",
+                  },
+              },
+            },
+          },
+        },
+      },
+    },
+      500: {
+        content: {
+          "text/html": {
+            example: "Users/getFavorite: internal server error",
+          },
+        },
+      },
+    },
+  },
+};
+
+usersDocs[`${apiPrefix}/deleteFavorite/{favoriteRouteId}`] = {
+  post: {
+    tags: [tag],
+    summary: "즐겨찾기 삭제",
+    description: "즐겨찾기를 삭제합니다.",
+    parameters: [
+      {
+        in: "path",
+        name: "favoriteRouteId",
+        required: true,
+        description: "삭제하고픈 favoriteRoute의 Id",
+        example: "FavoriteRoute ID",
+      },
+    ],
+    responses: {
+      200: {
+        content: {
+          "application/json": {
+          schema: {
+            type: "object",
+            properties: {
+              _id: {
+                type: "string",
+                description: "즐겨찾기 objectId",
+              },
+              user: {
+                type: "string",
+                description: "유저 objectId",
+              },
+              from: {
+                type: "string",
+                description: "출발 지점",
+              },
+              to: {
+                type: "string",
+                description: "도착 지점",
+              },
+              createdAt: {
+                type: "string",
+                description: "즐겨찾기 생성시간",
+              },
+              __v: {
+                type: "string",
+                description: "변경 횟수",
+              },
+            },
+          },
+        },
+        },
+      },
+      400: {
+        content: {
+          "text/html": {
+            example: "Users/deleteFavorite: Missing or invalid route ID",
+          },
+        },
+      },
+      400: {
+        content: {
+          "text/html": {
+            example: "Users/deleteFavorite: no corresponding route",
+          },
+        },
+      },
+      500: {
+        content: {
+          "text/html": {
+            example: "Users/deleteFavorite: internal server error",
+          },
+        },
+      },
+    },
+  },
+};
+
 module.exports = usersDocs;
