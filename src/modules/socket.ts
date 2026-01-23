@@ -6,6 +6,7 @@ import { Server } from "socket.io";
 import { sessionMiddleware } from "@/middlewares";
 import logger from "@/modules/logger";
 import { getLoginInfo, getBearerToken } from "@/modules/auths/login";
+import { resolveS3Url } from "@/modules/stores/aws";
 import { roomModel, userModel, chatModel } from "@/modules/stores/mongo";
 import { getTokensOfUsers, sendMessageByTokens } from "@/modules/fcm";
 import { corsWhiteList } from "@/loadenv";
@@ -72,7 +73,7 @@ export const transformChatsForRoom = async (chats: PopulatedChat[]) => {
         type: chat.type!,
         authorId: chat.authorId?._id?.toString(),
         authorName: chat.authorId?.nickname,
-        authorProfileUrl: chat.authorId?.profileImageUrl,
+        authorProfileUrl: resolveS3Url(chat.authorId?.profileImageUrl),
         authorIsWithdrew: chat.authorId?.withdraw,
         authorResidence: chat.authorId?.residence,
         content: chat.content,
@@ -229,7 +230,7 @@ export const emitChatEvent = async (
       type,
       name,
       getMessageBody(type, nickname, content),
-      profileImageUrl,
+      resolveS3Url(profileImageUrl),
       `/myroom/${roomId}`
     );
 

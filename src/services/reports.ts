@@ -1,4 +1,5 @@
 import type { RequestHandler } from "express";
+import { resolveS3Url } from "@/modules/stores/aws";
 import {
   userModel,
   reportModel,
@@ -7,6 +8,7 @@ import {
 } from "@/modules/stores/mongo";
 import {
   reportPopulateOption,
+  type PopulatedReport,
   type ReportPopulatePath,
 } from "@/modules/populates/reports";
 import { sendReportEmail } from "@/modules/email";
@@ -24,6 +26,15 @@ const generateUniqueTrackingId = async () => {
     existingTracking = await emailModel.findOne({ trackingId });
   } while (existingTracking);
   return trackingId;
+};
+
+const resolveProfileImageUrl = (report: PopulatedReport) => {
+  if (report.reportedId?.profileImageUrl) {
+    report.reportedId.profileImageUrl = resolveS3Url(
+      report.reportedId.profileImageUrl
+    );
+  }
+  return report;
 };
 
 export const createHandler: RequestHandler = async (req, res) => {
@@ -102,14 +113,18 @@ export const searchByUserHandler: RequestHandler = async (req, res) => {
     }
 
     const response = {
-      reporting: await reportModel
-        .find({ creatorId: user._id })
-        .limit(1000)
-        .populate<ReportPopulatePath>(reportPopulateOption),
-      reported: await reportModel
-        .find({ reportedId: user._id })
-        .limit(1000)
-        .populate<ReportPopulatePath>(reportPopulateOption),
+      reporting: (
+        await reportModel
+          .find({ creatorId: user._id })
+          .limit(1000)
+          .populate<ReportPopulatePath>(reportPopulateOption)
+      ).map(resolveProfileImageUrl),
+      reported: (
+        await reportModel
+          .find({ reportedId: user._id })
+          .limit(1000)
+          .populate<ReportPopulatePath>(reportPopulateOption)
+      ).map(resolveProfileImageUrl),
     };
     return res.json(response);
   } catch (err) {
