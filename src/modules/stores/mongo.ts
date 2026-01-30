@@ -13,7 +13,12 @@ const userSchema = new Schema({
   withdraw: { type: Boolean, default: false }, //탈퇴 여부
   withdrewAt: { type: Date }, //탈퇴 시각
   phoneNumber: { type: String }, // 전화번호 (2023FALL 이벤트부터 추가)
-  badge: { type: Boolean }, // 인증 뱃지 사용 여부
+  badge: {
+    type: String,
+    required: true,
+    enum: ["none", "normal", "silver", "gold"],
+    default: "none",
+  }, // 인증 뱃지
   residence: { type: String }, // 선호하는 위치 정보
   ban: { type: Boolean, default: false }, //계정 정지 여부
   joinat: { type: Date, required: true }, //가입 시각

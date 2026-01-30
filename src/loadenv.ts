@@ -15,7 +15,7 @@ if (
   process.env.NAVER_MAP_API_ID === undefined ||
   process.env.NAVER_MAP_API_KEY === undefined
 ) {
-  console.error("There is no API KEY environment variable.");
+  console.error("There is no NAVER API KEY environment variable.");
   process.exit(1);
 }
 

@@ -11,6 +11,7 @@ import { userModel, banModel } from "@/modules/stores/mongo";
 
 // 이벤트 코드입니다.
 import { contracts } from "@/lottery";
+import { isBadgeAvailable } from "@/mileage/services/summary";
 import { eventStatusModel } from "@/lottery/modules/stores/mongo";
 import type {
   EditAccountBody,
@@ -161,15 +162,24 @@ export const registerPhoneNumberHandler: RequestHandler = async (req, res) => {
 
 export const editBadgeHandler: RequestHandler = async (req, res) => {
   try {
-    await userModel.findOneAndUpdate(
-      {
-        _id: req.userOid,
-        withdraw: false,
-        phoneNumber: { $exists: true, $ne: null },
-      },
-      { badge: req.body.badge }
-    );
-    return res.status(200).send("Users/editBadge : badge successfully applied");
+    const isAvailable = await isBadgeAvailable(req.userOid, req.body.badge);
+    if (isAvailable) {
+      await userModel.findOneAndUpdate(
+        {
+          _id: req.userOid,
+          withdraw: false,
+          phoneNumber: { $exists: true, $ne: null },
+        },
+        { badge: req.body.badge }
+      );
+      return res
+        .status(200)
+        .send("Users/editBadge : badge successfully applied");
+    } else {
+      res
+        .status(409)
+        .send(`Users/editBadge : unavailable to apply badge ${req.body.badge}`);
+    }
   } catch (err) {
     logger.error(err);
     return res.status(500).send("Users/editBadge : internal server error");
