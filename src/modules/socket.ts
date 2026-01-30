@@ -15,6 +15,7 @@ import {
   type PopulatedChat,
 } from "@/modules/populates/chats";
 import type { ChatType } from "@/types/mongo";
+import { parseSettlementMeta, type SettlementMeta } from "./settlement";
 
 /**
  * emitChatEvent의 필수 파라미터가 주어지지 않은 경우 발생하는 예외를 정의하는 클래스입니다.
@@ -39,6 +40,7 @@ interface TransformedChat {
   time: Date;
   isValid: boolean;
   inOutNames?: string[];
+  settlementMeta?: SettlementMeta;
 }
 
 /**
@@ -59,6 +61,12 @@ export const transformChatsForRoom = async (chats: PopulatedChat[]) => {
           })
         );
       }
+
+      const settlementMeta: SettlementMeta | undefined =
+        chat.type === "settlement"
+          ? parseSettlementMeta(chat.content)
+          : undefined;
+
       return {
         roomId: chat.roomId.toString(),
         type: chat.type!,
@@ -71,6 +79,7 @@ export const transformChatsForRoom = async (chats: PopulatedChat[]) => {
         time: chat.time,
         isValid: chat.isValid,
         inOutNames,
+        ...(settlementMeta ? { settlementMeta } : {}),
       } satisfies TransformedChat;
     })
   );
