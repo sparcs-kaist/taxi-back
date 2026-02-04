@@ -9,7 +9,7 @@ const logininfoHandler = async (req, res) => {
 
     const userDetail = await userModel.findOne(
       { _id: user.oid, withdraw: false },
-      "_id name nickname id withdraw phoneNumber badge ban joinat agreeOnTermsOfService subinfo email profileImageUrl account"
+      "_id name nickname id withdraw phoneNumber badge residence ban joinat agreeOnTermsOfService subinfo email profileImageUrl account"
     );
 
     res.json({
@@ -20,6 +20,7 @@ const logininfoHandler = async (req, res) => {
       withdraw: userDetail.withdraw,
       phoneNumber: userDetail.phoneNumber,
       badge: userDetail.badge,
+      residence: userDetail.residence,
       ban: userDetail.ban,
       joinat: userDetail.joinat,
       agreeOnTermsOfService: userDetail.agreeOnTermsOfService,

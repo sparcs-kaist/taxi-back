@@ -1,12 +1,7 @@
 import express from "express";
 import { roomsZod } from "./docs/schemas/roomsSchema";
 import * as roomHandlers from "@/services/rooms";
-import {
-  authMiddleware,
-  banMiddleware,
-  validateBody,
-  validateQuery,
-} from "@/middlewares";
+import { authMiddleware, validateBody, validateQuery } from "@/middlewares";
 
 const router = express.Router();
 
@@ -32,10 +27,6 @@ router.get(
 
 // 이후 API 접근 시 로그인 필요
 router.use(authMiddleware);
-
-// 방 생성/참여전 ban 여부 확인
-// FIXME: sid를 사용하는 코드가 모두 수정될 때까지 비활성화 합니다.
-// router.use(banMiddleware);
 
 // 특정 id 방 세부사항 보기
 router.get(
