@@ -294,6 +294,85 @@ usersDocs[`${apiPrefix}/editBadge`] = {
   },
 };
 
+usersDocs[`${apiPrefix}/registerResidence`] = {
+  post: {
+    tags: [tag],
+    summary: "유저의 승하차 선호 장소 등록",
+    description: "유저의 승하차 선호 장소를 등록합니다.",
+    requestBody: {
+      content: {
+        "application/json": {
+          schema: {
+            type: "object",
+            properties: {
+              residence: {
+                type: "string",
+                description: "유저의 승하차 선호 장소",
+              },
+            },
+          },
+        },
+      },
+    },
+    responses: {
+      200: {
+        content: {
+          "text/html": {
+            example:
+              "Users/registerResidence: residenceInfo registered successfully",
+          },
+        },
+      },
+      400: {
+        content: {
+          "text/html": {
+            example: "Users/registerResidence: user not found or update failed",
+          },
+        },
+      },
+      500: {
+        content: {
+          "text/html": {
+            example: "Users/registerResidence: internal server error",
+          },
+        },
+      },
+    },
+  },
+};
+
+usersDocs[`${apiPrefix}/deleteResidence`] = {
+  post: {
+    tags: [tag],
+    summary: "유저의 승하차 선호 장소 정보 삭제",
+    description: "유저의 승하차 선호 장소 정보를 삭제합니다.",
+    responses: {
+      200: {
+        content: {
+          "text/html": {
+            example:
+              "Users/deleteResidence: residenceInfo deleted successfully",
+          },
+        },
+      },
+      400: {
+        content: {
+          "text/html": {
+            example: "Users/deleteResidence: user not found or update failed",
+          },
+        },
+      },
+      500: {
+        content: {
+          "text/html": {
+            example: "Users/deleteResidence: internal server error",
+          },
+        },
+      },
+    },
+  },
+};
+
 usersDocs[`${apiPrefix}/editProfileImg/getPUrl`] = {
   post: {
     tags: [tag],

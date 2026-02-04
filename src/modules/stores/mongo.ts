@@ -14,6 +14,7 @@ const userSchema = new Schema({
   withdrewAt: { type: Date }, //탈퇴 시각
   phoneNumber: { type: String }, // 전화번호 (2023FALL 이벤트부터 추가)
   badge: { type: Boolean }, // 인증 뱃지 사용 여부
+  residence: { type: String }, // 선호하는 위치 정보
   ban: { type: Boolean, default: false }, //계정 정지 여부
   joinat: { type: Date, required: true }, //가입 시각
   agreeOnTermsOfService: { type: Boolean, default: false }, //이용약관 동의 여부
@@ -32,8 +33,8 @@ export const userModel = model("User", userSchema);
 export type User = InferSchemaType<typeof userSchema>;
 
 const banSchema = new Schema({
-  // 정지 시킬 사용자를 기제함.
-  userSid: { type: String, required: true },
+  // 정지 시킬 사용자를 기재함.
+  userUid: { type: String, required: true },
   // 정지 사유
   reason: { type: String, required: true },
   bannedAt: { type: Date, required: true }, // 정지 당한 시각
@@ -45,7 +46,7 @@ const banSchema = new Schema({
     // 필요시 이곳에 정지를 시킬 서비스를 추가함.
     enum: [
       "service", // service: 방 생성/참여 제한
-      "2023-fall-event", // xxxx-xxxx-event: 특정 이벤트 참여 제한
+      "2025-fall-event", // xxxx-xxxx-event: 특정 이벤트 참여 제한
     ],
   },
 });

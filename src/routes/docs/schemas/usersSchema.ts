@@ -23,6 +23,10 @@ export const usersZod = {
     badge: zStringToBoolean.default("false"),
   }),
 
+  registerResidenceHandler: z.object({
+    residence: z.string().trim().min(1).max(15),
+  }),
+
   editProfileImgGetPUrlHandler: z.object({
     type: z.string().regex(patterns.user.profileImgType),
   }),
@@ -34,6 +38,9 @@ export type EditNicknameBody = z.infer<typeof usersZod.editNicknameHandler>;
 export type EditAccountBody = z.infer<typeof usersZod.editAccountHandler>;
 export type RegisterPhoneNumberBody = z.infer<
   typeof usersZod.registerPhoneNumberHandler
+>;
+export type RegisterResidenceBody = z.infer<
+  typeof usersZod.registerResidenceHandler
 >;
 export type EditProfileImgGetPUrlBody = z.infer<
   typeof usersZod.editProfileImgGetPUrlHandler

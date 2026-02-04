@@ -24,9 +24,6 @@ eventConfig && require("./schedules")();
 
 const lotteryRouter = express.Router();
 
-// [Middleware] 모든 API 요청에 대하여 origin 검증
-lotteryRouter.use(require("../middlewares/originValidator").default);
-
 // [Router] APIs
 lotteryRouter.use("/globalState", require("./routes/globalState"));
 lotteryRouter.use("/invites", require("./routes/invites"));

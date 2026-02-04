@@ -36,6 +36,8 @@ describe("[rooms] 1.createHandler", () => {
       },
       userOid: testUser1._id,
       app,
+      timestamp: Date.now(),
+      originalUrl: "test-url/rooms/create",
     });
     let res = httpMocks.createResponse();
     await roomsHandlers.createHandler(req, res, () => {});
@@ -194,6 +196,7 @@ describe("[rooms] 7.commitSettlementHandler", () => {
       userOid: testUser1!._id,
       timestamp: Date.now() + 60 * 1000,
       app,
+      originalUrl: "test-url/rooms/commitSettlement",
     });
     let res = httpMocks.createResponse();
     await roomsHandlers.commitSettlementHandler(req, res, () => {});
@@ -214,6 +217,8 @@ describe("[rooms] 8.commitPaymentHandler", () => {
       body: { roomId: testRoom!._id },
       userOid: testUser2!._id,
       app,
+      timestamp: Date.now(),
+      originalUrl: "test-url/rooms/commitPayment",
     });
     let res = httpMocks.createResponse();
     await roomsHandlers.commitPaymentHandler(req, res, () => {});
@@ -235,6 +240,8 @@ describe("[rooms] 9.abortHandler", () => {
       userOid: testUser2!._id,
       session: {},
       app,
+      timestamp: Date.now(),
+      originalUrl: "test-url/rooms/abort",
     });
     let res = httpMocks.createResponse();
     await roomsHandlers.abortHandler(req, res, () => {});
