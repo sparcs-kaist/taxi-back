@@ -1,3 +1,4 @@
+import { resolveS3Url } from "@/modules/stores/aws";
 import type {
   User,
   SettlementStatus,
@@ -115,7 +116,7 @@ export const formatSettlement = (
         _id: _id!.toString(),
         name,
         nickname,
-        profileImageUrl,
+        profileImageUrl: resolveS3Url(profileImageUrl),
         withdraw,
         badge,
         isSettlement: includeSettlement ? settlementStatus : undefined,
