@@ -22,6 +22,7 @@ import type {
   CreateTestBody,
   SearchByTimeGapQuery,
   SearchQuery,
+  ToggleCarrierBody,
 } from "@/routes/docs/schemas/roomsSchema";
 import type { Room } from "@/types/mongo";
 
@@ -825,6 +826,53 @@ export const commitPaymentHandler: RequestHandler = async (req, res) => {
     logger.error(err);
     return res.status(500).json({
       error: "Rooms/:id/commitPayment : internal server error",
+    });
+  }
+};
+
+export const toggleCarrierHandler: RequestHandler = async (req, res) => {
+  const { roomId, hasCarrier } = req.body as ToggleCarrierBody;
+
+  try {
+    const user = await userModel.findOne({ _id: req.userOid, withdraw: false });
+    if (!user) {
+      return res
+        .status(400)
+        .json({ error: "Rooms/carrier/toggle : User not found" });
+    }
+
+    const roomObject = await roomModel
+      .findOneAndUpdate(
+        {
+          _id: roomId,
+          part: {
+            $elemMatch: {
+              user: user._id,
+            },
+          },
+        },
+        {
+          $set: { "part.$.hasCarrier": hasCarrier },
+        },
+        {
+          new: true,
+        }
+      )
+      .lean()
+      .populate<RoomPopulatePath>(roomPopulateOption);
+
+    if (!roomObject) {
+      return res.status(404).json({
+        error: "Rooms/carrier/toggle : cannot find room info",
+      });
+    }
+
+    const isOver = getIsOver(roomObject, user._id.toString());
+    return res.send(formatSettlement(roomObject, { isOver }));
+  } catch (err) {
+    logger.error(err);
+    return res.status(500).json({
+      error: "Rooms/carrier/toggle : internal server error",
     });
   }
 };
