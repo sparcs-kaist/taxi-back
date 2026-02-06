@@ -1,4 +1,8 @@
-import { wordChainModel, dictionaryModel } from "../modules/mongo";
+import {
+  wordChainModel,
+  dictionaryModel,
+  miniGameModel,
+} from "../modules/mongo";
 import { userModel, roomModel } from "@/modules/stores/mongo";
 import { emitChatEvent } from "@/modules/socket";
 import { Server } from "socket.io";
@@ -7,7 +11,7 @@ import logger from "@/modules/logger";
 
 const wordChainTimeouts: Map<string, NodeJS.Timeout> = new Map();
 
-const TIMEOUT_MS = 30 * 1000;
+const TIMEOUT_MS = 15 * 1000;
 
 const JudgeTimeout = async (io: Server, roomId: Types.ObjectId) => {
   const roomIdStr = roomId.toString();
@@ -41,6 +45,16 @@ const JudgeTimeout = async (io: Server, roomId: Types.ObjectId) => {
     const winnerId = game.players[0];
     const winner = await userModel.findById(winnerId);
     const winnerName = winner ? winner.nickname : "알 수 없음";
+
+    // Give winner some points
+    const miniGameStatus = await miniGameModel.findOne({
+      userId: winnerId,
+    });
+    // If user does not have miniGameStatus, skip point reward
+    if (miniGameStatus) {
+      miniGameStatus.creditAmount += 10 * game.usedWords.length;
+      await miniGameStatus.save();
+    }
 
     await emitChatEvent(io, {
       roomId,
