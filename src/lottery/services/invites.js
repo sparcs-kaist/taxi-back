@@ -1,5 +1,6 @@
 const { eventStatusModel } = require("../modules/stores/mongo");
 const { userModel } = require("../../modules/stores/mongo");
+const { resolveS3Url } = require("../../modules/stores/aws");
 const logger = require("@/modules/logger").default;
 
 const { eventConfig } = require("@/loadenv");
@@ -34,7 +35,10 @@ const searchInviterHandler = async (req, res) => {
         .status(500)
         .json({ error: "Invites/search : internal server error" });
 
-    return res.json(inviter);
+    return res.json({
+      ...inviter,
+      profileImageUrl: resolveS3Url(inviter.profileImageUrl),
+    });
   } catch (err) {
     logger.error(err);
     res.status(500).json({ error: "Invites/search : internal server error" });
