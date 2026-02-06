@@ -1,6 +1,5 @@
 import mongoose, { model, Schema, Types } from "mongoose";
-
-type InferSchemaType<T> = mongoose.InferSchemaType<T> & { _id: Types.ObjectId };
+import type { InferSchemaType } from "@/modules/stores/mongo";
 
 const mileageSchema = new Schema({
   user: { type: Schema.Types.ObjectId, ref: "User", required: true },
@@ -16,8 +15,8 @@ const mileageSchema = new Schema({
     enum: ["pending", "confirmed", "voided"],
     required: true,
   },
-  createAt: { type: Date, required: true },
-  expireAt: { type: Date, required: true },
+  createdAt: { type: Date, required: true },
+  expiresAt: { type: Date, required: true },
 });
 
 export const mileageModel = model("Mileage", mileageSchema);

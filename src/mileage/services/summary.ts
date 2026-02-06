@@ -10,13 +10,13 @@ const getMileage = async (userId: string) => {
       _id: userId,
       withdraw: false,
     })
-    .select({ amount: 1, expireAt: 1 })
+    .select({ amount: 1, expiresAt: 1 })
     .lean();
   const now = new Date();
 
   const { expired, active } = transactions.reduce(
     (acc, transaction) => {
-      if (transaction.expireAt <= now) {
+      if (transaction.expiresAt <= now) {
         acc.expired += transaction.amount;
       } else {
         acc.active += transaction.amount;

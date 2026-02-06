@@ -1,6 +1,6 @@
 import { Types } from "mongoose";
 import { locationModel, taxiFareModel } from "@/modules/stores/mongo";
-import { Location, TaxiFare } from "@/types/mongo.d";
+import type { Location, TaxiFare } from "@/types/mongo.d";
 
 type Coordinate = {
   lat: number;
@@ -15,6 +15,10 @@ export const mapDateToTime = (date = new Date()) => {
   return (day * 144 + hour * 6 + Math.floor((minute + 5) / 10)) % 1008;
 };
 
+/**
+ * 두 좌표 (latitude, longitude) 가 주어졌을 때 두 좌표 사이의 거리를 계산하는 함수입니다.
+ * 지구는 둥그니까...!
+ */
 const haversineDistance = (from: Coordinate, to: Coordinate) => {
   const toRadian = Math.PI / 180;
   return (
@@ -66,15 +70,18 @@ const ordinaryLeastSquares = (
   return { weight, bias };
 };
 
+/**
+ * 택시비를 예측해줍니다.
+ * 1단계로 동일 루트, 동일 시간대의 예상 택시비를 찾아서 평균
+ * 2단계로 동일 루트, 다른 시간대의 예상 택시비를 찾아서 평균
+ * 3단계로 다른 루트, 동일 시간대의 예상 택시비를 찾아서 (거리당 평균) * 거리
+ * 4단계로 모든 루트들의 예상 택시비를 찾아서 (거리당 평균) * 거리
+ */
 export const forecastTaxiFare = async (
   from: Types.ObjectId,
   to: Types.ObjectId,
   time: Date
 ) => {
-  // 1단계로 동일 루트, 동일 시간대의 예상 택시비를 찾아서 평균
-  // 2단계로 동일 루트, 다른 시간대의 예상 택시비를 찾아서 평균
-  // 3단계로 다른 루트, 동일 시간대의 예상 택시비를 찾아서 거리당 평균 * 거리
-  // 4단계로 모든 것들의 예상 택시비를 찾아서 거리당 평균 * 거리
   const locationMap: Map<string, Location> = new Map();
 
   const locationList = await locationModel.find();

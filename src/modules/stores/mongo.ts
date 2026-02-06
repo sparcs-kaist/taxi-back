@@ -1,7 +1,9 @@
 import mongoose, { model, Schema, Types } from "mongoose";
 import logger from "@/modules/logger";
 
-type InferSchemaType<T> = mongoose.InferSchemaType<T> & { _id: Types.ObjectId };
+export type InferSchemaType<T> = mongoose.InferSchemaType<T> & {
+  _id: Types.ObjectId;
+};
 
 const userSchema = new Schema({
   name: { type: String, required: true }, //실명

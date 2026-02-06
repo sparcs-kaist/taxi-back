@@ -56,8 +56,8 @@ export const createTransaction = async (
       source: toSourceString(source),
       amount: amount,
       status,
-      createAt: time,
-      expireAt: expireDate,
+      createdAt: time,
+      expiresAt: expireDate,
     });
 
     await transaction.save();

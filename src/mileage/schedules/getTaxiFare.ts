@@ -2,7 +2,6 @@ import { locationModel, taxiFareModel } from "@/modules/stores/mongo";
 import type { Location } from "@/types/mongo";
 import { mapDateToTime } from "../modules/forecastTaxiFare";
 import { naverMap } from "@/loadenv";
-import logger from "@/modules/logger";
 
 // 필요한 최소 타입
 type NaverMapType = {
@@ -38,6 +37,9 @@ const orderedPair = (locs: Location[]) => {
 };
 
 const getTaxiFare = async (fromLocation: Location, toLocation: Location) => {
+  if (naverMap.apiId === undefined || naverMap.apiKey === undefined) {
+    return;
+  }
   const url = new URL("https://maps.apigw.ntruss.com/map-direction/v1/driving");
   url.searchParams.set(
     "start",
@@ -68,7 +70,6 @@ const getTaxiFare = async (fromLocation: Location, toLocation: Location) => {
       });
       await taxiFare.save();
     }
-    logger.info("got an info from naverMap");
     return 1000;
   } catch (err) {
     return 1000;

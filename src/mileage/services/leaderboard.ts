@@ -42,8 +42,8 @@ export const getTopN = async (period: Period, limit: number) => {
   const end = period.end ? period.end : new Date();
 
   const query = period.start
-    ? { createAt: { $lte: end, $gte: period.start } }
-    : { createAt: { $lte: end } };
+    ? { createdAt: { $lte: end, $gte: period.start } }
+    : { createdAt: { $lte: end } };
 
   const matchQuery = {
     status: "confirmed",

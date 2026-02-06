@@ -8,6 +8,7 @@ import {
   mongo as mongoUrl,
   port as httpPort,
   eventConfig,
+  naverMap,
 } from "@/loadenv";
 import {
   banMiddleware,
@@ -86,7 +87,9 @@ app.use("/docs", docsRouter);
 app.use(banMiddleware);
 
 // [Router] 마일리지 전용 라우터입니다.
-app.use("/mileage", mileageRouter);
+if (naverMap.apiId === undefined || naverMap.apiKey === undefined) {
+  app.use("/mileage", mileageRouter);
+}
 
 // [Router] 이메일 수신 확인은 origin 검사 거치지 않기
 app.use("/emails", emailRouter);

@@ -377,7 +377,7 @@ export const joinHandler: RequestHandler = async (req, res) => {
         await updateTransaction(updates);
       }
     } catch (err) {
-      // room 로직에 영향 없게 조용히 처리
+      logger.error(err);
     }
 
     return res.send(formatSettlement(roomObject));
@@ -485,7 +485,6 @@ export const abortHandler: RequestHandler = async (req, res) => {
           await updateTransaction(updates);
         }
       } catch (err) {
-        // room 로직에 영향 없게 조용히 처리
         logger.error(err);
       }
     }

@@ -40,8 +40,8 @@ export const createTransaction = async (
       source: toSourceString(source),
       amount: amount,
       status: "pending",
-      createAt: time,
-      expireAt: expireDate,
+      createdAt: time,
+      expiresAt: expireDate,
     });
 
     await transaction.save();
@@ -128,7 +128,7 @@ export const updateOldPendingTransaction = async (userId?: Types.ObjectId) => {
   const filter: Record<string, any> = {
     type: "ride",
     status: "pending",
-    createAt: { $lte: criterion },
+    createdAt: { $lte: criterion },
   };
   if (userId) {
     filter.user = userId;
@@ -184,10 +184,10 @@ export const transactionViewHandler: RequestHandler = async (req, res) => {
     }
     const result = await mileageModel
       .find(findQuery)
-      .sort({ createAt: -1, _id: -1 })
+      .sort({ createdAt: -1, _id: -1 })
       .skip((pageNum - 1) * 20)
       .limit(20)
-      .select({ amount: 1, type: 1, createAt: 1, expireAt: 1, _id: 0 })
+      .select({ amount: 1, type: 1, createdAt: 1, expiresAt: 1, _id: 0 })
       .lean();
 
     return res.json(result);

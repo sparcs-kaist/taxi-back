@@ -1,6 +1,6 @@
-const swaggerUi = require("swagger-ui-express");
+import swaggerUi from "swagger-ui-express";
 
-import swaggerDocs from "../../../routes/docs/swaggerDocs";
+import swaggerDocs from "@/routes/docs/swaggerDocs";
 import { mileageSwaggerDocs } from "./swaggerDocs";
 
 swaggerDocs.tags = [...swaggerDocs.tags, ...mileageSwaggerDocs.tags];
