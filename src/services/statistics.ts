@@ -1,6 +1,7 @@
 import type { RequestHandler } from "express";
 import { Types, type FilterQuery, type PipelineStage } from "mongoose";
 import logger from "@/modules/logger";
+import { redisClient } from "@/modules/stores/redis";
 import {
   dailySavingsModel,
   locationModel,
@@ -49,9 +50,98 @@ const DAY_MS = 86_400_000;
 const START_OF_TRACKING = startOfDayUTC(new Date("2022-01-01T00:00:00Z"));
 const KST_OFFSET_MS = 9 * 60 * 60 * 1000;
 const START_OF_MONTH_TRACKING = new Date(Date.UTC(2022, 10, 1, 0, 0, 0, 0)); // 2022-11-01
+const STATISTICS_CACHE_PREFIX = "statistics:v1";
+const STATISTICS_CACHE_MAX_BYTES = 512 * 1024;
+const statisticsCacheInFlight = new Map<string, Promise<unknown>>();
+const CACHE_TTL_SECONDS = {
+  savings: 120,
+  savingsPeriod: 300,
+  savingsTotal: 60,
+  userSavings: 120,
+  userDoneRoomCount: 120,
+  monthlyRoomCreation: 3600,
+  monthlyUserCreation: 3600,
+  hourlyRoomCreation: 600,
+} as const;
 
 const addDays = (date: Date, days: number) =>
   new Date(date.getTime() + days * DAY_MS);
+
+const buildStatisticsCacheKey = (
+  scope: string,
+  params?: Record<string, unknown>
+) => {
+  if (!params) return `${STATISTICS_CACHE_PREFIX}:${scope}`;
+
+  const queryString = Object.entries(params)
+    .filter(([, value]) => value !== undefined)
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([key, value]) => {
+      if (Array.isArray(value)) {
+        return value
+          .map((item) => `${encodeURIComponent(key)}=${encodeURIComponent(String(item))}`)
+          .join("&");
+      }
+      return `${encodeURIComponent(key)}=${encodeURIComponent(String(value))}`;
+    })
+    .filter((entry) => entry.length > 0)
+    .join("&");
+
+  if (!queryString) return `${STATISTICS_CACHE_PREFIX}:${scope}`;
+  return `${STATISTICS_CACHE_PREFIX}:${scope}?${queryString}`;
+};
+
+const getStatisticsCache = async <T>(key: string): Promise<T | null> => {
+  if (!redisClient) return null;
+  try {
+    const cached = await redisClient.get(key);
+    if (!cached) return null;
+    return JSON.parse(cached) as T;
+  } catch (err) {
+    logger.warn(`Statistics/cache : failed to read cache key ${key}`, err);
+    return null;
+  }
+};
+
+const setStatisticsCache = async (
+  key: string,
+  value: unknown,
+  ttlSeconds: number
+) => {
+  if (!redisClient) return;
+  try {
+    const serialized = JSON.stringify(value);
+    if (Buffer.byteLength(serialized, "utf8") > STATISTICS_CACHE_MAX_BYTES) {
+      return;
+    }
+    await redisClient.set(key, serialized, { EX: ttlSeconds });
+  } catch (err) {
+    logger.warn(`Statistics/cache : failed to write cache key ${key}`, err);
+  }
+};
+
+const getCachedOrCompute = async <T>(
+  key: string,
+  ttlSeconds: number,
+  producer: () => Promise<T>
+): Promise<T> => {
+  const cached = await getStatisticsCache<T>(key);
+  if (cached !== null) return cached;
+
+  const inFlight = statisticsCacheInFlight.get(key);
+  if (inFlight) return (await inFlight) as T;
+
+  const compute = (async () => {
+    const value = await producer();
+    await setStatisticsCache(key, value, ttlSeconds);
+    return value;
+  })().finally(() => {
+    statisticsCacheInFlight.delete(key);
+  });
+
+  statisticsCacheInFlight.set(key, compute);
+  return (await compute) as T;
+};
 
 const startOfDayKST = (date: Date) => {
   const ms = date.getTime() + KST_OFFSET_MS;
@@ -290,77 +380,90 @@ export const savingsHandler: RequestHandler = async (req, res) => {
       }
     }
 
-    const isTotalMode = !userId;
-    const filter: FilterQuery<Room> = {
-      time: { $gte: start, $lte: end },
-    };
-    if (!isTotalMode) {
-      filter["part.user"] = new Types.ObjectId(userId);
-    }
-
-    const rooms = await roomModel
-      .find(filter)
-      .sort({ time: 1 })
-      .populate([
-        { path: "from", select: "_id enName koName latitude longitude" },
-        { path: "to", select: "_id enName koName latitude longitude" },
-      ])
-      .lean<PopulatedRoom[]>();
-
-    const roomSavings = [];
-    let totalSavings = 0;
-
-    for (const room of rooms) {
-      const from = room.from;
-      const to = room.to;
-
-      if (!from || !to) {
-        logger.warn(
-          `Statistics/savings : room ${room._id} missing location info`
-        );
-        continue;
-      }
-
-      const participantCount = room.part?.length ?? 0;
-      if (participantCount === 0) continue;
-
-      const { estimatedFare, savingsPerUser } = await getRoomSavings(room);
-      const totalSavingsForRoom = isTotalMode
-        ? savingsPerUser * participantCount
-        : savingsPerUser;
-
-      roomSavings.push({
-        roomId: room._id.toString(),
-        from: {
-          id: from._id?.toString() ?? "",
-          enName: from.enName,
-          koName: from.koName,
-        },
-        to: {
-          id: to._id?.toString() ?? "",
-          enName: to.enName,
-          koName: to.koName,
-        },
-        participantCount,
-        estimatedFare,
-        savingsPerUser,
-        totalSavingsForRoom,
-        departedAt: room.time,
-      });
-
-      totalSavings += totalSavingsForRoom;
-    }
-
-    return res.json({
+    const cacheKey = buildStatisticsCacheKey("savings", {
       startDate: start.toISOString(),
       endDate: end.toISOString(),
-      userId: userId ?? null,
-      mode: isTotalMode ? "total" : "user",
-      metric: "savings",
-      currency: "KRW",
-      totalSavings,
-      rooms: roomSavings,
+      userId: userId ?? "",
     });
+    const response = await getCachedOrCompute(
+      cacheKey,
+      CACHE_TTL_SECONDS.savings,
+      async () => {
+        const isTotalMode = !userId;
+        const filter: FilterQuery<Room> = {
+          time: { $gte: start, $lte: end },
+        };
+        if (!isTotalMode) {
+          filter["part.user"] = new Types.ObjectId(userId);
+        }
+
+        const rooms = await roomModel
+          .find(filter)
+          .sort({ time: 1 })
+          .populate([
+            { path: "from", select: "_id enName koName latitude longitude" },
+            { path: "to", select: "_id enName koName latitude longitude" },
+          ])
+          .lean<PopulatedRoom[]>();
+
+        const roomSavings = [];
+        let totalSavings = 0;
+
+        for (const room of rooms) {
+          const from = room.from;
+          const to = room.to;
+
+          if (!from || !to) {
+            logger.warn(
+              `Statistics/savings : room ${room._id} missing location info`
+            );
+            continue;
+          }
+
+          const participantCount = room.part?.length ?? 0;
+          if (participantCount === 0) continue;
+
+          const { estimatedFare, savingsPerUser } = await getRoomSavings(room);
+          const totalSavingsForRoom = isTotalMode
+            ? savingsPerUser * participantCount
+            : savingsPerUser;
+
+          roomSavings.push({
+            roomId: room._id.toString(),
+            from: {
+              id: from._id?.toString() ?? "",
+              enName: from.enName,
+              koName: from.koName,
+            },
+            to: {
+              id: to._id?.toString() ?? "",
+              enName: to.enName,
+              koName: to.koName,
+            },
+            participantCount,
+            estimatedFare,
+            savingsPerUser,
+            totalSavingsForRoom,
+            departedAt: room.time,
+          });
+
+          totalSavings += totalSavingsForRoom;
+        }
+
+        return {
+          startDate: start.toISOString(),
+          endDate: end.toISOString(),
+          userId: userId ?? null,
+          mode: isTotalMode ? "total" : "user",
+          metric: "savings",
+          currency: "KRW",
+          totalSavings,
+          rooms: roomSavings,
+        };
+      }
+    );
+
+    return res.json(response);
   } catch (err) {
     logger.error(err);
     return res.status(500).json({
@@ -391,22 +494,34 @@ export const savingsByPeriodHandler: RequestHandler = async (req, res) => {
     const startDay = startOfDayUTC(start);
     const endDay = startOfDayUTC(end);
 
-    const cumulativeEnd = await getCumulativeAt(endDay, startDay);
-    const cumulativeBeforeStart = await getCumulativeAt(
-      addDays(startDay, -1),
-      startDay
-    );
-    const periodSavings = cumulativeEnd - cumulativeBeforeStart;
-
-    return res.json({
-      metric: "savings-period",
+    const cacheKey = buildStatisticsCacheKey("savings-period", {
       startDate: start.toISOString(),
       endDate: end.toISOString(),
-      totalSavings: periodSavings,
-      cumulativeEnd,
-      cumulativeBeforeStart,
-      currency: "KRW",
     });
+    const response = await getCachedOrCompute(
+      cacheKey,
+      CACHE_TTL_SECONDS.savingsPeriod,
+      async () => {
+        const cumulativeEnd = await getCumulativeAt(endDay, startDay);
+        const cumulativeBeforeStart = await getCumulativeAt(
+          addDays(startDay, -1),
+          startDay
+        );
+        const periodSavings = cumulativeEnd - cumulativeBeforeStart;
+
+        return {
+          metric: "savings-period",
+          startDate: start.toISOString(),
+          endDate: end.toISOString(),
+          totalSavings: periodSavings,
+          cumulativeEnd,
+          cumulativeBeforeStart,
+          currency: "KRW",
+        };
+      }
+    );
+
+    return res.json(response);
   } catch (err) {
     logger.error(err);
     return res.status(500).json({
@@ -420,36 +535,25 @@ export const savingsTotalHandler: RequestHandler = async (_req, res) => {
     const now = new Date();
     const todayStart = startOfDayUTC(now);
     const yesterday = addDays(todayStart, -1);
+    const cacheKey = buildStatisticsCacheKey("savings-total");
+    const response = await getCachedOrCompute(
+      cacheKey,
+      CACHE_TTL_SECONDS.savingsTotal,
+      async () => {
+        // 어제까지의 누적 아낀 금액을 가져옴
+        const cumulativeUntilYesterday = await getCumulativeAt(yesterday);
+        const totalSavings = cumulativeUntilYesterday;
 
-    // 어제까지의 누적 아낀 금액을 가져옴
-    const cumulativeUntilYesterday = await getCumulativeAt(yesterday);
+        return {
+          metric: "savings-total",
+          asOf: now.toISOString(),
+          currency: "KRW",
+          totalSavings,
+        };
+      }
+    );
 
-    // 오늘 누적 아낀 금액을 가져옴
-    /*
-    const todaysRooms = await roomModel
-      .find({
-        time: { $gte: todayStart, $lte: now },
-      })
-      .populate([
-        { path: "from", select: "_id enName koName latitude longitude" },
-        { path: "to", select: "_id enName koName latitude longitude" },
-      ])
-      .lean<PopulatedRoom[]>();
-
-    const todaySavings = todaysRooms.reduce((sum, room) => {
-      const { totalSavings } = getRoomSavings(room);
-      return sum + totalSavings;
-    }, 0);
-    */
-
-    const totalSavings = cumulativeUntilYesterday; // + todaySavings;
-
-    return res.json({
-      metric: "savings-total",
-      asOf: now.toISOString(),
-      currency: "KRW",
-      totalSavings,
-    });
+    return res.json(response);
   } catch (err) {
     logger.error(err);
     return res.status(500).json({
@@ -485,27 +589,39 @@ const calculateUserSavings = async (userId: Types.ObjectId) => {
 
 export const userSavingsHandler: RequestHandler = async (req, res) => {
   try {
-  const { userId } = req.query as unknown as UserSavingsQuery;
-  const user = await userModel.findOne({ _id: userId, withdraw: false });
-  if (!user) {
+    const { userId } = req.query as unknown as UserSavingsQuery;
+    const cacheKey = buildStatisticsCacheKey("user-savings", { userId });
+    const response = await getCachedOrCompute(
+      cacheKey,
+      CACHE_TTL_SECONDS.userSavings,
+      async () => {
+        const user = await userModel.findOne({ _id: userId, withdraw: false });
+        if (!user) {
+          throw new Error("USER_NOT_FOUND");
+        }
+
+        if (user.savings === null || user.savings === undefined) {
+          const totalSavings = await calculateUserSavings(user._id);
+          user.savings = totalSavings;
+          await user.save();
+        }
+
+        return {
+          metric: "user-savings",
+          userId: user._id.toString(),
+          currency: "KRW",
+          totalSavings: user.savings ?? 0,
+        };
+      }
+    );
+
+    return res.json(response);
+  } catch (err) {
+    if (err instanceof Error && err.message === "USER_NOT_FOUND") {
       return res
         .status(404)
         .json({ error: "Statistics/users/savings : user not found" });
     }
-
-    if (user.savings === null || user.savings === undefined) {
-      const totalSavings = await calculateUserSavings(user._id);
-      user.savings = totalSavings;
-      await user.save();
-    }
-
-    return res.json({
-      metric: "user-savings",
-      userId: user._id.toString(),
-      currency: "KRW",
-      totalSavings: user.savings ?? 0,
-    });
-  } catch (err) {
     logger.error(err);
     return res.status(500).json({
       error: "Statistics/users/savings : internal server error",
@@ -516,19 +632,31 @@ export const userSavingsHandler: RequestHandler = async (req, res) => {
 export const userDoneRoomCountHandler: RequestHandler = async (req, res) => {
   try {
     const { userId } = req.query as unknown as UserDoneRoomCountQuery;
-    const user = await userModel.findOne({ _id: userId, withdraw: false });
-    if (!user) {
+    const cacheKey = buildStatisticsCacheKey("user-done-room-count", { userId });
+    const response = await getCachedOrCompute(
+      cacheKey,
+      CACHE_TTL_SECONDS.userDoneRoomCount,
+      async () => {
+        const user = await userModel.findOne({ _id: userId, withdraw: false });
+        if (!user) {
+          throw new Error("USER_NOT_FOUND");
+        }
+
+        return {
+          metric: "user-done-room-count",
+          userId: user._id.toString(),
+          doneRoomCount: user.doneRoom?.length ?? 0,
+        };
+      }
+    );
+
+    return res.json(response);
+  } catch (err) {
+    if (err instanceof Error && err.message === "USER_NOT_FOUND") {
       return res
         .status(404)
         .json({ error: "Statistics/users/done-room-count : user not found" });
     }
-
-    return res.json({
-      metric: "user-done-room-count",
-      userId: user._id.toString(),
-      doneRoomCount: user.doneRoom?.length ?? 0,
-    });
-  } catch (err) {
     logger.error(err);
     return res.status(500).json({
       error: "Statistics/users/done-room-count : internal server error",
@@ -538,39 +666,48 @@ export const userDoneRoomCountHandler: RequestHandler = async (req, res) => {
 
 export const monthlyRoomCreationHandler: RequestHandler = async (_req, res) => {
   try {
-    const todayKST = startOfMonthKST(new Date());
-    const lastMonthStart = addMonths(todayKST, -1);
+    const cacheKey = buildStatisticsCacheKey("monthly-room-creation");
+    const response = await getCachedOrCompute(
+      cacheKey,
+      CACHE_TTL_SECONDS.monthlyRoomCreation,
+      async () => {
+        const todayKST = startOfMonthKST(new Date());
+        const lastMonthStart = addMonths(todayKST, -1);
 
-    if (lastMonthStart < START_OF_MONTH_TRACKING) {
-      return res.json({
-        metric: "monthly-room-creation",
-        timezone: SEOUL_TIMEZONE,
-        range: null,
-        months: [],
-      });
-    }
+        if (lastMonthStart < START_OF_MONTH_TRACKING) {
+          return {
+            metric: "monthly-room-creation",
+            timezone: SEOUL_TIMEZONE,
+            range: null,
+            months: [],
+          };
+        }
 
-    await ensureMonthlyRoomsThrough(lastMonthStart);
+        await ensureMonthlyRoomsThrough(lastMonthStart);
 
-    const months = await monthlyRoomCreationModel
-      .find({ month: { $lte: lastMonthStart } })
-      .sort({ month: 1 })
-      .lean();
+        const months = await monthlyRoomCreationModel
+          .find({ month: { $lte: lastMonthStart } })
+          .sort({ month: 1 })
+          .lean();
 
-    const responseMonths = months.map((doc) => ({
-      month: doc.month.toISOString(),
-      cumulativeRooms: doc.cumulativeRooms,
-    }));
+        const responseMonths = months.map((doc) => ({
+          month: doc.month.toISOString(),
+          cumulativeRooms: doc.cumulativeRooms,
+        }));
 
-    return res.json({
-      metric: "monthly-room-creation",
-      timezone: SEOUL_TIMEZONE,
-      range: {
-        startMonth: responseMonths[0]?.month ?? null,
-        endMonth: responseMonths.at(-1)?.month ?? null,
-      },
-      months: responseMonths,
-    });
+        return {
+          metric: "monthly-room-creation",
+          timezone: SEOUL_TIMEZONE,
+          range: {
+            startMonth: responseMonths[0]?.month ?? null,
+            endMonth: responseMonths.at(-1)?.month ?? null,
+          },
+          months: responseMonths,
+        };
+      }
+    );
+
+    return res.json(response);
   } catch (err) {
     logger.error(err);
     return res.status(500).json({
@@ -581,39 +718,48 @@ export const monthlyRoomCreationHandler: RequestHandler = async (_req, res) => {
 
 export const monthlyUserCreationHandler: RequestHandler = async (_req, res) => {
   try {
-    const todayKST = startOfMonthKST(new Date());
-    const lastMonthStart = addMonths(todayKST, -1);
+    const cacheKey = buildStatisticsCacheKey("monthly-user-creation");
+    const response = await getCachedOrCompute(
+      cacheKey,
+      CACHE_TTL_SECONDS.monthlyUserCreation,
+      async () => {
+        const todayKST = startOfMonthKST(new Date());
+        const lastMonthStart = addMonths(todayKST, -1);
 
-    if (lastMonthStart < START_OF_MONTH_TRACKING) {
-      return res.json({
-        metric: "monthly-user-creation",
-        timezone: SEOUL_TIMEZONE,
-        range: null,
-        months: [],
-      });
-    }
+        if (lastMonthStart < START_OF_MONTH_TRACKING) {
+          return {
+            metric: "monthly-user-creation",
+            timezone: SEOUL_TIMEZONE,
+            range: null,
+            months: [],
+          };
+        }
 
-    await ensureMonthlyUsersThrough(lastMonthStart);
+        await ensureMonthlyUsersThrough(lastMonthStart);
 
-    const months = await monthlyUserCreationModel
-      .find({ month: { $lte: lastMonthStart } })
-      .sort({ month: 1 })
-      .lean();
+        const months = await monthlyUserCreationModel
+          .find({ month: { $lte: lastMonthStart } })
+          .sort({ month: 1 })
+          .lean();
 
-    const responseMonths = months.map((doc) => ({
-      month: doc.month.toISOString(),
-      cumulativeUsers: doc.cumulativeUsers,
-    }));
+        const responseMonths = months.map((doc) => ({
+          month: doc.month.toISOString(),
+          cumulativeUsers: doc.cumulativeUsers,
+        }));
 
-    return res.json({
-      metric: "monthly-user-creation",
-      timezone: SEOUL_TIMEZONE,
-      range: {
-        startMonth: responseMonths[0]?.month ?? null,
-        endMonth: responseMonths.at(-1)?.month ?? null,
-      },
-      months: responseMonths,
-    });
+        return {
+          metric: "monthly-user-creation",
+          timezone: SEOUL_TIMEZONE,
+          range: {
+            startMonth: responseMonths[0]?.month ?? null,
+            endMonth: responseMonths.at(-1)?.month ?? null,
+          },
+          months: responseMonths,
+        };
+      }
+    );
+
+    return res.json(response);
   } catch (err) {
     logger.error(err);
     return res.status(500).json({
@@ -641,77 +787,91 @@ export const hourlyRoomCreationHandler: RequestHandler = async (req, res) => {
       });
     }
 
-    const locationObjectId = new Types.ObjectId(locationId);
-    const targetDayOfWeek = dayOfWeek + 1; // MongoDB dayOfWeek starts from 1 (Sunday)
+    const cacheKey = buildStatisticsCacheKey("hourly-room-creation", {
+      locationId,
+      dayOfWeek,
+      startDate: start.toISOString(),
+      endDate: endExclusive.toISOString(),
+    });
+    const response = await getCachedOrCompute(
+      cacheKey,
+      CACHE_TTL_SECONDS.hourlyRoomCreation,
+      async () => {
+        const locationObjectId = new Types.ObjectId(locationId);
+        const targetDayOfWeek = dayOfWeek + 1; // MongoDB dayOfWeek starts from 1 (Sunday)
 
-    const aggregationPipeline: PipelineStage[] = [
-      {
-        $match: {
-          from: locationObjectId,
-          time: { $type: "date", $gte: start, $lt: endExclusive },
-        },
-      },
-      {
-        $addFields: {
-          dayOfWeek: {
-            $dayOfWeek: { date: "$time", timezone: SEOUL_TIMEZONE },
+        const aggregationPipeline: PipelineStage[] = [
+          {
+            $match: {
+              from: locationObjectId,
+              time: { $type: "date", $gte: start, $lt: endExclusive },
+            },
           },
-        },
-      },
-      { $match: { dayOfWeek: targetDayOfWeek } },
-      {
-        $facet: {
-          hourly: [
-            {
-              $group: {
-                _id: {
-                  hour: {
-                    $hour: { date: "$time", timezone: SEOUL_TIMEZONE },
-                  },
-                },
-                count: { $sum: 1 },
+          {
+            $addFields: {
+              dayOfWeek: {
+                $dayOfWeek: { date: "$time", timezone: SEOUL_TIMEZONE },
               },
             },
-          ],
-        },
-      },
-    ];
+          },
+          { $match: { dayOfWeek: targetDayOfWeek } },
+          {
+            $facet: {
+              hourly: [
+                {
+                  $group: {
+                    _id: {
+                      hour: {
+                        $hour: { date: "$time", timezone: SEOUL_TIMEZONE },
+                      },
+                    },
+                    count: { $sum: 1 },
+                  },
+                },
+              ],
+            },
+          },
+        ];
 
-    const [aggregationResult] = await roomModel.aggregate<{
-      hourly: { _id: { hour: number }; count: number }[];
-      days: { value: number }[];
-    }>(aggregationPipeline);
+        const [aggregationResult] = await roomModel.aggregate<{
+          hourly: { _id: { hour: number }; count: number }[];
+          days: { value: number }[];
+        }>(aggregationPipeline);
 
-    const hourlyCounts = Array(24).fill(0);
-    const hourly = aggregationResult?.hourly ?? [];
-    for (const entry of hourly) {
-      const hour = entry?._id?.hour;
-      if (typeof hour === "number" && hour >= 0 && hour < 24) {
-        hourlyCounts[hour] = entry.count ?? 0;
+        const hourlyCounts = Array(24).fill(0);
+        const hourly = aggregationResult?.hourly ?? [];
+        for (const entry of hourly) {
+          const hour = entry?._id?.hour;
+          if (typeof hour === "number" && hour >= 0 && hour < 24) {
+            hourlyCounts[hour] = entry.count ?? 0;
+          }
+        }
+
+        const intervals = hourlyCounts.map((totalRooms, hour) => ({
+          hour,
+          timeRange: `${String(hour).padStart(2, "0")}:00-${String(
+            hour + 1
+          ).padStart(2, "0")}:00`,
+          totalRooms,
+        }));
+
+        return {
+          metric: "hourly-room-creation",
+          timezone: SEOUL_TIMEZONE,
+          startDate: start.toISOString(),
+          endDate: new Date(endExclusive.getTime() - 1).toISOString(),
+          location: {
+            id: location._id.toString(),
+            enName: location.enName,
+            koName: location.koName,
+          },
+          dayOfWeek,
+          intervals,
+        };
       }
-    }
+    );
 
-    const intervals = hourlyCounts.map((totalRooms, hour) => ({
-      hour,
-      timeRange: `${String(hour).padStart(2, "0")}:00-${String(
-        hour + 1
-      ).padStart(2, "0")}:00`,
-      totalRooms,
-    }));
-
-    return res.json({
-      metric: "hourly-room-creation",
-      timezone: SEOUL_TIMEZONE,
-      startDate: start.toISOString(),
-      endDate: new Date(endExclusive.getTime() - 1).toISOString(),
-      location: {
-        id: location._id.toString(),
-        enName: location.enName,
-        koName: location.koName,
-      },
-      dayOfWeek,
-      intervals,
-    });
+    return res.json(response);
   } catch (err) {
     logger.error(err);
     return res.status(500).json({
