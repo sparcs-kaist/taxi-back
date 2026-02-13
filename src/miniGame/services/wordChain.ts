@@ -9,6 +9,8 @@ import { Server } from "socket.io";
 import { Types } from "mongoose";
 import logger from "@/modules/logger";
 
+import { minigameReward, eventPeriod } from "@/lottery/modules/minigameReward";
+
 const wordChainTimeouts: Map<string, NodeJS.Timeout> = new Map();
 
 const TIMEOUT_MS = 15 * 1000;
@@ -46,6 +48,11 @@ const JudgeTimeout = async (io: Server, roomId: Types.ObjectId) => {
     const winner = await userModel.findById(winnerId);
     const winnerName = winner ? winner.nickname : "알 수 없음";
 
+    if (!winner) {
+      logger.error("there is no winner even though there is a player left.");
+      return;
+    }
+
     // Give winner some points
     const miniGameStatus = await miniGameModel.findOne({
       userId: winnerId,
@@ -54,6 +61,19 @@ const JudgeTimeout = async (io: Server, roomId: Types.ObjectId) => {
     if (miniGameStatus) {
       miniGameStatus.creditAmount += 10 * game.usedWords.length;
       await miniGameStatus.save();
+    }
+    // 이벤트 코드입니다.
+    const timestamp = Date.now();
+    if (
+      !eventPeriod ||
+      timestamp >= eventPeriod.endAt ||
+      timestamp < eventPeriod.startAt
+    ) {
+      minigameReward(
+        Math.min(700, game.usedWords.length * 0.01),
+        winner._id.toString(),
+        "wordChain"
+      );
     }
 
     await emitChatEvent(io, {
@@ -168,9 +188,7 @@ export const wordChain = async (
       roomId,
       type: "wordChain",
       content: `끝말잇기가 시작되었습니다! 첫 단어는 "${word}"입니다. 다음 차례는 ${
-        (
-          await userModel.findById(partId[currentPlayerIndex])
-        )?.nickname
+        (await userModel.findById(partId[currentPlayerIndex]))?.nickname
       }입니다.`,
     });
 

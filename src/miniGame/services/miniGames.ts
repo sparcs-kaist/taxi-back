@@ -2,6 +2,8 @@ import type { RequestHandler } from "express";
 import { miniGameModel } from "../modules/mongo";
 import { userModel } from "@/modules/stores/mongo";
 
+import { minigameReward, eventPeriod } from "@/lottery/modules/minigameReward";
+
 import { getLoginInfo, isLogin } from "@/modules/auths/login";
 import logger from "@/modules/logger";
 
@@ -25,7 +27,7 @@ const levelUpProb: LevelUpProbInfoType[] = [
   { success: 35, maintain: 45, fail: 20, burst: 0 },
   { success: 30, maintain: 40, fail: 30, burst: 0 },
   { success: 25, maintain: 45, fail: 30, burst: 0 },
-  { success: 15, maintain: 40, fail: 40, burst: 0 },
+  { success: 15, maintain: 45, fail: 40, burst: 0 },
   { success: 15, maintain: 45, fail: 40, burst: 0 },
   { success: 10, maintain: 35, fail: 45, burst: 10 },
   { success: 8, maintain: 32, fail: 40, burst: 20 },
@@ -134,13 +136,13 @@ export const reinforcementHandler: RequestHandler = async (req, res) => {
 
   let newLevel = currentLevel;
   let levelUpMessage = "";
-  if (rand <= probInfo.success) {
+  if (rand <= success) {
     newLevel = currentLevel + 1;
     levelUpMessage = "강화 성공!";
-  } else if (rand <= probInfo.success + probInfo.maintain) {
+  } else if (rand <= success + maintain) {
     newLevel = currentLevel;
     levelUpMessage = "강화 유지.";
-  } else if (rand <= probInfo.success + probInfo.maintain + probInfo.fail) {
+  } else if (rand <= success + maintain + fail) {
     newLevel = Math.max(1, currentLevel - 1);
     levelUpMessage = "강화 실패.";
   } else {
@@ -226,6 +228,15 @@ export const updateCreditHandler: RequestHandler = async (req, res) => {
         { new: true }
       )
       .lean();
+
+    const timestamp = req.timestamp ? req.timestamp : Date.now();
+    if (
+      !eventPeriod ||
+      timestamp >= eventPeriod.endAt ||
+      timestamp < eventPeriod.startAt
+    ) {
+      minigameReward(Math.min(700, score * 0.1), req.userOid, "dodgePoop");
+    }
 
     return res.json({ updatedMiniGame });
   } catch (err) {
