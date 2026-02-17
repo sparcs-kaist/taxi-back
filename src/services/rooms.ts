@@ -5,6 +5,7 @@ import {
   locationModel,
   userModel,
   type User,
+  chatModel,
 } from "@/modules/stores/mongo";
 import { emitChatEvent } from "@/modules/socket";
 import logger from "@/modules/logger";
@@ -17,16 +18,20 @@ import {
 } from "@/modules/populates/rooms";
 import { getRoomSavings } from "@/modules/savings";
 import type {
+  CommitPaymentBody,
+  CommitSettlementBody,
   CreateBody,
   CreateTestBody,
   SearchByTimeGapQuery,
   SearchQuery,
+  ToggleCarrierBody,
 } from "@/routes/docs/schemas/roomsSchema";
 import type { Room } from "@/types/mongo";
 
 import { eventConfig } from "@/loadenv";
 import { contracts } from "@/lottery";
 import { notifyRoomCreationAbuseToReportChannel } from "@/modules/slackNotification";
+import { type SettlementMeta, buildPaymentContent } from "@/modules/settlement";
 
 // 이벤트 코드입니다.
 const eventPeriod = eventConfig && {
@@ -689,7 +694,9 @@ export const commitSettlementHandler: RequestHandler = async (req, res) => {
         .json({ error: "Rooms/:id/commitSettlement : User not found" });
     }
 
-    const { roomId } = req.body;
+    const { roomId: roomIdStr, settlementAmount } =
+      req.body as CommitSettlementBody;
+    const roomId = new Types.ObjectId(roomIdStr);
     const roomObject = await roomModel
       .findOneAndUpdate(
         {
@@ -740,11 +747,28 @@ export const commitSettlementHandler: RequestHandler = async (req, res) => {
 
     await user.save();
 
+    const participantCount = roomObject.part.length;
+
+    // 정산 금액이 있을 시 총액, 인당 금액, 인원 수를 포함하는 데이터 생성.
+    const settlementMeta: SettlementMeta | undefined =
+      typeof settlementAmount === "number"
+        ? {
+            total: settlementAmount,
+            perPerson: Math.floor(settlementAmount / participantCount),
+            participantCount,
+          }
+        : undefined;
+
+    const content =
+      settlementMeta !== undefined
+        ? JSON.stringify(settlementMeta)
+        : user._id.toString();
+
     // 정산 채팅을 보냅니다.
     await emitChatEvent(req.app.get("io"), {
       roomId,
       type: "settlement",
-      content: user._id.toString(),
+      content,
       authorId: user._id.toString(),
     });
 
@@ -778,7 +802,8 @@ export const commitSettlementHandler: RequestHandler = async (req, res) => {
 
 export const commitPaymentHandler: RequestHandler = async (req, res) => {
   try {
-    const { roomId } = req.body;
+    const { roomId: roomIdStr } = req.body as CommitPaymentBody;
+    const roomId = new Types.ObjectId(roomIdStr);
     const user = await userModel.findOne({ _id: req.userOid, withdraw: false });
     if (!user) {
       return res
@@ -856,6 +881,53 @@ export const commitPaymentHandler: RequestHandler = async (req, res) => {
     logger.error(err);
     return res.status(500).json({
       error: "Rooms/:id/commitPayment : internal server error",
+    });
+  }
+};
+
+export const toggleCarrierHandler: RequestHandler = async (req, res) => {
+  const { roomId, hasCarrier } = req.body as ToggleCarrierBody;
+
+  try {
+    const user = await userModel.findOne({ _id: req.userOid, withdraw: false });
+    if (!user) {
+      return res
+        .status(400)
+        .json({ error: "Rooms/carrier/toggle : User not found" });
+    }
+
+    const roomObject = await roomModel
+      .findOneAndUpdate(
+        {
+          _id: roomId,
+          part: {
+            $elemMatch: {
+              user: user._id,
+            },
+          },
+        },
+        {
+          $set: { "part.$.hasCarrier": hasCarrier },
+        },
+        {
+          new: true,
+        }
+      )
+      .lean()
+      .populate<RoomPopulatePath>(roomPopulateOption);
+
+    if (!roomObject) {
+      return res.status(404).json({
+        error: "Rooms/carrier/toggle : cannot find room info",
+      });
+    }
+
+    const isOver = getIsOver(roomObject, user._id.toString());
+    return res.send(formatSettlement(roomObject, { isOver }));
+  } catch (err) {
+    logger.error(err);
+    return res.status(500).json({
+      error: "Rooms/carrier/toggle : internal server error",
     });
   }
 };

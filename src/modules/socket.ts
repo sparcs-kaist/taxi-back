@@ -6,6 +6,7 @@ import { Server } from "socket.io";
 import { sessionMiddleware } from "@/middlewares";
 import logger from "@/modules/logger";
 import { getLoginInfo, getBearerToken } from "@/modules/auths/login";
+import { resolveS3Url } from "@/modules/stores/aws";
 import { roomModel, userModel, chatModel } from "@/modules/stores/mongo";
 import { getTokensOfUsers, sendMessageByTokens } from "@/modules/fcm";
 import { corsWhiteList } from "@/loadenv";
@@ -15,6 +16,7 @@ import {
   type PopulatedChat,
 } from "@/modules/populates/chats";
 import type { ChatType } from "@/types/mongo";
+import { parseSettlementMeta, type SettlementMeta } from "./settlement";
 
 /**
  * emitChatEvent의 필수 파라미터가 주어지지 않은 경우 발생하는 예외를 정의하는 클래스입니다.
@@ -39,6 +41,7 @@ interface TransformedChat {
   time: Date;
   isValid: boolean;
   inOutNames?: string[];
+  settlementMeta?: SettlementMeta;
 }
 
 /**
@@ -59,18 +62,25 @@ export const transformChatsForRoom = async (chats: PopulatedChat[]) => {
           })
         );
       }
+
+      const settlementMeta: SettlementMeta | undefined =
+        chat.type === "settlement"
+          ? parseSettlementMeta(chat.content)
+          : undefined;
+
       return {
         roomId: chat.roomId.toString(),
         type: chat.type!,
         authorId: chat.authorId?._id?.toString(),
         authorName: chat.authorId?.nickname,
-        authorProfileUrl: chat.authorId?.profileImageUrl,
+        authorProfileUrl: resolveS3Url(chat.authorId?.profileImageUrl),
         authorIsWithdrew: chat.authorId?.withdraw,
         authorResidence: chat.authorId?.residence,
         content: chat.content,
         time: chat.time,
         isValid: chat.isValid,
         inOutNames,
+        ...(settlementMeta ? { settlementMeta } : {}),
       } satisfies TransformedChat;
     })
   );
@@ -220,7 +230,7 @@ export const emitChatEvent = async (
       type,
       name,
       getMessageBody(type, nickname, content),
-      profileImageUrl,
+      resolveS3Url(profileImageUrl),
       `/myroom/${roomId}`
     );
 

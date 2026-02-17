@@ -64,6 +64,7 @@ describe("[rooms] 2.infoHandler", () => {
     const resData = res._getData();
     expect(resData).to.has.property("name", "test-room");
     expect(resData).to.has.property("isOver");
+    expect(resData.part[0]).to.has.property("hasCarrier", false);
   });
 });
 
@@ -80,6 +81,7 @@ describe("[rooms] 3.publicInfoHandler", () => {
     const resData = res._getData();
     expect(resData).to.has.property("name", "test-room");
     expect(resData).to.has.property("isOver", undefined);
+    expect(resData.part[0]).to.has.property("hasCarrier", false);
   });
 });
 
@@ -103,6 +105,43 @@ describe("[rooms] 4.joinHandler", () => {
     const resData = res._getData();
     expect(resData).to.has.property("name", "test-room");
     expect(resData.part).to.have.lengthOf(2);
+  });
+});
+
+// 4-1. 캐리어 보유 여부를 토글한다.
+describe("[rooms] 4-1.toggleCarrierHandler", () => {
+  it("should toggle hasCarrier flag for participant", async () => {
+    const testUser1 = await userModel.findOne({ id: "test1" });
+    const testRoom = await roomModel.findOne({ name: "test-room" });
+    let req = httpMocks.createRequest({
+      body: {
+        roomId: testRoom!._id,
+        hasCarrier: true,
+      },
+      userOid: testUser1!._id,
+    });
+    let res = httpMocks.createResponse();
+    await roomsHandlers.toggleCarrierHandler(req, res, () => {});
+
+    const resData = res._getData();
+    const participant = resData.part.find(
+      (part: any) => part._id === testUser1!._id.toString()
+    );
+    expect(participant).to.has.property("hasCarrier", true);
+
+    // 토글된 값이 infoHandler에서도 반영되는지 확인
+    let infoReq = httpMocks.createRequest({
+      query: { id: testRoom!._id },
+      userOid: testUser1!._id,
+    });
+    let infoRes = httpMocks.createResponse();
+    await roomsHandlers.infoHandler(infoReq, infoRes, () => {});
+
+    const infoData = infoRes._getData();
+    const infoParticipant = infoData.part.find(
+      (part: any) => part._id === testUser1!._id.toString()
+    );
+    expect(infoParticipant).to.has.property("hasCarrier", true);
   });
 });
 

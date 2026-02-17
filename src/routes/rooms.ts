@@ -84,6 +84,12 @@ router.post(
   roomHandlers.commitPaymentHandler
 );
 
+router.post(
+  "/carrier/toggle",
+  validateBody(roomsZod.toggleCarrierHandler),
+  roomHandlers.toggleCarrierHandler
+);
+
 // json으로 수정할 값들을 받아 방의 정보를 수정합니다.
 // request JSON
 // roomId, name, from, to, time

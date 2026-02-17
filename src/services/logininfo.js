@@ -1,3 +1,4 @@
+const { resolveS3Url } = require("@/modules/stores/aws");
 const { userModel } = require("@/modules/stores/mongo");
 const { getLoginInfo } = require("@/modules/auths/login");
 const logger = require("@/modules/logger").default;
@@ -26,7 +27,7 @@ const logininfoHandler = async (req, res) => {
       agreeOnTermsOfService: userDetail.agreeOnTermsOfService,
       subinfo: userDetail.subinfo,
       email: userDetail.email,
-      profileImgUrl: userDetail.profileImageUrl,
+      profileImgUrl: resolveS3Url(userDetail.profileImageUrl),
       account: userDetail.account ? userDetail.account : "",
       deviceType: req.session?.isApp ? "app" : "web",
       deviceToken: req.session?.deviceToken,
