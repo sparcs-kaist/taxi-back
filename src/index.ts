@@ -123,7 +123,6 @@ const serverHttp = http
 app.set("io", startSocketServer(serverHttp));
 
 // [Schedule] 스케줄러 시작
-//registerSchedules(app); 해커톤 끝나면 켜야됨
-
+registerSchedules(app); 
 // [Module] 택시 예상 비용 db 초기화
 initializeFareDatabase();
