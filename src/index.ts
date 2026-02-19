@@ -121,7 +121,7 @@ const serverHttp = http
 app.set("io", startSocketServer(serverHttp));
 
 // [Schedule] 스케줄러 시작
-registerSchedules(app);
+//registerSchedules(app); (해커톤)
 
 // [Module] 택시 예상 비용 db 초기화
 initializeFareDatabase();

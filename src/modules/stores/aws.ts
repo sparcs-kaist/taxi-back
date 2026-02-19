@@ -53,5 +53,16 @@ export const foundObject = async (filePath: string) => {
 
 // function to return full URL of the object
 export const getS3Url = (filePath: string) => {
-  return `${awsEnv.s3Url}${filePath}`;
+  const normalizedPath = filePath.startsWith("/") ? filePath : `/${filePath}`;
+  return `${awsEnv.s3Url}${normalizedPath}`;
 };
+
+// function to resolve S3 URL or return original URL
+export function resolveS3Url(pathOrUrl: string): string;
+export function resolveS3Url(pathOrUrl?: string | null): string | undefined;
+export function resolveS3Url(pathOrUrl?: string | null) {
+  if (pathOrUrl == null) return undefined;
+  if (pathOrUrl === "") return "";
+  if (/^https?:\/\//i.test(pathOrUrl)) return pathOrUrl;
+  return getS3Url(pathOrUrl);
+}

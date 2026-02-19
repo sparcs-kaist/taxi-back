@@ -18,6 +18,7 @@ import type {
   SearchByTimeGapQuery,
   SearchQuery,
   UpdateArrivalBody,
+  ToggleCarrierBody,
 } from "@/routes/docs/schemas/roomsSchema";
 import type { Room } from "@/types/mongo";
 
@@ -832,14 +833,13 @@ export const commitPaymentHandler: RequestHandler = async (req, res) => {
 export const updateArrivalHandler: RequestHandler = async (req, res) => {
   try {
     const { roomId, isArrived } = req.body as UpdateArrivalBody;
-
     const user = await userModel.findOne({ _id: req.userOid, withdraw: false });
     if (!user) {
       return res
         .status(400)
         .json({ error: "Rooms/:id/updateArrival : User not found" });
     }
-
+    
     const roomObject = await roomModel
       .findOneAndUpdate(
         {
@@ -856,7 +856,6 @@ export const updateArrivalHandler: RequestHandler = async (req, res) => {
       )
       .lean()
       .populate<RoomPopulatePath>(roomPopulateOption);
-
     if (!roomObject) {
       const participantExists = await roomModel.exists({
         _id: roomId,
@@ -880,10 +879,55 @@ export const updateArrivalHandler: RequestHandler = async (req, res) => {
     logger.error(err);
     return res.status(500).json({
       error: "Rooms/:id/updateArrival : internal server error",
-    });
+      });
   }
 };
 
+export const toggleCarrierHandler: RequestHandler = async (req, res) => {
+  const { roomId, hasCarrier } = req.body as ToggleCarrierBody;
+
+  try {
+    const user = await userModel.findOne({ _id: req.userOid, withdraw: false });
+    if (!user) {
+      return res
+        .status(400)
+        .json({ error: "Rooms/carrier/toggle : User not found" });
+    }
+    
+    const roomObject = await roomModel
+      .findOneAndUpdate(
+        {
+          _id: roomId,
+          part: {
+            $elemMatch: {
+              user: user._id,
+              },
+          },
+        },
+        {
+          $set: { "part.$.hasCarrier": hasCarrier },
+        },
+        {
+          new: true,
+        }
+      )
+      .lean()
+      .populate<RoomPopulatePath>(roomPopulateOption);
+    if (!roomObject) {
+      return res.status(404).json({
+        error: "Rooms/carrier/toggle : cannot find room info",
+      });
+    }
+    const isOver = getIsOver(roomObject, user._id.toString());
+    return res.send(formatSettlement(roomObject, { isOver }));
+  } catch (err) {
+    logger.error(err);
+    return res.status(500).json({
+      error: "Rooms/carrier/toggle : internal server error",
+      });
+  }
+};
+    
 const checkIsAbusing = (
   { from, to, time, maxPartLength }: CreateTestBody,
   countRecentlyMadeRooms: number,
