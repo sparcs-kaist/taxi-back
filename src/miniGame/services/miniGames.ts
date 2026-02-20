@@ -235,7 +235,7 @@ export const updateCreditHandler: RequestHandler = async (req, res) => {
       timestamp >= eventPeriod.endAt ||
       timestamp < eventPeriod.startAt
     ) {
-      minigameReward(Math.min(700, score * 0.1), req.userOid, "dodgePoop");
+      minigameReward(Math.min(500, score * 0.1), req.userOid, "dodgePoop");
     }
 
     return res.json({ updatedMiniGame });

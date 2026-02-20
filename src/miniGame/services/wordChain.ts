@@ -70,7 +70,7 @@ const JudgeTimeout = async (io: Server, roomId: Types.ObjectId) => {
       timestamp < eventPeriod.startAt
     ) {
       minigameReward(
-        Math.min(700, game.usedWords.length * 0.01),
+        Math.min(800, game.usedWords.length * 8),
         winner._id.toString(),
         "wordChain"
       );
@@ -117,9 +117,7 @@ const JudgeTimeout = async (io: Server, roomId: Types.ObjectId) => {
     await emitChatEvent(io, {
       roomId,
       type: "wordChain",
-      content: `다음 차례는 ${nextPlayerName}입니다. ${game.currentWord.slice(
-        -1
-      )}로 시작하는 단어를 입력해주세요.`,
+      content: `다음 차례는 ${nextPlayerName}입니다.`,
     });
     const timeoutId = setTimeout(JudgeTimeout, TIMEOUT_MS, io, roomId);
     wordChainTimeouts.set(roomId.toString(), timeoutId);
@@ -169,7 +167,7 @@ export const wordChain = async (
       await emitChatEvent(io, {
         roomId,
         type: "wordChain",
-        content: `"${word}"(은)는 사전에 없는 단어입니다. 다른 단어를 입력해주세요.`,
+        content: `"${word}"(은)는 사전에 없습니다. 다른 단어를 입력해주세요.`,
       });
       return;
     }
@@ -208,8 +206,7 @@ export const wordChain = async (
       await emitChatEvent(io, {
         roomId,
         type: "wordChain",
-        content: `현재 차례가 아닌데 단어를 입력하셨습니다. 현재 차례는
-        ${currentPlayerName}님 입니다.`,
+        content: `현재 차례는 ${currentPlayerName}님 입니다.`,
       });
       return;
     }
@@ -218,7 +215,7 @@ export const wordChain = async (
       await emitChatEvent(io, {
         roomId,
         type: "wordChain",
-        content: `"${word}"(은)는 이미 사용된 단어입니다. 다른 단어를 입력해주세요.`,
+        content: `"${word}"(은)는 이미 사용되었습니다. 다른 단어를 입력해주세요.`,
       });
       return;
     }
@@ -228,7 +225,7 @@ export const wordChain = async (
       await emitChatEvent(io, {
         roomId,
         type: "wordChain",
-        content: `"${word}"(은)는 "${game.currentWord}"의 마지막 글자인 "${lastChar}"로 시작하지 않습니다. 다른 단어를 입력해주세요.`,
+        content: `"${word}"(은)는 마지막 글자인 "${lastChar}"로 시작하지 않습니다. 다른 단어를 입력해주세요.`,
       });
       return;
     }
