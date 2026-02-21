@@ -1,11 +1,6 @@
 import type { RequestHandler } from "express";
 import { Types, type PipelineStage } from "mongoose";
-import {
-  roomModel,
-  locationModel,
-  userModel,
-  chatModel,
-} from "@/modules/stores/mongo";
+import { roomModel, locationModel, userModel } from "@/modules/stores/mongo";
 import { emitChatEvent } from "@/modules/socket";
 import logger from "@/modules/logger";
 import {
@@ -22,6 +17,7 @@ import type {
   CreateTestBody,
   SearchByTimeGapQuery,
   SearchQuery,
+  UpdateArrivalBody,
   ToggleCarrierBody,
 } from "@/routes/docs/schemas/roomsSchema";
 import type { Room } from "@/types/mongo";
@@ -29,7 +25,8 @@ import type { Room } from "@/types/mongo";
 import { eventConfig } from "@/loadenv";
 import { contracts } from "@/lottery";
 import { notifyRoomCreationAbuseToReportChannel } from "@/modules/slackNotification";
-import { type SettlementMeta, buildPaymentContent } from "@/modules/settlement";
+import { allocateEmojiIdentifier } from "@/modules/roomIdentifier";
+import type { SettlementMeta } from "@/modules/settlement";
 
 // 이벤트 코드입니다.
 const eventPeriod = eventConfig && {
@@ -55,7 +52,8 @@ export const createHandler: RequestHandler = async (req, res) => {
       });
     }
 
-    const createTime = new Date(time);
+    const departureTime = new Date(time);
+    const createTime = new Date(departureTime);
     createTime.setHours(0, 0, 0, 0);
 
     const maxTime = new Date();
@@ -101,16 +99,18 @@ export const createHandler: RequestHandler = async (req, res) => {
     }
 
     const part = [{ user: user._id }]; // settlementStatus는 기본적으로 "not-departed"로 설정됨
+    const emojiIdentifier = await allocateEmojiIdentifier(departureTime); // 식별자 생성에 실패하더라도 오류를 발생시키지 않고 방을 생성합니다.
 
     let room = new roomModel({
       name: name,
       from: fromLoc._id,
       to: toLoc._id,
-      time: time,
+      time: departureTime,
       part: part,
       madeat: Date.now(),
       maxPartLength: maxPartLength,
       settlementTotal: 0,
+      emojiIdentifier: emojiIdentifier,
     });
     await room.save();
 
@@ -830,6 +830,59 @@ export const commitPaymentHandler: RequestHandler = async (req, res) => {
   }
 };
 
+export const updateArrivalHandler: RequestHandler = async (req, res) => {
+  try {
+    const { roomId, isArrived } = req.body as UpdateArrivalBody;
+    const user = await userModel.findOne({ _id: req.userOid, withdraw: false });
+    if (!user) {
+      return res
+        .status(400)
+        .json({ error: "Rooms/:id/updateArrival : User not found" });
+    }
+    
+    const roomObject = await roomModel
+      .findOneAndUpdate(
+        {
+          _id: roomId,
+          part: {
+            $elemMatch: {
+              user: user._id,
+              settlementStatus: { $nin: ["paid", "sent"] },
+            },
+          },
+        },
+        { $set: { "part.$.isArrived": isArrived } },
+        { new: true }
+      )
+      .lean()
+      .populate<RoomPopulatePath>(roomPopulateOption);
+    if (!roomObject) {
+      const participantExists = await roomModel.exists({
+        _id: roomId,
+        "part.user": user._id,
+      });
+      if (participantExists) {
+        return res.status(400).json({
+          error:
+            "Rooms/:id/updateArrival : cannot update after settlement or payment",
+        });
+      }
+      return res.status(404).json({
+        error: "Rooms/:id/updateArrival : cannot find corresponding room",
+      });
+    }
+
+    // 수정한 방 정보를 반환합니다.
+    const isOver = getIsOver(roomObject, user._id.toString());
+    return res.send(formatSettlement(roomObject, { isOver }));
+  } catch (err) {
+    logger.error(err);
+    return res.status(500).json({
+      error: "Rooms/:id/updateArrival : internal server error",
+      });
+  }
+};
+
 export const toggleCarrierHandler: RequestHandler = async (req, res) => {
   const { roomId, hasCarrier } = req.body as ToggleCarrierBody;
 
@@ -840,7 +893,7 @@ export const toggleCarrierHandler: RequestHandler = async (req, res) => {
         .status(400)
         .json({ error: "Rooms/carrier/toggle : User not found" });
     }
-
+    
     const roomObject = await roomModel
       .findOneAndUpdate(
         {
@@ -848,7 +901,7 @@ export const toggleCarrierHandler: RequestHandler = async (req, res) => {
           part: {
             $elemMatch: {
               user: user._id,
-            },
+              },
           },
         },
         {
@@ -860,23 +913,21 @@ export const toggleCarrierHandler: RequestHandler = async (req, res) => {
       )
       .lean()
       .populate<RoomPopulatePath>(roomPopulateOption);
-
     if (!roomObject) {
       return res.status(404).json({
         error: "Rooms/carrier/toggle : cannot find room info",
       });
     }
-
     const isOver = getIsOver(roomObject, user._id.toString());
     return res.send(formatSettlement(roomObject, { isOver }));
   } catch (err) {
     logger.error(err);
     return res.status(500).json({
       error: "Rooms/carrier/toggle : internal server error",
-    });
+      });
   }
 };
-
+    
 const checkIsAbusing = (
   { from, to, time, maxPartLength }: CreateTestBody,
   countRecentlyMadeRooms: number,

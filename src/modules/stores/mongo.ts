@@ -136,6 +136,7 @@ const participantSchema = new Schema({
     default: "not-departed",
   },
   readAt: { type: Date },
+  isArrived: { type: Boolean },
   hasCarrier: { type: Boolean },
 });
 
@@ -157,6 +158,7 @@ const roomSchema = new Schema({
   madeat: { type: Date, required: true }, // 생성 날짜
   settlementTotal: { type: Number, default: 0, required: true },
   maxPartLength: { type: Number, required: true, default: 4 },
+  emojiIdentifier: { type: String }, // 방 구분용 이모지
 });
 
 export const roomModel = model("Room", roomSchema);
