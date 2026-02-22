@@ -979,6 +979,48 @@ roomsDocs[`${apiPrefix}/commitPayment`] = {
   },
 };
 
+roomsDocs[`${apiPrefix}/updateArrival`] = {
+  post: {
+    tags: [tag],
+    summary: "출발지 도착 여부 변경",
+    description: `해당 방에 요청을 보낸 유저의 출발지 도착 여부를 변경합니다.<br/>
+    방의 \`part\` 배열에서 요청을 보낸 유저의 \`isArrived\` 속성을 변경합니다.`,
+    requestBody: {
+      content: {
+        "application/json": {
+          schema: {
+            type: "object",
+            required: ["roomId", "isArrived"],
+            properties: {
+              roomId: {
+                type: "string",
+                pattern: objectId.source,
+              },
+              isArrived: {
+                type: "boolean",
+                description: "출발지 도착 여부",
+              },
+            },
+          },
+        },
+      },
+    },
+    responses: {
+      200: {
+        description:
+          "출발지 도착 여부가 수정된 방의 세부 정보가 담긴 room Object",
+        content: {
+          "application/json": {
+            schema: {
+              $ref: "#/components/schemas/room",
+            },
+          },
+        },
+      },
+    },
+  },
+};
+
 roomsDocs[`${apiPrefix}/carrier/toggle`] = {
   post: {
     tags: [tag],
@@ -995,7 +1037,7 @@ roomsDocs[`${apiPrefix}/carrier/toggle`] = {
                 type: "string",
                 pattern: objectId.source,
               },
-              hasCarrier: {
+        hasCarrier: {
                 type: "boolean",
                 description: "보유 여부",
               },
@@ -1008,7 +1050,7 @@ roomsDocs[`${apiPrefix}/carrier/toggle`] = {
     responses: {
       200: {
         description: "갱신된 방의 세부 정보가 담긴 room Object",
-        content: {
+          content: {
           "application/json": {
             schema: {
               $ref: "#/components/schemas/room",

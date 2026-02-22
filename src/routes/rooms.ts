@@ -84,6 +84,14 @@ router.post(
   roomHandlers.commitPaymentHandler
 );
 
+// 해당 방에 요청을 보낸 유저의 출발지 도착 여부를 변경한다.
+router.post(
+  "/updateArrival",
+  validateBody(roomsZod.updateArrivalHandler),
+  roomHandlers.updateArrivalHandler
+);
+
+// 해당 방에 요청을 보낸 유저의 캐리어 소지 여부를 변경한다.
 router.post(
   "/carrier/toggle",
   validateBody(roomsZod.toggleCarrierHandler),
