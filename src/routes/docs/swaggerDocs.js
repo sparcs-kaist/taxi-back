@@ -3,6 +3,7 @@ const { roomsSchema } = require("./schemas/roomsSchema");
 const { fareSchema } = require("./schemas/fareSchema");
 const { chatsSchema } = require("./schemas/chatsSchema");
 const { emailsSchema } = require("./schemas/emailsSchema");
+const { statisticsSchema } = require("./schemas/statisticsSchema");
 const reportsDocs = require("./reports");
 const logininfoDocs = require("./logininfo");
 const locationsDocs = require("./locations");
@@ -14,6 +15,7 @@ const chatsDocs = require("./chats");
 const fareDocs = require("./fare");
 const noticeDocs = require("./notice").default;
 const emailsDocs = require("./emails").default;
+const statisticsDocs = require("./statistics").default;
 const { port, nodeEnv } = require("@/loadenv");
 
 const serverList = [
@@ -86,6 +88,10 @@ const swaggerDocs = {
       name: "emails",
       description: "이메일 관련 기능 (트래킹 등)",
     },
+    {
+      name: "statistics",
+      description: "통계 페이지",
+    },
   ],
   consumes: ["application/json"],
   produces: ["application/json"],
@@ -101,6 +107,7 @@ const swaggerDocs = {
     ...fareDocs,
     ...noticeDocs,
     ...emailsDocs,
+    ...statisticsDocs,
   },
   components: {
     schemas: {
@@ -109,6 +116,7 @@ const swaggerDocs = {
       ...fareSchema,
       ...chatsSchema,
       ...emailsSchema,
+      ...statisticsSchema,
     },
   },
 };
