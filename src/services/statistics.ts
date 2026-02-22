@@ -456,7 +456,6 @@ export const savingsHandler: RequestHandler = async (req, res) => {
           userId: userId ?? null,
           mode: isTotalMode ? "total" : "user",
           metric: "savings",
-          currency: "KRW",
           totalSavings,
           rooms: roomSavings,
         };
@@ -516,7 +515,6 @@ export const savingsByPeriodHandler: RequestHandler = async (req, res) => {
           totalSavings: periodSavings,
           cumulativeEnd,
           cumulativeBeforeStart,
-          currency: "KRW",
         };
       }
     );
@@ -547,7 +545,6 @@ export const savingsTotalHandler: RequestHandler = async (_req, res) => {
         return {
           metric: "savings-total",
           asOf: now.toISOString(),
-          currency: "KRW",
           totalSavings,
         };
       }
@@ -609,7 +606,6 @@ export const userSavingsHandler: RequestHandler = async (req, res) => {
         return {
           metric: "user-savings",
           userId: user._id.toString(),
-          currency: "KRW",
           totalSavings: user.savings ?? 0,
         };
       }

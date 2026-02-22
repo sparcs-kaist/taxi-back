@@ -51,7 +51,6 @@ statisticsDocs[`${apiPrefix}/savings`] = {
                   example: "savings",
                 },
                 mode: { type: "string", enum: ["total", "user"] },
-                currency: { type: "string" },
                 totalSavings: { type: "number" },
                 rooms: {
                   type: "array",
@@ -91,7 +90,6 @@ statisticsDocs[`${apiPrefix}/savings`] = {
               userId: "665b4d2c7c6f3fd1c1234567",
               metric: "savings",
               mode: "user",
-              currency: "KRW",
               totalSavings: 12000,
               rooms: [
                 {
@@ -179,7 +177,6 @@ statisticsDocs[`${apiPrefix}/savings/period`] = {
                 totalSavings: { type: "number" },
                 cumulativeEnd: { type: "number" },
                 cumulativeBeforeStart: { type: "number" },
-                currency: { type: "string" },
               },
             },
             example: {
@@ -189,7 +186,6 @@ statisticsDocs[`${apiPrefix}/savings/period`] = {
               cumulativeEnd: 120000,
               cumulativeBeforeStart: 40000,
               totalSavings: 80000,
-              currency: "KRW",
             },
           },
         },
@@ -235,7 +231,6 @@ statisticsDocs[`${apiPrefix}/savings/total`] = {
               properties: {
                 metric: { type: "string", example: "savings-total" },
                 asOf: { type: "string", format: "date-time" },
-                currency: { type: "string" },
                 totalSavings: { type: "number" },
               },
             },
@@ -243,7 +238,6 @@ statisticsDocs[`${apiPrefix}/savings/total`] = {
               metric: "savings-total",
               asOf: "2025-01-07T15:00:00.000Z",
               totalSavings: 123000,
-              currency: "KRW",
             },
           },
         },
@@ -283,7 +277,6 @@ statisticsDocs[`${apiPrefix}/users/savings`] = {
               properties: {
                 metric: { type: "string", example: "user-savings" },
                 userId: { type: "string" },
-                currency: { type: "string" },
                 totalSavings: { type: "number" },
               },
             },
@@ -291,7 +284,6 @@ statisticsDocs[`${apiPrefix}/users/savings`] = {
               metric: "user-savings",
               userId: "665b4d2c7c6f3fd1c1234567",
               totalSavings: 23000,
-              currency: "KRW",
             },
           },
         },
