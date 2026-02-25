@@ -33,7 +33,7 @@ export const minigameReward = async (
       ? 5000
       : minigameName === "wordChain"
         ? 8000
-        : 100000;
+        : 1000000;
   if (!userId) return null;
 
   const requestedAmount = Math.floor(amount);
@@ -94,8 +94,10 @@ export const minigameReward = async (
       }
 
       // 만약 넘친다면 남은 부분만 지급
-      const grantAmount = Math.min(requestedAmount, remaining);
-      if (grantAmount <= 0) return;
+      const grantAmount = Math.min(
+        requestedAmount,
+        remaining <= 0 ? 0 : remaining
+      );
 
       // 4) EventStatus 포인트 지급
       await eventStatusModel.updateOne(
@@ -104,11 +106,11 @@ export const minigameReward = async (
         { session }
       );
 
-      // 5) Transaction 기록 생성 (comment는 반드시 "minigame")
+      // 5) Transaction 기록 생성
       const [tx] = await transactionModel.create(
         [
           {
-            type: "get",
+            type: grantAmount >= 0 ? "get" : "use",
             amount: grantAmount,
             userId: userObjectId,
             comment: minigameName,

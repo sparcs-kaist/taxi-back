@@ -423,12 +423,12 @@ module.exports = {
   completeAllBadgedSettlementQuest,
   completeReferralInviterCredit,
   completeReferralInviteeCredit,
-  /*
-  completeFirstLoginQuest,
   completeFirstRoomCreationQuest,
   completeFareSettlementQuest,
   completeFarePaymentQuest,
   completeNicknameChangingQuest,
+  /*
+  completeFirstLoginQuest,
   completeAccountChangingQuest,
   completeAdPushAgreementQuest,
   completeEventSharingQuest,

@@ -23,8 +23,35 @@ import type {
   UploadChatImgDoneBody,
 } from "@/routes/docs/schemas/chatsSchema";
 import { wordChain } from "@/miniGame/services/wordChain";
+import { racingRoom } from "@/miniGame/services/racing";
 
 const chatCount = 60;
+
+const parseCarAmount = (input: string) => {
+  logger.info(`got content: ${input}`);
+  const m = input.match(/^\s*(\d+)\s*:\s*(\d+)\s*$/);
+  if (!m) {
+    return {
+      car: -1,
+      amount: 0,
+    };
+  }
+
+  const a = Number(m[1]);
+  const b = Number(m[2]);
+
+  if (!Number.isInteger(a) || !Number.isInteger(b) || b < 0) {
+    return {
+      car: -1,
+      amount: 0,
+    };
+  }
+
+  return {
+    car: a,
+    amount: b,
+  };
+};
 
 export const loadRecentChatHandler: RequestHandler = async (req, res) => {
   try {
@@ -184,6 +211,23 @@ export const sendChatHandler: RequestHandler = async (req, res) => {
       const result = await wordChain(io, room._id, content, user._id);
       logger.info(`wordChain result: ${JSON.stringify(result)}`);
       return res.json({ result: true });
+    }
+
+    if (type === "racing") {
+      const room = await roomModel.findById(roomId);
+      if (!room) {
+        return res.status(404).send("Chat/send : room not found");
+      }
+      logger.info(
+        `User ${user._id} sent racing chat in room ${room._id}: ${content}`
+      );
+      const { car, amount } = parseCarAmount(content);
+      if (car < 1) {
+        return res
+          .status(400)
+          .send("Chat/send : malformed car and amount at racing type.");
+      }
+      racingRoom(io, room._id, car, amount, user._id);
     }
 
     if (

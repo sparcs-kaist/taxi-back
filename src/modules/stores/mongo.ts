@@ -6,7 +6,6 @@ export type InferSchemaType<T> = mongoose.InferSchemaType<T> & {
 };
 
 const userSchema = new Schema({
-
   name: { type: String, required: true }, //실명
   nickname: { type: String, required: true }, //닉네임
   id: { type: String, required: true }, //택시 서비스에서만 사용되는 id
@@ -194,6 +193,8 @@ const chatSchema = new Schema({
       "departure", // 출발 15분 전 알림
       "arrival", // 출발 (1|24)시간 이후 알림 - 정산/송금 권유
       "wordChain", // 워드체인 미니게임 관련 메시지
+      "racing", // 경마 미니게임 관련 메시지
+      "raceLog", // 경마 미니게임 로그
     ],
   }, // 메시지 종류
   authorId: { type: Schema.Types.ObjectId, ref: "User" }, // 작성자 id
