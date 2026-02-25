@@ -11,6 +11,8 @@ import { minigameReward, eventPeriod } from "@/lottery/modules/minigameReward";
 import { getLoginInfo, isLogin } from "@/modules/auths/login";
 import logger from "@/modules/logger";
 
+import { contracts } from "@/lottery";
+
 type LevelUpProbInfoType = {
   success: number;
   maintain: number;
@@ -174,6 +176,8 @@ export const reinforcementHandler: RequestHandler = async (req, res) => {
     comment: "reinforcement",
   });
 
+  await contracts?.completeFirstReinforcementQuest(req.userOid, req.timestamp);
+
   return res.status(200).json({
     levelUpMessage,
     level: newLevel,
@@ -225,9 +229,8 @@ export const getMiniGameInfosHandler: RequestHandler = async (req, res) => {
 export const updateCreditHandler: RequestHandler = async (req, res) => {
   try {
     const { score } = req.body;
-    const creditAmount = score / 10;
-    if (typeof creditAmount !== "number" || creditAmount < 0) {
-      return res.status(400).json({ error: "Invalid credit amount" });
+    if (typeof score !== "number" || score < 0) {
+      return res.status(400).json({ error: "Invalid score" });
     }
 
     const currentMiniGame = await miniGameModel.findOne({
@@ -252,12 +255,14 @@ export const updateCreditHandler: RequestHandler = async (req, res) => {
 
     const timestamp = req.timestamp ? req.timestamp : Date.now();
     if (
-      !eventPeriod ||
-      timestamp >= eventPeriod.endAt ||
-      timestamp < eventPeriod.startAt
+      eventPeriod &&
+      timestamp < eventPeriod.endAt &&
+      timestamp >= eventPeriod.startAt
     ) {
       minigameReward(Math.min(500, score * 0.1), req.userOid, "dodgePoop");
     }
+
+    await contracts?.completeFirstMinigameQuest(req.userOid, req.timestamp);
 
     return res.json({ updatedMiniGame });
   } catch (err) {

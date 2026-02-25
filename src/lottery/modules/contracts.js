@@ -12,24 +12,40 @@ const eventPeriod = eventConfig && {
 
 /** 전체 퀘스트 목록입니다. */
 const quests = buildQuests({
-  /*
-  firstLogin: {
+  // firstLogin: {
+  //   name: "첫 발걸음",
+  //   description:
+  //     "이벤트 참여만 해도 넙죽코인을 얻을 수 있다고?? 이벤트 참여에 동의하고 넙죽코인을 받아보세요.",
+  //   imageUrl:
+  //     "https://sparcs-taxi-prod.s3.ap-northeast-2.amazonaws.com/assets/event-2025spring/quest_firstLogin.png",
+  //   reward: 200,
+  // },
+  phoneVerification: {
     name: "첫 발걸음",
     description:
-      "이벤트 참여만 해도 넙죽코인을 얻을 수 있다고?? 이벤트 참여에 동의하고 넙죽코인을 받아보세요.",
+      "이벤트 참여만 해도 강화 재화를 얻을 수 있다고?? 전화번호를 인증해서 강화 재화를 받아보세요.",
     imageUrl:
-      "https://sparcs-taxi-prod.s3.ap-northeast-2.amazonaws.com/assets/event-2025spring/quest_firstLogin.png",
-    reward: 200,
-  },
-  roomSharing: {
-    name: "4명!",
-    description:
-      "방을 공유해 친구들을 택시팟에 초대해 보세요. 최대 4명까지 참여할 수 있어요. 채팅창 상단의 햄버거(☰) 버튼을 누르면 <b>공유하기 버튼</b>을 찾을 수 있어요.",
-    imageUrl:
-      "https://sparcs-taxi-prod.s3.ap-northeast-2.amazonaws.com/assets/event-2025spring/quest_roomSharing.png",
+      "https://sparcs-taxi-prod.s3.ap-northeast-2.amazonaws.com/assets/event-2025fall/quest_phoneVerification.png",
     reward: 500,
-    isApiRequired: true,
+    maxCount: 1,
   },
+  firstRoomCreation: {
+    name: "첫 방 개설",
+    description:
+      "원하는 택시팟을 찾을 수 없다면? 원하는 조건으로 <b>방 개설 페이지</b>에서 방을 직접 개설해 보세요.",
+    imageUrl:
+      "https://sparcs-taxi-prod.s3.ap-northeast-2.amazonaws.com/assets/event-2025spring/quest_firstRoomCreation.png",
+    reward: 1000,
+  },
+  // roomSharing: {
+  //   name: "4명!",
+  //   description:
+  //     "방을 공유해 친구들을 택시팟에 초대해 보세요. 최대 4명까지 참여할 수 있어요. 채팅창 상단의 햄버거(☰) 버튼을 누르면 <b>공유하기 버튼</b>을 찾을 수 있어요.",
+  //   imageUrl:
+  //     "https://sparcs-taxi-prod.s3.ap-northeast-2.amazonaws.com/assets/event-2025spring/quest_roomSharing.png",
+  //   reward: 500,
+  //   isApiRequired: true,
+  // },
   accountChanging: {
     name: "계좌 등록을 해야 능률이 올라갑니다",
     description:
@@ -46,25 +62,26 @@ const quests = buildQuests({
       "https://sparcs-taxi-prod.s3.ap-northeast-2.amazonaws.com/assets/event-2025spring/quest_adPushAgreement.png",
     reward: 500,
   },
-  eventSharing: {
-    name: "Taxi를 아십니까",
-    description:
-      "내가 초대한 사람이 이벤트에 참여하면 넙죽코인을 드려요. 다른 사람의 초대를 받아 이벤트에 참여한 경우에도 이 퀘스트가 달성돼요.",
-    imageUrl:
-      "https://sparcs-taxi-prod.s3.ap-northeast-2.amazonaws.com/assets/event-2025spring/quest_eventSharing.png",
-    reward: 20,
-    maxCount: 0,
-  },
-  dailyAttendance: {
-    name: "매일매일 출석 췤!",
-    description:
-      "매일 Taxi에 접속해서 <b>밸런스 게임에 참여</b>하면 하루에 한 번씩 넙죽코인을 드려요! 매일 Taxi에서 택시팟 둘러보고 넙죽코인도 받아가세요. 밸런스 게임은 23시 55분까지만 참여할 수 있어요.",
-    imageUrl:
-      "https://sparcs-taxi-prod.s3.ap-northeast-2.amazonaws.com/assets/event-2025spring/quest_dailyAttendance.png",
-    reward: 100,
-    maxCount: 20,
-    isApiRequired: true,
-  },
+  // eventSharing: {
+  //   name: "Taxi를 아십니까",
+  //   description:
+  //     "내가 초대한 사람이 이벤트에 참여하면 넙죽코인을 드려요. 다른 사람의 초대를 받아 이벤트에 참여한 경우에도 이 퀘스트가 달성돼요.",
+  //   imageUrl:
+  //     "https://sparcs-taxi-prod.s3.ap-northeast-2.amazonaws.com/assets/event-2025spring/quest_eventSharing.png",
+  //   reward: 20,
+  //   maxCount: 0,
+  // },
+  // dailyAttendance: {
+  //   name: "매일매일 출석 췤!",
+  //   description:
+  //     "매일 Taxi에 접속해서 <b>밸런스 게임에 참여</b>하면 하루에 한 번씩 넙죽코인을 드려요! 매일 Taxi에서 택시팟 둘러보고 넙죽코인도 받아가세요. 밸런스 게임은 23시 55분까지만 참여할 수 있어요.",
+  //   imageUrl:
+  //     "https://sparcs-taxi-prod.s3.ap-northeast-2.amazonaws.com/assets/event-2025spring/quest_dailyAttendance.png",
+  //   reward: 100,
+  //   maxCount: 20,
+  //   isApiRequired: true,
+  // },
+  /*
   answerCorrectly: {
     name: "이기는 편 우리 편",
     description:
@@ -84,14 +101,6 @@ const quests = buildQuests({
   },
   */
   //2025 가을 이벤트 코드입니다.
-  firstRoomCreation: {
-    name: "첫 방 개설",
-    description:
-      "원하는 택시팟을 찾을 수 없다면? 원하는 조건으로 <b>방 개설 페이지</b>에서 방을 직접 개설해 보세요.",
-    imageUrl:
-      "https://sparcs-taxi-prod.s3.ap-northeast-2.amazonaws.com/assets/event-2025spring/quest_firstRoomCreation.png",
-    reward: 1000,
-  },
   fareSettlement: {
     name: "정산의 신, 신팍스",
     description:
@@ -118,24 +127,15 @@ const quests = buildQuests({
       "https://sparcs-taxi-prod.s3.ap-northeast-2.amazonaws.com/assets/event-2025spring/quest_nicknameChanging.png",
     reward: 1000,
   },
-  phoneVerification: {
-    name: "첫 발걸음",
-    description:
-      "이벤트 참여만 해도 강화 재화를 얻을 수 있다고?? 전화번호를 인증해서 강화 재화를 받아보세요.",
-    imageUrl:
-      "https://sparcs-taxi-prod.s3.ap-northeast-2.amazonaws.com/assets/event-2025fall/quest_phoneVerification.png",
-    reward: 500,
-    maxCount: 1,
-  },
-  allBadgedSettlement: {
-    name: "동승자 안심돼서 응모권 낳음",
-    description:
-      "방의 모든 인원이 인증 뱃지를 보유한 상태에서 정산하면 강화 재화를 받아요. (1일 최대 1회)",
-    imageUrl:
-      "https://sparcs-taxi-prod.s3.ap-northeast-2.amazonaws.com/assets/event-2025fall/quest_allBadgedSettlement.png",
-    reward: 1000,
-    maxCount: 0,
-  },
+  // allBadgedSettlement: {
+  //   name: "동승자 안심돼서 응모권 낳음",
+  //   description:
+  //     "방의 모든 인원이 인증 뱃지를 보유한 상태에서 정산하면 강화 재화를 받아요. (1일 최대 1회)",
+  //   imageUrl:
+  //     "https://sparcs-taxi-prod.s3.ap-northeast-2.amazonaws.com/assets/event-2025fall/quest_allBadgedSettlement.png",
+  //   reward: 1000,
+  //   maxCount: 0,
+  // },
   referralInviterCredit: {
     name: "친구 초대 보상(초대한 사람)",
     description: "초대한 친구가 전화번호 인증을 완료하면 코인을 받아요.",
@@ -160,6 +160,23 @@ const quests = buildQuests({
       "https://sparcs-taxi-prod.s3.ap-northeast-2.amazonaws.com/assets/event-2025spring/quest_indirectEventSharing.png",
     reward: 500,
     maxCount: 0,
+  },
+  firstReinforcement: {
+    name: "대장장이 데뷔",
+    description: "택시를 처음으로 강화해보세요! 드림카를 향해서...!",
+    imageUrl:
+      "https://sparcs-taxi-prod.s3.ap-northeast-2.amazonaws.com/assets/event-2025spring/quest_indirectEventSharing.png",
+    reward: 1000,
+    maxCount: 1,
+  },
+  firstMiniGame: {
+    name: "똥피하기",
+    description:
+      "미니게임을 처음 플레이해 보세요. 미니게임은 <b>강화 페이지</b>에서 할 수 있어요",
+    imageUrl:
+      "https://sparcs-taxi-prod.s3.ap-northeast-2.amazonaws.com/assets/event-2025spring/quest_indirectEventSharing.png",
+    reward: 1000,
+    maxCount: 1,
   },
 });
 
@@ -416,6 +433,28 @@ const completeItemPurchaseQuest = async (userId, timestamp) => {
   return await completeQuest(userId, timestamp, quests.itemPurchase);
 };
 
+/**
+ * firstReinforcement 퀘스트의 완료를 요청합니다.
+ * @param {string|mongoose.Types.ObjectId} userId - 퀘스트를 완료한 사용자의 ObjectId입니다.
+ * @param {number|Date} timestamp - 퀘스트 완료를 요청한 시각입니다.
+ * @returns {Promise}
+ * @usage miniGame - reinforcementHandler
+ */
+const completeFirstReinforcementQuest = async (userId, timestamp) => {
+  return await completeQuest(userId, timestamp, quests.firstReinforcement);
+};
+
+/**
+ * firstMinigame 퀘스트의 완료를 요청합니다.
+ * @param {string|mongoose.Types.ObjectId} userId - 퀘스트를 완료한 사용자의 ObjectId입니다.
+ * @param {number|Date} timestamp - 퀘스트 완료를 요청한 시각입니다.
+ * @returns {Promise}
+ * @usage minigame - updateCreditHandler
+ */
+const completeFirstMinigameQuest = async (userId, timestamp) => {
+  return await completeQuest(userId, timestamp, quests.firstMinigame);
+};
+
 module.exports = {
   quests,
   completeIndirectEventSharingQuest,
@@ -427,6 +466,10 @@ module.exports = {
   completeFareSettlementQuest,
   completeFarePaymentQuest,
   completeNicknameChangingQuest,
+  completeAccountChangingQuest,
+  completeAdPushAgreementQuest,
+  completeFirstReinforcementQuest,
+  completeFirstMinigameQuest,
   /*
   completeFirstLoginQuest,
   completeAccountChangingQuest,

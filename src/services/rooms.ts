@@ -779,11 +779,11 @@ export const commitSettlementHandler: RequestHandler = async (req, res) => {
     });
 
     //이벤트 코드입니다.
-    await contracts?.completeAllBadgedSettlementQuest(
-      req.timestamp!,
-      roomObject,
-      userModel
-    );
+    // await contracts?.completeAllBadgedSettlementQuest(
+    //   req.timestamp!,
+    //   roomObject,
+    //   userModel
+    // );
     // 이벤트 코드입니다.
     await contracts?.completeFareSettlementQuest(
       req.userOid,

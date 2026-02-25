@@ -58,9 +58,9 @@ const JudgeTimeout = async (io: Server, roomId: Types.ObjectId) => {
     // 이벤트 코드입니다.
     const timestamp = Date.now();
     if (
-      !eventPeriod ||
-      timestamp >= eventPeriod.endAt ||
-      timestamp < eventPeriod.startAt
+      eventPeriod &&
+      timestamp < eventPeriod.endAt &&
+      timestamp >= eventPeriod.startAt
     ) {
       minigameReward(
         Math.min(800, game.usedWords.length * 8),
@@ -102,9 +102,9 @@ const JudgeTimeout = async (io: Server, roomId: Types.ObjectId) => {
   } else {
     const timestamp = Date.now();
     if (
-      !eventPeriod ||
-      timestamp >= eventPeriod.endAt ||
-      timestamp < eventPeriod.startAt
+      eventPeriod &&
+      timestamp < eventPeriod.endAt &&
+      timestamp >= eventPeriod.startAt
     ) {
       minigameReward(
         Math.min(600, game.usedWords.length * 8),
