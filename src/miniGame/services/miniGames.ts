@@ -1,6 +1,10 @@
 import type { RequestHandler } from "express";
 import { miniGameModel } from "../modules/mongo";
 import { userModel } from "@/modules/stores/mongo";
+import {
+  eventStatusModel,
+  transactionModel,
+} from "@/lottery/modules/stores/mongo";
 
 import { minigameReward, eventPeriod } from "@/lottery/modules/minigameReward";
 
@@ -68,6 +72,11 @@ export const reinforcementHandler: RequestHandler = async (req, res) => {
     return res.status(404).json({ error: "MiniGame data not found" });
   }
 
+  const eventStatus = await eventStatusModel.findOne({ userId: user._id });
+  if (!eventStatus) {
+    return res.status(404).json({ error: "EventStatus data not found" });
+  }
+
   const currentLevel = miniGameData.level;
 
   // total 20 levels
@@ -78,7 +87,7 @@ export const reinforcementHandler: RequestHandler = async (req, res) => {
   }
 
   const reinforcementCost = currentLevel * 100;
-  if (miniGameData.creditAmount <= reinforcementCost) {
+  if (eventStatus.creditAmount <= reinforcementCost) {
     return res.status(400).json({
       error: "miniGame/miniGames/reinforcement: Insufficient credits",
     });
@@ -128,7 +137,7 @@ export const reinforcementHandler: RequestHandler = async (req, res) => {
     fail = 0;
   } else if (useBurst) {
     // 파괴 방지만: burst → fail
-    fail += burst;
+    maintain += burst;
     burst = 0;
   }
 
@@ -151,16 +160,24 @@ export const reinforcementHandler: RequestHandler = async (req, res) => {
   }
 
   miniGameData.level = newLevel;
-  miniGameData.creditAmount -= reinforcementCost;
+  eventStatus.creditAmount -= reinforcementCost;
   miniGameData.preventFail = remainingPreventFail;
   miniGameData.preventBurst = remainingPreventBurst;
   miniGameData.updatedAt = new Date();
   await miniGameData.save();
+  await eventStatus.save();
+
+  await transactionModel.create({
+    type: "use",
+    amount: reinforcementCost,
+    userId: user._id,
+    comment: "reinforcement",
+  });
 
   return res.status(200).json({
     levelUpMessage,
     level: newLevel,
-    creditAmount: miniGameData.creditAmount,
+    creditAmount: eventStatus.creditAmount,
   });
 };
 
@@ -171,11 +188,14 @@ export const getMiniGameInfosHandler: RequestHandler = async (req, res) => {
       .findOne({ userId })
       .select("level creditAmount preventFail preventBurst")
       .lean();
+    const eventStatus = await eventStatusModel.findOne({ userId }).lean();
+    if (!eventStatus) {
+      return res.status(404).send("No eventStatus");
+    }
     if (!miniGameStatus) {
       const newMiniGameStatus = new miniGameModel({
         userId: req.userOid,
         level: 0,
-        creditAmount: 0,
         preventFail: 0,
         preventBurst: 0,
         updatedAt: new Date(),
@@ -185,14 +205,19 @@ export const getMiniGameInfosHandler: RequestHandler = async (req, res) => {
       return res.json({
         miniGameStatus: {
           level: 0,
-          creditAmount: 0,
+          creditAmount: eventStatus.creditAmount,
           preventFail: 0,
           preventBurst: 0,
         },
       });
     }
     return res.json({
-      miniGameStatus,
+      miniGameStatus: {
+        level: miniGameStatus.level,
+        creditAmout: eventStatus.creditAmount,
+        preventFail: miniGameStatus.preventFail,
+        preventBurst: miniGameStatus.preventBurst,
+      },
     });
   } catch (err) {
     logger.error(err);
@@ -221,7 +246,6 @@ export const updateCreditHandler: RequestHandler = async (req, res) => {
       .findOneAndUpdate(
         { userId: req.userOid },
         {
-          creditAmount: currentMiniGame.creditAmount + creditAmount,
           dodgeScore: maxScore,
           updatedAt: new Date(),
         },
@@ -400,9 +424,14 @@ export const buyItemHandler: RequestHandler = async (req, res) => {
       return res.status(404).json({ error: "MiniGame data not found" });
     }
 
+    const eventStatus = await eventStatusModel.findOne({ userId });
+    if (!eventStatus) {
+      return res.status(404).json({ error: "eventStatus not found" });
+    }
+
     const itemCost = ITEM_COST[itemType];
 
-    if (miniGameData.creditAmount < itemCost) {
+    if (eventStatus.creditAmount < itemCost) {
       return res.status(400).json({
         error: "miniGame/miniGames/buy: Insufficient credits",
       });
@@ -425,15 +454,23 @@ export const buyItemHandler: RequestHandler = async (req, res) => {
       miniGameData.level = targetLevel;
     }
 
-    miniGameData.creditAmount -= itemCost;
+    eventStatus.creditAmount -= itemCost;
     miniGameData.updatedAt = new Date();
     await miniGameData.save();
+    await eventStatus.save();
+
+    await transactionModel.create({
+      type: "use",
+      amount: itemCost,
+      userId: userId,
+      comment: "reinforcement item buy",
+    });
 
     return res.status(200).json({
       level: miniGameData.level,
       preventFail: miniGameData.preventFail,
       preventBurst: miniGameData.preventBurst,
-      creditAmount: miniGameData.creditAmount,
+      creditAmount: eventStatus.creditAmount,
     });
   } catch (err) {
     logger.error(err);

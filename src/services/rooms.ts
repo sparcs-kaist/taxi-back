@@ -32,9 +32,7 @@ import type { Room } from "@/types/mongo";
 import { eventConfig } from "@/loadenv";
 import { contracts } from "@/lottery";
 import { notifyRoomCreationAbuseToReportChannel } from "@/modules/slackNotification";
-import { miniGameModel } from "@/miniGame/modules/mongo";
 
-const creditAmount = 5000;
 import { type SettlementMeta, buildPaymentContent } from "@/modules/settlement";
 import { allocateEmojiIdentifier } from "@/modules/roomIdentifier";
 
@@ -793,22 +791,6 @@ export const commitSettlementHandler: RequestHandler = async (req, res) => {
       roomObject
     );
 
-    const currentMiniGame = await miniGameModel.findOne({
-      userId: req.userOid,
-    });
-    if (currentMiniGame) {
-      await miniGameModel
-        .findOneAndUpdate(
-          { userId: req.userOid },
-          {
-            creditAmount: currentMiniGame.creditAmount + creditAmount,
-            updatedAt: new Date(),
-          },
-          { new: true }
-        )
-        .lean();
-    }
-
     // 유저의 아낀 금액을 갱신합니다.
     await applySavingsForUser(user, roomObject as unknown as PopulatedRoom);
 
@@ -891,22 +873,6 @@ export const commitPaymentHandler: RequestHandler = async (req, res) => {
       req.timestamp,
       roomObject
     );
-
-    const currentMiniGame = await miniGameModel.findOne({
-      userId: req.userOid,
-    });
-    if (currentMiniGame) {
-      await miniGameModel
-        .findOneAndUpdate(
-          { userId: req.userOid },
-          {
-            creditAmount: currentMiniGame.creditAmount + creditAmount,
-            updatedAt: new Date(),
-          },
-          { new: true }
-        )
-        .lean();
-    }
 
     // 유저의 아낀 금액을 갱신합니다.
     await applySavingsForUser(user, roomObject as unknown as PopulatedRoom);

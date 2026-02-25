@@ -21,14 +21,6 @@ const quests = buildQuests({
       "https://sparcs-taxi-prod.s3.ap-northeast-2.amazonaws.com/assets/event-2025spring/quest_firstLogin.png",
     reward: 200,
   },
-  firstRoomCreation: {
-    name: "첫 방 개설",
-    description:
-      "원하는 택시팟을 찾을 수 없다면? 원하는 조건으로 <b>방 개설 페이지</b>에서 방을 직접 개설해 보세요.",
-    imageUrl:
-      "https://sparcs-taxi-prod.s3.ap-northeast-2.amazonaws.com/assets/event-2025spring/quest_firstRoomCreation.png",
-    reward: 500,
-  },
   roomSharing: {
     name: "4명!",
     description:
@@ -37,32 +29,6 @@ const quests = buildQuests({
       "https://sparcs-taxi-prod.s3.ap-northeast-2.amazonaws.com/assets/event-2025spring/quest_roomSharing.png",
     reward: 500,
     isApiRequired: true,
-  },
-  fareSettlement: {
-    name: "정산의 신, 신팍스",
-    description:
-      "2명 이상과 함께 택시를 타고 택시비를 결제한 후 정산을 요청해 보세요. 정산하기 버튼은 채팅 페이지 좌측 하단의 <b>+ 버튼</b>을 눌러 찾을 수 있어요.",
-    imageUrl:
-      "https://sparcs-taxi-prod.s3.ap-northeast-2.amazonaws.com/assets/event-2025spring/quest_fareSettlement.png",
-    reward: 2000,
-    maxCount: 0,
-  },
-  farePayment: {
-    name: "송금 완료면 I am 신뢰에요",
-    description:
-      "2명 이상과 함께 택시를 타고 택시비를 결제한 분께 송금해 주세요. 송금하기 버튼은 채팅 페이지 좌측 하단의 <b>+ 버튼</b>을 눌러 찾을 수 있어요.",
-    imageUrl:
-      "https://sparcs-taxi-prod.s3.ap-northeast-2.amazonaws.com/assets/event-2025spring/quest_farePayment.png",
-    reward: 2000,
-    maxCount: 0,
-  },
-  nicknameChanging: {
-    name: "닉네임 폼 미쳤다",
-    description:
-      "닉네임을 변경하여 자신을 표현하세요. <b>마이 페이지</b>의 <b>수정하기</b> 버튼을 눌러 닉네임을 수정할 수 있어요.",
-    imageUrl:
-      "https://sparcs-taxi-prod.s3.ap-northeast-2.amazonaws.com/assets/event-2025spring/quest_nicknameChanging.png",
-    reward: 500,
   },
   accountChanging: {
     name: "계좌 등록을 해야 능률이 올라갑니다",
@@ -118,22 +84,56 @@ const quests = buildQuests({
   },
   */
   //2025 가을 이벤트 코드입니다.
+  firstRoomCreation: {
+    name: "첫 방 개설",
+    description:
+      "원하는 택시팟을 찾을 수 없다면? 원하는 조건으로 <b>방 개설 페이지</b>에서 방을 직접 개설해 보세요.",
+    imageUrl:
+      "https://sparcs-taxi-prod.s3.ap-northeast-2.amazonaws.com/assets/event-2025spring/quest_firstRoomCreation.png",
+    reward: 1000,
+  },
+  fareSettlement: {
+    name: "정산의 신, 신팍스",
+    description:
+      "2명 이상과 함께 택시를 타고 택시비를 결제한 후 정산을 요청해 보세요. 정산하기 버튼은 채팅 페이지 좌측 하단의 <b>+ 버튼</b>을 눌러 찾을 수 있어요.",
+    imageUrl:
+      "https://sparcs-taxi-prod.s3.ap-northeast-2.amazonaws.com/assets/event-2025spring/quest_fareSettlement.png",
+    reward: 5000,
+    maxCount: 0,
+  },
+  farePayment: {
+    name: "송금 완료면 I am 신뢰에요",
+    description:
+      "2명 이상과 함께 택시를 타고 택시비를 결제한 분께 송금해 주세요. 송금하기 버튼은 채팅 페이지 좌측 하단의 <b>+ 버튼</b>을 눌러 찾을 수 있어요.",
+    imageUrl:
+      "https://sparcs-taxi-prod.s3.ap-northeast-2.amazonaws.com/assets/event-2025spring/quest_farePayment.png",
+    reward: 5000,
+    maxCount: 0,
+  },
+  nicknameChanging: {
+    name: "닉네임 폼 미쳤다",
+    description:
+      "닉네임을 변경하여 자신을 표현하세요. <b>마이 페이지</b>의 <b>수정하기</b> 버튼을 눌러 닉네임을 수정할 수 있어요.",
+    imageUrl:
+      "https://sparcs-taxi-prod.s3.ap-northeast-2.amazonaws.com/assets/event-2025spring/quest_nicknameChanging.png",
+    reward: 1000,
+  },
   phoneVerification: {
     name: "첫 발걸음",
     description:
-      "이벤트 참여만 해도 응모권을 얻을 수 있다고?? 전화번호를 인증해서 응모권을 받아보세요.",
+      "이벤트 참여만 해도 강화 재화를 얻을 수 있다고?? 전화번호를 인증해서 강화 재화를 받아보세요.",
     imageUrl:
       "https://sparcs-taxi-prod.s3.ap-northeast-2.amazonaws.com/assets/event-2025fall/quest_phoneVerification.png",
-    reward: 5,
+    reward: 500,
     maxCount: 1,
   },
   allBadgedSettlement: {
     name: "동승자 안심돼서 응모권 낳음",
     description:
-      "방의 모든 인원이 인증 뱃지를 보유한 상태에서 정산하면 응모권을 받아요. (1일 최대 1회)",
+      "방의 모든 인원이 인증 뱃지를 보유한 상태에서 정산하면 강화 재화를 받아요. (1일 최대 1회)",
     imageUrl:
       "https://sparcs-taxi-prod.s3.ap-northeast-2.amazonaws.com/assets/event-2025fall/quest_allBadgedSettlement.png",
-    reward: 3,
+    reward: 1000,
     maxCount: 0,
   },
   referralInviterCredit: {
@@ -141,7 +141,7 @@ const quests = buildQuests({
     description: "초대한 친구가 전화번호 인증을 완료하면 코인을 받아요.",
     imageUrl:
       "https://sparcs-taxi-prod.s3.ap-northeast-2.amazonaws.com/assets/event-2025spring/quest_eventSharing.png",
-    reward: 3,
+    reward: 1000,
     maxCount: 0, // 여러 명 초대 가능
   },
   referralInviteeCredit: {
@@ -149,16 +149,16 @@ const quests = buildQuests({
     description: "초대 링크로 참여해 전화번호 인증을 완료하면 코인을 받아요.",
     imageUrl:
       "https://sparcs-taxi-prod.s3.ap-northeast-2.amazonaws.com/assets/event-2025spring/quest_eventSharing.png",
-    reward: 3,
+    reward: 1000,
     maxCount: 1, // 본인 1회
   },
   indirectEventSharing: {
     name: "응모권이 복사가 된다고?",
     description:
-      "내가 초대한 사람이 다른 누군가를 이벤트에 초대하면 응모권을 받아요. 그 사람이 또 다른 누군가를 초대하면 또 응모권을 받아요. 그 사람이 또 …",
+      "내가 초대한 사람이 다른 누군가를 이벤트에 초대하면 강화 재화를 받아요. 그 사람이 또 다른 누군가를 초대하면 또 강화 재화를 받아요. 그 사람이 또 …",
     imageUrl:
       "https://sparcs-taxi-prod.s3.ap-northeast-2.amazonaws.com/assets/event-2025spring/quest_indirectEventSharing.png",
-    reward: 2,
+    reward: 500,
     maxCount: 0,
   },
 });

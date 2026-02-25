@@ -49,19 +49,12 @@ const JudgeTimeout = async (io: Server, roomId: Types.ObjectId) => {
     const winnerName = winner ? winner.nickname : "알 수 없음";
 
     if (!winner) {
-      logger.error("there is no winner even though there is a player left.");
+      logger.error(
+        "there is no winner even though there is a player left. How it can be..."
+      );
       return;
     }
 
-    // Give winner some points
-    const miniGameStatus = await miniGameModel.findOne({
-      userId: winnerId,
-    });
-    // If user does not have miniGameStatus, skip point reward
-    if (miniGameStatus) {
-      miniGameStatus.creditAmount += 10 * game.usedWords.length;
-      await miniGameStatus.save();
-    }
     // 이벤트 코드입니다.
     const timestamp = Date.now();
     if (
@@ -107,6 +100,18 @@ const JudgeTimeout = async (io: Server, roomId: Types.ObjectId) => {
     });
     return;
   } else {
+    const timestamp = Date.now();
+    if (
+      !eventPeriod ||
+      timestamp >= eventPeriod.endAt ||
+      timestamp < eventPeriod.startAt
+    ) {
+      minigameReward(
+        Math.min(600, game.usedWords.length * 8),
+        droppedPlayer!._id.toString(),
+        "wordChain"
+      );
+    }
     game.currentPlayerIndex = game.currentPlayerIndex % game.players.length;
     game.updatedAt = new Date();
     await game.save();
