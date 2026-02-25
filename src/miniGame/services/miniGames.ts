@@ -189,9 +189,6 @@ export const getMiniGameInfosHandler: RequestHandler = async (req, res) => {
       .select("level creditAmount preventFail preventBurst")
       .lean();
     const eventStatus = await eventStatusModel.findOne({ userId }).lean();
-    if (!eventStatus) {
-      return res.status(404).send("No eventStatus");
-    }
     if (!miniGameStatus) {
       const newMiniGameStatus = new miniGameModel({
         userId: req.userOid,
@@ -205,7 +202,7 @@ export const getMiniGameInfosHandler: RequestHandler = async (req, res) => {
       return res.json({
         miniGameStatus: {
           level: 0,
-          creditAmount: eventStatus.creditAmount,
+          creditAmount: eventStatus?.creditAmount || 0,
           preventFail: 0,
           preventBurst: 0,
         },
@@ -214,7 +211,7 @@ export const getMiniGameInfosHandler: RequestHandler = async (req, res) => {
     return res.json({
       miniGameStatus: {
         level: miniGameStatus.level,
-        creditAmout: eventStatus.creditAmount,
+        creditAmount: eventStatus?.creditAmount || 0,
         preventFail: miniGameStatus.preventFail,
         preventBurst: miniGameStatus.preventBurst,
       },
