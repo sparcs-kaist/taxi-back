@@ -1,3 +1,4 @@
+import { resolveS3Url } from "@/modules/stores/aws";
 import type {
   User,
   SettlementStatus,
@@ -14,7 +15,7 @@ export const roomPopulateOption = [
   { path: "to", select: "_id koName enName latitude longitude" },
   {
     path: "part",
-    select: "-_id user settlementStatus readAt",
+    select: "-_id user settlementStatus readAt isArrived hasCarrier",
     populate: {
       path: "user",
       select: "_id id name nickname profileImageUrl withdraw badge",
@@ -30,7 +31,10 @@ type PopulatedUser = Pick<
   User,
   "_id" | "id" | "name" | "nickname" | "profileImageUrl" | "withdraw" | "badge"
 >;
-type PopulatedParticipant = Pick<Participant, "settlementStatus" | "readAt"> & {
+type PopulatedParticipant = Pick<
+  Participant,
+  "settlementStatus" | "readAt" | "isArrived" | "hasCarrier"
+> & {
   user: PopulatedUser | null;
 };
 
@@ -58,6 +62,7 @@ export interface FormattedRoom {
   time: Date;
   madeat: Date;
   maxPartLength: number;
+  emojiIdentifier?: string;
   part: {
     _id: string;
     name: string;
@@ -66,6 +71,8 @@ export interface FormattedRoom {
     withdraw: boolean;
     isSettlement?: SettlementStatus;
     readAt: Date;
+    isArrived?: boolean;
+    hasCarrier: boolean;
   }[];
   settlementTotal?: number;
   isOver?: boolean;
@@ -106,16 +113,20 @@ export const formatSettlement = (
     part: roomObject.part.map((participantSubDocument) => {
       const { _id, name, nickname, profileImageUrl, withdraw, badge } =
         participantSubDocument.user!;
-      const { settlementStatus, readAt } = participantSubDocument;
+      const { settlementStatus, readAt, hasCarrier } = participantSubDocument;
       return {
         _id: _id!.toString(),
         name,
         nickname,
-        profileImageUrl,
+        profileImageUrl: resolveS3Url(profileImageUrl),
         withdraw,
         badge,
         isSettlement: includeSettlement ? settlementStatus : undefined,
         readAt: readAt ?? roomObject.madeat,
+        isArrived: includeSettlement
+          ? participantSubDocument.isArrived ?? false
+          : undefined,
+        hasCarrier: hasCarrier ?? false,
       };
     }),
     settlementTotal: includeSettlement ? roomObject.settlementTotal : undefined,

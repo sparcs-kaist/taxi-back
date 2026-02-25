@@ -21,6 +21,7 @@ const userSchema = new Schema({
   ban: { type: Boolean, default: false }, //계정 정지 여부
   joinat: { type: Date, required: true }, //가입 시각
   agreeOnTermsOfService: { type: Boolean, default: false }, //이용약관 동의 여부
+  savings: { type: Number, default: null }, // 누적 아낀 금액 (null이면 아직 계산되지 않음)
   subinfo: {
     kaist: { type: String, default: "" },
     sparcs: { type: String, default: "" },
@@ -138,6 +139,8 @@ const participantSchema = new Schema({
     default: "not-departed",
   },
   readAt: { type: Date },
+  isArrived: { type: Boolean },
+  hasCarrier: { type: Boolean },
 });
 
 export type Participant = InferSchemaType<typeof participantSchema>;
@@ -158,6 +161,7 @@ const roomSchema = new Schema({
   madeat: { type: Date, required: true }, // 생성 날짜
   settlementTotal: { type: Number, default: 0, required: true },
   maxPartLength: { type: Number, required: true, default: 4 },
+  emojiIdentifier: { type: String }, // 방 구분용 이모지
 });
 
 export const roomModel = model("Room", roomSchema);
@@ -286,6 +290,43 @@ const noticeSchema = new Schema(
 
 export const noticeModel = model("Notice", noticeSchema);
 export type Notice = InferSchemaType<typeof noticeSchema>;
+
+const dailySavingsSchema = new Schema({
+  date: { type: Date, required: true, unique: true },
+  cumulativeSavings: { type: Number, required: true },
+});
+dailySavingsSchema.index({ date: 1 });
+
+export const dailySavingsModel = model("DailySavings", dailySavingsSchema);
+export type DailySavings = InferSchemaType<typeof dailySavingsSchema>;
+
+const monthlyRoomCreationSchema = new Schema({
+  month: { type: Date, required: true, unique: true }, // month start (UTC)
+  cumulativeRooms: { type: Number, required: true },
+});
+monthlyRoomCreationSchema.index({ month: 1 });
+
+export const monthlyRoomCreationModel = model(
+  "MonthlyRoomCreation",
+  monthlyRoomCreationSchema
+);
+export type MonthlyRoomCreation = InferSchemaType<
+  typeof monthlyRoomCreationSchema
+>;
+
+const monthlyUserCreationSchema = new Schema({
+  month: { type: Date, required: true, unique: true }, // month start (UTC)
+  cumulativeUsers: { type: Number, required: true },
+});
+monthlyUserCreationSchema.index({ month: 1 });
+
+export const monthlyUserCreationModel = model(
+  "MonthlyUserCreation",
+  monthlyUserCreationSchema
+);
+export type MonthlyUserCreation = InferSchemaType<
+  typeof monthlyUserCreationSchema
+>;
 
 mongoose.set("strictQuery", true);
 

@@ -32,6 +32,7 @@ import {
   notificationRouter,
   reportRouter,
   roomRouter,
+  statisticsRouter,
   userRouter,
 } from "@/routes";
 
@@ -109,6 +110,7 @@ app.use("/notice", noticeRouter);
 app.use("/notifications", notificationRouter);
 app.use("/reports", reportRouter);
 app.use("/rooms", roomRouter);
+app.use("/statistics", statisticsRouter);
 app.use("/users", userRouter);
 
 // [Middleware] 전역 에러 핸들러. 에러 핸들러는 router들보다 아래에 등록되어야 합니다.
@@ -125,7 +127,6 @@ const serverHttp = http
 app.set("io", startSocketServer(serverHttp));
 
 // [Schedule] 스케줄러 시작
-registerSchedules(app);
-
+registerSchedules(app); 
 // [Module] 택시 예상 비용 db 초기화
 initializeFareDatabase();
