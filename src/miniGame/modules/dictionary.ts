@@ -10,26 +10,54 @@ export const getDictionary = async () => {
       "src/miniGame/dictionary.txt",
       "utf-8"
     );
-    const words = fileContent.split("\n").map((w) => w.trim());
-    logger.info(`Loaded ${words.length} words into dictionary`);
 
-    let batch: { word: string }[] = [];
+    const words = fileContent
+      .split("\n")
+      .map((w) => w.trim())
+      .filter((w) => w.length > 0);
+
+    logger.info(`Loaded ${words.length} words from file`);
+
+    let batch: string[] = [];
+    let insertedCount = 0;
+
     for (let i = 0; i < words.length; i++) {
-      batch.push({ word: words[i] });
+      batch.push(words[i]);
 
       if (batch.length >= BATCH_SIZE) {
-        await dictionaryModel.insertMany(batch);
+        insertedCount += await processBatch(batch);
         batch = [];
       }
     }
 
     if (batch.length > 0) {
-      await dictionaryModel.insertMany(batch);
+      insertedCount += await processBatch(batch);
     }
 
-    const result = await dictionaryModel.find();
-    logger.info(`Inserted ${result.length} words into dictionary collection`);
+    logger.info(`Dictionary load completed. Newly inserted: ${insertedCount}`);
   } catch (err) {
-    logger.error("Dictionary already loaded or error occurred:", err);
+    logger.error("Dictionary load failed:", err);
+  }
+};
+
+const processBatch = async (words: string[]) => {
+  try {
+    const operations = words.map((word) => ({
+      updateOne: {
+        filter: { word },
+        update: { $setOnInsert: { word } },
+        upsert: true,
+      },
+    }));
+
+    const result = await dictionaryModel.bulkWrite(operations, {
+      ordered: false,
+    });
+
+    // upsertedCount = 실제 새로 insert 된 개수
+    return result.upsertedCount || 0;
+  } catch (err) {
+    logger.warn("Batch processed with some errors (duplicates skipped)");
+    return 0;
   }
 };
