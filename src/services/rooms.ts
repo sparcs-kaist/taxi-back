@@ -37,7 +37,6 @@ import { miniGameModel } from "@/miniGame/modules/mongo";
 const creditAmount = 5000;
 import { type SettlementMeta, buildPaymentContent } from "@/modules/settlement";
 import { allocateEmojiIdentifier } from "@/modules/roomIdentifier";
-import type { SettlementMeta } from "@/modules/settlement";
 
 // 이벤트 코드입니다.
 const eventPeriod = eventConfig && {
@@ -931,7 +930,7 @@ export const updateArrivalHandler: RequestHandler = async (req, res) => {
         .status(400)
         .json({ error: "Rooms/:id/updateArrival : User not found" });
     }
-    
+
     const roomObject = await roomModel
       .findOneAndUpdate(
         {
@@ -971,7 +970,7 @@ export const updateArrivalHandler: RequestHandler = async (req, res) => {
     logger.error(err);
     return res.status(500).json({
       error: "Rooms/:id/updateArrival : internal server error",
-      });
+    });
   }
 };
 
@@ -985,7 +984,7 @@ export const toggleCarrierHandler: RequestHandler = async (req, res) => {
         .status(400)
         .json({ error: "Rooms/carrier/toggle : User not found" });
     }
-    
+
     const roomObject = await roomModel
       .findOneAndUpdate(
         {
@@ -993,7 +992,7 @@ export const toggleCarrierHandler: RequestHandler = async (req, res) => {
           part: {
             $elemMatch: {
               user: user._id,
-              },
+            },
           },
         },
         {
@@ -1016,10 +1015,10 @@ export const toggleCarrierHandler: RequestHandler = async (req, res) => {
     logger.error(err);
     return res.status(500).json({
       error: "Rooms/carrier/toggle : internal server error",
-      });
+    });
   }
 };
-    
+
 const checkIsAbusing = (
   { from, to, time, maxPartLength }: CreateTestBody,
   countRecentlyMadeRooms: number,
