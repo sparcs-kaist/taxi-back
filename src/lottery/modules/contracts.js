@@ -36,6 +36,7 @@ const quests = buildQuests({
     imageUrl:
       "https://sparcs-taxi-prod.s3.ap-northeast-2.amazonaws.com/assets/event-2025spring/quest_firstRoomCreation.png",
     reward: 1000,
+    maxCount: 1,
   },
   // roomSharing: {
   //   name: "4명!",
@@ -52,7 +53,8 @@ const quests = buildQuests({
       "정산하기 기능을 더욱 빠르게 이용할 수 있다고? 계좌 번호를 등록하면 정산하기를 할 때 계좌가 자동으로 입력돼요. <b>마이 페이지</b>의 <b>수정하기</b> 버튼을 눌러 계좌 번호를 등록할 수 있어요.",
     imageUrl:
       "https://sparcs-taxi-prod.s3.ap-northeast-2.amazonaws.com/assets/event-2025spring/quest_accountChanging.png",
-    reward: 500,
+    reward: 200,
+    maxCount: 1,
   },
   adPushAgreement: {
     name: "잊을만하면 찾아오는 Taxi",
@@ -61,6 +63,7 @@ const quests = buildQuests({
     imageUrl:
       "https://sparcs-taxi-prod.s3.ap-northeast-2.amazonaws.com/assets/event-2025spring/quest_adPushAgreement.png",
     reward: 500,
+    maxCount: 1,
   },
   // eventSharing: {
   //   name: "Taxi를 아십니까",
@@ -107,7 +110,7 @@ const quests = buildQuests({
       "2명 이상과 함께 택시를 타고 택시비를 결제한 후 정산을 요청해 보세요. 정산하기 버튼은 채팅 페이지 좌측 하단의 <b>+ 버튼</b>을 눌러 찾을 수 있어요.",
     imageUrl:
       "https://sparcs-taxi-prod.s3.ap-northeast-2.amazonaws.com/assets/event-2025spring/quest_fareSettlement.png",
-    reward: 5000,
+    reward: 1000,
     maxCount: 0,
   },
   farePayment: {
@@ -116,7 +119,7 @@ const quests = buildQuests({
       "2명 이상과 함께 택시를 타고 택시비를 결제한 분께 송금해 주세요. 송금하기 버튼은 채팅 페이지 좌측 하단의 <b>+ 버튼</b>을 눌러 찾을 수 있어요.",
     imageUrl:
       "https://sparcs-taxi-prod.s3.ap-northeast-2.amazonaws.com/assets/event-2025spring/quest_farePayment.png",
-    reward: 5000,
+    reward: 1000,
     maxCount: 0,
   },
   nicknameChanging: {
@@ -125,7 +128,8 @@ const quests = buildQuests({
       "닉네임을 변경하여 자신을 표현하세요. <b>마이 페이지</b>의 <b>수정하기</b> 버튼을 눌러 닉네임을 수정할 수 있어요.",
     imageUrl:
       "https://sparcs-taxi-prod.s3.ap-northeast-2.amazonaws.com/assets/event-2025spring/quest_nicknameChanging.png",
-    reward: 1000,
+    reward: 200,
+    maxCount: 1,
   },
   // allBadgedSettlement: {
   //   name: "동승자 안심돼서 응모권 낳음",
@@ -141,7 +145,7 @@ const quests = buildQuests({
     description: "초대한 친구가 전화번호 인증을 완료하면 코인을 받아요.",
     imageUrl:
       "https://sparcs-taxi-prod.s3.ap-northeast-2.amazonaws.com/assets/event-2025spring/quest_eventSharing.png",
-    reward: 1000,
+    reward: 500,
     maxCount: 0, // 여러 명 초대 가능
   },
   referralInviteeCredit: {
@@ -149,16 +153,16 @@ const quests = buildQuests({
     description: "초대 링크로 참여해 전화번호 인증을 완료하면 코인을 받아요.",
     imageUrl:
       "https://sparcs-taxi-prod.s3.ap-northeast-2.amazonaws.com/assets/event-2025spring/quest_eventSharing.png",
-    reward: 1000,
+    reward: 500,
     maxCount: 1, // 본인 1회
   },
   indirectEventSharing: {
-    name: "응모권이 복사가 된다고?",
+    name: "코인이 복사가 된다고?",
     description:
-      "내가 초대한 사람이 다른 누군가를 이벤트에 초대하면 강화 재화를 받아요. 그 사람이 또 다른 누군가를 초대하면 또 강화 재화를 받아요. 그 사람이 또 …",
+      "내가 초대한 사람이 다른 누군가를 이벤트에 초대하면 코인을 받아요. 그 사람이 또 다른 누군가를 초대하면 또 코인을 받아요. 그 사람이 또 …",
     imageUrl:
       "https://sparcs-taxi-prod.s3.ap-northeast-2.amazonaws.com/assets/event-2025spring/quest_indirectEventSharing.png",
-    reward: 500,
+    reward: 200,
     maxCount: 0,
   },
   firstReinforcement: {
@@ -166,13 +170,22 @@ const quests = buildQuests({
     description: "택시를 처음으로 강화해보세요! 드림카를 향해서...!",
     imageUrl:
       "https://sparcs-taxi-prod.s3.ap-northeast-2.amazonaws.com/assets/event-2025spring/quest_indirectEventSharing.png",
-    reward: 1000,
+    reward: 500,
     maxCount: 1,
   },
   firstMiniGame: {
     name: "똥피하기",
     description:
       "미니게임을 처음 플레이해 보세요. 미니게임은 <b>강화 페이지</b>에서 할 수 있어요",
+    imageUrl:
+      "https://sparcs-taxi-prod.s3.ap-northeast-2.amazonaws.com/assets/event-2025spring/quest_indirectEventSharing.png",
+    reward: 500,
+    maxCount: 1,
+  },
+  useCoupon: {
+    name: "쿠폰 사용",
+    description:
+      "해오름식, 오픈 동방에서 받은 쿠폰 코드를 사용해 보세요. 쿠폰은 <b>안내 페이지</b>에서 사용할 수 있어요.",
     imageUrl:
       "https://sparcs-taxi-prod.s3.ap-northeast-2.amazonaws.com/assets/event-2025spring/quest_indirectEventSharing.png",
     reward: 1000,
@@ -452,14 +465,24 @@ const completeFirstReinforcementQuest = async (userId, timestamp) => {
  * @usage minigame - updateCreditHandler
  */
 const completeFirstMinigameQuest = async (userId, timestamp) => {
-  return await completeQuest(userId, timestamp, quests.firstMinigame);
+  return await completeQuest(userId, timestamp, quests.firstMiniGame);
+};
+
+/**
+ * useCoupon 퀘스트의 완료를 요청합니다.
+ * @param {string|mongoose.Types.ObjectId} userId - 퀘스트를 완료한 사용자의 ObjectId입니다.
+ * @param {number|Date} timestamp - 퀘스트 완료를 요청한 시각입니다.
+ * @returns {Promise}
+ * @usage items - useCouponHandler
+ */
+const completeUseCouponQuest = async (userId, timestamp) => {
+  return await completeQuest(userId, timestamp, quests.useCoupon);
 };
 
 module.exports = {
   quests,
   completeIndirectEventSharingQuest,
   completePhoneVerificationQuest,
-  completeAllBadgedSettlementQuest,
   completeReferralInviterCredit,
   completeReferralInviteeCredit,
   completeFirstRoomCreationQuest,
@@ -470,6 +493,7 @@ module.exports = {
   completeAdPushAgreementQuest,
   completeFirstReinforcementQuest,
   completeFirstMinigameQuest,
+  completeUseCouponQuest,
   /*
   completeFirstLoginQuest,
   completeAccountChangingQuest,

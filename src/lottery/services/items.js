@@ -424,17 +424,26 @@ const purchaseItemHandler = async (req, res) => {
 
 const useCouponHandler = async (req, res) => {
   try {
+    // const { couponCode } = req.params;
+    // const coupon = await itemModel.findOne({ couponCode, itemType: 4 }).lean();
+    // if (!coupon)
+    //   return res
+    //     .status(400)
+    //     .json({ error: "Items/useCoupon : invalid coupon" });
+
+    // const { result, error } = await purchaseItem(req, coupon, 1);
+    // if (error)
+    //   return res.status(400).json({ error: `Items/useCoupon : ${error}` });
+    // return res.json(result);
     const { couponCode } = req.params;
-    const coupon = await itemModel.findOne({ couponCode, itemType: 4 }).lean();
-    if (!coupon)
+    if (couponCode === "S2026SPRINGSPARCSTAXI") {
+      await contracts.completeUseCouponQuest(req.userOid, req.timestamp);
+    } else {
       return res
         .status(400)
         .json({ error: "Items/useCoupon : invalid coupon" });
-
-    const { result, error } = await purchaseItem(req, coupon, 1);
-    if (error)
-      return res.status(400).json({ error: `Items/useCoupon : ${error}` });
-    return res.json(result);
+    }
+    return res.json({ result: { result: true } });
   } catch (err) {
     logger.error(err);
     res.status(500).json({ error: "Items/useCoupon : internal server error" });

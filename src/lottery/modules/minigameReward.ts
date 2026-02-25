@@ -30,9 +30,9 @@ export const minigameReward = async (
 ) => {
   const DAILY_MINIGAME_CAP =
     minigameName === "dodgePoop"
-      ? 5000
+      ? 500
       : minigameName === "wordChain"
-        ? 8000
+        ? 400
         : 1000000;
   if (!userId) return null;
 

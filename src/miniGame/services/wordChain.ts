@@ -63,7 +63,7 @@ const JudgeTimeout = async (io: Server, roomId: Types.ObjectId) => {
       timestamp >= eventPeriod.startAt
     ) {
       minigameReward(
-        Math.min(800, game.usedWords.length * 8),
+        Math.min(300, game.usedWords.length * 3),
         winner._id.toString(),
         "wordChain"
       );
@@ -107,7 +107,7 @@ const JudgeTimeout = async (io: Server, roomId: Types.ObjectId) => {
       timestamp >= eventPeriod.startAt
     ) {
       minigameReward(
-        Math.min(600, game.usedWords.length * 8),
+        Math.min(200, game.usedWords.length * 2),
         droppedPlayer!._id.toString(),
         "wordChain"
       );

@@ -50,10 +50,10 @@ type ItemType =
   | "makeLevel12";
 
 const ITEM_COST: Record<ItemType, number> = {
-  preventFail: 500,
-  preventBurst: 700,
-  makeLevel7: 1500,
-  makeLevel10: 2500,
+  preventFail: 1000,
+  preventBurst: 1400,
+  makeLevel7: 2000,
+  makeLevel10: 3000,
   makeLevel12: 4000,
 };
 
@@ -88,7 +88,7 @@ export const reinforcementHandler: RequestHandler = async (req, res) => {
     });
   }
 
-  const reinforcementCost = currentLevel * 100;
+  const reinforcementCost = 200 > currentLevel * 20 ? 200 : currentLevel * 20;
   if (eventStatus.creditAmount <= reinforcementCost) {
     return res.status(400).json({
       error: "miniGame/miniGames/reinforcement: Insufficient credits",
