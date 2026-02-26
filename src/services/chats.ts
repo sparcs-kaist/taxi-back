@@ -22,8 +22,36 @@ import type {
   UploadChatImgGetPUrlBody,
   UploadChatImgDoneBody,
 } from "@/routes/docs/schemas/chatsSchema";
+import { wordChain } from "@/miniGame/services/wordChain";
+import { racingRoom, racingStart } from "@/miniGame/services/racing";
 
 const chatCount = 60;
+
+const parseCarAmount = (input: string) => {
+  logger.info(`got content: ${input}`);
+  const m = input.match(/^\s*(\d+)\s*:\s*(\d+)\s*$/);
+  if (!m) {
+    return {
+      car: -1,
+      amount: 0,
+    };
+  }
+
+  const a = Number(m[1]);
+  const b = Number(m[2]);
+
+  if (!Number.isInteger(a) || !Number.isInteger(b) || b < 0) {
+    return {
+      car: -1,
+      amount: 0,
+    };
+  }
+
+  return {
+    car: a,
+    amount: b,
+  };
+};
 
 export const loadRecentChatHandler: RequestHandler = async (req, res) => {
   try {
@@ -168,6 +196,56 @@ export const sendChatHandler: RequestHandler = async (req, res) => {
       return res
         .status(403)
         .send("Chat/send : user did not participated in the room");
+    }
+    logger.info(`User ${user._id} sent a chat${content}`);
+
+    if (type === "wordChain") {
+      const room = await roomModel.findById(roomId);
+      if (!room) {
+        // will not happen (just to satisfy typescript compiler)
+        return res.status(404).send("Chat/send : room not found");
+      }
+      logger.info(
+        `User ${user._id} sent wordChain chat in room ${room._id}: ${content}`
+      );
+      await emitChatEvent(io, {
+        roomId,
+        type,
+        content,
+        authorId: user._id,
+      });
+      const result = await wordChain(io, room._id, content, user._id);
+      logger.info(`wordChain result: ${JSON.stringify(result)}`);
+      return res.json({ result: true });
+    }
+
+    if (type === "racing") {
+      const room = await roomModel.findById(roomId);
+      if (!room) {
+        return res.status(404).send("Chat/send : room not found");
+      }
+      logger.info(
+        `User ${user._id} sent racing chat in room ${room._id}: ${content}`
+      );
+      const { car, amount } = parseCarAmount(content);
+      if (car < 1) {
+        return res
+          .status(400)
+          .send("Chat/send : malformed car and amount at racing type.");
+      }
+      const racingRes = await racingRoom(io, room._id, car, amount, user._id);
+      if (!racingRes.success) {
+        return res.status(400).send(`Chat/send : ${racingRes.error}`);
+      }
+    }
+    if (type === "racingStart") {
+      const room = await roomModel.findById(roomId);
+      if (!room) {
+        return res.status(404).send("Chat/send : room not found");
+      }
+      logger.info(`User ${user._id} sent racingStart chat in room ${room._id}`);
+      await racingStart(io, room._id, user._id);
+      return res.json({ result: true });
     }
 
     if (

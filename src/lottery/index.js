@@ -30,7 +30,7 @@ lotteryRouter.use("/invites", require("./routes/invites"));
 lotteryRouter.use("/transactions", require("./routes/transactions"));
 lotteryRouter.use("/items", require("./routes/items"));
 // lotteryRouter.use("/publicNotice", require("./routes/publicNotice"));
-//lotteryRouter.use("/quests", require("./routes/quests"));
+lotteryRouter.use("/quests", require("./routes/quests"));
 //lotteryRouter.use("/quizzes", require("./routes/quizzes").default);
 
 // [AdminJS] AdminJS에 표시할 Resource 생성

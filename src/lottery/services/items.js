@@ -4,6 +4,7 @@ const {
   transactionModel,
 } = require("../modules/stores/mongo");
 const { userModel } = require("../../modules/stores/mongo");
+const { resolveS3Url } = require("../../modules/stores/aws");
 const { isLogin, getLoginInfo } = require("../../modules/auths/login");
 const logger = require("@/modules/logger").default;
 
@@ -135,7 +136,7 @@ const getItemLeaderboardHandler = async (req, res) => {
           return {
             userId: user.userId,
             nickname: userInfo.nickname,
-            profileImageUrl: userInfo.profileImageUrl,
+            profileImageUrl: resolveS3Url(userInfo.profileImageUrl),
             amount: user.amount,
             probability: user.probability,
             rank: user.rank,
@@ -423,17 +424,28 @@ const purchaseItemHandler = async (req, res) => {
 
 const useCouponHandler = async (req, res) => {
   try {
+    // const { couponCode } = req.params;
+    // const coupon = await itemModel.findOne({ couponCode, itemType: 4 }).lean();
+    // if (!coupon)
+    //   return res
+    //     .status(400)
+    //     .json({ error: "Items/useCoupon : invalid coupon" });
+
+    // const { result, error } = await purchaseItem(req, coupon, 1);
+    // if (error)
+    //   return res.status(400).json({ error: `Items/useCoupon : ${error}` });
+    // return res.json(result);
     const { couponCode } = req.params;
-    const coupon = await itemModel.findOne({ couponCode, itemType: 4 }).lean();
-    if (!coupon)
+    if (couponCode === "2026WELCOMETAXI") {
+      await contracts.completeUseCoupon1Quest(req.userOid, req.timestamp);
+    } else if (couponCode === "2026WELCOMESPARCS") {
+      await contracts.completeUseCoupon2Quest(req.userOid, req.timestamp);
+    } else {
       return res
         .status(400)
         .json({ error: "Items/useCoupon : invalid coupon" });
-
-    const { result, error } = await purchaseItem(req, coupon, 1);
-    if (error)
-      return res.status(400).json({ error: `Items/useCoupon : ${error}` });
-    return res.json(result);
+    }
+    return res.json({ result: { result: true } });
   } catch (err) {
     logger.error(err);
     res.status(500).json({ error: "Items/useCoupon : internal server error" });
