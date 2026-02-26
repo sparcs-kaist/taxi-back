@@ -63,7 +63,7 @@ const JudgeTimeout = async (io: Server, roomId: Types.ObjectId) => {
       timestamp >= eventPeriod.startAt
     ) {
       minigameReward(
-        Math.min(300, game.usedWords.length * 3),
+        Math.min(800, game.usedWords.length * 8),
         winner._id.toString(),
         "wordChain"
       );
@@ -72,7 +72,7 @@ const JudgeTimeout = async (io: Server, roomId: Types.ObjectId) => {
     await emitChatEvent(io, {
       roomId,
       type: "wordChain",
-      content: `${winnerName}(이)가 승리했습니다.`,
+      content: `${winnerName}(이)가 승리했습니다. ${game.usedWords.length * 8}의 재화를 획득했습니다.`,
     });
 
     const timeout = wordChainTimeouts.get(roomIdStr);
@@ -101,16 +101,24 @@ const JudgeTimeout = async (io: Server, roomId: Types.ObjectId) => {
     return;
   } else {
     const timestamp = Date.now();
+    if (!droppedPlayer) {
+      return;
+    }
     if (
       eventPeriod &&
       timestamp < eventPeriod.endAt &&
       timestamp >= eventPeriod.startAt
     ) {
       minigameReward(
-        Math.min(200, game.usedWords.length * 2),
-        droppedPlayer!._id.toString(),
+        Math.min(400, game.usedWords.length * 4),
+        droppedPlayer._id.toString(),
         "wordChain"
       );
+      await emitChatEvent(io, {
+        roomId,
+        type: "wordChain",
+        content: `${droppedPlayer.nickname}님이 ${game.usedWords.length * 4}의 재화를 수령하셨습니다.`,
+      });
     }
     game.currentPlayerIndex = game.currentPlayerIndex % game.players.length;
     game.updatedAt = new Date();

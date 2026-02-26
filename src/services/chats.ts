@@ -216,6 +216,7 @@ export const sendChatHandler: RequestHandler = async (req, res) => {
       });
       const result = await wordChain(io, room._id, content, user._id);
       logger.info(`wordChain result: ${JSON.stringify(result)}`);
+      return res.json({ result: true });
     }
 
     if (type === "racing") {
@@ -245,13 +246,12 @@ export const sendChatHandler: RequestHandler = async (req, res) => {
     }
 
     if (
-      type !== "wordChain" &&
-      (await emitChatEvent(io, {
+      await emitChatEvent(io, {
         roomId,
         type,
         content,
         authorId: user._id,
-      }))
+      })
     )
       return res.json({ result: true });
     else return res.status(500).send("Chat/send : internal server error");
