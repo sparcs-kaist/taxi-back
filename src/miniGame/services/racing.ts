@@ -82,7 +82,7 @@ const getRaceEntries = (race: any): RacingEntry[] => {
 };
 
 /**
- * waiting -> starting 전환 후 실제 경마 진행 진입
+ * waiting -> starting 전환 후 실제 레이스 진행 진입
  */
 const startRacingFromWaiting = async (io: Server, roomId: Types.ObjectId) => {
   const race = await racingModel.findOne({ roomId, status: "waiting" });
@@ -117,7 +117,7 @@ const startRacingFromWaiting = async (io: Server, roomId: Types.ObjectId) => {
   await emitChatEvent(io, {
     roomId,
     type: "racing",
-    content: `호스트가 경마를 시작합니다. (${startedRace.players.length}명)\n참가자: ${playerNames.join(
+    content: `호스트가 레이스를 시작합니다. (${startedRace.players.length}명)\n참가자: ${playerNames.join(
       ", "
     )}`,
   });
@@ -130,7 +130,7 @@ const startRacingFromWaiting = async (io: Server, roomId: Types.ObjectId) => {
 /**
  * 외부에서 호출하는 단일 진입점
  * 1) room 확인
- * 2) waiting 경마방 있으면 참가
+ * 2) waiting 레이스방 있으면 참가
  * 3) 없으면 생성 (host는 생성 요청자)
  * 4) 시작은 racingStart()로
  */
@@ -181,17 +181,17 @@ export const racingRoom = async (
     return { success: false, error: roomCheck.error };
   }
 
-  // 이미 starting 상태인 경마가 있으면 참여 불가
+  // 이미 starting 상태인 레이스가 있으면 참여 불가
   const alreadyStarting = await racingModel.findOne({
     roomId,
     status: "starting",
   });
 
   if (alreadyStarting) {
-    return { success: false, error: "이미 시작 중인 경마가 있습니다." };
+    return { success: false, error: "이미 시작 중인 레이스가 있습니다." };
   }
 
-  // 2) waiting 경마방 찾기
+  // 2) waiting 레이스방 찾기
   let race = await racingModel.findOne({
     roomId,
     status: "waiting",
@@ -232,7 +232,7 @@ export const racingRoom = async (
       logger.error(
         `Racing waiting room create failed: room=${roomId}, err=${e}`
       );
-      return { success: false, error: "경마 방 생성에 실패했습니다." };
+      return { success: false, error: "레이스 방 생성에 실패했습니다." };
     }
 
     logger.info(`Racing waiting room created: room=${roomId}`);
@@ -242,7 +242,7 @@ export const racingRoom = async (
     await emitChatEvent(io, {
       roomId,
       type: "racing",
-      content: `${hostName}님이 경마 방을 만들었습니다. 참가자가 모이면 호스트가 시작할 수 있습니다.`,
+      content: `${hostName}님이 레이스 방을 만들었습니다. 참가자가 모이면 호스트가 시작할 수 있습니다.`,
     });
 
     return {
@@ -305,7 +305,7 @@ export const racingRoom = async (
     logger.error(
       `Racing join save failed: room=${roomId}, user=${userId}, err=${e}`
     );
-    return { success: false, error: "경마 참가 처리에 실패했습니다." };
+    return { success: false, error: "레이스 참가 처리에 실패했습니다." };
   }
 
   const joinedName = await getUserNickname(userId);
@@ -313,7 +313,7 @@ export const racingRoom = async (
   await emitChatEvent(io, {
     roomId,
     type: "racing",
-    content: `${joinedName}님이 경마 방에 참가했습니다. (차량: ${car}, 배팅: ${amount}) (${race.players.length}명)\n호스트가 시작하면 경주가 진행됩니다.`,
+    content: `${joinedName}님이 레이스 방에 참가했습니다. (차량: ${car}, 배팅: ${amount}) (${race.players.length}명)\n호스트가 시작하면 경주가 진행됩니다.`,
   });
 
   return {
@@ -341,7 +341,7 @@ export const racingStart = async (
   // host 검증
   const hostId = (race.host as Types.ObjectId | undefined)?.toString?.();
   if (!hostId || hostId !== userId.toString()) {
-    return { success: false, error: "호스트만 경마를 시작할 수 있습니다." };
+    return { success: false, error: "호스트만 레이스를 시작할 수 있습니다." };
   }
 
   // 인원 체크 (기존 방어 유지)
@@ -354,7 +354,7 @@ export const racingStart = async (
 };
 
 /**
- * allRaceDone()이 호출되면, 해당 방의 waiting 경마를 즉시 canceled 처리
+ * allRaceDone()이 호출되면, 해당 방의 waiting 레이스를 즉시 canceled 처리
  * - signature: roomId만 받음
  * - 취소 시 원금 환급(기존 방어 유지)
  */
@@ -617,7 +617,7 @@ const emitRaceLog = async (
 };
 
 /**
- * waiting 종료 후 실제 경마 진행 로직
+ * waiting 종료 후 실제 레이스 진행 로직
  */
 const runRacingGame = async (io: Server, raceId: Types.ObjectId) => {
   try {
@@ -638,7 +638,7 @@ const runRacingGame = async (io: Server, raceId: Types.ObjectId) => {
       await emitChatEvent(io, {
         roomId,
         type: "racing",
-        content: "경마를 진행할 참가 정보가 없어 종료되었습니다.",
+        content: "레이스를 진행할 참가 정보가 없어 종료되었습니다.",
       });
       return;
     }
@@ -660,7 +660,7 @@ const runRacingGame = async (io: Server, raceId: Types.ObjectId) => {
     await emitChatEvent(io, {
       roomId,
       type: "racing",
-      content: `경마를 시작합니다.\n참가 내역: ${entrySummary}`,
+      content: `레이스를 시작합니다.\n참가 내역: ${entrySummary}`,
     });
 
     // 1) 레이스 로그 생성
@@ -745,7 +745,7 @@ const runRacingGame = async (io: Server, raceId: Types.ObjectId) => {
       await emitChatEvent(io, {
         roomId: race.roomId as Types.ObjectId,
         type: "racing",
-        content: "경마 진행 중 오류가 발생했습니다.",
+        content: "레이스 진행 중 오류가 발생했습니다.",
       });
 
       race.status = "finished";
