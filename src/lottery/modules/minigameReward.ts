@@ -110,7 +110,7 @@ export const minigameReward = async (
     const [tx] = await transactionModel.create([
       {
         type: grantAmount >= 0 ? "get" : "use",
-        amount: grantAmount,
+        amount: grantAmount >= 0 ? grantAmount : -grantAmount,
         userId: userObjectId,
         comment: `${minigameName}|${uniqueKey}`,
       },
