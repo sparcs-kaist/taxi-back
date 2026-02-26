@@ -182,10 +182,19 @@ const quests = buildQuests({
     reward: 500,
     maxCount: 1,
   },
-  useCoupon: {
-    name: "쿠폰 사용",
+  useCoupon1: {
+    name: "해오름식 쿠폰!",
     description:
-      "해오름식, 오픈 동방에서 받은 쿠폰 코드를 사용해 보세요. 쿠폰은 <b>안내 페이지</b>에서 사용할 수 있어요.",
+      "해오름식에서 받은 쿠폰 코드를 사용해 보세요. 쿠폰은 <b>안내 페이지</b>에서 사용할 수 있어요.",
+    imageUrl:
+      "https://sparcs-taxi-prod.s3.ap-northeast-2.amazonaws.com/assets/event-2025spring/quest_indirectEventSharing.png",
+    reward: 1000,
+    maxCount: 1,
+  },
+  useCoupon2: {
+    name: "오픈 동방 쿠폰!",
+    description:
+      "오픈 동방에서 받은 쿠폰 코드를 사용해 보세요. 쿠폰은 <b>안내 페이지</b>에서 사용할 수 있어요.",
     imageUrl:
       "https://sparcs-taxi-prod.s3.ap-northeast-2.amazonaws.com/assets/event-2025spring/quest_indirectEventSharing.png",
     reward: 1000,
@@ -469,14 +478,25 @@ const completeFirstMinigameQuest = async (userId, timestamp) => {
 };
 
 /**
- * useCoupon 퀘스트의 완료를 요청합니다.
+ * useCoupon1 퀘스트의 완료를 요청합니다.
  * @param {string|mongoose.Types.ObjectId} userId - 퀘스트를 완료한 사용자의 ObjectId입니다.
  * @param {number|Date} timestamp - 퀘스트 완료를 요청한 시각입니다.
  * @returns {Promise}
  * @usage items - useCouponHandler
  */
-const completeUseCouponQuest = async (userId, timestamp) => {
-  return await completeQuest(userId, timestamp, quests.useCoupon);
+const completeUseCoupon1Quest = async (userId, timestamp) => {
+  return await completeQuest(userId, timestamp, quests.useCoupon1);
+};
+
+/**
+ * useCoupon2 퀘스트의 완료를 요청합니다.
+ * @param {string|mongoose.Types.ObjectId} userId - 퀘스트를 완료한 사용자의 ObjectId입니다.
+ * @param {number|Date} timestamp - 퀘스트 완료를 요청한 시각입니다.
+ * @returns {Promise}
+ * @usage items - useCouponHandler
+ */
+const completeUseCoupon2Quest = async (userId, timestamp) => {
+  return await completeQuest(userId, timestamp, quests.useCoupon2);
 };
 
 module.exports = {
@@ -493,7 +513,8 @@ module.exports = {
   completeAdPushAgreementQuest,
   completeFirstReinforcementQuest,
   completeFirstMinigameQuest,
-  completeUseCouponQuest,
+  completeUseCoupon1Quest,
+  completeUseCoupon2Quest,
   /*
   completeFirstLoginQuest,
   completeAccountChangingQuest,
