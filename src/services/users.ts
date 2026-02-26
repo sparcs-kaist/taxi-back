@@ -117,13 +117,11 @@ export const editAccountHandler: RequestHandler = async (req, res) => {
 
     if (result) {
       // 이벤트 코드입니다.
-      /*
       await contracts?.completeAccountChangingQuest(
         req.userOid,
         req.timestamp,
         newAccount
       );
-      */
       return res
         .status(200)
         .send("Users/editAccount : edit user account successful");
