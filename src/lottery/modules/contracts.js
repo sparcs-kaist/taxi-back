@@ -169,7 +169,7 @@ const quests = buildQuests({
     name: "대장장이 데뷔",
     description: "택시를 처음으로 강화해보세요! 드림카를 향해서...!",
     imageUrl:
-      "https://sparcs-taxi-prod.s3.ap-northeast-2.amazonaws.com/assets/event-2025spring/quest_indirectEventSharing.png",
+      "https://taxi.cdn.sparcs.org/assets/event-2026spring/reinforcement.png",
     reward: 500,
     maxCount: 1,
   },
@@ -178,7 +178,7 @@ const quests = buildQuests({
     description:
       "미니게임을 처음 플레이해 보세요. 미니게임은 <b>강화 페이지</b>에서 할 수 있어요",
     imageUrl:
-      "https://sparcs-taxi-prod.s3.ap-northeast-2.amazonaws.com/assets/event-2025spring/quest_indirectEventSharing.png",
+      "https://taxi.cdn.sparcs.org/assets/event-2026spring/minigame.png",
     reward: 500,
     maxCount: 1,
   },
@@ -187,7 +187,7 @@ const quests = buildQuests({
     description:
       "해오름식에서 받은 쿠폰 코드를 사용해 보세요. 쿠폰은 <b>안내 페이지</b>에서 사용할 수 있어요.",
     imageUrl:
-      "https://sparcs-taxi-prod.s3.ap-northeast-2.amazonaws.com/assets/event-2025spring/quest_indirectEventSharing.png",
+      "https://taxi.cdn.sparcs.org/assets/event-2026spring/80b13c485f831d19.png",
     reward: 1000,
     maxCount: 1,
   },
@@ -196,7 +196,7 @@ const quests = buildQuests({
     description:
       "오픈 동방에서 받은 쿠폰 코드를 사용해 보세요. 쿠폰은 <b>안내 페이지</b>에서 사용할 수 있어요.",
     imageUrl:
-      "https://sparcs-taxi-prod.s3.ap-northeast-2.amazonaws.com/assets/event-2025spring/quest_indirectEventSharing.png",
+      "https://taxi.cdn.sparcs.org/assets/event-2026spring/ba74aadbae80eb5f.png",
     reward: 1000,
     maxCount: 1,
   },

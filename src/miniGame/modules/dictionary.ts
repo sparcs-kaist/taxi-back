@@ -6,10 +6,7 @@ const BATCH_SIZE = 1000;
 
 export const getDictionary = async () => {
   try {
-    const fileContent = await fs.readFile(
-      "src/miniGame/dictionary.txt",
-      "utf-8"
-    );
+    const fileContent = await fs.readFile("../dictionary.txt", "utf-8");
 
     const words = fileContent
       .split("\n")
