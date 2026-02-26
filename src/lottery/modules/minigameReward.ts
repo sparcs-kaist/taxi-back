@@ -23,10 +23,15 @@ const getKstDayRange = (nowMs = Date.now()) => {
   };
 };
 
+const escapeRegExp = (s: string) => {
+  return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+};
+
 export const minigameReward = async (
   amount: number,
   userId: string | undefined,
-  minigameName: string
+  minigameName: string,
+  uniqueKey: string
 ) => {
   const DAILY_MINIGAME_CAP =
     minigameName === "dodgePoop"
@@ -64,12 +69,14 @@ export const minigameReward = async (
 
     const userObjectId = new Types.ObjectId(userId);
 
+    const prefix = `^${escapeRegExp(minigameName)}(\\||$)`;
+
     const agg = await transactionModel.aggregate([
       {
         $match: {
           userId: userObjectId,
           type: "get",
-          comment: minigameName,
+          comment: { $regex: prefix },
           createdAt: { $gte: start, $lt: end },
         },
       },
@@ -105,7 +112,7 @@ export const minigameReward = async (
         type: grantAmount >= 0 ? "get" : "use",
         amount: grantAmount,
         userId: userObjectId,
-        comment: minigameName,
+        comment: `${minigameName}|${uniqueKey}`,
       },
     ]);
 

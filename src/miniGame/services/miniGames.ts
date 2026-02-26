@@ -272,7 +272,12 @@ export const updateCreditHandler: RequestHandler = async (req, res) => {
       timestamp < eventPeriod.endAt &&
       timestamp >= eventPeriod.startAt
     ) {
-      minigameReward(Math.min(500, score * 0.1), req.userOid, "dodgePoop");
+      minigameReward(
+        Math.min(500, score * 0.1),
+        req.userOid,
+        "dodgePoop",
+        String(timestamp)
+      );
     }
 
     await contracts?.completeFirstMinigameQuest(req.userOid, req.timestamp);

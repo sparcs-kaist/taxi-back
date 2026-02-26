@@ -46,7 +46,8 @@ const JudgeTimeout = async (io: Server, roomId: Types.ObjectId) => {
     minigameReward(
       Math.min(400, game.usedWords.length * 4),
       droppedPlayer._id.toString(),
-      "wordChain"
+      "wordChain",
+      game._id.toString()
     );
 
     await emitChatEvent(io, {
@@ -80,7 +81,8 @@ const JudgeTimeout = async (io: Server, roomId: Types.ObjectId) => {
         minigameReward(
           Math.min(800, game.usedWords.length * 8),
           winner._id.toString(),
-          "wordChain"
+          "wordChain",
+          game._id.toString()
         );
       }
 

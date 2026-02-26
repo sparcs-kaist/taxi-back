@@ -36,15 +36,19 @@ const PAYOUT_MULTIPLIER_BY_RANK: Record<number, number> = {
   // 5등 이하: 0
 };
 
-const applyRacingCredit = async (delta: number, userId: Types.ObjectId) => {
-  await minigameReward(delta, userId.toString(), "racing");
+const applyRacingCredit = async (
+  delta: number,
+  userId: Types.ObjectId,
+  uniqueKey: string
+) => {
+  await minigameReward(delta, userId.toString(), "racing", uniqueKey);
 };
 
-const refundRaceEntries = async (entries: RacingEntry[]) => {
+const refundRaceEntries = async (entries: RacingEntry[], uniqueKey: string) => {
   for (const e of entries) {
     const amount = Number(e.amount);
     if (amount > 0) {
-      await applyRacingCredit(amount, e.userId);
+      await applyRacingCredit(amount, e.userId, uniqueKey);
     }
   }
 };
@@ -194,15 +198,6 @@ export const racingRoom = async (
     const now = new Date();
 
     try {
-      await applyRacingCredit(-amount, userId);
-    } catch (e) {
-      logger.error(
-        `bet debit failed (create) room=${roomId}, user=${userId}: ${e}`
-      );
-      return { success: false, error: "베팅 금액 차감에 실패했습니다." };
-    }
-
-    try {
       race = await racingModel.create({
         roomId,
         status: "waiting",
@@ -212,19 +207,19 @@ export const racingRoom = async (
         createdAt: now,
       });
     } catch (e) {
-      // 생성 실패 시 차감 롤백
-      try {
-        await applyRacingCredit(amount, userId);
-      } catch (rollbackErr) {
-        logger.error(
-          `bet debit rollback failed (create) room=${roomId}, user=${userId}: ${rollbackErr}`
-        );
-      }
-
       logger.error(
         `Racing waiting room create failed: room=${roomId}, err=${e}`
       );
       return { success: false, error: "레이스 방 생성에 실패했습니다." };
+    }
+
+    try {
+      await applyRacingCredit(-amount, userId, race._id.toString());
+    } catch (e) {
+      logger.error(
+        `bet debit failed (create) room=${roomId}, user=${userId}: ${e}`
+      );
+      return { success: false, error: "베팅 금액 차감에 실패했습니다." };
     }
 
     logger.info(`Racing waiting room created: room=${roomId}`);
@@ -265,16 +260,6 @@ export const racingRoom = async (
     };
   }
 
-  // 선차감
-  try {
-    await applyRacingCredit(-amount, userId);
-  } catch (e) {
-    logger.error(
-      `bet debit failed (join) room=${roomId}, user=${userId}: ${e}`
-    );
-    return { success: false, error: "베팅 금액 차감에 실패했습니다." };
-  }
-
   (race.players as Types.ObjectId[]).push(userId);
   (race.entries as any[]).push({
     userId,
@@ -285,19 +270,19 @@ export const racingRoom = async (
   try {
     await race.save();
   } catch (e) {
-    // 저장 실패 시 차감 롤백
-    try {
-      await applyRacingCredit(amount, userId);
-    } catch (rollbackErr) {
-      logger.error(
-        `bet debit rollback failed (join) room=${roomId}, user=${userId}: ${rollbackErr}`
-      );
-    }
-
     logger.error(
       `Racing join save failed: room=${roomId}, user=${userId}, err=${e}`
     );
     return { success: false, error: "레이스 참가 처리에 실패했습니다." };
+  }
+
+  try {
+    await applyRacingCredit(-amount, userId, race._id.toString());
+  } catch (e) {
+    logger.error(
+      `bet debit failed (join) room=${roomId}, user=${userId}: ${e}`
+    );
+    return { success: false, error: "베팅 금액 차감에 실패했습니다." };
   }
 
   const joinedName = await getUserNickname(userId);
@@ -372,7 +357,7 @@ export const allRaceDone = async (roomId: Types.ObjectId) => {
     const entries = getRaceEntries(canceledRace);
 
     try {
-      await refundRaceEntries(entries);
+      await refundRaceEntries(entries, roomId.toString());
     } catch (e) {
       logger.error(
         `refundRaceEntries failed on allRaceDone cancel (${roomId}): ${e}`
@@ -703,7 +688,7 @@ const runRacingGame = async (io: Server, raceId: Types.ObjectId) => {
 
       if (payout > 0) {
         try {
-          await applyRacingCredit(payout, userId);
+          await applyRacingCredit(payout, userId, race._id.toString());
         } catch (e) {
           logger.error(
             `race payout failed user=${userId}, payout=${payout}: ${e}`

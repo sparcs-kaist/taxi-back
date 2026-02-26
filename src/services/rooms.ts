@@ -31,6 +31,7 @@ import type { Room } from "@/types/mongo";
 
 import { eventConfig } from "@/loadenv";
 import { contracts } from "@/lottery";
+import { allRaceDone } from "@/miniGame/services/racing";
 import { notifyRoomCreationAbuseToReportChannel } from "@/modules/slackNotification";
 
 import { type SettlementMeta, buildPaymentContent } from "@/modules/settlement";
@@ -790,6 +791,8 @@ export const commitSettlementHandler: RequestHandler = async (req, res) => {
       req.timestamp,
       roomObject
     );
+    // 이벤트 코드입니다.
+    allRaceDone(roomId);
 
     // 유저의 아낀 금액을 갱신합니다.
     await applySavingsForUser(user, roomObject as unknown as PopulatedRoom);
