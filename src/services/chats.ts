@@ -210,7 +210,6 @@ export const sendChatHandler: RequestHandler = async (req, res) => {
       );
       const result = await wordChain(io, room._id, content, user._id);
       logger.info(`wordChain result: ${JSON.stringify(result)}`);
-      return res.json({ result: true });
     }
 
     if (type === "racing") {
