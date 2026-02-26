@@ -233,7 +233,10 @@ export const sendChatHandler: RequestHandler = async (req, res) => {
           .status(400)
           .send("Chat/send : malformed car and amount at racing type.");
       }
-      racingRoom(io, room._id, car, amount, user._id);
+      const racingRes = await racingRoom(io, room._id, car, amount, user._id);
+      if (!racingRes.success) {
+        return res.status(400).send(`Chat/send : ${racingRes.error}`);
+      }
     }
     if (type === "racingStart") {
       const room = await roomModel.findById(roomId);

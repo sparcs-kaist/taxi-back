@@ -400,9 +400,9 @@ const generateRaceSpeeds = () => {
   const MAX_SPEED_UNITS = 100; // 0.100
 
   const RETIRE_PROB = 0.015;
-  const MAX_RETIRE_COUNT = 3;
+  const MAX_RETIRE_COUNT = 4;
 
-  const CATCHUP_FACTOR = 0.6;
+  const CATCHUP_FACTOR = 0.25;
   const CATCHUP_CAP_UNITS = 80;
 
   const MAX_TICKS = 1000;
