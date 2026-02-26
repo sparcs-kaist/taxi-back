@@ -161,6 +161,9 @@ export const reinforcementHandler: RequestHandler = async (req, res) => {
     levelUpMessage = "-레제-";
   }
 
+  if (newLevel > miniGameData.bestRecord) {
+    miniGameData.bestRecord = newLevel;
+  }
   miniGameData.level = newLevel;
   eventStatus.creditAmount -= reinforcementCost;
   miniGameData.preventFail = remainingPreventFail;
@@ -176,6 +179,8 @@ export const reinforcementHandler: RequestHandler = async (req, res) => {
     comment: "reinforcement",
   });
 
+  miniGameData.usedCredit += reinforcementCost;
+
   await contracts?.completeFirstReinforcementQuest(req.userOid, req.timestamp);
 
   return res.status(200).json({
@@ -190,7 +195,9 @@ export const getMiniGameInfosHandler: RequestHandler = async (req, res) => {
     const userId = isLogin(req) ? getLoginInfo(req).oid : null;
     const miniGameStatus = await miniGameModel
       .findOne({ userId })
-      .select("level creditAmount preventFail preventBurst")
+      .select(
+        "level creditAmount preventFail preventBurst bestRecord usedCredit"
+      )
       .lean();
     const eventStatus = await eventStatusModel.findOne({ userId }).lean();
     if (!miniGameStatus) {
@@ -199,6 +206,8 @@ export const getMiniGameInfosHandler: RequestHandler = async (req, res) => {
         level: 0,
         preventFail: 0,
         preventBurst: 0,
+        bestRecord: 0,
+        usedCredit: 0,
         updatedAt: new Date(),
       });
       await newMiniGameStatus.save();
@@ -209,6 +218,8 @@ export const getMiniGameInfosHandler: RequestHandler = async (req, res) => {
           creditAmount: eventStatus?.creditAmount || 0,
           preventFail: 0,
           preventBurst: 0,
+          bestRecord: 0,
+          usedCredit: 0,
         },
       });
     }
@@ -218,6 +229,8 @@ export const getMiniGameInfosHandler: RequestHandler = async (req, res) => {
         creditAmount: eventStatus?.creditAmount || 0,
         preventFail: miniGameStatus.preventFail,
         preventBurst: miniGameStatus.preventBurst,
+        bestRecord: miniGameStatus.bestRecord,
+        usedCredit: miniGameStatus.usedCredit,
       },
     });
   } catch (err) {
@@ -280,14 +293,14 @@ export const getMiniGameLeaderboardHandler: RequestHandler = async (
 
     const leaderboard = await miniGameModel
       .find({ userId: { $ne: null } })
-      .select("userId level")
-      .sort({ level: -1, updatedAt: 1 })
+      .select("userId bestRecord usedCredit")
+      .sort({ bestRecord: -1, usedCredit: -1, updatedAt: 1 })
       .limit(20)
       .lean();
 
     const userRecord = await miniGameModel
       .findOne({ userId })
-      .select("userId level")
+      .select("userId bestRecord usedCredit")
       .lean();
 
     if (!userRecord) {

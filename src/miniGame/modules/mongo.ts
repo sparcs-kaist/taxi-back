@@ -4,6 +4,8 @@ import { InferSchemaType } from "@/modules/stores/mongo";
 const miniGameSchema = new Schema({
   userId: { type: Schema.Types.ObjectId, ref: "User", required: true },
   level: { type: Number, required: true, default: 0 },
+  bestRecord: { type: Number, required: true, default: 0 },
+  usedCredit: { type: Number, required: true, default: 0 },
   preventFail: { type: Number, required: true, default: 0 },
   preventBurst: { type: Number, required: true, default: 0 },
   dodgeScore: { type: Number, required: true, default: 0 },
