@@ -114,14 +114,6 @@ const startRacingFromWaiting = async (io: Server, roomId: Types.ObjectId) => {
     startedRace.players as Types.ObjectId[]
   );
 
-  await emitChatEvent(io, {
-    roomId,
-    type: "racing",
-    content: `호스트가 레이스를 시작합니다. (${startedRace.players.length}명)\n참가자: ${playerNames.join(
-      ", "
-    )}`,
-  });
-
   await runRacingGame(io, startedRace._id as Types.ObjectId);
 
   return { success: true };
