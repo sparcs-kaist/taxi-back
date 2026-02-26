@@ -114,7 +114,7 @@ const quests = buildQuests({
     maxCount: 0,
   },
   farePayment: {
-    name: "송금 완료면 I am 신뢰에요",
+    name: "송금 완료의 신",
     description:
       "2명 이상과 함께 택시를 타고 택시비를 결제한 분께 송금해 주세요. 송금하기 버튼은 채팅 페이지 좌측 하단의 <b>+ 버튼</b>을 눌러 찾을 수 있어요.",
     imageUrl:
@@ -174,7 +174,7 @@ const quests = buildQuests({
     maxCount: 1,
   },
   firstMiniGame: {
-    name: "똥피하기",
+    name: "똥피하기 운동 많이 된다",
     description:
       "미니게임을 처음 플레이해 보세요. 미니게임은 <b>강화 페이지</b>에서 할 수 있어요",
     imageUrl:
