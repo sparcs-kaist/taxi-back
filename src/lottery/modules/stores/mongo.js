@@ -179,10 +179,10 @@ transactionSchema.set("timestamps", {
 });
 
 // 이벤트 코드입니다.
-transactionSchema.index(
-  { userId: 1, type: 1, amount: 1, comment: 1 },
-  { unique: true, partialFilterExpression: { type: "get" } }
-);
+// transactionSchema.index(
+//   { userId: 1, type: 1, amount: 1, comment: 1 },
+//   { unique: true, partialFilterExpression: { type: "get" } }
+// );
 transactionSchema.index({ userId: 1, createdAt: -1 });
 
 const quizSchema = Schema({

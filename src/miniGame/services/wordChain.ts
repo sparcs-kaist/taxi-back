@@ -34,91 +34,88 @@ const JudgeTimeout = async (io: Server, roomId: Types.ObjectId) => {
   const playerName = droppedPlayer ? droppedPlayer.nickname : "알 수 없음";
   game.players.splice(game.currentPlayerIndex, 1);
 
-  await emitChatEvent(io, {
-    roomId,
-    type: "wordChain",
-    content: `시간 초과로 인해 ${playerName}(이)가 탈락했습니다.`,
-  });
-
-  if (game.players.length === 1) {
-    game.finished = true;
-    await game.save();
-
-    const winnerId = game.players[0];
-    const winner = await userModel.findById(winnerId);
-    const winnerName = winner ? winner.nickname : "알 수 없음";
-
-    if (!winner) {
-      logger.error(
-        "there is no winner even though there is a player left. How it can be..."
-      );
-      return;
-    }
-
-    // 이벤트 코드입니다.
-    const timestamp = Date.now();
-    if (
-      eventPeriod &&
-      timestamp < eventPeriod.endAt &&
-      timestamp >= eventPeriod.startAt
-    ) {
-      minigameReward(
-        Math.min(800, game.usedWords.length * 8),
-        winner._id.toString(),
-        "wordChain"
-      );
-    }
+  const timestamp = new Date();
+  if (!droppedPlayer) {
+    return;
+  }
+  if (
+    eventPeriod &&
+    timestamp < eventPeriod.endAt &&
+    timestamp >= eventPeriod.startAt
+  ) {
+    minigameReward(
+      Math.min(400, game.usedWords.length * 4),
+      droppedPlayer._id.toString(),
+      "wordChain"
+    );
 
     await emitChatEvent(io, {
       roomId,
       type: "wordChain",
-      content: `${winnerName}(이)가 승리했습니다. ${game.usedWords.length * 8}의 넙죽코인을 획득했습니다.`,
+      content: `시간 초과로 인해 ${playerName}(이)가 탈락했습니다. ${game.usedWords.length * 4} 개의 코인을 획득하셨습니다.`,
     });
 
-    const timeout = wordChainTimeouts.get(roomIdStr);
-    if (timeout) {
-      clearTimeout(timeout);
-    }
-    wordChainTimeouts.delete(roomIdStr);
-    return;
-  } else if (game.players.length <= 0) {
-    // Definitely something is wrong
-    // So just shut the game down.
-    game.finished = true;
-    await game.save();
+    if (game.players.length === 1) {
+      game.finished = true;
+      await game.save();
 
-    const timeout = wordChainTimeouts.get(roomIdStr);
-    if (timeout) {
-      clearTimeout(timeout);
-    }
-    wordChainTimeouts.delete(roomIdStr);
+      const winnerId = game.players[0];
+      const winner = await userModel.findById(winnerId);
+      const winnerName = winner ? winner.nickname : "알 수 없음";
 
-    await emitChatEvent(io, {
-      roomId,
-      type: "wordChain",
-      content: `참가자가 모두 탈락하여 게임이 종료되었습니다.`,
-    });
-    return;
-  } else {
-    const timestamp = Date.now();
-    if (!droppedPlayer) {
-      return;
-    }
-    if (
-      eventPeriod &&
-      timestamp < eventPeriod.endAt &&
-      timestamp >= eventPeriod.startAt
-    ) {
-      minigameReward(
-        Math.min(400, game.usedWords.length * 4),
-        droppedPlayer._id.toString(),
-        "wordChain"
-      );
+      if (!winner) {
+        logger.error(
+          "there is no winner even though there is a player left. How it can be..."
+        );
+        return;
+      }
+
+      // 이벤트 코드입니다.
+      const timestamp = Date.now();
+      if (
+        eventPeriod &&
+        timestamp < eventPeriod.endAt &&
+        timestamp >= eventPeriod.startAt
+      ) {
+        minigameReward(
+          Math.min(800, game.usedWords.length * 8),
+          winner._id.toString(),
+          "wordChain"
+        );
+      }
+
       await emitChatEvent(io, {
         roomId,
         type: "wordChain",
-        content: `${droppedPlayer.nickname}님이 ${game.usedWords.length * 4}의 넙죽코인을 수령하셨습니다.`,
+        content: `${winnerName}(이)가 승리했습니다. ${game.usedWords.length * 8}의 코인을 획득했습니다.`,
       });
+
+      const timeout = wordChainTimeouts.get(roomIdStr);
+      if (timeout) {
+        clearTimeout(timeout);
+      }
+      wordChainTimeouts.delete(roomIdStr);
+      return;
+    } else if (game.players.length <= 0) {
+      // Definitely something is wrong
+      // So just shut the game down.
+      game.finished = true;
+      await game.save();
+
+      const timeout = wordChainTimeouts.get(roomIdStr);
+      if (timeout) {
+        clearTimeout(timeout);
+      }
+      wordChainTimeouts.delete(roomIdStr);
+
+      await emitChatEvent(io, {
+        roomId,
+        type: "wordChain",
+        content: `참가자가 모두 탈락하여 게임이 종료되었습니다.`,
+      });
+      return;
+    } else {
+      const timestamp = Date.now();
     }
     game.currentPlayerIndex = game.currentPlayerIndex % game.players.length;
     game.updatedAt = new Date();
