@@ -23,7 +23,7 @@ import type {
   UploadChatImgDoneBody,
 } from "@/routes/docs/schemas/chatsSchema";
 import { wordChain } from "@/miniGame/services/wordChain";
-import { racingRoom } from "@/miniGame/services/racing";
+import { racingRoom, racingStart } from "@/miniGame/services/racing";
 
 const chatCount = 60;
 
@@ -229,14 +229,23 @@ export const sendChatHandler: RequestHandler = async (req, res) => {
       }
       racingRoom(io, room._id, car, amount, user._id);
     }
+    if (type === "racingStart") {
+      const room = await roomModel.findById(roomId);
+      if (!room) {
+        return res.status(404).send("Chat/send : room not found");
+      }
+      logger.info(`User ${user._id} sent racingStart chat in room ${room._id}`);
+      racingStart(io, room._id, user._id);
+    }
 
     if (
-      await emitChatEvent(io, {
+      type !== "racingStart" &&
+      (await emitChatEvent(io, {
         roomId,
         type,
         content,
         authorId: user._id,
-      })
+      }))
     )
       return res.json({ result: true });
     else return res.status(500).send("Chat/send : internal server error");

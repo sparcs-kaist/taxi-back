@@ -51,10 +51,10 @@ export const racingSchema = new Schema({
     type: String,
     enum: ["waiting", "starting", "canceled", "finished"],
   },
+  host: { type: Schema.Types.ObjectId, ref: "User", required: true },
   players: { type: [Schema.Types.ObjectId], ref: "User", required: true },
   entries: { type: [racingEntrySchema], required: true, default: [] },
   createdAt: { type: Date, required: true },
-  waitDeadline: { type: Date, required: true },
 });
 
 export const racingModel = model("Racing", racingSchema);

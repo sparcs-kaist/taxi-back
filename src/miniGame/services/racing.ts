@@ -7,10 +7,6 @@ import { Server } from "socket.io";
 import { Types } from "mongoose";
 import logger from "@/modules/logger";
 
-const racingWaitTimeouts: Map<string, NodeJS.Timeout> = new Map();
-
-const RACING_WAIT_MS = 60 * 1000;
-
 type RaceSpeedLog = Record<number, number[]>;
 
 type CarResult = {
@@ -53,13 +49,6 @@ const refundRaceEntries = async (entries: RacingEntry[]) => {
   }
 };
 
-const clearRacingWaitTimeout = (roomId: Types.ObjectId | string) => {
-  const roomIdStr = roomId.toString();
-  const timeout = racingWaitTimeouts.get(roomIdStr);
-  if (timeout) clearTimeout(timeout);
-  racingWaitTimeouts.delete(roomIdStr);
-};
-
 const isPlayerInRoom = async (
   roomId: Types.ObjectId,
   userId: Types.ObjectId
@@ -94,7 +83,6 @@ const getRaceEntries = (race: any): RacingEntry[] => {
 
 /**
  * waiting -> starting 전환 후 실제 경마 진행 진입
- * (중복 실행 방지 위해 status=waiting 조건으로 한 번 더 잡음)
  */
 const startRacingFromWaiting = async (io: Server, roomId: Types.ObjectId) => {
   const race = await racingModel.findOne({ roomId, status: "waiting" });
@@ -122,8 +110,6 @@ const startRacingFromWaiting = async (io: Server, roomId: Types.ObjectId) => {
     return { success: false, error: "Race already transitioned" };
   }
 
-  clearRacingWaitTimeout(roomId);
-
   const playerNames = await getPlayerNames(
     startedRace.players as Types.ObjectId[]
   );
@@ -131,7 +117,7 @@ const startRacingFromWaiting = async (io: Server, roomId: Types.ObjectId) => {
   await emitChatEvent(io, {
     roomId,
     type: "racing",
-    content: `참가자가 모여 경마를 시작합니다. (${startedRace.players.length}명)\n참가자: ${playerNames.join(
+    content: `호스트가 경마를 시작합니다. (${startedRace.players.length}명)\n참가자: ${playerNames.join(
       ", "
     )}`,
   });
@@ -142,60 +128,11 @@ const startRacingFromWaiting = async (io: Server, roomId: Types.ObjectId) => {
 };
 
 /**
- * 1분 대기 타임아웃 판정
- * - 아직 waiting이고
- * - 마감시간 지났으면
- *   - 혼자면 canceled
- *   - 인원이 충분하면 시작(안전장치)
- */
-const JudgeRacingWaitTimeout = async (io: Server, roomId: Types.ObjectId) => {
-  const race = await racingModel.findOne({
-    roomId,
-    status: "waiting",
-  });
-
-  if (!race) return;
-
-  const now = Date.now();
-
-  // 오래된 타이머 방어
-  if (now < race.waitDeadline.getTime()) {
-    return;
-  }
-
-  if ((race.players as Types.ObjectId[]).length < 2) {
-    race.status = "canceled";
-    await race.save();
-
-    // 원금 환급
-    const entries = getRaceEntries(race);
-    try {
-      await refundRaceEntries(entries);
-    } catch (e) {
-      logger.error(`refundRaceEntries failed on cancel (${roomId}): ${e}`);
-    }
-
-    await emitChatEvent(io, {
-      roomId,
-      type: "racing",
-      content: "1분 동안 참가자가 더 오지 않아 경마가 취소되었습니다.",
-    });
-
-    clearRacingWaitTimeout(roomId);
-    return;
-  }
-
-  // 혹시 인원이 찼는데 아직 waiting이면 시작
-  await startRacingFromWaiting(io, roomId);
-};
-
-/**
  * 외부에서 호출하는 단일 진입점
  * 1) room 확인
  * 2) waiting 경마방 있으면 참가
- * 3) 없으면 생성
- * 4) 생성 후 1분 대기
- * 5) 1분 내 다른 사람 오면 시작 / 아니면 canceled
+ * 3) 없으면 생성 (host는 생성 요청자)
+ * 4) 시작은 racingStart()로
  */
 export const racingRoom = async (
   io: Server,
@@ -260,10 +197,9 @@ export const racingRoom = async (
     status: "waiting",
   });
 
-  // 3) 없으면 생성
+  // 3) 없으면 생성 (host=userId)
   if (!race) {
     const now = new Date();
-    const waitDeadline = new Date(now.getTime() + RACING_WAIT_MS);
 
     try {
       await applyRacingCredit(-amount, userId);
@@ -278,10 +214,10 @@ export const racingRoom = async (
       race = await racingModel.create({
         roomId,
         status: "waiting",
+        host: userId, // 생성 요청자를 host로
         players: [userId],
         entries: [{ userId, car, amount }],
         createdAt: now,
-        waitDeadline,
       });
     } catch (e) {
       // 생성 실패 시 차감 롤백
@@ -306,16 +242,8 @@ export const racingRoom = async (
     await emitChatEvent(io, {
       roomId,
       type: "racing",
-      content: `${hostName}님이 경마 방을 만들었습니다. 1분 내에 다른 참가자가 들어오면 시작합니다.`,
+      content: `${hostName}님이 경마 방을 만들었습니다. 참가자가 모이면 호스트가 시작할 수 있습니다.`,
     });
-
-    const timeoutId = setTimeout(
-      JudgeRacingWaitTimeout,
-      RACING_WAIT_MS,
-      io,
-      roomId
-    );
-    racingWaitTimeouts.set(roomId.toString(), timeoutId);
 
     return {
       success: true,
@@ -325,13 +253,6 @@ export const racingRoom = async (
   }
 
   // waiting 방이 있으면 참가 로직
-  const now = Date.now();
-
-  // 대기시간 지났으면 타임아웃 처리 먼저 시도
-  if (now >= race.waitDeadline.getTime()) {
-    await JudgeRacingWaitTimeout(io, roomId);
-    return { success: false, error: "참가 시간이 지났습니다." };
-  }
 
   // 중복 참가 방지
   if (
@@ -392,32 +313,85 @@ export const racingRoom = async (
   await emitChatEvent(io, {
     roomId,
     type: "racing",
-    content: `${joinedName}님이 경마 방에 참가했습니다. (차량: ${car}, 배팅: ${amount}) (${race.players.length}명)`,
+    content: `${joinedName}님이 경마 방에 참가했습니다. (차량: ${car}, 배팅: ${amount}) (${race.players.length}명)\n호스트가 시작하면 경주가 진행됩니다.`,
   });
 
-  // 5-1) 인원이 더 들어오면 진행
-  if ((race.players as Types.ObjectId[]).length >= 2) {
-    const startResult = await startRacingFromWaiting(io, roomId);
-
-    if (!startResult.success) {
-      logger.warn(
-        `Failed to start racing after join (room=${roomId}, player=${userId}): ${startResult.error}`
-      );
-    }
-
-    return {
-      success: true,
-      action: "joined",
-      started: true,
-    };
-  }
-
-  // 아직 미달이면 waiting 유지
   return {
     success: true,
     action: "joined",
     started: false,
   };
+};
+
+/**
+ * 호스트가 외부에서 호출해서 레이스 시작
+ * - userId가 host인지 검증
+ * - waiting -> starting 전환 후 runRacingGame 진입
+ */
+export const racingStart = async (
+  io: Server,
+  roomId: Types.ObjectId,
+  userId: Types.ObjectId
+) => {
+  const race = await racingModel.findOne({ roomId, status: "waiting" });
+  if (!race) {
+    return { success: false, error: "Waiting race not found" };
+  }
+
+  // host 검증
+  const hostId = (race.host as Types.ObjectId | undefined)?.toString?.();
+  if (!hostId || hostId !== userId.toString()) {
+    return { success: false, error: "호스트만 경마를 시작할 수 있습니다." };
+  }
+
+  // 인원 체크 (기존 방어 유지)
+  if ((race.players as Types.ObjectId[]).length < 2) {
+    return { success: false, error: "참가자가 부족합니다. (최소 2명)" };
+  }
+
+  // 실제 시작 (중복 실행 방지 로직 재사용)
+  return await startRacingFromWaiting(io, roomId);
+};
+
+/**
+ * allRaceDone()이 호출되면, 해당 방의 waiting 경마를 즉시 canceled 처리
+ * - signature: roomId만 받음
+ * - 취소 시 원금 환급(기존 방어 유지)
+ */
+export const allRaceDone = async (roomId: Types.ObjectId) => {
+  // waiting 레이스가 여러 개 생겼을 가능성까지 방어적으로 처리
+  const waitingRaces = await racingModel.find({ roomId, status: "waiting" });
+
+  if (!waitingRaces.length) {
+    return { success: true, action: "none" as const };
+  }
+
+  let canceledCount = 0;
+
+  for (const r of waitingRaces) {
+    const canceledRace = await racingModel.findOneAndUpdate(
+      { _id: r._id, status: "waiting" },
+      { $set: { status: "canceled" } },
+      { new: true }
+    );
+
+    if (!canceledRace) continue; // 이미 start/cancel 처리된 경우
+
+    const entries = getRaceEntries(canceledRace);
+
+    try {
+      await refundRaceEntries(entries);
+    } catch (e) {
+      logger.error(
+        `refundRaceEntries failed on allRaceDone cancel (${roomId}): ${e}`
+      );
+      // 환급 실패해도 status는 canceled로 둠 (기존과 동일한 성격의 방어)
+    }
+
+    canceledCount++;
+  }
+
+  return { success: true, action: "canceled" as const, canceledCount };
 };
 
 const generateRaceSpeeds = () => {
