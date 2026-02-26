@@ -31,9 +31,11 @@ import type { Room } from "@/types/mongo";
 
 import { eventConfig } from "@/loadenv";
 import { contracts } from "@/lottery";
+import { allRaceDone } from "@/miniGame/services/racing";
 import { notifyRoomCreationAbuseToReportChannel } from "@/modules/slackNotification";
+
+import { type SettlementMeta, buildPaymentContent } from "@/modules/settlement";
 import { allocateEmojiIdentifier } from "@/modules/roomIdentifier";
-import type { SettlementMeta } from "@/modules/settlement";
 
 // 이벤트 코드입니다.
 const eventPeriod = eventConfig && {
@@ -180,7 +182,7 @@ export const createHandler: RequestHandler = async (req, res) => {
     });
 
     // 이벤트 코드입니다.
-    //await contracts?.completeFirstRoomCreationQuest(req.userOid, req.timestamp);
+    await contracts?.completeFirstRoomCreationQuest(req.userOid, req.timestamp);
 
     const roomObject = (
       await room.populate(roomPopulateOption)
@@ -778,19 +780,19 @@ export const commitSettlementHandler: RequestHandler = async (req, res) => {
     });
 
     //이벤트 코드입니다.
-    await contracts?.completeAllBadgedSettlementQuest(
-      req.timestamp!,
-      roomObject,
-      userModel
-    );
+    // await contracts?.completeAllBadgedSettlementQuest(
+    //   req.timestamp!,
+    //   roomObject,
+    //   userModel
+    // );
     // 이벤트 코드입니다.
-    /*
     await contracts?.completeFareSettlementQuest(
       req.userOid,
       req.timestamp,
       roomObject
     );
-    */
+    // 이벤트 코드입니다.
+    allRaceDone(roomId);
 
     // 유저의 아낀 금액을 갱신합니다.
     await applySavingsForUser(user, roomObject as unknown as PopulatedRoom);
@@ -869,13 +871,11 @@ export const commitPaymentHandler: RequestHandler = async (req, res) => {
     });
 
     // 이벤트 코드입니다.
-    /*
     await contracts?.completeFarePaymentQuest(
       req.userOid,
       req.timestamp,
       roomObject
     );
-    */
 
     // 유저의 아낀 금액을 갱신합니다.
     await applySavingsForUser(user, roomObject as unknown as PopulatedRoom);
@@ -899,7 +899,7 @@ export const updateArrivalHandler: RequestHandler = async (req, res) => {
         .status(400)
         .json({ error: "Rooms/:id/updateArrival : User not found" });
     }
-    
+
     const roomObject = await roomModel
       .findOneAndUpdate(
         {
@@ -939,7 +939,7 @@ export const updateArrivalHandler: RequestHandler = async (req, res) => {
     logger.error(err);
     return res.status(500).json({
       error: "Rooms/:id/updateArrival : internal server error",
-      });
+    });
   }
 };
 
@@ -953,7 +953,7 @@ export const toggleCarrierHandler: RequestHandler = async (req, res) => {
         .status(400)
         .json({ error: "Rooms/carrier/toggle : User not found" });
     }
-    
+
     const roomObject = await roomModel
       .findOneAndUpdate(
         {
@@ -961,7 +961,7 @@ export const toggleCarrierHandler: RequestHandler = async (req, res) => {
           part: {
             $elemMatch: {
               user: user._id,
-              },
+            },
           },
         },
         {
@@ -984,10 +984,10 @@ export const toggleCarrierHandler: RequestHandler = async (req, res) => {
     logger.error(err);
     return res.status(500).json({
       error: "Rooms/carrier/toggle : internal server error",
-      });
+    });
   }
 };
-    
+
 const checkIsAbusing = (
   { from, to, time, maxPartLength }: CreateTestBody,
   countRecentlyMadeRooms: number,

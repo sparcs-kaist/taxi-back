@@ -38,6 +38,7 @@ RUN pnpm install --offline --prod
 
 # Copy the built app from the previous stage
 COPY --from=builder /usr/src/app/dist ./dist
+COPY --from=builder /usr/src/app/data ./data
 
 # Run container
 EXPOSE 80

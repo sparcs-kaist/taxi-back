@@ -43,6 +43,7 @@ import { startSocketServer } from "@/modules/socket";
 import { connectDatabase } from "@/modules/stores/mongo";
 import registerSchedules from "@/schedules";
 import { lotteryRouter } from "@/lottery";
+import miniGameRouter from "@/miniGame";
 
 // Firebase Admin 초기설정
 initializeFirebase();
@@ -95,6 +96,9 @@ app.use(originValidatorMiddleware);
 if (eventConfig) {
   app.use(`/events/${eventConfig.mode}`, lotteryRouter);
 }
+
+// [Router] 미니게임 라우터입니다.
+app.use("/miniGame", miniGameRouter);
 
 // [Router] APIs
 app.use("/auth", authRouter);
