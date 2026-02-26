@@ -23,7 +23,7 @@ const quests = buildQuests({
   phoneVerification: {
     name: "첫 발걸음",
     description:
-      "이벤트 참여만 해도 강화 재화를 얻을 수 있다고?? 전화번호를 인증해서 강화 재화를 받아보세요.",
+      "이벤트 참여만 해도 넙죽코인을 얻을 수 있다고?? 전화번호를 인증해서 넙죽코인을 받아보세요.",
     imageUrl:
       "https://sparcs-taxi-prod.s3.ap-northeast-2.amazonaws.com/assets/event-2025fall/quest_phoneVerification.png",
     reward: 500,

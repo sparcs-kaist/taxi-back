@@ -171,7 +171,7 @@ export const racingRoom = async (
   if (eventStatus.creditAmount < amount) {
     return {
       success: false,
-      error: "본인이 가진 credit보다 더 많은 amount를 사용할 수 없습니다.",
+      error: "본인이 가진 코인보다 더 많은 코인을 베팅할 수 없습니다.",
     };
   }
 
