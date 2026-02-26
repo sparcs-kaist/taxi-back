@@ -235,17 +235,17 @@ export const sendChatHandler: RequestHandler = async (req, res) => {
         return res.status(404).send("Chat/send : room not found");
       }
       logger.info(`User ${user._id} sent racingStart chat in room ${room._id}`);
-      racingStart(io, room._id, user._id);
+      await racingStart(io, room._id, user._id);
+      return res.json({ result: true });
     }
 
     if (
-      type !== "racingStart" &&
-      (await emitChatEvent(io, {
+      await emitChatEvent(io, {
         roomId,
         type,
         content,
         authorId: user._id,
-      }))
+      })
     )
       return res.json({ result: true });
     else return res.status(500).send("Chat/send : internal server error");
