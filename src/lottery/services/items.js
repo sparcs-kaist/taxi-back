@@ -436,9 +436,9 @@ const useCouponHandler = async (req, res) => {
     //   return res.status(400).json({ error: `Items/useCoupon : ${error}` });
     // return res.json(result);
     const { couponCode } = req.params;
-    if (couponCode === "2026SPRINGSPARCSTAXI") {
+    if (couponCode === "2026WELCOMETAXI") {
       await contracts.completeUseCoupon1Quest(req.userOid, req.timestamp);
-    } else if (couponCode === "2026STAXIEVENT") {
+    } else if (couponCode === "2026WELCOMESPARCS") {
       await contracts.completeUseCoupon2Quest(req.userOid, req.timestamp);
     } else {
       return res
