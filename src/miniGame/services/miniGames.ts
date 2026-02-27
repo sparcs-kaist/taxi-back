@@ -472,6 +472,9 @@ export const buyItemHandler: RequestHandler = async (req, res) => {
         });
       }
       miniGameData.level = targetLevel;
+      if (targetLevel > miniGameData.bestRecord) {
+        miniGameData.bestRecord = targetLevel;
+      }
     }
 
     eventStatus.creditAmount -= itemCost;
