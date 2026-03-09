@@ -10,4 +10,5 @@ export { default as noticeRouter } from "./notice";
 export { default as notificationRouter } from "./notifications";
 export { default as reportRouter } from "./reports";
 export { default as roomRouter } from "./rooms";
+export { default as statisticsRouter } from "./statistics";
 export { default as userRouter } from "./users";

@@ -1,3 +1,4 @@
+import { resolveS3Url } from "@/modules/stores/aws";
 import { userModel } from "@/modules/stores/mongo";
 import { getLoginInfo } from "@/modules/auths/login";
 import logger from "@/modules/logger";
@@ -32,7 +33,7 @@ export const logininfoHandler: RequestHandler = async (req, res) => {
       agreeOnTermsOfService: userDetail.agreeOnTermsOfService,
       subinfo: userDetail.subinfo,
       email: userDetail.email,
-      profileImgUrl: userDetail.profileImageUrl,
+      profileImgUrl: resolveS3Url(userDetail.profileImageUrl),
       account: userDetail.account ? userDetail.account : "",
       deviceType: req.session?.isApp ? "app" : "web",
       deviceToken: req.session?.deviceToken,

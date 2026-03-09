@@ -1,5 +1,4 @@
 import crypto from "crypto";
-import { getS3Url } from "@/modules/stores/aws";
 
 const nouns = [
   "재료역학",
@@ -82,7 +81,7 @@ export const generateNickname = (id: string) => {
 // 기존 프로필 사진의 URI 중 하나를 무작위로 선택해 반환합니다.
 export const generateProfileImageUrl = () => {
   const ridx = crypto.randomInt(defaultProfile.length);
-  return getS3Url(`/profile-img/default/${defaultProfile[ridx]}`);
+  return `/profile-img/default/${defaultProfile[ridx]}`;
 };
 
 // 사용자의 이름과 성을 받아, 한글인지 영어인지에 따라 전체 이름을 반환합니다.
