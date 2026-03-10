@@ -3,7 +3,7 @@ import { taxiFareModel, locationModel } from "@/modules/stores/mongo";
 import { scaledTime, callTaxiFare } from "@/modules/fare";
 import logger from "@/modules/logger";
 import type { RequestHandler } from "express";
-import type { LocationLean } from "@/types/mongo";
+import type { Location } from "@/types/mongo";
 
 const naverMapApi = {
   "X-NCP-APIGW-API-KEY-ID": naverMap.apiId,
@@ -30,12 +30,12 @@ export const getTaxiFareHandler: RequestHandler = async (req, res) => {
       });
     }
 
-    const from: LocationLean = await locationModel
+    const from: Location = await locationModel
       .findOne({
         _id: { $eq: req.query.from },
       })
       .lean();
-    const to: LocationLean = await locationModel
+    const to: Location = await locationModel
       .findOne({ _id: { $eq: req.query.to } })
       .lean();
     const sTime = scaledTime(new Date(req.query.time as string));

@@ -1,6 +1,6 @@
 import logger from "@/modules/logger";
 import { callTaxiFare, scaledTime } from "@/modules/fare";
-import { taxiFareModel } from "@/modules/stores/mongo";
+import { locationModel, taxiFareModel } from "@/modules/stores/mongo";
 import { Types } from "mongoose";
 
 const buildFareKey = (fromName: string, toName: string) =>
@@ -23,14 +23,10 @@ const ESTIMATED_FARE_TABLE: Record<string, number> = {
   [buildFareKey("Taxi Stand", "Wolpyeong Station")]: 9000,
   [buildFareKey("Taxi Stand", "Yuseong-gu Office")]: 9000,
   [buildFareKey("Taxi Stand", "Yuseong Intercity Bus Terminal")]: 9000,
-  [buildFareKey(
-    "Taxi Stand",
-    "Government Complex Express Bus Terminal"
-  )]: 14000,
-  [buildFareKey(
-    "Taxi Stand",
-    "Government Complex Intercity Bus Terminal"
-  )]: 14000,
+  [buildFareKey("Taxi Stand", "Government Complex Express Bus Terminal")]:
+    14000,
+  [buildFareKey("Taxi Stand", "Government Complex Intercity Bus Terminal")]:
+    14000,
 
   // Daejeon Station
   [buildFareKey("Daejeon Station", "Gung-dong Rodeo Street")]: 12000,
@@ -44,10 +40,8 @@ const ESTIMATED_FARE_TABLE: Record<string, number> = {
   [buildFareKey("Daejeon Station", "Duck Pond")]: 13000,
   [buildFareKey("Daejeon Station", "Yuseong Express Bus Terminal")]: 15000,
   [buildFareKey("Daejeon Station", "Yuseong Intercity Bus Terminal")]: 15000,
-  [buildFareKey(
-    "Daejeon Station",
-    "Government Complex Express Bus Terminal"
-  )]: 8000,
+  [buildFareKey("Daejeon Station", "Government Complex Express Bus Terminal")]:
+    8000,
   [buildFareKey(
     "Daejeon Station",
     "Government Complex Intercity Bus Terminal"
@@ -81,14 +75,10 @@ const ESTIMATED_FARE_TABLE: Record<string, number> = {
   [buildFareKey("Gung-dong Rodeo Street", "Duck Pond")]: 5000,
   [buildFareKey("Gung-dong Rodeo Street", "Wolpyeong Station")]: 8000,
   [buildFareKey("Gung-dong Rodeo Street", "Yuseong-gu Office")]: 7000,
-  [buildFareKey(
-    "Gung-dong Rodeo Street",
-    "Yuseong Express Bus Terminal"
-  )]: 8000,
-  [buildFareKey(
-    "Gung-dong Rodeo Street",
-    "Yuseong Intercity Bus Terminal"
-  )]: 8000,
+  [buildFareKey("Gung-dong Rodeo Street", "Yuseong Express Bus Terminal")]:
+    8000,
+  [buildFareKey("Gung-dong Rodeo Street", "Yuseong Intercity Bus Terminal")]:
+    8000,
   [buildFareKey(
     "Gung-dong Rodeo Street",
     "Government Complex Express Bus Terminal"
@@ -101,21 +91,15 @@ const ESTIMATED_FARE_TABLE: Record<string, number> = {
   // Daejeon Terminal Complex
   [buildFareKey("Daejeon Terminal Complex", "Mannyon Middle School")]: 14000,
   [buildFareKey("Daejeon Terminal Complex", "Seodaejeon Station")]: 9000,
-  [buildFareKey(
-    "Daejeon Terminal Complex",
-    "Shinsegae Department Store"
-  )]: 9000,
+  [buildFareKey("Daejeon Terminal Complex", "Shinsegae Department Store")]:
+    9000,
   [buildFareKey("Daejeon Terminal Complex", "Duck Pond")]: 15000,
   [buildFareKey("Daejeon Terminal Complex", "Wolpyeong Station")]: 12000,
   [buildFareKey("Daejeon Terminal Complex", "Yuseong-gu Office")]: 12000,
-  [buildFareKey(
-    "Daejeon Terminal Complex",
-    "Yuseong Express Bus Terminal"
-  )]: 16000,
-  [buildFareKey(
-    "Daejeon Terminal Complex",
-    "Yuseong Intercity Bus Terminal"
-  )]: 16000,
+  [buildFareKey("Daejeon Terminal Complex", "Yuseong Express Bus Terminal")]:
+    16000,
+  [buildFareKey("Daejeon Terminal Complex", "Yuseong Intercity Bus Terminal")]:
+    16000,
   [buildFareKey(
     "Daejeon Terminal Complex",
     "Government Complex Express Bus Terminal"
@@ -132,10 +116,8 @@ const ESTIMATED_FARE_TABLE: Record<string, number> = {
   [buildFareKey("Mannyon Middle School", "Wolpyeong Station")]: 6000,
   [buildFareKey("Mannyon Middle School", "Yuseong-gu Office")]: 6000,
   [buildFareKey("Mannyon Middle School", "Yuseong Express Bus Terminal")]: 8000,
-  [buildFareKey(
-    "Mannyon Middle School",
-    "Yuseong Intercity Bus Terminal"
-  )]: 8000,
+  [buildFareKey("Mannyon Middle School", "Yuseong Intercity Bus Terminal")]:
+    8000,
   [buildFareKey(
     "Mannyon Middle School",
     "Government Complex Express Bus Terminal"
@@ -165,10 +147,8 @@ const ESTIMATED_FARE_TABLE: Record<string, number> = {
   [buildFareKey("Shinsegae Department Store", "Duck Pond")]: 7000,
   [buildFareKey("Shinsegae Department Store", "Wolpyeong Station")]: 6000,
   [buildFareKey("Shinsegae Department Store", "Yuseong-gu Office")]: 7000,
-  [buildFareKey(
-    "Shinsegae Department Store",
-    "Yuseong Express Bus Terminal"
-  )]: 9000,
+  [buildFareKey("Shinsegae Department Store", "Yuseong Express Bus Terminal")]:
+    9000,
   [buildFareKey(
     "Shinsegae Department Store",
     "Yuseong Intercity Bus Terminal"
@@ -188,10 +168,8 @@ const ESTIMATED_FARE_TABLE: Record<string, number> = {
   [buildFareKey("Duck Pond", "Yuseong Express Bus Terminal")]: 9000,
   [buildFareKey("Duck Pond", "Yuseong Intercity Bus Terminal")]: 9000,
   [buildFareKey("Duck Pond", "Government Complex Express Bus Terminal")]: 11000,
-  [buildFareKey(
-    "Duck Pond",
-    "Government Complex Intercity Bus Terminal"
-  )]: 11000,
+  [buildFareKey("Duck Pond", "Government Complex Intercity Bus Terminal")]:
+    11000,
 
   // Wolpyeong Station
   [buildFareKey("Wolpyeong Station", "Yuseong-gu Office")]: 6000,
@@ -266,6 +244,17 @@ type RoomWithNames = {
   time?: Date | string | null;
 };
 
+const transformLocationType = async (location: RoomLocation) => {
+  const match = Object.fromEntries(
+    Object.entries(location).filter(([_, value]) => value != null)
+  );
+  if (Object.keys(match).length === 0) {
+    return null;
+  }
+
+  return await locationModel.findOne(match);
+};
+
 const getCachedFare = async (
   fromId?: Types.ObjectId | string | null,
   toId?: Types.ObjectId | string | null,
@@ -317,7 +306,11 @@ export const getEstimatedFare = async (room: RoomWithNames) => {
   }
 
   try {
-    const fare = await callTaxiFare(room.from, room.to);
+    const from = await transformLocationType(room.from);
+    if (!from) return fallbackFare;
+    const to = await transformLocationType(room.to);
+    if (!to) return fallbackFare;
+    const fare = await callTaxiFare(from, to);
     if (typeof fare === "number" && fare > 0) return fare;
   } catch (err) {
     logger.error(

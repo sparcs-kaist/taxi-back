@@ -3,7 +3,7 @@ import logger from "./logger";
 import { naverMap } from "@/loadenv";
 import { taxiFareModel, locationModel } from "./stores/mongo";
 import type { AnyBulkWriteOperation } from "mongodb";
-import type { LocationLean } from "@/types/mongo";
+import type { Location } from "@/types/mongo";
 
 const naverMapApi = {
   "X-NCP-APIGW-API-KEY-ID": naverMap.apiId,
@@ -41,7 +41,7 @@ export const initializeDatabase = async () => {
       );
       return;
     }
-    const location: LocationLean[] = await locationModel
+    const location: Location[] = await locationModel
       .find({ isValid: { $eq: true } })
       .lean();
 
@@ -142,12 +142,10 @@ export const updateTaxiFare = async (sTime: number, isMajor: Boolean) => {
     })
     .lean();
   await prevFares.reduce(async (acc, item) => {
-    const from: LocationLean = await locationModel
+    const from: Location = await locationModel
       .findOne({ _id: item.from })
       .lean();
-    const to: LocationLean = await locationModel
-      .findOne({ _id: item.to })
-      .lean();
+    const to: Location = await locationModel.findOne({ _id: item.to }).lean();
 
     await acc;
     await callTaxiFare(from, to)
@@ -168,11 +166,11 @@ export const updateTaxiFare = async (sTime: number, isMajor: Boolean) => {
 };
 
 /**
- * @param {LocationLean} from : 출발지 (longitude, latitude)
- * @param {LocationLean} to : 도착지 (longitude, latitude)
+ * @param {Location} from : 출발지 (longitude, latitude)
+ * @param {Location} to : 도착지 (longitude, latitude)
  * @returns naver map api call을 통해 받아온 예상 택시 요금
  */
-export const callTaxiFare = async (from: LocationLean, to: LocationLean) => {
+export const callTaxiFare = async (from: Location, to: Location) => {
   if (
     !naverMapApi["X-NCP-APIGW-API-KEY"] ||
     !naverMapApi["X-NCP-APIGW-API-KEY-ID"]
