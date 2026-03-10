@@ -89,12 +89,10 @@ export const editNicknameHandler: RequestHandler = async (req, res) => {
 
     if (result) {
       // 이벤트 코드입니다.
-      /*
       await contracts?.completeNicknameChangingQuest(
         req.userOid,
         req.timestamp
       );
-      */
 
       return res
         .status(200)
@@ -120,13 +118,11 @@ export const editAccountHandler: RequestHandler = async (req, res) => {
 
     if (result) {
       // 이벤트 코드입니다.
-      /*
       await contracts?.completeAccountChangingQuest(
         req.userOid,
         req.timestamp,
         newAccount
       );
-      */
       return res
         .status(200)
         .send("Users/editAccount : edit user account successful");
@@ -291,7 +287,7 @@ export const editProfileImgDoneHandler: RequestHandler = async (req, res) => {
 
     const userAfter = await userModel.findOneAndUpdate(
       { _id: req.userOid, withdraw: false },
-      { profileImageUrl: aws.getS3Url(`/${key}?token=${req.timestamp}`) },
+      { profileImageUrl: `/${key}?token=${req.timestamp}` },
       { new: true }
     );
     if (!userAfter) {
@@ -301,7 +297,7 @@ export const editProfileImgDoneHandler: RequestHandler = async (req, res) => {
     }
     return res.json({
       result: true,
-      profileImageUrl: userAfter.profileImageUrl,
+      profileImageUrl: aws.resolveS3Url(userAfter.profileImageUrl),
     });
   } catch (err) {
     logger.error(err);

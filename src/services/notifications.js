@@ -111,13 +111,11 @@ const editOptionsHandler = async (req, res) => {
     }
 
     // 이벤트 코드입니다.
-    /*
     await contracts?.completeAdPushAgreementQuest(
       req.userOid,
       req.timestamp,
       options.advertisement
     );
-    */
 
     res.status(200).json(updatedNotificationOptions);
   } catch (err) {

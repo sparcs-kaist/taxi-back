@@ -12,9 +12,10 @@
     "test": "pnpm run sample && cross-env TZ='Asia/Seoul' pnpm run mocha",
     "build": "tsc --project tsconfig.build.json && tsc-alias",
     "clean": "rimraf dist/",
-    "serve": "cross-env TZ='Asia/Seoul' NODE_ENV=production node dist/index.js",
+    "serve": "cross-env TZ='Asia/Seoul' NODE_ENV=production node dist/src/index.js",
+    "runscript": "cross-env TZ='Asia/Seoul' NODE_ENV=production node",
+    "dev:runscript": "cross-env TZ='Asia/Seoul' NODE_ENV=development ts-node --require tsconfig-paths/register",
     "lint": "pnpm eslint .",
-    "runscript": "cross-env TZ='Asia/Seoul' NODE_ENV=production ts-node --require tsconfig-paths/register",
     "sample": "cross-env NODE_ENV=test ts-node --require tsconfig-paths/register src/sampleGenerator/index.js",
     "dumpDB": "cross-env NODE_ENV=test ts-node --require tsconfig-paths/register src/sampleGenerator/tools/dump.js",
     "restoreDB": "cross-env NODE_ENV=test ts-node --require tsconfig-paths/register src/sampleGenerator/tools/restore.js"

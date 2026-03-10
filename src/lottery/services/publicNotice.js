@@ -3,6 +3,7 @@ const {
   transactionModel,
 } = require("../modules/stores/mongo");
 const { userModel } = require("../../modules/stores/mongo");
+const { resolveS3Url } = require("../../modules/stores/aws");
 const { isLogin, getLoginInfo } = require("../../modules/auths/login");
 const logger = require("@/modules/logger").default;
 const {
@@ -55,8 +56,8 @@ const getRecentPurchaceItemListHandler = async (req, res) => {
           comment.startsWith(eventConfig?.credit.name)
             ? "을(를) 구입하셨습니다."
             : comment.startsWith("랜덤박스")
-            ? "을(를) 뽑았습니다."
-            : "을(를) 획득하셨습니다."
+              ? "을(를) 뽑았습니다."
+              : "을(를) 획득하셨습니다."
         }`,
         createAt,
       }));
@@ -142,7 +143,7 @@ const getTicketLeaderboardHandler = async (req, res) => {
         }
         return {
           nickname: userInfo.nickname,
-          profileImageUrl: userInfo.profileImageUrl,
+          profileImageUrl: resolveS3Url(userInfo.profileImageUrl),
           ticket1Amount: user.ticket1Amount,
           ticket2Amount: user.ticket2Amount,
           probability: user.weight / weightSum,
@@ -222,7 +223,7 @@ const getGroupLeaderboardHandler = async (req, res) => {
         return {
           ...group,
           mvpNickname: mvpInfo.nickname,
-          mvpProfileImageUrl: mvpInfo.profileImageUrl,
+          mvpProfileImageUrl: resolveS3Url(mvpInfo.profileImageUrl),
         };
       })
     );

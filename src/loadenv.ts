@@ -62,11 +62,11 @@ export const slackWebhookUrl = {
 };
 export const eventConfig = (process.env.EVENT_CONFIG &&
   JSON.parse(process.env.EVENT_CONFIG)) || {
-  mode: "2025fall",
-  credit: { name: "응모권", initialAmount: 0 },
+  mode: "2026spring",
+  credit: { name: "넙죽코인", initialAmount: 0 },
   period: {
-    startAt: "2025-09-01T00:00:00+09:00",
-    endAt: "2025-10-30T00:00:00+09:00",
+    startAt: "2026-02-21T00:00:00+09:00",
+    endAt: "2026-03-31T00:00:00+09:00",
   },
 };
 export const naverMap = {

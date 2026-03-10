@@ -6,7 +6,6 @@ export type InferSchemaType<T> = mongoose.InferSchemaType<T> & {
 };
 
 const userSchema = new Schema({
-
   name: { type: String, required: true }, //실명
   nickname: { type: String, required: true }, //닉네임
   id: { type: String, required: true }, //택시 서비스에서만 사용되는 id
@@ -26,6 +25,7 @@ const userSchema = new Schema({
   ban: { type: Boolean, default: false }, //계정 정지 여부
   joinat: { type: Date, required: true }, //가입 시각
   agreeOnTermsOfService: { type: Boolean, default: false }, //이용약관 동의 여부
+  savings: { type: Number, default: null }, // 누적 아낀 금액 (null이면 아직 계산되지 않음)
   subinfo: {
     kaist: { type: String, default: "" },
     sparcs: { type: String, default: "" },
@@ -143,6 +143,8 @@ const participantSchema = new Schema({
     default: "not-departed",
   },
   readAt: { type: Date },
+  isArrived: { type: Boolean },
+  hasCarrier: { type: Boolean },
 });
 
 export type Participant = InferSchemaType<typeof participantSchema>;
@@ -163,6 +165,7 @@ const roomSchema = new Schema({
   madeat: { type: Date, required: true }, // 생성 날짜
   settlementTotal: { type: Number, default: 0, required: true },
   maxPartLength: { type: Number, required: true, default: 4 },
+  emojiIdentifier: { type: String }, // 방 구분용 이모지
 });
 
 export const roomModel = model("Room", roomSchema);
@@ -194,6 +197,9 @@ const chatSchema = new Schema({
       "account",
       "departure", // 출발 15분 전 알림
       "arrival", // 출발 (1|24)시간 이후 알림 - 정산/송금 권유
+      "wordChain", // 워드체인 미니게임 관련 메시지
+      "racing", // 경마 미니게임 관련 메시지
+      "raceLog", // 경마 미니게임 로그
     ],
   }, // 메시지 종류
   authorId: { type: Schema.Types.ObjectId, ref: "User" }, // 작성자 id
@@ -290,6 +296,43 @@ const noticeSchema = new Schema(
 
 export const noticeModel = model("Notice", noticeSchema);
 export type Notice = InferSchemaType<typeof noticeSchema>;
+
+const dailySavingsSchema = new Schema({
+  date: { type: Date, required: true, unique: true },
+  cumulativeSavings: { type: Number, required: true },
+});
+dailySavingsSchema.index({ date: 1 });
+
+export const dailySavingsModel = model("DailySavings", dailySavingsSchema);
+export type DailySavings = InferSchemaType<typeof dailySavingsSchema>;
+
+const monthlyRoomCreationSchema = new Schema({
+  month: { type: Date, required: true, unique: true }, // month start (UTC)
+  cumulativeRooms: { type: Number, required: true },
+});
+monthlyRoomCreationSchema.index({ month: 1 });
+
+export const monthlyRoomCreationModel = model(
+  "MonthlyRoomCreation",
+  monthlyRoomCreationSchema
+);
+export type MonthlyRoomCreation = InferSchemaType<
+  typeof monthlyRoomCreationSchema
+>;
+
+const monthlyUserCreationSchema = new Schema({
+  month: { type: Date, required: true, unique: true }, // month start (UTC)
+  cumulativeUsers: { type: Number, required: true },
+});
+monthlyUserCreationSchema.index({ month: 1 });
+
+export const monthlyUserCreationModel = model(
+  "MonthlyUserCreation",
+  monthlyUserCreationSchema
+);
+export type MonthlyUserCreation = InferSchemaType<
+  typeof monthlyUserCreationSchema
+>;
 
 mongoose.set("strictQuery", true);
 
