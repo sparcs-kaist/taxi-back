@@ -114,7 +114,7 @@ const createUserGlobalStateHandler = async (req, res) => {
         logger.info(`Past user phone number: ${user.phoneNumber}`);
         logger.info(`Update user phone number: ${req.body.phoneNumber}`);
       }
-      user.badge = true;
+      user.badge = "none";
       user.phoneNumber = req.body.phoneNumber;
       await user.save();
     }
