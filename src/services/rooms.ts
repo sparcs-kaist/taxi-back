@@ -21,6 +21,7 @@ import type {
   CommitPaymentBody,
   CommitSettlementBody,
   CreateBody,
+  CreateRegularBody,
   CreateTestBody,
   SearchByTimeGapQuery,
   SearchQuery,
@@ -193,6 +194,127 @@ export const createHandler: RequestHandler = async (req, res) => {
     logger.error(err);
     return res.status(500).json({
       error: "Rooms/create : internal server error",
+    });
+  }
+};
+
+export const createRegularHandler: RequestHandler = async (req, res) => {
+  const { name, from, to, time, maxPartLength, interval, count } =
+    req.body as CreateRegularBody;
+
+  try {
+    if (from === to) {
+      return res.status(400).json({
+        error: "Rooms/createRegular : locations are same",
+      });
+    }
+
+    if (req.timestamp! > Date.parse(time)) {
+      return res.status(400).json({
+        error: "Rooms/createRegular : invalid timestamp",
+      });
+    }
+
+    const firstDepartureTime = new Date(time);
+    const lastDepartureTime = new Date(firstDepartureTime);
+    lastDepartureTime.setDate(lastDepartureTime.getDate() + interval * (count - 1));
+
+    const lastDepartureDay = new Date(lastDepartureTime);
+    lastDepartureDay.setHours(0, 0, 0, 0);
+
+    const maxTime = new Date();
+    maxTime.setDate(maxTime.getDate() + 28);
+    maxTime.setHours(0, 0, 0, 0);
+
+    if (lastDepartureDay.getTime() > maxTime.getTime()) {
+      return res.status(400).json({
+        error:
+          "Rooms/createRegular : cannot schedule rooms over 4 weeks from current date",
+      });
+    }
+
+    const fromLoc = await locationModel.findById(from);
+    const toLoc = await locationModel.findById(to);
+    if (!fromLoc || !toLoc) {
+      return res.status(400).json({
+        error: "Rooms/createRegular : no corresponding locations",
+      });
+    }
+
+    const user = await userModel
+      .findOne({ _id: req.userOid, withdraw: false })
+      .populate<{ ongoingRoom: Room[] }>("ongoingRoom");
+    if (!user) {
+      return res.status(400).json({
+        error: "Rooms/createRegular : User not found",
+      });
+    }
+
+    // 생성 후 총 참여 방 수가 5개를 초과하면 오류를 반환합니다.
+    if (user.ongoingRoom.length + count > 5) {
+      return res.status(400).json({
+        error: "Rooms/createRegular : participating in too many rooms",
+      });
+    }
+
+    // 사용자가 참여한 진행중인 방 중 송금을 아직 완료하지 않은 방이 있다면 오류를 반환합니다.
+    const isSendRequired = checkIsSendRequired(user);
+    if (isSendRequired) {
+      return res.status(400).json({
+        error: "Rooms/createRegular : user has send-required rooms",
+      });
+    }
+
+    const createdRooms = [];
+    for (let i = 0; i < count; i++) {
+      const departureTime = new Date(firstDepartureTime);
+      departureTime.setDate(departureTime.getDate() + interval * i);
+
+      const emojiIdentifier = await allocateEmojiIdentifier(departureTime);
+
+      const room = new roomModel({
+        name,
+        from: fromLoc._id,
+        to: toLoc._id,
+        time: departureTime,
+        part: [{ user: user._id }],
+        madeat: Date.now(),
+        maxPartLength,
+        settlementTotal: 0,
+        emojiIdentifier,
+      });
+      await room.save();
+
+      (user.ongoingRoom as unknown as Types.ObjectId[]).push(room._id);
+      createdRooms.push(room);
+    }
+
+    await user.save();
+
+    // 각 방에 입장 채팅을 보냅니다.
+    for (const room of createdRooms) {
+      await emitChatEvent(req.app.get("io"), {
+        roomId: room._id.toString(),
+        type: "in",
+        content: user._id.toString(),
+        authorId: user._id.toString(),
+      });
+    }
+
+    const populatedRooms = await Promise.all(
+      createdRooms.map(async (room) => {
+        const roomObject = (
+          await room.populate(roomPopulateOption)
+        ).toObject<PopulatedRoom>();
+        return formatSettlement(roomObject);
+      })
+    );
+
+    return res.send(populatedRooms);
+  } catch (err) {
+    logger.error(err);
+    return res.status(500).json({
+      error: "Rooms/createRegular : internal server error",
     });
   }
 };
