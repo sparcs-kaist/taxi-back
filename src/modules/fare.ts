@@ -4,6 +4,7 @@ import { naverMap } from "@/loadenv";
 import { taxiFareModel, locationModel } from "./stores/mongo";
 import type { AnyBulkWriteOperation } from "mongodb";
 import type { Location } from "@/types/mongo";
+import type { PopulatedLocation } from "@/modules/populates/rooms";
 
 const naverMapApi = {
   "X-NCP-APIGW-API-KEY-ID": naverMap.apiId,
@@ -123,9 +124,9 @@ export const initializeDatabase = async () => {
  * @summary 카이스트 본원 <-> 대전역의 경로를 제외한 다른 경로의 경우, cron에 의해 매일 18:00시의 택시 요금을 업데이트 하게 됩니다.
  * @summary 카이스트 본원 <-> 대전역의 경우, 미리 캐싱해놓은 데이터를 기반으로 주어진 시간(30분 간격)에 대한 택시 요금을 반환합니다.
  * @param {number} sTime - 출발 시간 (scaledTime에 의해 변경된 시간, 0 ~ 6 (Sunday~Saturday) * 48 + 0 ~ 47 (0:00 ~ 23:30))
- * @param {Boolean} isMajor - 카이스트 본원 <-> 대전역 경로 / 이외 경로
+ * @param {boolean} isMajor - 카이스트 본원 <-> 대전역 경로 / 이외 경로
  */
-export const updateTaxiFare = async (sTime: number, isMajor: Boolean) => {
+export const updateTaxiFare = async (sTime: number, isMajor: boolean) => {
   if (
     !naverMapApi["X-NCP-APIGW-API-KEY"] ||
     !naverMapApi["X-NCP-APIGW-API-KEY-ID"]
@@ -166,11 +167,14 @@ export const updateTaxiFare = async (sTime: number, isMajor: Boolean) => {
 };
 
 /**
- * @param {Location} from : 출발지 (longitude, latitude)
- * @param {Location} to : 도착지 (longitude, latitude)
+ * @param {PopulatedLocation} from : 출발지 (longitude, latitude)
+ * @param {PopulatedLocation} to : 도착지 (longitude, latitude)
  * @returns naver map api call을 통해 받아온 예상 택시 요금
  */
-export const callTaxiFare = async (from: Location, to: Location) => {
+export const callTaxiFare = async (
+  from: PopulatedLocation,
+  to: PopulatedLocation
+) => {
   if (
     !naverMapApi["X-NCP-APIGW-API-KEY"] ||
     !naverMapApi["X-NCP-APIGW-API-KEY-ID"]
@@ -182,7 +186,7 @@ export const callTaxiFare = async (from: Location, to: Location) => {
   }
   return (
     await axios.get(
-      `https://naveropenapi.apigw.ntruss.com/map-direction/v1/driving?start=${from.longitude},${from.latitude}}&goal=${to.longitude},${to.latitude}&options=traoptimal`,
+      `https://naveropenapi.apigw.ntruss.com/map-direction/v1/driving?start=${from.longitude},${from.latitude}&goal=${to.longitude},${to.latitude}&options=traoptimal`,
       { headers: naverMapApi }
     )
   ).data.route.traoptimal[0].summary.taxiFare;

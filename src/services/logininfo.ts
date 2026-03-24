@@ -17,7 +17,7 @@ export const logininfoHandler: RequestHandler = async (req, res) => {
     if (!userDetail)
       return res
         .status(400)
-        .send("Notifications/userModel : userDetail is invalid");
+        .send("logininfo/userModel : userDetail is invalid");
 
     res.json({
       oid: userDetail._id,

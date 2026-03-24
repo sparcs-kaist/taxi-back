@@ -2,6 +2,7 @@ import logger from "@/modules/logger";
 import { callTaxiFare, scaledTime } from "@/modules/fare";
 import { locationModel, taxiFareModel } from "@/modules/stores/mongo";
 import { Types } from "mongoose";
+import type { PopulatedLocation } from "@/modules/populates/rooms";
 
 const buildFareKey = (fromName: string, toName: string) =>
   [fromName, toName].sort().join("||");
@@ -229,30 +230,18 @@ const getFallbackFare = (fromName?: string, toName?: string) => {
   return ESTIMATED_FARE_TABLE[key] ?? DEFAULT_FARE;
 };
 
-type RoomLocation = {
-  _id?: Types.ObjectId | string | null;
-  enName?: string | null;
-  koName?: string | null;
-  latitude?: number | null;
-  longitude?: number | null;
-};
-
 type RoomWithNames = {
-  from?: RoomLocation | null;
-  to?: RoomLocation | null;
+  from?: PopulatedLocation | Types.ObjectId | null;
+  to?: PopulatedLocation | Types.ObjectId | null;
   part?: { user: unknown }[] | null;
   time?: Date | string | null;
 };
 
-const transformLocationType = async (location: RoomLocation) => {
-  const match = Object.fromEntries(
-    Object.entries(location).filter(([_, value]) => value != null)
-  );
-  if (Object.keys(match).length === 0) {
-    return null;
-  }
-
-  return await locationModel.findOne(match);
+type StrictRoomWithNames = {
+  from?: PopulatedLocation | null;
+  to?: PopulatedLocation | null;
+  part?: { user: unknown }[] | null;
+  time?: Date | string | null;
 };
 
 const getCachedFare = async (
@@ -282,35 +271,46 @@ const getCachedFare = async (
   return null;
 };
 
+const makeStrictRoomType = async (room: RoomWithNames) => {
+  if (room.from instanceof Types.ObjectId) {
+    room.from = (await locationModel
+      .findById(room.from)
+      .populate("_id enName koName latitude longitude")) as PopulatedLocation;
+  }
+  if (room.to instanceof Types.ObjectId) {
+    room.to = (await locationModel
+      .findById(room.to)
+      .populate("_id enName koName latitude longitude")) as PopulatedLocation;
+  }
+  return room as StrictRoomWithNames;
+};
+
 export const getEstimatedFare = async (room: RoomWithNames) => {
-  const fromName = room.from?.enName ?? undefined;
-  const toName = room.to?.enName ?? undefined;
+  let strictRoom = await makeStrictRoomType(room);
+  const fromName = strictRoom.from?.enName ?? undefined;
+  const toName = strictRoom.to?.enName ?? undefined;
   const fallbackFare = getFallbackFare(fromName, toName);
 
   const cachedFare = await getCachedFare(
-    room.from?._id ?? null,
-    room.to?._id ?? null,
-    room.time ?? null
+    strictRoom.from?._id ?? null,
+    strictRoom.to?._id ?? null,
+    strictRoom.time ?? null
   );
   if (cachedFare) return cachedFare;
 
   if (
-    !room.from ||
-    !room.to ||
-    typeof room.from.latitude !== "number" ||
-    typeof room.from.longitude !== "number" ||
-    typeof room.to.latitude !== "number" ||
-    typeof room.to.longitude !== "number"
+    !strictRoom.from ||
+    !strictRoom.to ||
+    typeof strictRoom.from.latitude !== "number" ||
+    typeof strictRoom.from.longitude !== "number" ||
+    typeof strictRoom.to.latitude !== "number" ||
+    typeof strictRoom.to.longitude !== "number"
   ) {
     return fallbackFare;
   }
 
   try {
-    const from = await transformLocationType(room.from);
-    if (!from) return fallbackFare;
-    const to = await transformLocationType(room.to);
-    if (!to) return fallbackFare;
-    const fare = await callTaxiFare(from, to);
+    const fare = await callTaxiFare(strictRoom.from, strictRoom.to);
     if (typeof fare === "number" && fare > 0) return fare;
   } catch (err) {
     logger.error(
@@ -322,10 +322,11 @@ export const getEstimatedFare = async (room: RoomWithNames) => {
 };
 
 export const getRoomSavings = async (room: RoomWithNames) => {
-  const fromName = room.from?.enName ?? undefined;
-  const toName = room.to?.enName ?? undefined;
-  const participantCount = room.part?.length ?? 0;
-  if (!room.from || !room.to || participantCount === 0) {
+  const strictRoom = await makeStrictRoomType(room);
+  const fromName = strictRoom.from?.enName ?? undefined;
+  const toName = strictRoom.to?.enName ?? undefined;
+  const participantCount = strictRoom.part?.length ?? 0;
+  if (!strictRoom.from || !strictRoom.to || participantCount === 0) {
     logger.warn("Savings : missing location info or participants", {
       fromName,
       toName,
