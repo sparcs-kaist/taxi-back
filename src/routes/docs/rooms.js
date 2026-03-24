@@ -705,6 +705,131 @@ roomsDocs[`${apiPrefix}/searchByUser`] = {
   },
 };
 
+roomsDocs[`${apiPrefix}/searchByTimeGap`] = {
+  get: {
+    tags: [tag],
+    summary: "검색하려는 시간 범위에 따른 방 검색",
+    description: `출발지/도착지/날짜를 받아 조건에 맞는 방을 검색합니다.<br/>
+    조건에 맞는 방이 있을 경우, 방들의 정보를 반환하고 없다면 빈 배열을 반환합니다.<br/>
+    로그인을 하지 않아도 접근 가능합니다.`,
+    parameters: [
+      {
+        in: "query",
+        name: "from",
+        schema: {
+          type: "string",
+          pattern: objectId.source,
+        },
+        description: `출발지 Document의 ObjectId<br/>
+        주어진 경우 출발지가 일치하는 방들만 반환.<br/>
+        주어지지 않은 경우 예외처리.`,
+      },
+      {
+        in: "query",
+        name: "to",
+        schema: {
+          type: "string",
+          pattern: objectId.source,
+        },
+        description: `도착지 Document의 ObjectId<br/>
+        주어진 경우 도착지가 일치하는 방들만 반환.<br/>
+        주어지지 않은 경우 예외처리.`,
+      },
+      {
+        in: "query",
+        name: "time",
+        schema: {
+          type: "string",
+          format: "date-time",
+        },
+        description: `출발 시각<br/>
+        주어지지 않은 경우 예외처리.`,
+      },
+      {
+        in: "query",
+        name: "timeGap",
+        schema: {
+          type: "integer",
+          minimum: 0,
+          maximum: 60,
+        },
+        description: `검색하려는 시간 범위<br/>
+        주어진 경우 현재 시각부터 \`timeGap\` 시간 이후까지의 방들을 검색.<br/>
+        주어지지 않은 경우 앞뒤로 25분 범위의 방들을 검색.`,
+      },
+    ],
+    responses: {
+      200: {
+        content: {
+          "application/json": {
+            schema: {
+              type: "object",
+              properties: {
+                ongoing: {
+                  type: "array",
+                  items: {
+                    $ref: "#/components/schemas/room",
+                  },
+                },
+                done: {
+                  type: "array",
+                  items: {
+                    $ref: "#/components/schemas/room",
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+      400: {
+        content: {
+          "application/json": {
+            schema: {
+              type: "object",
+              properties: {
+                error: {
+                  type: "string",
+                },
+              },
+            },
+            examples: {
+              "출발지와 도착지가 같음": {
+                value: {
+                  error: "Rooms/searchByTimeGap : Bad request",
+                },
+              },
+              "출발/도착지가 존재하지 않는 장소": {
+                value: {
+                  error: "Rooms/searchByTimeGap : Invalid 'from/to' location",
+                },
+              },
+            },
+          },
+        },
+      },
+      500: {
+        description: "내부 서버 오류",
+        content: {
+          "application/json": {
+            schema: {
+              type: "object",
+              properties: {
+                error: {
+                  type: "string",
+                },
+              },
+            },
+            example: {
+              error: "Rooms/searchByTimeGap : internal server error",
+            },
+          },
+        },
+      },
+    },
+  },
+};
+
 roomsDocs[`${apiPrefix}/commitSettlement`] = {
   post: {
     tags: [tag],
@@ -846,6 +971,125 @@ roomsDocs[`${apiPrefix}/commitPayment`] = {
             },
             example: {
               error: "Rooms/:id/commitPayment : internal server error",
+            },
+          },
+        },
+      },
+    },
+  },
+};
+
+roomsDocs[`${apiPrefix}/updateArrival`] = {
+  post: {
+    tags: [tag],
+    summary: "출발지 도착 여부 변경",
+    description: `해당 방에 요청을 보낸 유저의 출발지 도착 여부를 변경합니다.<br/>
+    방의 \`part\` 배열에서 요청을 보낸 유저의 \`isArrived\` 속성을 변경합니다.`,
+    requestBody: {
+      content: {
+        "application/json": {
+          schema: {
+            type: "object",
+            required: ["roomId", "isArrived"],
+            properties: {
+              roomId: {
+                type: "string",
+                pattern: objectId.source,
+              },
+              isArrived: {
+                type: "boolean",
+                description: "출발지 도착 여부",
+              },
+            },
+          },
+        },
+      },
+    },
+    responses: {
+      200: {
+        description:
+          "출발지 도착 여부가 수정된 방의 세부 정보가 담긴 room Object",
+        content: {
+          "application/json": {
+            schema: {
+              $ref: "#/components/schemas/room",
+            },
+          },
+        },
+      },
+    },
+  },
+};
+
+roomsDocs[`${apiPrefix}/carrier/toggle`] = {
+  post: {
+    tags: [tag],
+    summary: "방 캐리어 보유 여부 토글",
+    description: `해당 방에 참여중인 사용자가 캐리어를 보유했는지 여부를 토글합니다.<br/>
+    방의 \`part\` 배열에서 해당 사용자의 \`hasCarrier\` 속성이 true/false로 갱신됩니다.`,
+    requestBody: {
+      content: {
+        "application/json": {
+          schema: {
+            type: "object",
+            properties: {
+              roomId: {
+                type: "string",
+                pattern: objectId.source,
+              },
+        hasCarrier: {
+                type: "boolean",
+                description: "보유 여부",
+              },
+            },
+            required: ["roomId", "hasCarrier"],
+          },
+        },
+      },
+    },
+    responses: {
+      200: {
+        description: "갱신된 방의 세부 정보가 담긴 room Object",
+          content: {
+          "application/json": {
+            schema: {
+              $ref: "#/components/schemas/room",
+            },
+          },
+        },
+      },
+      404: {
+        description: "잘못된 방 요청 (사용자가 참여중인 방이 아님)",
+        content: {
+          "application/json": {
+            schema: {
+              type: "object",
+              properties: {
+                error: {
+                  type: "string",
+                },
+              },
+            },
+            example: {
+              error: "Rooms/carrier/toggle : cannot find room info",
+            },
+          },
+        },
+      },
+      500: {
+        description: "내부 서버 오류",
+        content: {
+          "application/json": {
+            schema: {
+              type: "object",
+              properties: {
+                error: {
+                  type: "string",
+                },
+              },
+            },
+            example: {
+              error: "Rooms/carrier/toggle : internal server error",
             },
           },
         },

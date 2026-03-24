@@ -8,10 +8,24 @@ import {
 } from "@/modules/modifyProfile";
 import * as aws from "@/modules/stores/aws";
 import { userModel, banModel } from "@/modules/stores/mongo";
+import { favoriteRouteModel, locationModel } from "@/modules/stores/mongo";
+import { Types } from "mongoose";
+import { favoriteRoutesPopulateOption } from "@/modules/populates/favoriteRoutes";
+import {
+  CreateFavoriteBody,
+  DeleteFavoriteParam,
+} from "@/routes/docs/schemas/favoriteRoutesSchema";
 
 // 이벤트 코드입니다.
 import { contracts } from "@/lottery";
 import { eventStatusModel } from "@/lottery/modules/stores/mongo";
+import type {
+  EditAccountBody,
+  EditNicknameBody,
+  EditProfileImgGetPUrlBody,
+  RegisterPhoneNumberBody,
+  RegisterResidenceBody,
+} from "@/routes/docs/schemas/usersSchema";
 
 export const agreeOnTermsOfServiceHandler: RequestHandler = async (
   req,
@@ -66,7 +80,7 @@ export const getAgreeOnTermsOfServiceHandler: RequestHandler = async (
 
 export const editNicknameHandler: RequestHandler = async (req, res) => {
   try {
-    const newNickname = req.body.nickname; // TODO: Typing
+    const newNickname = req.body.nickname as EditNicknameBody["nickname"];
     const result = await userModel.findOneAndUpdate(
       { _id: req.userOid, withdraw: false },
       { nickname: newNickname }
@@ -95,7 +109,7 @@ export const editNicknameHandler: RequestHandler = async (req, res) => {
 
 export const editAccountHandler: RequestHandler = async (req, res) => {
   try {
-    const newAccount = req.body.account; // TODO: Typing
+    const newAccount = req.body.account as EditAccountBody["account"];
     const result = await userModel.findOneAndUpdate(
       { _id: req.userOid, withdraw: false },
       { account: newAccount }
@@ -108,7 +122,6 @@ export const editAccountHandler: RequestHandler = async (req, res) => {
         req.timestamp!,
         newAccount
       );
-
       return res
         .status(200)
         .send("Users/editAccount : edit user account successful");
@@ -123,12 +136,106 @@ export const editAccountHandler: RequestHandler = async (req, res) => {
   }
 };
 
+export const registerPhoneNumberHandler: RequestHandler = async (req, res) => {
+  try {
+    const newPhoneNumber = req.body
+      .phoneNumber as RegisterPhoneNumberBody["phoneNumber"];
+    const result = await userModel.findOneAndUpdate(
+      { _id: req.userOid, withdraw: false },
+      { phoneNumber: newPhoneNumber, badge: true }
+    );
+
+    if (result) {
+      return res
+        .status(200)
+        .send("Users/registerPhoneNumber : create user phoneNumber successful");
+    } else {
+      return res
+        .status(400)
+        .send("Users/registerPhoneNumber : such user id does not exist");
+    }
+  } catch (err) {
+    logger.error(err);
+    return res
+      .status(500)
+      .send("Users/registerPhoneNumber : internal server error");
+  }
+};
+
+export const editBadgeHandler: RequestHandler = async (req, res) => {
+  try {
+    await userModel.findOneAndUpdate(
+      {
+        _id: req.userOid,
+        withdraw: false,
+        phoneNumber: { $exists: true, $ne: null },
+      },
+      { badge: req.body.badge }
+    );
+    return res.status(200).send("Users/editBadge : badge successfully applied");
+  } catch (err) {
+    logger.error(err);
+    return res.status(500).send("Users/editBadge : internal server error");
+  }
+};
+
+export const registerResidenceHandler: RequestHandler = async (req, res) => {
+  try {
+    const userId = req.userOid;
+    const newResidence = req.body
+      .residence as RegisterResidenceBody["residence"];
+
+    const result = await userModel.updateOne(
+      { _id: userId, withdraw: false },
+      { residence: newResidence }
+    );
+
+    if (result.matchedCount > 0) {
+      return res
+        .status(200)
+        .send("Users/registerResidence: residenceInfo registered successfully");
+    } else {
+      return res
+        .status(400)
+        .send("Users/registerResidence: user not found or update failed");
+    }
+  } catch (err) {
+    logger.error(err);
+    return res
+      .status(500)
+      .send("Users/registerResidence: internal server error");
+  }
+};
+
+export const deleteResidenceHandler: RequestHandler = async (req, res) => {
+  try {
+    const userId = req.userOid;
+
+    const result = await userModel.updateOne(
+      { _id: userId, withdraw: false },
+      { $unset: { residence: "" } }
+    );
+    if (result.matchedCount > 0) {
+      return res
+        .status(200)
+        .send("Users/deleteResidence: residenceInfo deleted successfully");
+    } else {
+      return res
+        .status(400)
+        .send("Users/deleteResidence: user not found or update failed");
+    }
+  } catch (err) {
+    logger.error(err);
+    return res.status(500).send("Users/deleteResidence: internal server error");
+  }
+};
+
 export const editProfileImgGetPUrlHandler: RequestHandler = async (
   req,
   res
 ) => {
   try {
-    const type = req.body.type; // TODO: Typing
+    const type = req.body.type as EditProfileImgGetPUrlBody["type"];
     const user = await userModel.findOne(
       { _id: req.userOid, withdraw: false },
       "_id"
@@ -139,20 +246,10 @@ export const editProfileImgGetPUrlHandler: RequestHandler = async (
         .send("Users/editProfileImg/getPUrl : internal server error");
     }
     const key = `profile-img/${user._id}`;
-    aws.getUploadPUrlPost(key, type, (err, data) => {
-      if (err) {
-        return res
-          .status(500)
-          .send("Users/editProfileImg/getPUrl : internal server error");
-      }
-      data.fields["Content-Type"] = type;
-      data.fields["key"] = key;
-      return res.json({
-        url: data.url,
-        fields: data.fields,
-      });
-    });
-  } catch (e) {
+    const data = await aws.getUploadPUrlPost(key, type);
+    return res.json({ url: data });
+  } catch (err) {
+    logger.error(err);
     return res
       .status(500)
       .send("Users/editProfileImg/getPUrl : internal server error");
@@ -170,30 +267,30 @@ export const editProfileImgDoneHandler: RequestHandler = async (req, res) => {
         .status(500)
         .send("Users/editProfileImg/done : internal server error");
     }
+
     const key = `profile-img/${user._id}`;
-    aws.foundObject(key, async (err) => {
-      if (err) {
-        logger.error(err);
-        return res
-          .status(500)
-          .send("Users/editProfileImg/done : internal server error");
-      }
-      const userAfter = await userModel.findOneAndUpdate(
-        { _id: req.userOid, withdraw: false },
-        { profileImageUrl: aws.getS3Url(`/${key}?token=${req.timestamp}`) },
-        { new: true }
-      );
-      if (!userAfter) {
-        return res
-          .status(500)
-          .send("Users/editProfileImg/done : internal server error");
-      }
-      return res.json({
-        result: true,
-        profileImageUrl: userAfter.profileImageUrl,
-      });
+    if (!(await aws.foundObject(key))) {
+      return res
+        .status(400)
+        .send("Users/editProfileImg/done : no such image uploaded");
+    }
+
+    const userAfter = await userModel.findOneAndUpdate(
+      { _id: req.userOid, withdraw: false },
+      { profileImageUrl: `/${key}?token=${req.timestamp}` },
+      { new: true }
+    );
+    if (!userAfter) {
+      return res
+        .status(500)
+        .send("Users/editProfileImg/done : internal server error");
+    }
+    return res.json({
+      result: true,
+      profileImageUrl: aws.resolveS3Url(userAfter.profileImageUrl),
     });
-  } catch (e) {
+  } catch (err) {
+    logger.error(err);
     return res
       .status(500)
       .send("Users/editProfileImg/done : internal server error");
@@ -235,6 +332,7 @@ export const resetProfileImgHandler: RequestHandler = async (req, res) => {
       .status(200)
       .send("Users/resetProfileImg : reset user profile image successful");
   } catch (err) {
+    logger.error(err);
     return res
       .status(500)
       .send("Users/resetProfileImg : internal server error");
@@ -243,16 +341,17 @@ export const resetProfileImgHandler: RequestHandler = async (req, res) => {
 
 export const getBanRecordHandler: RequestHandler = async (req, res) => {
   try {
-    // 본인인 경우(ban의 userId가 userSid랑 같은 경우)의 record를 모두 가져옴
+    // 본인인 경우(ban의 userId가 userId랑 같은 경우)의 record를 모두 가져옴
     const result = await banModel
       .find({
-        userSid: req.session.loginInfo!.sid,
+        userUid: req.userUid,
       })
       .sort({ expireAt: -1 });
     if (!result)
       return res.status(500).send("Users/getBanRecord : internal server error");
     return res.status(200).json(result);
   } catch (err) {
+    logger.error(err);
     return res.status(500).send("Users/getBanRecord : internal server error");
   }
 };
@@ -294,8 +393,101 @@ export const withdrawHandler: RequestHandler = async (req, res) => {
     const ssoLogoutUrl =
       ssoClient?.getLogoutUrl(sid, redirectUrl) ?? redirectUrl;
     logout(req);
-    res.json({ ssoLogoutUrl });
+    return res.json({ ssoLogoutUrl });
   } catch (err) {
-    res.status(500).send("Users/withdraw : internal server error");
+    logger.error(err);
+    return res.status(500).send("Users/withdraw : internal server error");
+  }
+};
+
+// 즐겨찾기 생성
+export const createFavoriteHandler: RequestHandler = async (req, res) => {
+  try {
+    const userId = req.userOid;
+    const { from, to } = req.body as CreateFavoriteBody;
+
+    if (!from || !to) {
+      return res
+        .status(400)
+        .json({ error: "Users/createFavorite: Wrong location" });
+    } else if (from === to) {
+      return res
+        .status(400)
+        .json({ error: "Users/createFavorite: Same location" });
+    }
+
+    const fromLocation = await locationModel.findOne({ _id: from });
+    const toLocation = await locationModel.findOne({ _id: to });
+
+    if (!fromLocation || !toLocation) {
+      return res
+        .status(400)
+        .json({ error: "Users/createFavorite: Location not found" });
+    }
+
+    const existingRoute = await favoriteRouteModel.findOne({
+      user: userId,
+      from,
+      to,
+    });
+    if (existingRoute) {
+      return res
+        .status(400)
+        .json({ error: "Users/createFavorite: route already exists" });
+    }
+
+    const newRoute = new favoriteRouteModel({
+      user: userId,
+      from,
+      to,
+    });
+    await newRoute.save();
+
+    return res.status(200).json(newRoute);
+  } catch (error) {
+    return res
+      .status(500)
+      .json({ error: "Users/createFavorite: internal server error" });
+  }
+};
+
+// 즐겨찾기 조회
+export const getFavoriteHandler: RequestHandler = async (req, res) => {
+  try {
+    const userId = req.userOid;
+    const routes = await favoriteRouteModel
+      .find({ user: userId })
+      .populate(favoriteRoutesPopulateOption);
+
+    return res.status(200).json(routes);
+  } catch (error) {
+    return res
+      .status(500)
+      .json({ error: "Users/getFavorite: internal server error" });
+  }
+};
+
+// 즐겨찾기 삭제
+export const deleteFavoriteHandler: RequestHandler = async (req, res) => {
+  try {
+    const userId = req.userOid;
+    const { id } = req.params as DeleteFavoriteParam;
+
+    const route = await favoriteRouteModel.findOneAndDelete({
+      _id: id,
+      user: userId,
+    });
+
+    if (!route) {
+      return res
+        .status(400)
+        .json({ error: "Users/deleteFavorite: no corresponding route" });
+    }
+
+    return res.status(200).json(route);
+  } catch (error) {
+    return res
+      .status(500)
+      .json({ error: "Users/deleteFavorite: internal server error" });
   }
 };

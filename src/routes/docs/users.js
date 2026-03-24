@@ -194,6 +194,185 @@ usersDocs[`${apiPrefix}/editAccount`] = {
   },
 };
 
+usersDocs[`${apiPrefix}/registerPhoneNumber`] = {
+  post: {
+    tags: [tag],
+    summary: "유저의 전화 번호 등록",
+    description: "유저의 전화 번호를 요청한 전화 번호로 등록합니다.",
+    requestBody: {
+      content: {
+        "application/json": {
+          schema: {
+            type: "object",
+            properties: {
+              phoneNumber: {
+                type: "string",
+                description: "유저의 전화 번호",
+              },
+            },
+          },
+        },
+      },
+    },
+    responses: {
+      200: {
+        content: {
+          "text/html": {
+            example:
+              "Users/registerPhoneNumber : create user phoneNumber successful",
+          },
+        },
+      },
+      400: {
+        content: {
+          "text/html": {
+            example: "Users/registerPhoneNumber : such user id does not exist",
+          },
+        },
+      },
+      500: {
+        content: {
+          "text/html": {
+            example: "Users/registerPhoneNumber : internal server error",
+          },
+        },
+      },
+    },
+  },
+};
+
+usersDocs[`${apiPrefix}/editBadge`] = {
+  post: {
+    tags: [tag],
+    summary: "유저의 뱃지 적용 상태 변경",
+    description: "유저의 뱃지를 탈부착합니다.",
+    requestBody: {
+      content: {
+        "application/json": {
+          schema: {
+            type: "object",
+            properties: {
+              badge: {
+                type: "string",
+                description: "뱃지 상태",
+              },
+            },
+          },
+        },
+      },
+    },
+    responses: {
+      200: {
+        content: {
+          "text/html": {
+            example: "Users/editBadge : badge successfully applied",
+          },
+        },
+      },
+      400: {
+        content: {
+          "text/html": {
+            example: "Users/editBadge : invalid request for badge",
+          },
+        },
+      },
+      400: {
+        content: {
+          "text/html": {
+            example: "Users/editBadge : Unauthorized user",
+          },
+        },
+      },
+      500: {
+        content: {
+          "text/html": {
+            example: "Users/editBadge : internal server error",
+          },
+        },
+      },
+    },
+  },
+};
+
+usersDocs[`${apiPrefix}/registerResidence`] = {
+  post: {
+    tags: [tag],
+    summary: "유저의 승하차 선호 장소 등록",
+    description: "유저의 승하차 선호 장소를 등록합니다.",
+    requestBody: {
+      content: {
+        "application/json": {
+          schema: {
+            type: "object",
+            properties: {
+              residence: {
+                type: "string",
+                description: "유저의 승하차 선호 장소",
+              },
+            },
+          },
+        },
+      },
+    },
+    responses: {
+      200: {
+        content: {
+          "text/html": {
+            example:
+              "Users/registerResidence: residenceInfo registered successfully",
+          },
+        },
+      },
+      400: {
+        content: {
+          "text/html": {
+            example: "Users/registerResidence: user not found or update failed",
+          },
+        },
+      },
+      500: {
+        content: {
+          "text/html": {
+            example: "Users/registerResidence: internal server error",
+          },
+        },
+      },
+    },
+  },
+};
+
+usersDocs[`${apiPrefix}/deleteResidence`] = {
+  post: {
+    tags: [tag],
+    summary: "유저의 승하차 선호 장소 정보 삭제",
+    description: "유저의 승하차 선호 장소 정보를 삭제합니다.",
+    responses: {
+      200: {
+        content: {
+          "text/html": {
+            example:
+              "Users/deleteResidence: residenceInfo deleted successfully",
+          },
+        },
+      },
+      400: {
+        content: {
+          "text/html": {
+            example: "Users/deleteResidence: user not found or update failed",
+          },
+        },
+      },
+      500: {
+        content: {
+          "text/html": {
+            example: "Users/deleteResidence: internal server error",
+          },
+        },
+      },
+    },
+  },
+};
+
 usersDocs[`${apiPrefix}/editProfileImg/getPUrl`] = {
   post: {
     tags: [tag],
@@ -425,6 +604,263 @@ usersDocs[`${apiPrefix}/withdraw`] = {
         content: {
           "text/html": {
             example: "Users/withdraw : internal server error",
+          },
+        },
+      },
+    },
+  },
+};
+
+usersDocs[`${apiPrefix}/createFavorite`] = {
+  post: {
+    tags: [tag],
+    summary: "즐겨찾기 생성",
+    description: "즐겨찾기를 생성합니다.",
+    requestBody: {
+      content: {
+        "application/json": {
+          schema: {
+            type: "object",
+            properties: {
+              from: {
+                type: "string",
+                description: "출발 지점",
+              },
+              to: {
+                type: "string",
+                description: "도착 지점",
+              },
+            },
+          },
+        },
+      },
+    },
+    responses: {
+      200: {
+        content: {
+          "application/json": {
+          schema: {
+            type: "object",
+            properties: {
+              user: {
+                type: "string",
+                description: "유저 objectId",
+              },
+              from: {
+                type: "string",
+                description: "출발 지점",
+              },
+              to: {
+                type: "string",
+                description: "도착 지점",
+              },
+              _id: {
+                type: "string",
+                description: "즐겨찾기 objectId",
+              },
+              createdAt: {
+                type: "string",
+                description: "즐겨찾기 생성시간",
+              },
+              __v: {
+                type: "string",
+                description: "변경 횟수",
+              },
+            },
+          },
+        },
+        },
+      },
+      400: {
+        content: {
+          "text/html": {
+            example: "Users/createFavorite: Wrong location",
+          },
+        },
+      },
+      400: {
+        content: {
+          "text/html": {
+            example: "Users/createFavorite: Same location",
+          },
+        },
+      },
+      400: {
+        content: {
+          "text/html": {
+            example: "Users/createFavorite: Location not found",
+          },
+        },
+      },
+      400: {
+        content: {
+          "text/html": {
+            example: "Users/createFavorite: route already exists",
+          },
+        },
+      },
+      500: {
+        content: {
+          "text/html": {
+            example: "Users/createFavorite: internal server error",
+          },
+        },
+      },
+    },
+  },
+};
+
+usersDocs[`${apiPrefix}/getFavorite`] = {
+  get: {
+    tags: [tag],
+    summary: "즐겨찾기 조회",
+    description:
+      "본인의 즐겨찾기 목록을 가져옴",
+    responses: {
+      200: {
+        content: {
+          "application/json": {
+            schema: {
+              type: "array",
+              items: {
+                properties: {
+                  _id: {
+                    type: "string",
+                    description: "즐겨찾기의 objectId",
+                  },
+                  user: {
+                    type: "string",
+                    description: "유저 objectId",
+                  },
+                  from: {
+                    type: "object",
+                    properties: {
+                      _id: {
+                        type: "string",
+                        description: "location objectId"
+                      },
+                      enName: {
+                        type: "string",
+                        description: "location 영문 이름"
+                      },
+                      koName: {
+                        type: "string",
+                        description: "location 국문 이름"
+                      },
+                    },
+                    description: "출발 지점",
+                  },
+                  to: {
+                    type: "object",
+                    properties: {
+                      _id: {
+                        type: "string",
+                        description: "location objectId"
+                      },
+                      enName: {
+                        type: "string",
+                        description: "location 영문 이름"
+                      },
+                      koName: {
+                        type: "string",
+                        description: "location 국문 이름"
+                      },
+                    },
+                    description: "도착 지점",
+                  },
+                  createdAt: {
+                    type: "string",
+                    description: "즐겨찾기 생성시간",
+                  },
+                  __v: {
+                    type: "string",
+                    description: "변경 횟수",
+                  },
+              },
+            },
+          },
+        },
+      },
+    },
+      500: {
+        content: {
+          "text/html": {
+            example: "Users/getFavorite: internal server error",
+          },
+        },
+      },
+    },
+  },
+};
+
+usersDocs[`${apiPrefix}/deleteFavorite/{favoriteRouteId}`] = {
+  post: {
+    tags: [tag],
+    summary: "즐겨찾기 삭제",
+    description: "즐겨찾기를 삭제합니다.",
+    parameters: [
+      {
+        in: "path",
+        name: "favoriteRouteId",
+        required: true,
+        description: "삭제하고픈 favoriteRoute의 Id",
+        example: "FavoriteRoute ID",
+      },
+    ],
+    responses: {
+      200: {
+        content: {
+          "application/json": {
+          schema: {
+            type: "object",
+            properties: {
+              _id: {
+                type: "string",
+                description: "즐겨찾기 objectId",
+              },
+              user: {
+                type: "string",
+                description: "유저 objectId",
+              },
+              from: {
+                type: "string",
+                description: "출발 지점",
+              },
+              to: {
+                type: "string",
+                description: "도착 지점",
+              },
+              createdAt: {
+                type: "string",
+                description: "즐겨찾기 생성시간",
+              },
+              __v: {
+                type: "string",
+                description: "변경 횟수",
+              },
+            },
+          },
+        },
+        },
+      },
+      400: {
+        content: {
+          "text/html": {
+            example: "Users/deleteFavorite: Missing or invalid route ID",
+          },
+        },
+      },
+      400: {
+        content: {
+          "text/html": {
+            example: "Users/deleteFavorite: no corresponding route",
+          },
+        },
+      },
+      500: {
+        content: {
+          "text/html": {
+            example: "Users/deleteFavorite: internal server error",
           },
         },
       },

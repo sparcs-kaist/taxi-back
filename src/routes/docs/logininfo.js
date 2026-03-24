@@ -40,6 +40,14 @@ logininfoDocs[`${apiPrefix}`] = {
                   type: "string",
                   description: "사용자 전화번호",
                 },
+                badge: {
+                  type: "boolean",
+                  description: "뱃지 on/off",
+                },
+                residence: {
+                  type: "string",
+                  description: "승하차 선호 장소",
+                },
                 ban: {
                   type: "boolean",
                 },

@@ -1,2 +1,2 @@
 export { timestampValidator } from "./timestampValidator";
-export { banMiddleware } from "./checkBanned";
+export { default as banMiddleware } from "./eventValidator";

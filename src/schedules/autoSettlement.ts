@@ -29,7 +29,6 @@ const autoSettlement = (app: Express) => async () => {
           type: "settlement",
           content: user!.id,
           authorId: user!._id.toString(),
-          time: null,
         });
 
         // 1명의 참여자만 존재하는 room에 대하여 정산 완료 처리.

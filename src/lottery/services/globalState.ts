@@ -2,16 +2,16 @@ import { eventStatusModel } from "../modules/stores/mongo";
 import { userModel } from "../../modules/stores/mongo";
 import logger from "@/modules/logger";
 import { isLogin, getLoginInfo } from "@/modules/auths/login";
-import { nodeEnv, eventConfig } from "@/loadenv";
+import { eventConfig } from "@/loadenv";
 import {
-  completeEventSharingQuest,
-  completeFirstLoginQuest,
   completeIndirectEventSharingQuest,
+  completePhoneVerificationQuest,
+  completeReferralInviterCredit,
+  completeReferralInviteeCredit,
   quests,
 } from "../modules/contracts";
 
 import type { Quest } from "../types";
-import type { User } from "@/types/mongo";
 import type { Types } from "mongoose";
 import type { RequestHandler } from "express";
 
@@ -115,7 +115,7 @@ export const createUserGlobalStateHandler: RequestHandler = async (
         error: "GlobalState/create : invalid inviter",
       });
 
-    const user: User | null = await userModel.findOne({
+    const user = await userModel.findOne({
       _id: userOid,
       withdraw: false,
     });
@@ -137,7 +137,7 @@ export const createUserGlobalStateHandler: RequestHandler = async (
         logger.info(`Past user phone number: ${user.phoneNumber}`);
         logger.info(`Update user phone number: ${req.body.phoneNumber}`);
       }
-
+      user.badge = true;
       user.phoneNumber = req.body.phoneNumber;
       await user.save();
     }
@@ -151,11 +151,17 @@ export const createUserGlobalStateHandler: RequestHandler = async (
     await neweventStatus.save();
 
     // 퀘스트를 완료 처리합니다.
-    await completeFirstLoginQuest(userOid, timestamp);
-
+    // 해당 퀘스트는 2025 Fall Event에는 존재하지 않습니다.
+    // 마찬가지로 EventSharingQuest는 2025 Fall Event에는 존재하지 않습니다.
     if (inviterStatus) {
+      /*
       await completeEventSharingQuest(userOid, timestamp);
       await completeEventSharingQuest(inviterStatus.userId, timestamp);
+      */
+      await completeReferralInviteeCredit(userOid, timestamp);
+      await completeReferralInviterCredit(inviterStatus.userId, timestamp);
+      await completePhoneVerificationQuest(userOid, timestamp);
+
       let currentInviter = inviterStatus;
       const ancestorIds: Types.ObjectId[] = [];
 
@@ -168,11 +174,14 @@ export const createUserGlobalStateHandler: RequestHandler = async (
         ancestorIds.push(higherInviter.userId);
         currentInviter = { ...higherInviter };
       }
+
       await Promise.all(
         ancestorIds.map((ancestorId) =>
           completeIndirectEventSharingQuest(ancestorId, timestamp)
         )
       );
+    } else {
+      await completePhoneVerificationQuest(userOid, timestamp);
     }
 
     return res.json({ result: true });

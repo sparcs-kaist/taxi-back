@@ -7,7 +7,7 @@ import {
 import logger from "@/modules/logger";
 import type { Types } from "mongoose";
 import { eventConfig } from "@/loadenv";
-import type { EventPeriod, EventStatus, Quest } from "../types";
+import type { EventPeriod, EventStatus, Quest, QuestInput } from "../types";
 
 const eventPeriod: EventPeriod | null = eventConfig && {
   startAt: new Date(eventConfig.period.startAt),
@@ -22,7 +22,7 @@ const requiredQuestFields: string[] = [
 ];
 
 export const buildQuests = (
-  quests: Record<string, Quest>
+  quests: Record<string, QuestInput>
 ): Record<string, Required<Quest>> | null => {
   const updatedQuests: Record<string, Required<Quest>> = {};
 
@@ -142,7 +142,9 @@ export const completeQuest = async (
         amount: quest.reward.credit,
         userId,
         questId: quest.id,
-        comment: `"${quest.name}" 퀘스트를 완료해 ${eventConfig?.credit.name} ${quest.reward.credit}개를 획득했습니다.`,
+        comment: `"${quest.name}" 퀘스트를 완료해 ${
+          eventConfig?.credit?.name ?? "응모권"
+        } ${quest.reward.credit}개를 획득했습니다. at ${new Date()}`,
       });
       await transaction.save();
       transactionsId.push(transaction._id.toString());

@@ -38,6 +38,17 @@ export interface Quest {
   isDisabled?: boolean;
 }
 
+export interface QuestInput {
+  id?: string;
+  name: string;
+  description: string;
+  imageUrl: string;
+  reward: number | Reward;
+  maxCount?: number;
+  isApiRequired?: boolean;
+  isDisabled?: boolean;
+}
+
 export interface Item extends Document<Types.ObjectId> {
   name: string;
   imageUrl: string;

@@ -1,3 +1,5 @@
+const { base64url } = require("@/modules/patterns").default;
+
 const tag = "auth";
 const apiPrefix = "/auth";
 
@@ -442,6 +444,171 @@ authDocs[`${apiPrefix}/app/device`] = {
         content: {
           "text/html": {
             example: "server error",
+          },
+        },
+      },
+    },
+  },
+};
+
+authDocs[`${apiPrefix}/sparcsapp/login`] = {
+  get: {
+    tags: [tag],
+    summary: "원앱 사용자를 위해 SPARCS SSO 로그인 페이지로 리다이렉트",
+    description:
+      "SSO 로그인 페이지로 리다이렉트합니다. 이 페이지를 통해 로그인하는 경우 원앱 사용자인 것으로 처리합니다.",
+    parameters: [
+      {
+        in: "query",
+        name: "codeChallenge",
+        required: true,
+        schema: {
+          type: "string",
+          pattern: base64url.source,
+          length: 43,
+        },
+        description: "Authorization Code Flow에서 사용되는 Challenge 값",
+      },
+    ],
+    responses: {
+      302: {
+        description: "SPARCS SSO 로그인 페이지로 리다이렉트",
+        headers: {
+          Location: {
+            type: "string",
+            description: "SPARCS SSO 로그인 페이지",
+            format: "uri",
+          },
+        },
+      },
+    },
+  },
+};
+
+authDocs[`${apiPrefix}/sparcsapp/token/issue`] = {
+  post: {
+    tags: [tag],
+    summary: "원앱 사용자를 위해 최초 Token 발급",
+    description:
+      "Access Token과 Refresh Token을 발급합니다. 원앱 사용자인 경우만 Token을 발급받을 수 있습니다.",
+    requestBody: {
+      content: {
+        "application/json": {
+          schema: {
+            type: "object",
+            required: ["codeVerifier"],
+            properties: {
+              codeVerifier: {
+                type: "string",
+                pattern: base64url.source,
+                minLength: 43,
+                maxLength: 128,
+                description: "Authorization Code Flow에서 사용되는 Verifier 값",
+              },
+            },
+          },
+        },
+      },
+    },
+    responses: {
+      200: {
+        description: "Token 발급 성공",
+        content: {
+          "application/json": {
+            schema: {
+              type: "object",
+              required: ["accessToken", "refreshToken", "ssoInfo"],
+              properties: {
+                accessToken: {
+                  type: "string",
+                  description: "새로운 JWT Access Token",
+                },
+                refreshToken: {
+                  type: "string",
+                  description: "새로운 Refresh Token",
+                },
+                ssoInfo: {
+                  type: "string",
+                  description: "SPARCS SSO에서 전달받은 사용자 정보",
+                },
+              },
+            },
+          },
+        },
+      },
+      400: {
+        content: {
+          "text/html": {
+            example: "Auth/sparcsapp/token/issue : invalid request",
+          },
+        },
+      },
+    },
+  },
+};
+
+authDocs[`${apiPrefix}/sparcsapp/token/refresh`] = {
+  post: {
+    tags: [tag],
+    summary: "원앱 사용자를 위해 Token 갱신",
+    description:
+      "Access Token과 Refresh Token을 갱신합니다. 원앱 사용자인 경우만 Token을 갱신할 수 있습니다.",
+    requestBody: {
+      content: {
+        "application/json": {
+          schema: {
+            type: "object",
+            required: ["refreshToken"],
+            properties: {
+              refreshToken: {
+                type: "string",
+                description: "만료되지 않은 유효한 Refresh Token",
+              },
+            },
+          },
+        },
+      },
+    },
+    responses: {
+      200: {
+        description: "Token 갱신 성공",
+        content: {
+          "application/json": {
+            schema: {
+              type: "object",
+              required: ["accessToken", "refreshToken"],
+              properties: {
+                accessToken: {
+                  type: "string",
+                  description: "새로운 JWT Access Token",
+                },
+                refreshToken: {
+                  type: "string",
+                  description: "새로운 Refresh Token",
+                },
+              },
+            },
+          },
+        },
+      },
+      400: {
+        content: {
+          "text/html": {
+            example: "Auth/sparcsapp/token/refresh : invalid refresh token",
+          },
+        },
+      },
+      403: {
+        content: {
+          "text/html": {
+            example: "Auth/sparcsapp/token/refresh : invalid refresh token",
+          },
+        },
+      },
+      500: {
+        content: {
+          "text/html": {
+            example: "Auth/sparcsapp/token/refresh : internal server error",
           },
         },
       },

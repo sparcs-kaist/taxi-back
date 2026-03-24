@@ -8,6 +8,8 @@ declare global {
     export interface Request {
       /** 사용자의 ObjectID. MongoDB에서 사용됩니다. */
       userOid?: string;
+      /** 사용자의 UserID */
+      userUid?: string;
       /** 요청의 origin. */
       origin?: string;
       /** 사용자의 IP 주소. */

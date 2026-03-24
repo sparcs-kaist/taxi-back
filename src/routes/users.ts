@@ -1,12 +1,9 @@
 import express from "express";
-import { body } from "express-validator";
-import { authMiddleware, validatorMiddleware } from "@/middlewares";
-import patterns from "@/modules/patterns";
-
+import { authMiddleware, validateBody, validateParams } from "@/middlewares";
+import { favoriteRoutesZod } from "./docs/schemas/favoriteRoutesSchema";
 const router = express.Router();
 import * as userHandlers from "@/services/users";
-
-import { replaceSpaceInNickname } from "@/modules/modifyProfile";
+import { usersZod } from "./docs/schemas/usersSchema";
 
 // 라우터 접근 시 로그인 필요
 router.use(authMiddleware);
@@ -24,10 +21,7 @@ router.get(
 // 새 닉네임을 받아 로그인된 유저의 닉네임을 변경합니다.
 router.post(
   "/editNickname",
-  body("nickname")
-    .customSanitizer(replaceSpaceInNickname)
-    .matches(patterns.user.nickname),
-  validatorMiddleware,
+  validateBody(usersZod.editNicknameHandler),
   userHandlers.editNicknameHandler
 );
 
@@ -37,16 +31,38 @@ router.get("/resetNickname", userHandlers.resetNicknameHandler);
 // 새 계좌번호를 받아 로그인된 유저의 계좌번호를 변경합니다.
 router.post(
   "/editAccount",
-  body("account").matches(patterns.user.account),
-  validatorMiddleware,
+  validateBody(usersZod.editAccountHandler),
   userHandlers.editAccountHandler
 );
+
+// 새 전화번호를 받아 로그인된 유저의 전화번호를 저장합니다.
+router.post(
+  "/registerPhoneNumber",
+  validateBody(usersZod.registerPhoneNumberHandler),
+  userHandlers.registerPhoneNumberHandler
+);
+
+// 뱃지를 부여하거나 회수합니다.
+router.post(
+  "/editBadge",
+  validateBody(usersZod.editBadgeHandler),
+  userHandlers.editBadgeHandler
+);
+
+// 거주지 정보를 등록합니다.
+router.post(
+  "/registerResidence",
+  validateBody(usersZod.registerResidenceHandler),
+  userHandlers.registerResidenceHandler
+);
+
+// 거주지 정보를 삭제합니다.
+router.post("/deleteResidence", userHandlers.deleteResidenceHandler);
 
 // 프로필 이미지를 업로드할 수 있는 Presigned-url을 발급합니다.
 router.post(
   "/editProfileImg/getPUrl",
-  body("type").matches(patterns.user.profileImgType),
-  validatorMiddleware,
+  validateBody(usersZod.editProfileImgGetPUrlHandler),
   userHandlers.editProfileImgGetPUrlHandler
 );
 
@@ -60,6 +76,23 @@ router.get("/resetProfileImg", userHandlers.resetProfileImgHandler);
 router.get("/getBanRecord", userHandlers.getBanRecordHandler);
 
 // 회원 탈퇴를 요청합니다.
-router.post("/withdraw", validatorMiddleware, userHandlers.withdrawHandler);
+router.post("/withdraw", userHandlers.withdrawHandler);
+
+// 즐겨찾기 생성
+router.post(
+  "/createFavorite",
+  validateBody(favoriteRoutesZod.createFavoriteHandler),
+  userHandlers.createFavoriteHandler
+);
+
+// 즐겨찾기 조회
+router.get("/getFavorite", userHandlers.getFavoriteHandler);
+
+// 즐겨찾기 삭제
+router.post(
+  "/deleteFavorite/:id",
+  validateParams(favoriteRoutesZod.deleteFavoriteHandler),
+  userHandlers.deleteFavoriteHandler
+);
 
 export default router;

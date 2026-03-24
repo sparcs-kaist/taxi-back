@@ -4,10 +4,14 @@ import {
   transactionModel,
 } from "../modules/stores/mongo";
 import { userModel } from "@/modules/stores/mongo";
+import { resolveS3Url } from "@/modules/stores/aws";
 import { isLogin, getLoginInfo } from "@/modules/auths/login";
 import logger from "@/modules/logger";
 import { eventConfig } from "@/loadenv";
-import { completeItemPurchaseQuest } from "../modules/contracts";
+import {
+  completeUseCoupon1Quest,
+  completeUseCoupon2Quest,
+} from "../modules/contracts";
 
 import type { RequestHandler, Request } from "express";
 import type { EventStatus, Item, Transaction } from "../types";
@@ -144,7 +148,7 @@ export const getItemLeaderboardHandler: RequestHandler = async (req, res) => {
           return {
             userId: user.userId,
             nickname: userInfo.nickname,
-            profileImageUrl: userInfo.profileImageUrl,
+            profileImageUrl: resolveS3Url(userInfo.profileImageUrl),
             amount: user.amount,
             probability: user.probability,
             rank: user.rank,
@@ -373,12 +377,15 @@ export const purchaseItem = async (
       userId: req.userOid,
       itemId: item._id,
       itemAmount: amount,
-      comment: `${eventConfig?.credit.name} ${totalPrice}개를 사용해 "${item.name}" ${amount}개를 획득했습니다.`,
+      // comment: `${eventConfig?.credit.name} ${totalPrice}개를 사용해 "${item.name}" ${amount}개를 획득했습니다.`,
+      comment: `${eventConfig?.credit.name} ${totalPrice}개를 사용해 "${item.name}"에 응모했습니다.`, // 2025 Fall
     });
     await transaction.save();
 
     // 4단계: 퀘스트를 완료 처리합니다.
+    /* 아이템 구매 퀘스트는 2025 가을 이벤트에서는 사용되지 않습니다.
     await completeItemPurchaseQuest(req.userOid, transaction.createdAt);
+    */
 
     return { result: { result: true } };
   }
@@ -432,17 +439,28 @@ export const purchaseItemHandler: RequestHandler = async (req, res) => {
 
 export const useCouponHandler: RequestHandler = async (req, res) => {
   try {
+    // const { couponCode } = req.params;
+    // const coupon = await itemModel.findOne({ couponCode, itemType: 4 }).lean();
+    // if (!coupon)
+    //   return res
+    //     .status(400)
+    //     .json({ error: "Items/useCoupon : invalid coupon" });
+
+    // const { result, error } = await purchaseItem(req, coupon, 1);
+    // if (error)
+    //   return res.status(400).json({ error: `Items/useCoupon : ${error}` });
+    // return res.json(result);
     const { couponCode } = req.params;
-    const coupon = await itemModel.findOne({ couponCode, itemType: 4 }).lean();
-    if (!coupon)
+    if (couponCode === "2026WELCOMETAXI") {
+      await completeUseCoupon1Quest(req.userOid as string, req.timestamp as number);
+    } else if (couponCode === "2026WELCOMESPARCS") {
+      await completeUseCoupon2Quest(req.userOid as string, req.timestamp as number);
+    } else {
       return res
         .status(400)
         .json({ error: "Items/useCoupon : invalid coupon" });
-
-    const { result, error } = await purchaseItem(req, coupon, 1);
-    if (error)
-      return res.status(400).json({ error: `Items/useCoupon : ${error}` });
-    return res.json(result);
+    }
+    return res.json({ result: { result: true } });
   } catch (err) {
     logger.error(err);
     res.status(500).json({ error: "Items/useCoupon : internal server error" });

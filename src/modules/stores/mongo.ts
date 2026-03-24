@@ -1,24 +1,11 @@
-import mongoose, { model, Schema } from "mongoose";
+import mongoose, { model, Schema, Types } from "mongoose";
 import logger from "@/modules/logger";
 
-import type { Types } from "mongoose";
-import type {
-  User,
-  Ban,
-  Participant,
-  DeviceToken,
-  NotificationOption,
-  TopicSubscription,
-  Room,
-  Location,
-  Chat,
-  Report,
-  AdminIPWhitelist,
-  AdminLog,
-  TaxiFare,
-} from "@/types/mongo";
+export type InferSchemaType<T> = mongoose.InferSchemaType<T> & {
+  _id: Types.ObjectId;
+};
 
-const userSchema = new Schema<User>({
+const userSchema = new Schema({
   name: { type: String, required: true }, //실명
   nickname: { type: String, required: true }, //닉네임
   id: { type: String, required: true }, //택시 서비스에서만 사용되는 id
@@ -28,9 +15,12 @@ const userSchema = new Schema<User>({
   withdraw: { type: Boolean, default: false }, //탈퇴 여부
   withdrewAt: { type: Date }, //탈퇴 시각
   phoneNumber: { type: String }, // 전화번호 (2023FALL 이벤트부터 추가)
+  badge: { type: Boolean }, // 인증 뱃지 사용 여부
+  residence: { type: String }, // 선호하는 위치 정보
   ban: { type: Boolean, default: false }, //계정 정지 여부
   joinat: { type: Date, required: true }, //가입 시각
   agreeOnTermsOfService: { type: Boolean, default: false }, //이용약관 동의 여부
+  savings: { type: Number, default: null }, // 누적 아낀 금액 (null이면 아직 계산되지 않음)
   subinfo: {
     kaist: { type: String, default: "" },
     sparcs: { type: String, default: "" },
@@ -43,10 +33,11 @@ const userSchema = new Schema<User>({
 });
 
 export const userModel = model("User", userSchema);
+export type User = InferSchemaType<typeof userSchema>;
 
-const banSchema = new Schema<Ban>({
-  // 정지 시킬 사용자를 기제함.
-  userSid: { type: String, required: true },
+const banSchema = new Schema({
+  // 정지 시킬 사용자를 기재함.
+  userUid: { type: String, required: true },
   // 정지 사유
   reason: { type: String, required: true },
   bannedAt: { type: Date, required: true }, // 정지 당한 시각
@@ -58,25 +49,15 @@ const banSchema = new Schema<Ban>({
     // 필요시 이곳에 정지를 시킬 서비스를 추가함.
     enum: [
       "service", // service: 방 생성/참여 제한
-      "2023-fall-event", // xxxx-xxxx-event: 특정 이벤트 참여 제한
+      "2025-fall-event", // xxxx-xxxx-event: 특정 이벤트 참여 제한
     ],
   },
 });
 
 export const banModel = model("Ban", banSchema);
+export type Ban = InferSchemaType<typeof banSchema>;
 
-const participantSchema = new Schema<Participant>({
-  user: { type: Schema.Types.ObjectId, ref: "User", required: true },
-  settlementStatus: {
-    type: String,
-    required: true,
-    enum: ["not-departed", "paid", "send-required", "sent"],
-    default: "not-departed",
-  },
-  readAt: { type: Date },
-});
-
-const deviceTokenSchema = new Schema<DeviceToken>({
+const deviceTokenSchema = new Schema({
   userId: {
     type: Schema.Types.ObjectId,
     ref: "User",
@@ -87,9 +68,10 @@ const deviceTokenSchema = new Schema<DeviceToken>({
 });
 
 export const deviceTokenModel = model("DeviceToken", deviceTokenSchema);
+export type DeviceToken = InferSchemaType<typeof deviceTokenSchema>;
 
 // 각 디바이스의 알림 설정
-const notificationOptionSchema = new Schema<NotificationOption>({
+const notificationOptionSchema = new Schema({
   deviceToken: {
     type: String,
     required: true,
@@ -127,8 +109,11 @@ export const notificationOptionModel = model(
   "NotificationOption",
   notificationOptionSchema
 );
+export type NotificationOption = InferSchemaType<
+  typeof notificationOptionSchema
+>;
 
-const topicSubscriptionSchema = new Schema<TopicSubscription>({
+const topicSubscriptionSchema = new Schema({
   deviceToken: String,
   topic: String,
   subscribedAt: {
@@ -142,8 +127,24 @@ export const topicSubscriptionModel = model(
   "TopicSubscription",
   topicSubscriptionSchema
 );
+export type TopicSubscription = InferSchemaType<typeof topicSubscriptionSchema>;
 
-const roomSchema = new Schema<Room>({
+const participantSchema = new Schema({
+  user: { type: Schema.Types.ObjectId, ref: "User", required: true },
+  settlementStatus: {
+    type: String,
+    required: true,
+    enum: ["not-departed", "paid", "send-required", "sent"],
+    default: "not-departed",
+  },
+  readAt: { type: Date },
+  isArrived: { type: Boolean },
+  hasCarrier: { type: Boolean },
+});
+
+export type Participant = InferSchemaType<typeof participantSchema>;
+
+const roomSchema = new Schema({
   name: { type: String, required: true, default: "이름 없음", text: true },
   from: { type: Schema.Types.ObjectId, ref: "Location", required: true },
   to: { type: Schema.Types.ObjectId, ref: "Location", required: true },
@@ -151,7 +152,7 @@ const roomSchema = new Schema<Room>({
   part: {
     type: [participantSchema],
     validate: [
-      function (this: Room, value: Types.DocumentArray<Participant>) {
+      function (this: Room, value: Participant[]) {
         return value.length <= this.maxPartLength;
       },
     ],
@@ -159,11 +160,13 @@ const roomSchema = new Schema<Room>({
   madeat: { type: Date, required: true }, // 생성 날짜
   settlementTotal: { type: Number, default: 0, required: true },
   maxPartLength: { type: Number, required: true, default: 4 },
+  emojiIdentifier: { type: String }, // 방 구분용 이모지
 });
 
 export const roomModel = model("Room", roomSchema);
+export type Room = InferSchemaType<typeof roomSchema>;
 
-const locationSchema = new Schema<Location>({
+const locationSchema = new Schema({
   enName: { type: String, required: true },
   koName: { type: String, required: true },
   priority: { type: Number, default: 0 },
@@ -173,8 +176,9 @@ const locationSchema = new Schema<Location>({
 });
 
 export const locationModel = model("Location", locationSchema);
+export type Location = InferSchemaType<typeof locationSchema>;
 
-const chatSchema = new Schema<Chat>({
+const chatSchema = new Schema({
   roomId: { type: Schema.Types.ObjectId, ref: "Room", required: true },
   type: {
     type: String,
@@ -188,6 +192,9 @@ const chatSchema = new Schema<Chat>({
       "account",
       "departure", // 출발 15분 전 알림
       "arrival", // 출발 (1|24)시간 이후 알림 - 정산/송금 권유
+      "wordChain", // 워드체인 미니게임 관련 메시지
+      "racing", // 경마 미니게임 관련 메시지
+      "raceLog", // 경마 미니게임 로그
     ],
   }, // 메시지 종류
   authorId: { type: Schema.Types.ObjectId, ref: "User" }, // 작성자 id
@@ -198,8 +205,9 @@ const chatSchema = new Schema<Chat>({
 chatSchema.index({ roomId: 1, time: -1 });
 
 export const chatModel = model("Chat", chatSchema);
+export type Chat = InferSchemaType<typeof chatSchema>;
 
-const reportSchema = new Schema<Report>({
+const reportSchema = new Schema({
   creatorId: { type: Schema.Types.ObjectId, ref: "User", required: true }, // 신고한 사람 id
   reportedId: { type: Schema.Types.ObjectId, ref: "User", required: true }, // 신고받은 사람 id
   type: {
@@ -213,8 +221,21 @@ const reportSchema = new Schema<Report>({
 });
 
 export const reportModel = model("Report", reportSchema);
+export type Report = InferSchemaType<typeof reportSchema>;
 
-const adminIPWhitelistSchema = new Schema<AdminIPWhitelist>({
+const emailSchema = new Schema({
+  emailAddress: { type: String, required: true }, // 전송된 이메일 주소
+  reportId: { type: Schema.Types.ObjectId, required: true, ref: "Report" },
+  trackingId: { type: String, required: true, unique: true }, // 이메일 id
+  sentAt: { type: Date, required: true }, // 이메일 전송 시간
+  isOpened: { type: Boolean, required: true }, // 이메일 수신 여부
+  openedAt: { type: Date }, // 이메일 수신 시간
+});
+
+export const emailModel = model("Email", emailSchema);
+export type Email = InferSchemaType<typeof emailSchema>;
+
+const adminIPWhitelistSchema = new Schema({
   ip: { type: String, required: true }, // IP 주소
   description: { type: String, default: "" }, // 설명
 });
@@ -223,8 +244,9 @@ export const adminIPWhitelistModel = model(
   "AdminIPWhitelist",
   adminIPWhitelistSchema
 );
+export type AdminIPWhitelist = InferSchemaType<typeof adminIPWhitelistSchema>;
 
-const adminLogSchema = new Schema<AdminLog>({
+const adminLogSchema = new Schema({
   user: { type: Schema.Types.ObjectId, ref: "User", required: true }, // Log 취급자 User
   time: { type: Date, required: true }, // Log 발생 시각
   ip: { type: String, required: true }, // 접속 IP 주소
@@ -237,8 +259,9 @@ const adminLogSchema = new Schema<AdminLog>({
 });
 
 export const adminLogModel = model("AdminLog", adminLogSchema);
+export type AdminLog = InferSchemaType<typeof adminLogSchema>;
 
-const taxiFareSchema = new Schema<TaxiFare>(
+const taxiFareSchema = new Schema(
   {
     from: { type: Schema.Types.ObjectId, ref: "Location", required: true }, // 출발지
     to: { type: Schema.Types.ObjectId, ref: "Location", required: true }, // 도착지
@@ -252,6 +275,59 @@ const taxiFareSchema = new Schema<TaxiFare>(
 );
 
 export const taxiFareModel = model("TaxiFare", taxiFareSchema);
+export type TaxiFare = InferSchemaType<typeof taxiFareSchema>;
+
+const noticeSchema = new Schema(
+  {
+    title: { type: String, required: true },
+    notion_url: { type: String, required: true },
+    is_pinned: { type: Boolean, default: false },
+    is_active: { type: Boolean, default: true },
+  },
+  {
+    timestamps: true, // 최근 업데이트 시간 기록용
+  }
+);
+
+export const noticeModel = model("Notice", noticeSchema);
+export type Notice = InferSchemaType<typeof noticeSchema>;
+
+const dailySavingsSchema = new Schema({
+  date: { type: Date, required: true, unique: true },
+  cumulativeSavings: { type: Number, required: true },
+});
+dailySavingsSchema.index({ date: 1 });
+
+export const dailySavingsModel = model("DailySavings", dailySavingsSchema);
+export type DailySavings = InferSchemaType<typeof dailySavingsSchema>;
+
+const monthlyRoomCreationSchema = new Schema({
+  month: { type: Date, required: true, unique: true }, // month start (UTC)
+  cumulativeRooms: { type: Number, required: true },
+});
+monthlyRoomCreationSchema.index({ month: 1 });
+
+export const monthlyRoomCreationModel = model(
+  "MonthlyRoomCreation",
+  monthlyRoomCreationSchema
+);
+export type MonthlyRoomCreation = InferSchemaType<
+  typeof monthlyRoomCreationSchema
+>;
+
+const monthlyUserCreationSchema = new Schema({
+  month: { type: Date, required: true, unique: true }, // month start (UTC)
+  cumulativeUsers: { type: Number, required: true },
+});
+monthlyUserCreationSchema.index({ month: 1 });
+
+export const monthlyUserCreationModel = model(
+  "MonthlyUserCreation",
+  monthlyUserCreationSchema
+);
+export type MonthlyUserCreation = InferSchemaType<
+  typeof monthlyUserCreationSchema
+>;
 
 mongoose.set("strictQuery", true);
 
@@ -264,6 +340,33 @@ database.on("error", function (err) {
   logger.error("Database connection error occurred: " + err);
   mongoose.disconnect();
 });
+
+const favoriteRouteSchema = new Schema({
+  user: {
+    type: Schema.Types.ObjectId,
+    ref: "User",
+    required: true,
+  },
+  from: {
+    type: Schema.Types.ObjectId,
+    ref: "Location",
+    required: true,
+  },
+  to: {
+    type: Schema.Types.ObjectId,
+    ref: "Location",
+    required: true,
+  },
+  createdAt: { type: Date },
+});
+favoriteRouteSchema.set("timestamps", {
+  createdAt: "createdAt",
+  updatedAt: false,
+});
+
+// 즐겨찾기 모델 생성
+export const favoriteRouteModel = model("FavoriteRoute", favoriteRouteSchema);
+export type FavoriteRoute = InferSchemaType<typeof favoriteRouteSchema>;
 
 export const connectDatabase = (mongoUrl: string) => {
   database.on("disconnected", () => {

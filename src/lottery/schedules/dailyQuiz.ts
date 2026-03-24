@@ -1,5 +1,6 @@
 import logger from "@/modules/logger";
-import { completeAnswerCorrectlyQuest } from "../modules/contracts";
+//2025 가을 이벤트에서는 퀴즈가 없습니다.
+//import { completeAnswerCorrectlyQuest } from "../modules/contracts";
 import { getQuizByDate } from "../modules/quizzes";
 
 type CorrectAnswer = "A" | "B" | "draw";
@@ -41,10 +42,13 @@ const determineQuizResult = async () => {
             answer.status = "correct";
           }
           // 정답을 맞힌 사용자에게 퀘스트 완료 적용
-          await completeAnswerCorrectlyQuest(
+
+          //2025 가을 이벤트에서는 퀴즈가 없습니다.
+          /*await completeAnswerCorrectlyQuest(
             answer.userId.toString(),
             Date.now()
           );
+          */
         } else {
           answer.status = "wrong";
         }

@@ -1,5 +1,6 @@
 import { eventStatusModel, transactionModel } from "../modules/stores/mongo";
 import { userModel } from "../../modules/stores/mongo";
+import { resolveS3Url } from "../../modules/stores/aws";
 import { isLogin, getLoginInfo } from "../../modules/auths/login";
 import logger from "@/modules/logger";
 import { publicNoticePopulateOption } from "../modules/populates/transactions";
@@ -151,7 +152,7 @@ export const getTicketLeaderboardHandler: RequestHandler = async (req, res) => {
         }
         return {
           nickname: userInfo.nickname,
-          profileImageUrl: userInfo.profileImageUrl,
+          profileImageUrl: resolveS3Url(userInfo.profileImageUrl),
           ticket1Amount: user.ticket1Amount,
           ticket2Amount: user.ticket2Amount,
           probability: user.weight / weightSum,
@@ -231,7 +232,7 @@ export const getGroupLeaderboardHandler: RequestHandler = async (req, res) => {
         return {
           ...group,
           mvpNickname: mvpInfo.nickname,
-          mvpProfileImageUrl: mvpInfo.profileImageUrl,
+          mvpProfileImageUrl: resolveS3Url(mvpInfo.profileImageUrl),
         };
       })
     );

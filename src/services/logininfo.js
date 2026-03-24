@@ -1,3 +1,4 @@
+const { resolveS3Url } = require("@/modules/stores/aws");
 const { userModel } = require("@/modules/stores/mongo");
 const { getLoginInfo } = require("@/modules/auths/login");
 const logger = require("@/modules/logger").default;
@@ -9,7 +10,7 @@ const logininfoHandler = async (req, res) => {
 
     const userDetail = await userModel.findOne(
       { _id: user.oid, withdraw: false },
-      "_id name nickname id withdraw phoneNumber ban joinat agreeOnTermsOfService subinfo email profileImageUrl account"
+      "_id name nickname id withdraw phoneNumber badge residence ban joinat agreeOnTermsOfService subinfo email profileImageUrl account"
     );
 
     res.json({
@@ -19,12 +20,14 @@ const logininfoHandler = async (req, res) => {
       nickname: userDetail.nickname,
       withdraw: userDetail.withdraw,
       phoneNumber: userDetail.phoneNumber,
+      badge: userDetail.badge,
+      residence: userDetail.residence,
       ban: userDetail.ban,
       joinat: userDetail.joinat,
       agreeOnTermsOfService: userDetail.agreeOnTermsOfService,
       subinfo: userDetail.subinfo,
       email: userDetail.email,
-      profileImgUrl: userDetail.profileImageUrl,
+      profileImgUrl: resolveS3Url(userDetail.profileImageUrl),
       account: userDetail.account ? userDetail.account : "",
       deviceType: req.session?.isApp ? "app" : "web",
       deviceToken: req.session?.deviceToken,

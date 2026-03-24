@@ -1,3 +1,4 @@
+import { resolveS3Url } from "@/modules/stores/aws";
 import type {
   User,
   SettlementStatus,
@@ -10,36 +11,47 @@ import type {
  * 쿼리를 통해 얻은 Room Document를 populate할 설정값을 정의합니다.
  */
 export const roomPopulateOption = [
-  { path: "from", select: "_id koName enName" },
-  { path: "to", select: "_id koName enName" },
+  { path: "from", select: "_id koName enName latitude longitude" },
+  { path: "to", select: "_id koName enName latitude longitude" },
   {
     path: "part",
-    select: "-_id user settlementStatus readAt",
+    select: "-_id user settlementStatus readAt isArrived hasCarrier",
     populate: {
       path: "user",
-      select: "_id id name nickname profileImageUrl withdraw",
+      select: "_id id name nickname profileImageUrl withdraw badge",
     },
   },
 ];
 
-interface PopulatedParticipant
-  extends Pick<Participant, "settlementStatus" | "readAt"> {
-  user: Pick<
-    User,
-    "_id" | "id" | "name" | "nickname" | "profileImageUrl" | "withdraw"
-  > | null;
-}
+type PopulatedLocation = Pick<
+  Location,
+  "_id" | "koName" | "enName" | "latitude" | "longitude"
+>;
+type PopulatedUser = Pick<
+  User,
+  "_id" | "id" | "name" | "nickname" | "profileImageUrl" | "withdraw" | "badge"
+>;
+type PopulatedParticipant = Pick<
+  Participant,
+  "settlementStatus" | "readAt" | "isArrived" | "hasCarrier"
+> & {
+  user: PopulatedUser | null;
+};
 
 export interface PopulatedRoom extends Omit<Room, "from" | "to" | "part"> {
-  from: Pick<Location, "_id" | "koName" | "enName"> | null;
-  to: Pick<Location, "_id" | "koName" | "enName"> | null;
+  from: PopulatedLocation | null;
+  to: PopulatedLocation | null;
   part: PopulatedParticipant[];
 }
+
+export type RoomPopulatePath = Pick<PopulatedRoom, "from" | "to" | "part">;
 
 interface FormattedLocation {
   _id: string;
   enName: string;
   koName: string;
+  latitude: number;
+  longitude: number;
 }
 
 export interface FormattedRoom {
@@ -50,6 +62,7 @@ export interface FormattedRoom {
   time: Date;
   madeat: Date;
   maxPartLength: number;
+  emojiIdentifier?: string;
   part: {
     _id: string;
     name: string;
@@ -58,6 +71,8 @@ export interface FormattedRoom {
     withdraw: boolean;
     isSettlement?: SettlementStatus;
     readAt: Date;
+    isArrived?: boolean;
+    hasCarrier: boolean;
   }[];
   settlementTotal?: number;
   isOver?: boolean;
@@ -85,24 +100,33 @@ export const formatSettlement = (
       _id: roomObject.from!._id!.toString(),
       enName: roomObject.from!.enName,
       koName: roomObject.from!.koName,
+      latitude: roomObject.from!.latitude,
+      longitude: roomObject.from!.longitude,
     },
     to: {
       _id: roomObject.to!._id!.toString(),
       enName: roomObject.to!.enName,
       koName: roomObject.to!.koName,
+      latitude: roomObject.to!.latitude,
+      longitude: roomObject.to!.longitude,
     },
     part: roomObject.part.map((participantSubDocument) => {
-      const { _id, name, nickname, profileImageUrl, withdraw } =
+      const { _id, name, nickname, profileImageUrl, withdraw, badge } =
         participantSubDocument.user!;
-      const { settlementStatus, readAt } = participantSubDocument;
+      const { settlementStatus, readAt, hasCarrier } = participantSubDocument;
       return {
         _id: _id!.toString(),
         name,
         nickname,
-        profileImageUrl,
+        profileImageUrl: resolveS3Url(profileImageUrl),
         withdraw,
+        badge,
         isSettlement: includeSettlement ? settlementStatus : undefined,
         readAt: readAt ?? roomObject.madeat,
+        isArrived: includeSettlement
+          ? participantSubDocument.isArrived ?? false
+          : undefined,
+        hasCarrier: hasCarrier ?? false,
       };
     }),
     settlementTotal: includeSettlement ? roomObject.settlementTotal : undefined,

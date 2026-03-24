@@ -1,5 +1,6 @@
 import { eventStatusModel } from "../modules/stores/mongo";
 import { userModel } from "../../modules/stores/mongo";
+import { resolveS3Url } from "../../modules/stores/aws";
 import logger from "@/modules/logger";
 import { eventConfig } from "@/loadenv";
 
@@ -34,7 +35,10 @@ export const searchInviterHandler: RequestHandler = async (req, res) => {
         .json({ error: "Invites/search : internal server error" });
     }
 
-    return res.json(inviter);
+    return res.json({
+      ...inviter,
+      profileImageUrl: resolveS3Url(inviter.profileImageUrl),
+    });
   } catch (err) {
     logger.error(err);
     return res
@@ -45,28 +49,22 @@ export const searchInviterHandler: RequestHandler = async (req, res) => {
 
 export const createInviteUrlHandler: RequestHandler = async (req, res) => {
   try {
-    const eventstatus = req.eventStatus;
-
-    if (!eventstatus) {
-      return res.status(500).json({ error: "Missing eventStatus in request" });
+    const eventStatus = req.eventStatus;
+    if (!eventStatus) {
+      return res
+        .status(500)
+        .json({ error: "Invites/create : internal server error" });
     }
 
-    if (
-      !eventstatus._id ||
-      typeof eventstatus.isInviteUrlEnabled !== "boolean"
-    ) {
-      return res.status(500).json({ error: "Invalid eventStatus structure" });
-    }
+    const inviteUrl = `${req.origin}/event/${eventConfig?.mode}-invite/${eventStatus._id}`;
 
-    const inviteUrl = `${req.origin}/event/${eventConfig?.mode}-invite/${eventstatus._id}`;
-
-    if (eventstatus.isInviteUrlEnabled) {
+    if (eventStatus.isInviteUrlEnabled) {
       return res.json({ inviteUrl });
     }
 
     const { modifiedCount } = await eventStatusModel.updateOne(
       {
-        _id: eventstatus._id,
+        _id: eventStatus._id,
         isInviteUrlEnabled: false,
       },
       {
