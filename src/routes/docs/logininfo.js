@@ -42,7 +42,8 @@ logininfoDocs[`${apiPrefix}`] = {
                 },
                 badge: {
                   type: "string",
-                  description: "뱃지의 type (none, bronze, silver, gold)",
+                  description:
+                    "뱃지의 type (none, bronze, silver, gold, platinum)",
                 },
                 residence: {
                   type: "string",

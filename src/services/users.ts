@@ -143,7 +143,7 @@ export const registerPhoneNumberHandler: RequestHandler = async (req, res) => {
       .phoneNumber as RegisterPhoneNumberBody["phoneNumber"];
     const result = await userModel.findOneAndUpdate(
       { _id: req.userOid, withdraw: false },
-      { phoneNumber: newPhoneNumber, badge: true }
+      { phoneNumber: newPhoneNumber, badge: "normal" }
     );
 
     if (result) {

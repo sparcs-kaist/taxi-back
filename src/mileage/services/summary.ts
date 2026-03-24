@@ -61,17 +61,17 @@ export const summaryHandler: RequestHandler = async (req, res) => {
 };
 
 const getTier = (activeMileage: number) => {
-  if (activeMileage > 96000) return "gold";
-  else if (activeMileage > 24000) return "silver";
-  else if (activeMileage > 8000) return "normal";
-  else return "none";
+  if (activeMileage > 96000) return "platinum";
+  else if (activeMileage > 24000) return "gold";
+  else if (activeMileage > 8000) return "silver";
+  else return "normal";
 };
 
 export const isBadgeAvailable = async (
   userId: string | undefined,
   badgeName: string
 ) => {
-  if (!["none", "normal", "silver", "gold"].includes(badgeName)) {
+  if (!["none", "normal", "silver", "gold", "platinum"].includes(badgeName)) {
     return false;
   }
   if (!userId) {
@@ -93,12 +93,14 @@ export const isBadgeAvailable = async (
   const { totalMileage, activeMileage } = await getMileage(user._id.toString());
   const tier = getTier(activeMileage);
 
-  if (badgeName == "normal") {
-    return tier == "none" ? false : true;
-  } else if (badgeName == "silver") {
-    return ["none", "normal"].includes(badgeName) ? false : true;
-  } else if (badgeName == "gold") {
-    return tier == "gold" ? true : false;
+  if (badgeName === "normal") {
+    return user.phoneNumber ? true : false;
+  } else if (badgeName === "silver") {
+    return tier !== "normal";
+  } else if (badgeName === "gold") {
+    return ["gold", "platinum"].includes(tier) ? true : false;
+  } else if (badgeName === "platinum") {
+    return tier === "platinum";
   }
   return false;
 };

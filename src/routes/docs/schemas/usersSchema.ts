@@ -20,7 +20,7 @@ export const usersZod = {
   }),
 
   editBadgeHandler: z.object({
-    badge: z.enum(["none", "normal", "silver", "gold"]),
+    badge: z.enum(["none", "normal", "silver", "gold", "platinum"]),
   }),
 
   registerResidenceHandler: z.object({

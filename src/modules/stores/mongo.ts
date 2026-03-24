@@ -18,7 +18,7 @@ const userSchema = new Schema({
   badge: {
     type: String,
     required: true,
-    enum: ["none", "normal", "silver", "gold"],
+    enum: ["none", "normal", "silver", "gold", "platinum"],
     default: "none",
   }, // 인증 뱃지
   residence: { type: String }, // 선호하는 위치 정보
