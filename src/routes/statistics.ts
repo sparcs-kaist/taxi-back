@@ -1,12 +1,11 @@
 import express from "express";
 import { authMiddleware, validateQuery } from "@/middlewares";
-import { statisticsZod } from "./docs/schemas/statisticsSchema";
 import * as statisticsHandlers from "@/services/statistics";
+import { statisticsZod } from "./docs/schemas/statisticsSchema";
 
 const router = express.Router();
 
-router.use(authMiddleware);
-
+//이 savings endpoint는 사용되지 않습니다...
 router.get(
   "/savings",
   validateQuery(statisticsZod.savingsHandler),
@@ -27,6 +26,7 @@ router.get(
 
 router.get(
   "/users/savings",
+  authMiddleware,
   validateQuery(statisticsZod.userSavingsHandler),
   statisticsHandlers.userSavingsHandler
 );
@@ -45,6 +45,7 @@ router.get(
 
 router.get(
   "/users/done-room-count",
+  authMiddleware,
   validateQuery(statisticsZod.userDoneRoomCountHandler),
   statisticsHandlers.userDoneRoomCountHandler
 );
