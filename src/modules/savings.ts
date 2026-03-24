@@ -271,18 +271,33 @@ const getCachedFare = async (
   return null;
 };
 
-const makeStrictRoomType = async (room: RoomWithNames) => {
-  if (room.from instanceof Types.ObjectId) {
-    room.from = (await locationModel
-      .findById(room.from)
-      .populate("_id enName koName latitude longitude")) as PopulatedLocation;
+const makeStrictRoomType = async (
+  room: RoomWithNames
+): Promise<StrictRoomWithNames> => {
+  const [from, to] = await Promise.all([
+    room.from instanceof Types.ObjectId
+      ? locationModel
+          .findById(room.from)
+          .select("_id enName koName latitude longitude")
+          .lean<PopulatedLocation>()
+      : room.from,
+    room.to instanceof Types.ObjectId
+      ? locationModel
+          .findById(room.to)
+          .select("_id enName koName latitude longitude")
+          .lean<PopulatedLocation>()
+      : room.to,
+  ]);
+
+  if (!from || !to) {
+    throw new Error("Room references a missing location");
   }
-  if (room.to instanceof Types.ObjectId) {
-    room.to = (await locationModel
-      .findById(room.to)
-      .populate("_id enName koName latitude longitude")) as PopulatedLocation;
-  }
-  return room as StrictRoomWithNames;
+
+  return {
+    ...room,
+    from,
+    to,
+  };
 };
 
 export const getEstimatedFare = async (room: RoomWithNames) => {
