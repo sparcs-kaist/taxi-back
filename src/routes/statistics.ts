@@ -5,8 +5,6 @@ import * as statisticsHandlers from "@/services/statistics";
 
 const router = express.Router();
 
-router.use(authMiddleware);
-
 router.get(
   "/savings",
   validateQuery(statisticsZod.savingsHandler),
@@ -27,6 +25,7 @@ router.get(
 
 router.get(
   "/users/savings",
+  authMiddleware,
   validateQuery(statisticsZod.userSavingsHandler),
   statisticsHandlers.userSavingsHandler
 );
@@ -45,6 +44,7 @@ router.get(
 
 router.get(
   "/users/done-room-count",
+  authMiddleware,
   validateQuery(statisticsZod.userDoneRoomCountHandler),
   statisticsHandlers.userDoneRoomCountHandler
 );
