@@ -70,8 +70,8 @@ export const eventConfig = (process.env.EVENT_CONFIG &&
   },
 };
 export const naverMap = {
-  apiId: process.env.NAVER_MAP_API_ID || "", // optional
-  apiKey: process.env.NAVER_MAP_API_KEY || "", // optional
+  apiId: process.env.NAVER_MAP_API_ID,
+  apiKey: process.env.NAVER_MAP_API_KEY,
 };
 export const oneApp = {
   secretKey: process.env.ONEAPP_TOKEN_SECRET || "SPARCS_APP", // optional

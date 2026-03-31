@@ -41,8 +41,9 @@ logininfoDocs[`${apiPrefix}`] = {
                   description: "사용자 전화번호",
                 },
                 badge: {
-                  type: "boolean",
-                  description: "뱃지 on/off",
+                  type: "string",
+                  description:
+                    "뱃지의 type (none, bronze, silver, gold, platinum)",
                 },
                 residence: {
                   type: "string",

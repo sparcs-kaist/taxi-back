@@ -8,6 +8,7 @@ import {
   mongo as mongoUrl,
   port as httpPort,
   eventConfig,
+  naverMap,
 } from "@/loadenv";
 import {
   banMiddleware,
@@ -43,6 +44,7 @@ import { startSocketServer } from "@/modules/socket";
 import { connectDatabase } from "@/modules/stores/mongo";
 import registerSchedules from "@/schedules";
 import { lotteryRouter } from "@/lottery";
+import mileageRouter from "@/mileage";
 import miniGameRouter from "@/miniGame";
 
 // Firebase Admin 초기설정
@@ -86,6 +88,11 @@ app.use("/docs", docsRouter);
 // [Middleware] API 요청에 대하여 Ban 여부 검증
 app.use(banMiddleware);
 
+// [Router] 마일리지 전용 라우터입니다.
+if (naverMap.apiId === undefined || naverMap.apiKey === undefined) {
+  app.use("/mileage", mileageRouter);
+}
+
 // [Router] 이메일 수신 확인은 origin 검사 거치지 않기
 app.use("/emails", emailRouter);
 
@@ -127,6 +134,6 @@ const serverHttp = http
 app.set("io", startSocketServer(serverHttp));
 
 // [Schedule] 스케줄러 시작
-registerSchedules(app); 
+registerSchedules(app);
 // [Module] 택시 예상 비용 db 초기화
 initializeFareDatabase();

@@ -14,6 +14,7 @@ export type {
   AdminLog,
   TaxiFare,
   Notice,
+  Mileage,
   FavoriteRoute,
 } from "@/modules/stores/mongo";
 

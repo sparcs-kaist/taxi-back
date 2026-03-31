@@ -7,6 +7,7 @@ import {
   type User,
   chatModel,
 } from "@/modules/stores/mongo";
+import { mileageModel } from "@/mileage/modules/mongo";
 import { emitChatEvent } from "@/modules/socket";
 import logger from "@/modules/logger";
 import {
@@ -33,6 +34,11 @@ import { eventConfig } from "@/loadenv";
 import { contracts } from "@/lottery";
 import { allRaceDone } from "@/miniGame/services/racing";
 import { notifyRoomCreationAbuseToReportChannel } from "@/modules/slackNotification";
+import { forecastTaxiFare } from "@/mileage/modules/forecastTaxiFare";
+import {
+  createTransaction,
+  updateTransaction,
+} from "@/mileage/services/transaction";
 
 import { type SettlementMeta, buildPaymentContent } from "@/modules/settlement";
 import { allocateEmojiIdentifier } from "@/modules/roomIdentifier";
@@ -183,6 +189,21 @@ export const createHandler: RequestHandler = async (req, res) => {
 
     // 이벤트 코드입니다.
     await contracts?.completeFirstRoomCreationQuest(req.userOid, req.timestamp);
+
+    // 마일리지 코드입니다.
+    const mileageTime = new Date(time);
+    mileageTime.setHours(mileageTime.getHours(), 0, 0, 0);
+    try {
+      await createTransaction({
+        userId: user._id,
+        time: mileageTime,
+        type: "ride",
+        source: room._id,
+        amount: 0,
+      });
+    } catch (err) {
+      logger.error(err);
+    }
 
     const roomObject = (
       await room.populate(roomPopulateOption)
@@ -386,6 +407,43 @@ export const joinHandler: RequestHandler = async (req, res) => {
     const roomObject = (
       await room.populate(roomPopulateOption)
     ).toObject<PopulatedRoom>();
+
+    const N = room.part.length;
+    const expectedAmount = await forecastTaxiFare(
+      room.from,
+      room.to,
+      room.time
+    );
+    const amount = (expectedAmount / N) * (N - 1);
+
+    try {
+      await createTransaction({
+        userId: user._id,
+        time: new Date(room.time),
+        type: "ride",
+        source: room._id,
+        amount: amount,
+      });
+    } catch (err) {
+      logger.error(err);
+    }
+
+    const updates = room.part
+      .filter((part) => part.user.toString() !== user._id.toString())
+      .map((part) => ({
+        userId: part.user,
+        source: room._id,
+        amount: amount,
+      }));
+
+    try {
+      if (updates.length > 0) {
+        await updateTransaction(updates);
+      }
+    } catch (err) {
+      logger.error(err);
+    }
+
     return res.send(formatSettlement(roomObject));
   } catch (err) {
     logger.error(err);
@@ -458,6 +516,42 @@ export const abortHandler: RequestHandler = async (req, res) => {
     // }
 
     // 퇴장 채팅을 보냅니다.
+    const N = room.part.length;
+    const expectedAmount = await forecastTaxiFare(
+      room.from,
+      room.to,
+      room.time
+    );
+
+    try {
+      await updateTransaction([
+        {
+          userId: user._id,
+          source: room._id,
+          status: "voided",
+        },
+      ]);
+    } catch (err) {
+      logger.error(err);
+    }
+
+    if (N > 0) {
+      const updates = room.part
+        .filter((part) => part.user.toString() !== user._id.toString())
+        .map((part) => ({
+          userId: part.user,
+          source: room._id,
+          amount: (expectedAmount / N) * (N - 1),
+        }));
+
+      try {
+        if (updates.length > 0) {
+          await updateTransaction(updates);
+        }
+      } catch (err) {
+        logger.error(err);
+      }
+    }
     await emitChatEvent(req.app.get("io"), {
       roomId: room._id.toString(),
       type: "out",
@@ -791,6 +885,20 @@ export const commitSettlementHandler: RequestHandler = async (req, res) => {
       req.timestamp,
       roomObject
     );
+    const N = roomObject.part.length;
+
+    try {
+      await updateTransaction([
+        {
+          userId: user._id,
+          source: roomObject._id!,
+          status: "confirmed",
+          amount: (req.body.settlementAmount / N) * (N - 1),
+        },
+      ]);
+    } catch (err) {
+      logger.error(err);
+    }
     // 이벤트 코드입니다.
     allRaceDone(roomId);
 
@@ -879,6 +987,29 @@ export const commitPaymentHandler: RequestHandler = async (req, res) => {
 
     // 유저의 아낀 금액을 갱신합니다.
     await applySavingsForUser(user, roomObject as unknown as PopulatedRoom);
+
+    try {
+      const paidUser = roomObject.part.filter((part) => {
+        return part.settlementStatus === "paid";
+      });
+      const paidUserId = paidUser[0].user;
+      const paidTransaction = await mileageModel.findOne({
+        user: paidUserId,
+        source: roomObject._id!.toString(),
+      });
+      if (paidTransaction) {
+        await updateTransaction([
+          {
+            userId: user._id,
+            source: roomObject._id!,
+            status: "confirmed",
+            amount: paidTransaction.amount,
+          },
+        ]);
+      }
+    } catch (err) {
+      logger.error(err);
+    }
 
     // 수정한 방 정보를 반환합니다.
     return res.send(formatSettlement(roomObject, { isOver: true }));
