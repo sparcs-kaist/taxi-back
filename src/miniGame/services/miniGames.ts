@@ -181,7 +181,7 @@ export const reinforcementHandler: RequestHandler = async (req, res) => {
 
   miniGameData.usedCredit += reinforcementCost;
 
-  await contracts?.completeFirstReinforcementQuest(req.userOid, req.timestamp);
+  await contracts?.completeFirstReinforcementQuest(req.userOid as string, req.timestamp as number);
 
   return res.status(200).json({
     levelUpMessage,
@@ -269,8 +269,8 @@ export const updateCreditHandler: RequestHandler = async (req, res) => {
     const timestamp = req.timestamp ? req.timestamp : Date.now();
     if (
       eventPeriod &&
-      timestamp < eventPeriod.endAt &&
-      timestamp >= eventPeriod.startAt
+      timestamp < eventPeriod.endAt.getTime() &&
+      timestamp >= eventPeriod.startAt.getTime()
     ) {
       minigameReward(
         Math.min(500, score * 0.1),
@@ -280,7 +280,7 @@ export const updateCreditHandler: RequestHandler = async (req, res) => {
       );
     }
 
-    await contracts?.completeFirstMinigameQuest(req.userOid, req.timestamp);
+    await contracts?.completeFirstMinigameQuest(req.userOid as string, req.timestamp as number);
 
     return res.json({ updatedMiniGame });
   } catch (err) {

@@ -182,7 +182,7 @@ export const createHandler: RequestHandler = async (req, res) => {
     });
 
     // 이벤트 코드입니다.
-    await contracts?.completeFirstRoomCreationQuest(req.userOid, req.timestamp);
+    await contracts?.completeFirstRoomCreationQuest(req.userOid as string, req.timestamp as number);
 
     const roomObject = (
       await room.populate(roomPopulateOption)
@@ -787,9 +787,9 @@ export const commitSettlementHandler: RequestHandler = async (req, res) => {
     // );
     // 이벤트 코드입니다.
     await contracts?.completeFareSettlementQuest(
-      req.userOid,
-      req.timestamp,
-      roomObject
+      req.userOid as string,
+      req.timestamp as number,
+      roomObject as unknown as Room
     );
     // 이벤트 코드입니다.
     allRaceDone(roomId);
@@ -872,9 +872,9 @@ export const commitPaymentHandler: RequestHandler = async (req, res) => {
 
     // 이벤트 코드입니다.
     await contracts?.completeFarePaymentQuest(
-      req.userOid,
-      req.timestamp,
-      roomObject
+      req.userOid as string,
+      req.timestamp as number,
+      roomObject as unknown as Room
     );
 
     // 유저의 아낀 금액을 갱신합니다.

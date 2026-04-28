@@ -75,8 +75,8 @@ const JudgeTimeout = async (io: Server, roomId: Types.ObjectId) => {
       const timestamp = Date.now();
       if (
         eventPeriod &&
-        timestamp < eventPeriod.endAt &&
-        timestamp >= eventPeriod.startAt
+        timestamp < eventPeriod.endAt.getTime() &&
+        timestamp >= eventPeriod.startAt.getTime()
       ) {
         minigameReward(
           Math.min(800, game.usedWords.length * 8),
