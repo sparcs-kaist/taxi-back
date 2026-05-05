@@ -9,4 +9,5 @@ export { default as limitRateMiddleware } from "./limitRate";
 export { default as originValidatorMiddleware } from "./originValidator";
 export { default as responseTimeMiddleware } from "./responseTime";
 export { default as sessionMiddleware } from "./session";
+export { default as validatorMiddleware } from "./validator";
 export * from "./zod";

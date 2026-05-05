@@ -1,10 +1,8 @@
-import axios from "axios";
-import logger from "./logger";
-import { naverMap } from "@/loadenv";
-import { taxiFareModel, locationModel } from "./stores/mongo";
-import type { AnyBulkWriteOperation } from "mongodb";
-import type { Location } from "@/types/mongo";
-import type { PopulatedLocation } from "@/modules/populates/rooms";
+const axios = require("axios");
+const logger = require("./logger").default;
+
+const { naverMap } = require("@/loadenv");
+const { taxiFareModel, locationModel } = require("./stores/mongo");
 
 const naverMapApi = {
   "X-NCP-APIGW-API-KEY-ID": naverMap.apiId,
@@ -19,7 +17,7 @@ const timeConstants = 48;
  * @param {Date} time: 시간
  * @returns {number} scaledTime
  */
-export const scaledTime = (time: Date) => {
+const scaledTime = (time) => {
   return (
     timeConstants * time.getDay() +
     time.getHours() * 2 +
@@ -31,7 +29,7 @@ export const scaledTime = (time: Date) => {
  * 데이터베이스를 초기화합니다. 존재하지 않는 필드가 있을때, 기존의 값으로 초기화해 놓거나, 아얘 비어있을 경우에 api를 통해 값을 받아와 초기화합니다.
  * @returns
  */
-export const initializeDatabase = async () => {
+const initializeDatabase = async () => {
   try {
     if (
       !naverMapApi["X-NCP-APIGW-API-KEY"] ||
@@ -42,7 +40,7 @@ export const initializeDatabase = async () => {
       );
       return;
     }
-    const location: Location[] = await locationModel
+    const location = await locationModel
       .find({ isValid: { $eq: true } })
       .lean();
 
@@ -51,7 +49,7 @@ export const initializeDatabase = async () => {
         return Promise.all(
           location.map(async (to) => {
             if (from._id === to._id) return;
-            let tableFare: AnyBulkWriteOperation[] = [];
+            let tableFare = [];
             const prevTaxiFare = (
               await taxiFareModel
                 .findOne(
@@ -115,7 +113,7 @@ export const initializeDatabase = async () => {
       })
     );
   } catch (err) {
-    logger.error("Error occured while initializing database: " + err);
+    logger.error("Error occured while initializing database: " + err.message);
   }
 };
 
@@ -124,9 +122,9 @@ export const initializeDatabase = async () => {
  * @summary 카이스트 본원 <-> 대전역의 경로를 제외한 다른 경로의 경우, cron에 의해 매일 18:00시의 택시 요금을 업데이트 하게 됩니다.
  * @summary 카이스트 본원 <-> 대전역의 경우, 미리 캐싱해놓은 데이터를 기반으로 주어진 시간(30분 간격)에 대한 택시 요금을 반환합니다.
  * @param {number} sTime - 출발 시간 (scaledTime에 의해 변경된 시간, 0 ~ 6 (Sunday~Saturday) * 48 + 0 ~ 47 (0:00 ~ 23:30))
- * @param {boolean} isMajor - 카이스트 본원 <-> 대전역 경로 / 이외 경로
+ * @param {Boolean} isMajor - 카이스트 본원 <-> 대전역 경로 / 이외 경로
  */
-export const updateTaxiFare = async (sTime: number, isMajor: boolean) => {
+const updateTaxiFare = async (sTime, isMajor) => {
   if (
     !naverMapApi["X-NCP-APIGW-API-KEY"] ||
     !naverMapApi["X-NCP-APIGW-API-KEY-ID"]
@@ -143,10 +141,8 @@ export const updateTaxiFare = async (sTime: number, isMajor: boolean) => {
     })
     .lean();
   await prevFares.reduce(async (acc, item) => {
-    const from: Location = await locationModel
-      .findOne({ _id: item.from })
-      .lean();
-    const to: Location = await locationModel.findOne({ _id: item.to }).lean();
+    const from = await locationModel.findOne({ _id: item.from });
+    const to = await locationModel.findOne({ _id: item.to });
 
     await acc;
     await callTaxiFare(from, to)
@@ -167,14 +163,11 @@ export const updateTaxiFare = async (sTime: number, isMajor: boolean) => {
 };
 
 /**
- * @param {PopulatedLocation} from : 출발지 (longitude, latitude)
- * @param {PopulatedLocation} to : 도착지 (longitude, latitude)
+ * @param {locationSchema} from : 출발지 (longitude, latitude)
+ * @param {locationSchema} to : 도착지 (longitude, latitude)
  * @returns naver map api call을 통해 받아온 예상 택시 요금
  */
-export const callTaxiFare = async (
-  from: PopulatedLocation,
-  to: PopulatedLocation
-) => {
+const callTaxiFare = async (from, to) => {
   if (
     !naverMapApi["X-NCP-APIGW-API-KEY"] ||
     !naverMapApi["X-NCP-APIGW-API-KEY-ID"]
@@ -186,8 +179,15 @@ export const callTaxiFare = async (
   }
   return (
     await axios.get(
-      `https://naveropenapi.apigw.ntruss.com/map-direction/v1/driving?start=${from.longitude},${from.latitude}&goal=${to.longitude},${to.latitude}&options=traoptimal`,
+      `https://naveropenapi.apigw.ntruss.com/map-direction/v1/driving?start=${from.longitude},${from.latitude}}&goal=${to.longitude},${to.latitude}&options=traoptimal`,
       { headers: naverMapApi }
     )
   ).data.route.traoptimal[0].summary.taxiFare;
+};
+
+module.exports = {
+  scaledTime,
+  initializeDatabase,
+  updateTaxiFare,
+  callTaxiFare,
 };
