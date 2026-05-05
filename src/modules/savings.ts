@@ -1,7 +1,8 @@
 import logger from "@/modules/logger";
 import { callTaxiFare, scaledTime } from "@/modules/fare";
-import { taxiFareModel } from "@/modules/stores/mongo";
+import { locationModel, taxiFareModel } from "@/modules/stores/mongo";
 import { Types } from "mongoose";
+import type { PopulatedLocation } from "@/modules/populates/rooms";
 
 const buildFareKey = (fromName: string, toName: string) =>
   [fromName, toName].sort().join("||");
@@ -23,14 +24,10 @@ const ESTIMATED_FARE_TABLE: Record<string, number> = {
   [buildFareKey("Taxi Stand", "Wolpyeong Station")]: 9000,
   [buildFareKey("Taxi Stand", "Yuseong-gu Office")]: 9000,
   [buildFareKey("Taxi Stand", "Yuseong Intercity Bus Terminal")]: 9000,
-  [buildFareKey(
-    "Taxi Stand",
-    "Government Complex Express Bus Terminal"
-  )]: 14000,
-  [buildFareKey(
-    "Taxi Stand",
-    "Government Complex Intercity Bus Terminal"
-  )]: 14000,
+  [buildFareKey("Taxi Stand", "Government Complex Express Bus Terminal")]:
+    14000,
+  [buildFareKey("Taxi Stand", "Government Complex Intercity Bus Terminal")]:
+    14000,
 
   // Daejeon Station
   [buildFareKey("Daejeon Station", "Gung-dong Rodeo Street")]: 12000,
@@ -44,10 +41,8 @@ const ESTIMATED_FARE_TABLE: Record<string, number> = {
   [buildFareKey("Daejeon Station", "Duck Pond")]: 13000,
   [buildFareKey("Daejeon Station", "Yuseong Express Bus Terminal")]: 15000,
   [buildFareKey("Daejeon Station", "Yuseong Intercity Bus Terminal")]: 15000,
-  [buildFareKey(
-    "Daejeon Station",
-    "Government Complex Express Bus Terminal"
-  )]: 8000,
+  [buildFareKey("Daejeon Station", "Government Complex Express Bus Terminal")]:
+    8000,
   [buildFareKey(
     "Daejeon Station",
     "Government Complex Intercity Bus Terminal"
@@ -81,14 +76,10 @@ const ESTIMATED_FARE_TABLE: Record<string, number> = {
   [buildFareKey("Gung-dong Rodeo Street", "Duck Pond")]: 5000,
   [buildFareKey("Gung-dong Rodeo Street", "Wolpyeong Station")]: 8000,
   [buildFareKey("Gung-dong Rodeo Street", "Yuseong-gu Office")]: 7000,
-  [buildFareKey(
-    "Gung-dong Rodeo Street",
-    "Yuseong Express Bus Terminal"
-  )]: 8000,
-  [buildFareKey(
-    "Gung-dong Rodeo Street",
-    "Yuseong Intercity Bus Terminal"
-  )]: 8000,
+  [buildFareKey("Gung-dong Rodeo Street", "Yuseong Express Bus Terminal")]:
+    8000,
+  [buildFareKey("Gung-dong Rodeo Street", "Yuseong Intercity Bus Terminal")]:
+    8000,
   [buildFareKey(
     "Gung-dong Rodeo Street",
     "Government Complex Express Bus Terminal"
@@ -101,21 +92,15 @@ const ESTIMATED_FARE_TABLE: Record<string, number> = {
   // Daejeon Terminal Complex
   [buildFareKey("Daejeon Terminal Complex", "Mannyon Middle School")]: 14000,
   [buildFareKey("Daejeon Terminal Complex", "Seodaejeon Station")]: 9000,
-  [buildFareKey(
-    "Daejeon Terminal Complex",
-    "Shinsegae Department Store"
-  )]: 9000,
+  [buildFareKey("Daejeon Terminal Complex", "Shinsegae Department Store")]:
+    9000,
   [buildFareKey("Daejeon Terminal Complex", "Duck Pond")]: 15000,
   [buildFareKey("Daejeon Terminal Complex", "Wolpyeong Station")]: 12000,
   [buildFareKey("Daejeon Terminal Complex", "Yuseong-gu Office")]: 12000,
-  [buildFareKey(
-    "Daejeon Terminal Complex",
-    "Yuseong Express Bus Terminal"
-  )]: 16000,
-  [buildFareKey(
-    "Daejeon Terminal Complex",
-    "Yuseong Intercity Bus Terminal"
-  )]: 16000,
+  [buildFareKey("Daejeon Terminal Complex", "Yuseong Express Bus Terminal")]:
+    16000,
+  [buildFareKey("Daejeon Terminal Complex", "Yuseong Intercity Bus Terminal")]:
+    16000,
   [buildFareKey(
     "Daejeon Terminal Complex",
     "Government Complex Express Bus Terminal"
@@ -132,10 +117,8 @@ const ESTIMATED_FARE_TABLE: Record<string, number> = {
   [buildFareKey("Mannyon Middle School", "Wolpyeong Station")]: 6000,
   [buildFareKey("Mannyon Middle School", "Yuseong-gu Office")]: 6000,
   [buildFareKey("Mannyon Middle School", "Yuseong Express Bus Terminal")]: 8000,
-  [buildFareKey(
-    "Mannyon Middle School",
-    "Yuseong Intercity Bus Terminal"
-  )]: 8000,
+  [buildFareKey("Mannyon Middle School", "Yuseong Intercity Bus Terminal")]:
+    8000,
   [buildFareKey(
     "Mannyon Middle School",
     "Government Complex Express Bus Terminal"
@@ -165,10 +148,8 @@ const ESTIMATED_FARE_TABLE: Record<string, number> = {
   [buildFareKey("Shinsegae Department Store", "Duck Pond")]: 7000,
   [buildFareKey("Shinsegae Department Store", "Wolpyeong Station")]: 6000,
   [buildFareKey("Shinsegae Department Store", "Yuseong-gu Office")]: 7000,
-  [buildFareKey(
-    "Shinsegae Department Store",
-    "Yuseong Express Bus Terminal"
-  )]: 9000,
+  [buildFareKey("Shinsegae Department Store", "Yuseong Express Bus Terminal")]:
+    9000,
   [buildFareKey(
     "Shinsegae Department Store",
     "Yuseong Intercity Bus Terminal"
@@ -188,10 +169,8 @@ const ESTIMATED_FARE_TABLE: Record<string, number> = {
   [buildFareKey("Duck Pond", "Yuseong Express Bus Terminal")]: 9000,
   [buildFareKey("Duck Pond", "Yuseong Intercity Bus Terminal")]: 9000,
   [buildFareKey("Duck Pond", "Government Complex Express Bus Terminal")]: 11000,
-  [buildFareKey(
-    "Duck Pond",
-    "Government Complex Intercity Bus Terminal"
-  )]: 11000,
+  [buildFareKey("Duck Pond", "Government Complex Intercity Bus Terminal")]:
+    11000,
 
   // Wolpyeong Station
   [buildFareKey("Wolpyeong Station", "Yuseong-gu Office")]: 6000,
@@ -251,17 +230,16 @@ const getFallbackFare = (fromName?: string, toName?: string) => {
   return ESTIMATED_FARE_TABLE[key] ?? DEFAULT_FARE;
 };
 
-type RoomLocation = {
-  _id?: Types.ObjectId | string | null;
-  enName?: string | null;
-  koName?: string | null;
-  latitude?: number | null;
-  longitude?: number | null;
+type RoomWithNames = {
+  from?: PopulatedLocation | Types.ObjectId | null;
+  to?: PopulatedLocation | Types.ObjectId | null;
+  part?: { user: unknown }[] | null;
+  time?: Date | string | null;
 };
 
-type RoomWithNames = {
-  from?: RoomLocation | null;
-  to?: RoomLocation | null;
+type StrictRoomWithNames = {
+  from?: PopulatedLocation | null;
+  to?: PopulatedLocation | null;
   part?: { user: unknown }[] | null;
   time?: Date | string | null;
 };
@@ -293,31 +271,61 @@ const getCachedFare = async (
   return null;
 };
 
+const makeStrictRoomType = async (
+  room: RoomWithNames
+): Promise<StrictRoomWithNames> => {
+  const [from, to] = await Promise.all([
+    room.from instanceof Types.ObjectId
+      ? locationModel
+          .findById(room.from)
+          .select("_id enName koName latitude longitude")
+          .lean<PopulatedLocation>()
+      : room.from,
+    room.to instanceof Types.ObjectId
+      ? locationModel
+          .findById(room.to)
+          .select("_id enName koName latitude longitude")
+          .lean<PopulatedLocation>()
+      : room.to,
+  ]);
+
+  if (!from || !to) {
+    throw new Error("Room references a missing location");
+  }
+
+  return {
+    ...room,
+    from,
+    to,
+  };
+};
+
 export const getEstimatedFare = async (room: RoomWithNames) => {
-  const fromName = room.from?.enName ?? undefined;
-  const toName = room.to?.enName ?? undefined;
+  let strictRoom = await makeStrictRoomType(room);
+  const fromName = strictRoom.from?.enName ?? undefined;
+  const toName = strictRoom.to?.enName ?? undefined;
   const fallbackFare = getFallbackFare(fromName, toName);
 
   const cachedFare = await getCachedFare(
-    room.from?._id ?? null,
-    room.to?._id ?? null,
-    room.time ?? null
+    strictRoom.from?._id ?? null,
+    strictRoom.to?._id ?? null,
+    strictRoom.time ?? null
   );
   if (cachedFare) return cachedFare;
 
   if (
-    !room.from ||
-    !room.to ||
-    typeof room.from.latitude !== "number" ||
-    typeof room.from.longitude !== "number" ||
-    typeof room.to.latitude !== "number" ||
-    typeof room.to.longitude !== "number"
+    !strictRoom.from ||
+    !strictRoom.to ||
+    typeof strictRoom.from.latitude !== "number" ||
+    typeof strictRoom.from.longitude !== "number" ||
+    typeof strictRoom.to.latitude !== "number" ||
+    typeof strictRoom.to.longitude !== "number"
   ) {
     return fallbackFare;
   }
 
   try {
-    const fare = await callTaxiFare(room.from, room.to);
+    const fare = await callTaxiFare(strictRoom.from, strictRoom.to);
     if (typeof fare === "number" && fare > 0) return fare;
   } catch (err) {
     logger.error(
@@ -329,10 +337,11 @@ export const getEstimatedFare = async (room: RoomWithNames) => {
 };
 
 export const getRoomSavings = async (room: RoomWithNames) => {
-  const fromName = room.from?.enName ?? undefined;
-  const toName = room.to?.enName ?? undefined;
-  const participantCount = room.part?.length ?? 0;
-  if (!room.from || !room.to || participantCount === 0) {
+  const strictRoom = await makeStrictRoomType(room);
+  const fromName = strictRoom.from?.enName ?? undefined;
+  const toName = strictRoom.to?.enName ?? undefined;
+  const participantCount = strictRoom.part?.length ?? 0;
+  if (!strictRoom.from || !strictRoom.to || participantCount === 0) {
     logger.warn("Savings : missing location info or participants", {
       fromName,
       toName,

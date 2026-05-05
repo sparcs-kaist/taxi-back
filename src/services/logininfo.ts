@@ -1,9 +1,10 @@
-const { resolveS3Url } = require("@/modules/stores/aws");
-const { userModel } = require("@/modules/stores/mongo");
-const { getLoginInfo } = require("@/modules/auths/login");
-const logger = require("@/modules/logger").default;
+import { resolveS3Url } from "@/modules/stores/aws";
+import { userModel } from "@/modules/stores/mongo";
+import { getLoginInfo } from "@/modules/auths/login";
+import logger from "@/modules/logger";
+import type { RequestHandler } from "express";
 
-const logininfoHandler = async (req, res) => {
+export const logininfoHandler: RequestHandler = async (req, res) => {
   try {
     const user = getLoginInfo(req);
     if (!user.oid) return res.json({ id: undefined });
@@ -12,6 +13,11 @@ const logininfoHandler = async (req, res) => {
       { _id: user.oid, withdraw: false },
       "_id name nickname id withdraw phoneNumber badge residence ban joinat agreeOnTermsOfService subinfo email profileImageUrl account"
     );
+
+    if (!userDetail)
+      return res
+        .status(400)
+        .send("logininfo/userModel : userDetail is invalid");
 
     res.json({
       oid: userDetail._id,
@@ -38,8 +44,4 @@ const logininfoHandler = async (req, res) => {
     logger.error(error);
     res.json({ err: true });
   }
-};
-
-module.exports = {
-  logininfoHandler,
 };
