@@ -23,7 +23,7 @@ export const roomPopulateOption = [
   },
 ];
 
-export type PopulatedLocation = Pick<
+type PopulatedLocation = Pick<
   Location,
   "_id" | "koName" | "enName" | "latitude" | "longitude"
 >;
@@ -124,7 +124,7 @@ export const formatSettlement = (
         isSettlement: includeSettlement ? settlementStatus : undefined,
         readAt: readAt ?? roomObject.madeat,
         isArrived: includeSettlement
-          ? (participantSubDocument.isArrived ?? false)
+          ? participantSubDocument.isArrived ?? false
           : undefined,
         hasCarrier: hasCarrier ?? false,
       };

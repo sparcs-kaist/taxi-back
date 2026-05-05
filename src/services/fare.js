@@ -1,9 +1,8 @@
-import { naverMap } from "@/loadenv";
-import { taxiFareModel, locationModel } from "@/modules/stores/mongo";
-import { scaledTime, callTaxiFare } from "@/modules/fare";
-import logger from "@/modules/logger";
-import type { RequestHandler } from "express";
-import type { Location } from "@/types/mongo";
+const logger = require("@/modules/logger").default;
+
+const { naverMap } = require("@/loadenv");
+const { taxiFareModel, locationModel } = require("@/modules/stores/mongo");
+const { scaledTime, callTaxiFare } = require("@/modules/fare");
 
 const naverMapApi = {
   "X-NCP-APIGW-API-KEY-ID": naverMap.apiId,
@@ -19,7 +18,7 @@ const naverMapApi = {
  *  - @param {mongoose.Schema.Types.ObjectId} to - 도착지
  *  - @param {Date} time - 출발 시간 (ISO 8601)
  */
-export const getTaxiFareHandler: RequestHandler = async (req, res) => {
+const getTaxiFareHandler = async (req, res) => {
   try {
     if (
       !naverMapApi["X-NCP-APIGW-API-KEY"] ||
@@ -30,15 +29,15 @@ export const getTaxiFareHandler: RequestHandler = async (req, res) => {
       });
     }
 
-    const from: Location = await locationModel
+    const from = await locationModel
       .findOne({
         _id: { $eq: req.query.from },
       })
       .lean();
-    const to: Location = await locationModel
+    const to = await locationModel
       .findOne({ _id: { $eq: req.query.to } })
       .lean();
-    const sTime = scaledTime(new Date(req.query.time as string));
+    const sTime = scaledTime(new Date(req.query.time));
 
     if (!from || !to) {
       return res
@@ -61,7 +60,7 @@ export const getTaxiFareHandler: RequestHandler = async (req, res) => {
             res.status(200).json({ fare: fare });
           })
           .catch((err) => {
-            logger.error(err);
+            logger.error(err.message);
           });
       } else {
         res.status(200).json({ fare: fare.fare });
@@ -71,7 +70,7 @@ export const getTaxiFareHandler: RequestHandler = async (req, res) => {
         .findOne({
           from: from._id,
           to: to._id,
-          time: 48 * new Date(req.query.time as string).getDay() + 0,
+          time: 48 * new Date(req.query.time).getDay() + 0,
         })
         .lean();
 
@@ -82,16 +81,18 @@ export const getTaxiFareHandler: RequestHandler = async (req, res) => {
             res.status(200).json({ fare: fare });
           })
           .catch((err) => {
-            logger.error(err);
+            logger.error(err.message);
           });
       } else {
         res.status(200).json({ fare: minorTaxiFare.fare });
       }
     }
   } catch (err) {
-    logger.error(err);
+    logger.error(err.message);
     res
       .status(500)
       .json({ error: "fare/getTaxiFareHandler: Failed to load Taxi Fare" });
   }
 };
+
+module.exports = { getTaxiFareHandler };
