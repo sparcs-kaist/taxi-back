@@ -52,6 +52,18 @@ export const roomsZod = {
     maxPartLength: z.coerce.number().int().min(2).max(4),
   }),
 
+  createRegularHandler: z.object({
+    name: z.string().regex(patterns.room.name),
+    from: z.string().regex(patterns.objectId),
+    to: z.string().regex(patterns.objectId),
+    time: z.string().datetime({
+      message: "Invalid ISO datetime format",
+    }),
+    maxPartLength: z.coerce.number().int().min(2).max(4),
+    interval: z.coerce.number().int().min(1).max(7), // 반복 간격 (일 단위)
+    count: z.coerce.number().int().min(2).max(4), // 생성할 방 개수
+  }),
+
   createTestHandler: z.object({
     from: z.string().regex(patterns.objectId),
     to: z.string().regex(patterns.objectId),
@@ -98,6 +110,7 @@ export type SearchByTimeGapQuery = z.infer<
 export type PublicInfoQuery = z.infer<typeof roomsZod.publicInfoHandler>;
 export type InfoQuery = z.infer<typeof roomsZod.infoHandler>;
 export type CreateBody = z.infer<typeof roomsZod.createHandler>;
+export type CreateRegularBody = z.infer<typeof roomsZod.createRegularHandler>;
 export type CreateTestBody = z.infer<typeof roomsZod.createTestHandler>;
 export type JoinBody = z.infer<typeof roomsZod.joinHandler>;
 export type AbortBody = z.infer<typeof roomsZod.abortHandler>;
