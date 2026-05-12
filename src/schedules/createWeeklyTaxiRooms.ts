@@ -24,10 +24,12 @@ type TargetRoute = {
   to: "main" | "station";
 };
 
-export const targetRoutes: TargetRoute[] = [
+export const tuesdayTargetRoutes: TargetRoute[] = [
   { weekday: 4, from: "main", to: "station" },
   { weekday: 5, from: "main", to: "station" },
-  { weekday: 6, from: "main", to: "station" },
+];
+
+export const saturdayTargetRoutes: TargetRoute[] = [
   { weekday: 0, from: "station", to: "main" },
 ];
 
@@ -188,13 +190,16 @@ const createRooms = async (
   );
 };
 
-export const createWeeklyTaxiRooms = async (now = new Date()) => {
+export const createWeeklyTaxiRooms = async (
+  now = new Date(),
+  routes: TargetRoute[] = [...tuesdayTargetRoutes, ...saturdayTargetRoutes]
+) => {
   const locations = await getLocations();
   if (!locations) return;
 
   const ghostUser = await getOrCreateGhostUser();
 
-  await Promise.all(targetRoutes.map(async (route) => {
+  await Promise.all(routes.map(async (route) => {
     const targetDate = getTargetDate(now, route.weekday);
     const from = locations[route.from]._id;
     const to = locations[route.to]._id;
@@ -215,13 +220,14 @@ export const createWeeklyTaxiRooms = async (now = new Date()) => {
   }));
 };
 
-const scheduleCreateWeeklyTaxiRooms = (app: Express) => async () => {
-  app.get("io");
-  try {
-    await createWeeklyTaxiRooms();
-  } catch (err) {
-    logger.error(err);
-  }
-};
+const scheduleCreateWeeklyTaxiRooms =
+  (app: Express, routes: TargetRoute[]) => async () => {
+    app.get("io");
+    try {
+      await createWeeklyTaxiRooms(new Date(), routes);
+    } catch (err) {
+      logger.error(err);
+    }
+  };
 
 export default scheduleCreateWeeklyTaxiRooms;

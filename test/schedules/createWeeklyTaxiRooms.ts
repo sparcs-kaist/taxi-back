@@ -4,6 +4,8 @@ import {
   getLookbackRanges,
   getTargetDate,
   getTimeBucket,
+  saturdayTargetRoutes,
+  tuesdayTargetRoutes,
 } from "@/schedules/createWeeklyTaxiRooms";
 
 describe("[schedules] createWeeklyTaxiRooms", () => {
@@ -16,6 +18,11 @@ describe("[schedules] createWeeklyTaxiRooms", () => {
     expect(targetThursday.getDate()).to.equal(7);
     expect(ranges).to.have.lengthOf(4);
     expect(ranges.every(({ start }) => start.getDay() === 4)).to.equal(true);
+
+    const saturday = new Date("2026-05-09T19:00:00+09:00");
+    const targetSunday = getTargetDate(saturday, 0);
+    expect(targetSunday.getDay()).to.equal(0);
+    expect(targetSunday.getDate()).to.equal(10);
   });
 
   it("should bucket time by 30 minutes", () => {
@@ -27,6 +34,16 @@ describe("[schedules] createWeeklyTaxiRooms", () => {
       hour: 9,
       minute: 30,
     });
+  });
+
+  it("should split target routes by creation day", () => {
+    expect(tuesdayTargetRoutes).to.deep.equal([
+      { weekday: 4, from: "main", to: "station" },
+      { weekday: 5, from: "main", to: "station" },
+    ]);
+    expect(saturdayTargetRoutes).to.deep.equal([
+      { weekday: 0, from: "station", to: "main" },
+    ]);
   });
 
   it("should create two rooms for first place and one for second place", () => {
