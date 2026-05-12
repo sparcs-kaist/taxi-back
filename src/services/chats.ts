@@ -1,4 +1,5 @@
 import { chatModel, userModel, roomModel } from "@/modules/stores/mongo";
+import { Types } from "mongoose";
 import {
   chatPopulateOption,
   type ChatPopulatePath,
@@ -181,7 +182,7 @@ export const sendChatHandler: RequestHandler = async (req, res) => {
   try {
     const io = req.app.get("io");
     const { userOid } = req;
-    const { roomId, type, content }: SendChatBody = req.body;
+    const { roomId, type, content, parentChat }: SendChatBody = req.body;
     const user = await userModel.findOne({ _id: userOid, withdraw: false });
 
     if (!userOid || !user) {
@@ -197,7 +198,29 @@ export const sendChatHandler: RequestHandler = async (req, res) => {
         .status(403)
         .send("Chat/send : user did not participated in the room");
     }
-    logger.info(`User ${user._id} sent a chat${content}`);
+
+    let parentChatSnapshot;
+    if (type === "reply") {
+      if (!parentChat) {
+        return res
+          .status(400)
+          .send("Chat/send : parentChat needed to reply to chat");
+      }
+
+      const parentChatObject = await chatModel.findById(parentChat);
+      if (!parentChatObject) {
+        return res.status(404).send("Chat/send : parentChat not found");
+      }
+
+      const author = await userModel.findById(parentChatObject.authorId);
+
+      parentChatSnapshot = {
+        originChatId: parentChatObject._id,
+        authorId: author!._id,
+        nickname: author!.nickname,
+        content: parentChatObject.content,
+      };
+    }
 
     if (type === "wordChain") {
       const room = await roomModel.findById(roomId);
@@ -253,6 +276,7 @@ export const sendChatHandler: RequestHandler = async (req, res) => {
         roomId,
         type,
         content,
+        parentChat: parentChatSnapshot,
         authorId: user._id,
       })
     )

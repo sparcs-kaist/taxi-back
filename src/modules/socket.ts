@@ -7,7 +7,12 @@ import { sessionMiddleware } from "@/middlewares";
 import logger from "@/modules/logger";
 import { getLoginInfo, getBearerToken } from "@/modules/auths/login";
 import { resolveS3Url } from "@/modules/stores/aws";
-import { roomModel, userModel, chatModel } from "@/modules/stores/mongo";
+import {
+  roomModel,
+  userModel,
+  chatModel,
+  ParentChat,
+} from "@/modules/stores/mongo";
 import { getTokensOfUsers, sendMessageByTokens } from "@/modules/fcm";
 import { corsWhiteList } from "@/loadenv";
 import {
@@ -142,6 +147,7 @@ const getMessageBody = (type: ChatType, nickname = "", content = "") => {
  * @param chat.roomId - 채팅 및 채팅 알림을 보낼 방의 ObjectId입니다.
  * @param chat.type - 채팅 메시지의 유형입니다. "text" | "s3img" | "in" | "out" | "payment" | "settlement" | "account" | "departure" | "arrival" 입니다.
  * @param chat.content - 채팅 메시지의 본문입니다. chat.type이 "s3img"인 경우에는 채팅의 objectId입니다. chat.type이 "in"이거나 "out"인 경우 입퇴장한 사용자의 oid입니다.
+ * @param chat.parentChat - 답장 대상이 되는 chat의 ObjectId입니다.
  * @param chat.authorId - optional. 채팅을 보낸 사용자의 ObjectId입니다.
  * @param chat.time - optional. 채팅 메시지 전송 시각입니다.
  * @return 채팅 및 알림 전송에 성공하면 true, 중간에 오류가 발생하면 false를 반환합니다.
@@ -152,12 +158,13 @@ export const emitChatEvent = async (
     roomId: Types.ObjectId | string;
     type?: ChatType;
     content: string;
+    parentChat?: ParentChat;
     authorId?: Types.ObjectId | string;
     time?: Date;
   }
 ) => {
   try {
-    const { roomId, type, content, authorId } = chat;
+    const { roomId, type, content, parentChat, authorId } = chat;
 
     // chat must contains roomId, type, and content
     if (!io || !type || !content) {
@@ -190,6 +197,7 @@ export const emitChatEvent = async (
           authorId,
           roomId,
           time,
+          ...(parentChat && { parentChat }),
         },
         {
           type,
@@ -197,6 +205,7 @@ export const emitChatEvent = async (
           roomId,
           time,
           content,
+          ...(parentChat && { parentChat }),
           isValid: true,
         },
         { upsert: true, new: true }
