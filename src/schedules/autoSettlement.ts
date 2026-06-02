@@ -2,7 +2,6 @@ import type { Express } from "express";
 import { emitChatEvent } from "@/modules/socket";
 import { userModel, roomModel } from "@/modules/stores/mongo";
 import logger from "@/modules/logger";
-import { GHOST_USER_ID } from "@/modules/ghostUser";
 
 const MS_PER_MINUTE = 60000;
 
@@ -12,13 +11,11 @@ const autoSettlement = (app: Express) => async () => {
     const io = app.get("io");
     const expiredDate = new Date(Date.now() - 60 * MS_PER_MINUTE).toISOString();
     const arrivalDate = new Date(Date.now()).toISOString();
-    const ghostUser = await userModel.findOne({ id: GHOST_USER_ID }, "_id");
     const candidateRooms = await roomModel.find({
       $and: [
         { time: { $gte: expiredDate } },
         { time: { $lte: arrivalDate } },
         { "part.0": { $exists: true }, "part.1": { $exists: false } },
-        ...(ghostUser ? [{ "part.0.user": { $ne: ghostUser._id } }] : []),
         { "part.0.settlementStatus": { $nin: ["paid", "sent"] } }, // "sent"의 경우 로직상 불가능 하지만, 문서화 측면에서 의도적으로 남겨두었음.
       ],
     });

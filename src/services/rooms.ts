@@ -36,11 +36,6 @@ import { notifyRoomCreationAbuseToReportChannel } from "@/modules/slackNotificat
 
 import { type SettlementMeta, buildPaymentContent } from "@/modules/settlement";
 import { allocateEmojiIdentifier } from "@/modules/roomIdentifier";
-import {
-  GHOST_ROOM_NAME,
-  GHOST_USER_ID,
-  getOrCreateGhostUser,
-} from "@/modules/ghostUser";
 
 // 이벤트 코드입니다.
 const eventPeriod = eventConfig && {
@@ -49,16 +44,6 @@ const eventPeriod = eventConfig && {
 };
 
 type CandidateRoom = Pick<Room, "from" | "to" | "time" | "maxPartLength">;
-
-const removeGhostParticipant = async (room: HydratedDocument<Room>) => {
-  const ghostUser = await userModel.findOne({ id: GHOST_USER_ID }, "_id");
-  if (!ghostUser) return;
-
-  const ghostIndex = room.part.findIndex((part) =>
-    part.user.equals(ghostUser._id)
-  );
-  if (ghostIndex !== -1) room.part.splice(ghostIndex, 1);
-};
 
 const calculateUserSavings = async (userId: Types.ObjectId) => {
   const rooms = await roomModel
@@ -378,8 +363,6 @@ export const joinHandler: RequestHandler = async (req, res) => {
       });
     }
 
-    await removeGhostParticipant(room);
-
     // 방의 인원이 모두 찬 경우, 400 오류를 반환합니다.
     if (room.part.length + 1 > room.maxPartLength) {
       return res.status(400).json({
@@ -465,10 +448,6 @@ export const abortHandler: RequestHandler = async (req, res) => {
     }
     await user.save();
     room.part.splice(roomPartIndex, 1);
-    if (room.name === GHOST_ROOM_NAME && room.part.length === 0) {
-      const ghostUser = await getOrCreateGhostUser();
-      room.part.push({ user: ghostUser._id });
-    }
     await room.save();
 
     // if (room.part.length <= 0) {
@@ -566,7 +545,10 @@ export const searchHandler: RequestHandler = async (req, res) => {
     if (to) query.to = to;
 
     query.time = { $gte: minTime, $lt: maxTime };
-    query["part.0"] = { $exists: true }; // 참여자가 1명 이상인 방만 반환
+    query.$or = [
+      { "part.0": { $exists: true } },
+      { isWeeklyRoom: true },
+    ];
 
     const rooms = await roomModel
       .find(query)
@@ -677,7 +659,10 @@ export const searchByTimeGapHandler: RequestHandler = async (req, res) => {
       from: new Types.ObjectId(from),
       to: new Types.ObjectId(to),
       time: { $gte: minTime, $lte: maxTime },
-      "part.0": { $exists: true }, // Ensure at least one participant exists
+      $or: [
+        { "part.0": { $exists: true } },
+        { isWeeklyRoom: true },
+      ],
     };
 
     const agg: PipelineStage[] = [

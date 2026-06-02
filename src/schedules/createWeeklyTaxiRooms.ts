@@ -4,14 +4,11 @@ import type { Types } from "mongoose";
 import logger from "@/modules/logger";
 import { locationModel, roomModel } from "@/modules/stores/mongo";
 import { allocateEmojiIdentifier } from "@/modules/roomIdentifier";
-import {
-  GHOST_ROOM_NAME,
-  getOrCreateGhostUser,
-} from "@/modules/ghostUser";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 const LOOKBACK_WEEKS = 4;
 const DEFAULT_MAX_PART_LENGTH = 4;
+const WEEKLY_ROOM_NAME = "정기 택시팟";
 const MAIN_CAMPUS_KO_NAMES = ["카이스트 본원", "택시승강장"];
 const DAEJEON_STATION_KO_NAME = "대전역";
 
@@ -99,11 +96,8 @@ const buildDepartureTime = (targetDate: Date, bucket: TimeBucket) => {
   return departureTime;
 };
 
-const countRealParticipants = (
-  part: { user: Types.ObjectId }[],
-  ghostUserId: Types.ObjectId
-) =>
-  part.filter((participant) => !participant.user.equals(ghostUserId)).length;
+const countRealParticipants = (part: { user: Types.ObjectId }[]) =>
+  part.length;
 
 const getLocations = async () => {
   const [main, station] = await Promise.all([
@@ -121,8 +115,7 @@ const getLocations = async () => {
 const getBucketStats = async (
   from: Types.ObjectId,
   to: Types.ObjectId,
-  targetDate: Date,
-  ghostUserId: Types.ObjectId
+  targetDate: Date
 ): Promise<BucketStat[]> => {
   const ranges = getLookbackRanges(targetDate);
   const rooms = await roomModel
@@ -139,7 +132,7 @@ const getBucketStats = async (
     .lean();
 
   const stats = rooms.reduce((acc, room) => {
-    const participantCount = countRealParticipants(room.part, ghostUserId);
+    const participantCount = countRealParticipants(room.part);
     if (participantCount === 0) return acc;
 
     const bucket = getTimeBucket(new Date(room.time));
@@ -162,31 +155,34 @@ const createRooms = async (
   from: Types.ObjectId,
   to: Types.ObjectId,
   departureTime: Date,
-  desiredCount: number,
-  ghostUserId: Types.ObjectId
+  desiredCount: number
 ) => {
   const existingCount = await roomModel.countDocuments({
-    name: GHOST_ROOM_NAME,
+    isWeeklyRoom: true,
     from,
     to,
     time: departureTime,
   });
 
   await Promise.all(
-    Array.from({ length: Math.max(0, desiredCount - existingCount) }, async () => {
-      const emojiIdentifier = await allocateEmojiIdentifier(departureTime);
-      await roomModel.create({
-        name: GHOST_ROOM_NAME,
-        from,
-        to,
-        time: departureTime,
-        part: [{ user: ghostUserId }],
-        madeat: new Date(),
-        maxPartLength: DEFAULT_MAX_PART_LENGTH,
-        settlementTotal: 0,
-        emojiIdentifier,
-      });
-    })
+    Array.from(
+      { length: Math.max(0, desiredCount - existingCount) },
+      async () => {
+        const emojiIdentifier = await allocateEmojiIdentifier(departureTime);
+        await roomModel.create({
+          name: WEEKLY_ROOM_NAME,
+          from,
+          to,
+          time: departureTime,
+          part: [],
+          madeat: new Date(),
+          maxPartLength: DEFAULT_MAX_PART_LENGTH,
+          settlementTotal: 0,
+          emojiIdentifier,
+          isWeeklyRoom: true,
+        });
+      }
+    )
   );
 };
 
@@ -197,27 +193,21 @@ export const createWeeklyTaxiRooms = async (
   const locations = await getLocations();
   if (!locations) return;
 
-  const ghostUser = await getOrCreateGhostUser();
+  await Promise.all(
+    routes.map(async (route) => {
+      const targetDate = getTargetDate(now, route.weekday);
+      const from = locations[route.from]._id;
+      const to = locations[route.to]._id;
+      const stats = await getBucketStats(from, to, targetDate);
+      const plans = buildCreationPlans(stats);
 
-  await Promise.all(routes.map(async (route) => {
-    const targetDate = getTargetDate(now, route.weekday);
-    const from = locations[route.from]._id;
-    const to = locations[route.to]._id;
-    const stats = await getBucketStats(from, to, targetDate, ghostUser._id);
-    const plans = buildCreationPlans(stats);
-
-    await Promise.all(
-      plans.map((plan) =>
-        createRooms(
-          from,
-          to,
-          buildDepartureTime(targetDate, plan),
-          plan.count,
-          ghostUser._id
+      await Promise.all(
+        plans.map((plan) =>
+          createRooms(from, to, buildDepartureTime(targetDate, plan), plan.count)
         )
-      )
-    );
-  }));
+      );
+    })
+  );
 };
 
 const scheduleCreateWeeklyTaxiRooms =
