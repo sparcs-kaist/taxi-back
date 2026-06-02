@@ -35,6 +35,7 @@ class IllegalArgumentsException {
 }
 
 interface TransformedChat {
+  _id?: string;
   roomId: string;
   type: ChatType;
   authorId?: string;
@@ -47,6 +48,12 @@ interface TransformedChat {
   isValid: boolean;
   inOutNames?: string[];
   settlementMeta?: SettlementMeta;
+  parentChat?: {
+    originChatId?: string;
+    authorId?: string;
+    nickname: string;
+    content: string;
+  };
 }
 
 /**
@@ -74,6 +81,7 @@ export const transformChatsForRoom = async (chats: PopulatedChat[]) => {
           : undefined;
 
       return {
+        _id: chat._id?.toString(),
         roomId: chat.roomId.toString(),
         type: chat.type!,
         authorId: chat.authorId?._id?.toString(),
@@ -86,6 +94,16 @@ export const transformChatsForRoom = async (chats: PopulatedChat[]) => {
         isValid: chat.isValid,
         inOutNames,
         ...(settlementMeta ? { settlementMeta } : {}),
+        ...(chat.parentChat
+          ? {
+              parentChat: {
+                originChatId: chat.parentChat.originChatId?.toString(),
+                authorId: chat.parentChat.authorId?.toString(),
+                nickname: chat.parentChat.nickname,
+                content: chat.parentChat.content,
+              },
+            }
+          : {}),
       } satisfies TransformedChat;
     })
   );

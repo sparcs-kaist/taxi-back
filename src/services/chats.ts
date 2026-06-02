@@ -218,7 +218,11 @@ export const sendChatHandler: RequestHandler = async (req, res) => {
         originChatId: parentChatObject._id,
         authorId: author!._id,
         nickname: author!.nickname,
-        content: parentChatObject.content,
+        // s3img의 content는 이미지 ID이므로, 답장 미리보기에는 "사진"으로 표시
+        content:
+          parentChatObject.type === "s3img"
+            ? "사진"
+            : parentChatObject.content,
       };
     }
 
