@@ -252,3 +252,104 @@ describe("[rooms] 9.abortHandler", () => {
     expect(resData.part).to.have.lengthOf(1);
   });
 });
+
+// 10. 정기 택시팟 생성 테스트: test3이 7일 간격으로 2개의 regular-room을 생성, 제대로 생성 되었는지 확인
+describe("[rooms] 10.createRegularHandler", () => {
+  const regularTestData: TestData = {
+    rooms: [],
+    users: [],
+    chat: [],
+    location: [],
+    report: [],
+  };
+
+  afterEach(async () => {
+    await testRemover(regularTestData);
+  });
+
+  it("should create multiple rooms at regular intervals", async () => {
+    const testUser3 = await userGenerator("test3", regularTestData);
+    const testFrom = await locationModel.findOne({ koName: "대전역" });
+    const testTo = await locationModel.findOne({ koName: "택시승강장" });
+    const firstTime = new Date(Date.now() + 60 * 1000).toISOString();
+
+    let req = httpMocks.createRequest({
+      body: {
+        name: "regular-room",
+        from: testFrom!._id,
+        to: testTo!._id,
+        time: firstTime,
+        maxPartLength: 4,
+        interval: 7,
+        count: 2,
+      },
+      userOid: testUser3._id,
+      app,
+      timestamp: Date.now(),
+      originalUrl: "test-url/rooms/create/regular",
+    });
+    let res = httpMocks.createResponse();
+    await roomsHandlers.createRegularHandler(req, res, () => {});
+
+    const resData = res._getData();
+    expect(resData).to.be.an("array").with.lengthOf(2);
+    expect(resData[0]).to.has.property("name", "regular-room");
+    expect(resData[1]).to.has.property("name", "regular-room");
+
+    // 두 방의 출발 시간이 7일 차이가 나는지 확인
+    const time0 = new Date(resData[0].time).getTime();
+    const time1 = new Date(resData[1].time).getTime();
+    expect(time1 - time0).to.equal(7 * 24 * 60 * 60 * 1000);
+
+    // 생성된 방들을 testData에 추가
+    const createdRooms = await roomModel.find({ name: "regular-room" });
+    createdRooms.forEach((room) => regularTestData.rooms.push(room));
+  });
+
+  it("should reject when count exceeds ongoing room limit", async () => {
+    const testUser4 = await userGenerator("test4", regularTestData);
+    const testFrom = await locationModel.findOne({ koName: "대전역" });
+    const testTo = await locationModel.findOne({ koName: "택시승강장" });
+
+    // 먼저 4개의 방을 생성하여 ongoing room에 추가
+    for (let i = 0; i < 4; i++) {
+      const existingRoom = new roomModel({
+        name: `existing-room-${i}`,
+        from: testFrom!._id,
+        to: testTo!._id,
+        time: new Date(Date.now() + 60 * 1000 * (i + 1)),
+        part: [{ user: testUser4._id }],
+        madeat: Date.now(),
+        maxPartLength: 4,
+        settlementTotal: 0,
+      });
+      await existingRoom.save();
+      regularTestData.rooms.push(existingRoom);
+      (testUser4.ongoingRoom as unknown as import("mongoose").Types.ObjectId[]).push(existingRoom._id);
+    }
+    await testUser4.save();
+
+    const firstTime = new Date(Date.now() + 60 * 1000).toISOString();
+    let req = httpMocks.createRequest({
+      body: {
+        name: "regular-room-fail",
+        from: testFrom!._id,
+        to: testTo!._id,
+        time: firstTime,
+        maxPartLength: 4,
+        interval: 7,
+        count: 2, // would bring total to 6, exceeding limit of 5
+      },
+      userOid: testUser4._id,
+      app,
+      timestamp: Date.now(),
+      originalUrl: "test-url/rooms/create/regular",
+    });
+    let res = httpMocks.createResponse();
+    await roomsHandlers.createRegularHandler(req, res, () => {});
+
+    expect(res.statusCode).to.equal(400);
+    const resData = res._getJSONData();
+    expect(resData.error).to.include("participating in too many rooms");
+  });
+});

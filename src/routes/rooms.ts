@@ -42,6 +42,13 @@ router.post(
   roomHandlers.createHandler
 );
 
+// 정기 택시팟을 생성한다. 동일한 경로로 count개의 방을 interval일 간격으로 생성한다.
+router.post(
+  "/create/regular",
+  validateBody(roomsZod.createRegularHandler),
+  roomHandlers.createRegularHandler
+);
+
 // 방을 생성하기 전, 생성하고자 하는 방이 실제로 택시 탑승의 목적성을 갖고 있는지 예측한다.
 router.post(
   "/create/test",
