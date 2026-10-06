@@ -178,6 +178,16 @@ const locationSchema = new Schema({
 export const locationModel = model("Location", locationSchema);
 export type Location = InferSchemaType<typeof locationSchema>;
 
+const parentChatSchema = new Schema(
+  {
+    originChatId: { type: Schema.Types.ObjectId, ref: "Chat" }, // 답장 대상 채팅 id
+    authorId: { type: Schema.Types.ObjectId, ref: "User" }, // 작성자 id
+    nickname: { type: String, required: true },
+    content: { type: String, default: "" },
+  },
+  { _id: false }
+);
+
 const chatSchema = new Schema({
   roomId: { type: Schema.Types.ObjectId, ref: "Room", required: true },
   type: {
@@ -192,6 +202,7 @@ const chatSchema = new Schema({
       "account",
       "departure", // 출발 15분 전 알림
       "arrival", // 출발 (1|24)시간 이후 알림 - 정산/송금 권유
+      "reply", // 채팅 답장
       "wordChain", // 워드체인 미니게임 관련 메시지
       "racing", // 경마 미니게임 관련 메시지
       "raceLog", // 경마 미니게임 로그
@@ -199,11 +210,13 @@ const chatSchema = new Schema({
   }, // 메시지 종류
   authorId: { type: Schema.Types.ObjectId, ref: "User" }, // 작성자 id
   content: { type: String, default: "" },
+  parentChat: { type: parentChatSchema },
   time: { type: Date, required: true },
   isValid: { type: Boolean, default: true },
 });
 chatSchema.index({ roomId: 1, time: -1 });
 
+export type ParentChat = mongoose.InferSchemaType<typeof parentChatSchema>;
 export const chatModel = model("Chat", chatSchema);
 export type Chat = InferSchemaType<typeof chatSchema>;
 
