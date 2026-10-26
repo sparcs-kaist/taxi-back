@@ -9,7 +9,7 @@ import {
 } from "../services/quizzes";
 import { quizzesZod } from "./docs/schemas/quizzesSchema";
 import { validateParams, validateBody } from "../../middlewares/zod";
-import authMiddleware from "../../middlewares/auth";
+import { authMiddleware } from "@/middlewares";
 
 const router = Router();
 

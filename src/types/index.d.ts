@@ -1,6 +1,8 @@
 // to make the file a module and avoid the TypeScript error
 export {};
 
+import type { EventStatus } from "@/lottery/types";
+
 declare global {
   namespace Express {
     export interface Request {
@@ -14,17 +16,20 @@ declare global {
       clientIP?: string;
       /** 요청의 timestamp. */
       timestamp?: number;
-      /** EventStatus */
-      eventStatus?: {
-        userId: Schema.Types.ObjectId;
-        completedQuests: completedQuestSchema;
-        creditAmount: Number;
-        ticket1Amount: Number;
-        ticket2Amount: Number;
-        isBanned: Boolean;
-        inviter: Schema.Types.ObjectId;
-        isInviteUrlEnabled: Boolean;
-      };
+
+      eventStatus?: EventStatus;
     }
   }
 }
+
+export type EventConfig = {
+  mode: string;
+  credit: {
+    name: string;
+    initialAmount: number;
+  };
+  period: {
+    startAt: string;
+    endAt: string;
+  };
+};
