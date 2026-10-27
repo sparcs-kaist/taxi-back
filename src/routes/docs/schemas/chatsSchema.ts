@@ -23,21 +23,11 @@ export const chatsZod = {
     }),
   }),
   // sendChatHandler.type should match ChatType at types/mongo.d.ts
-  sendChatHandler: z
-    .object({
-      roomId: z.string().regex(objectId),
-      type: z.enum([
-        "text",
-        "account",
-        "reply",
-        "wordChain",
-        "racing",
-        "racingStart",
-      ]),
-      content: z.string().regex(chat.chatContent).regex(chat.chatContentLength),
-      parentChat: z.string(),
-    })
-    .partial({ parentChat: true }),
+  sendChatHandler: z.object({
+    roomId: z.string().regex(objectId),
+    type: z.enum(["text", "account", "wordChain", "racing", "racingStart"]),
+    content: z.string().regex(chat.chatContent).regex(chat.chatContentLength),
+  }),
   readChatHandler: z.object({
     roomId: z.string().regex(objectId),
   }),
