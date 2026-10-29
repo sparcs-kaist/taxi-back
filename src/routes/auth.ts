@@ -1,13 +1,15 @@
 import express from "express";
 
 import { validateBody, validateQuery } from "@/middlewares";
-import { authZod } from "./docs/schemas/authSchema";
-
 import * as authHandlers from "@/services/auth";
+import buddyResolveHandler, {
+  buddyApiKeyMiddleware,
+} from "@/services/auth.buddy";
 import * as authReplaceHandlers from "@/services/auth.replace";
 import * as mobileAuthHandlers from "@/services/auth.mobile";
 import * as oneAppAuthHandlers from "@/services/auth.oneapp";
 import { isAuthReplace } from "@/modules/auths/login";
+import { authZod } from "./docs/schemas/authSchema";
 
 const router = express.Router();
 
@@ -26,6 +28,13 @@ router.post(
   "/login/replace",
   validateBody(authZod.loginReplaceHandler),
   (isAuthReplace ? authReplaceHandlers : authHandlers).loginReplaceHandler
+);
+
+router.post(
+  "/buddy/resolve",
+  buddyApiKeyMiddleware,
+  validateBody(authZod.buddyResolveHandler),
+  buddyResolveHandler
 );
 
 // 로그아웃 후 redirect

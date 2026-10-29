@@ -69,7 +69,7 @@ export const transUserData = (userData: SparcsssoUserData) => {
   return info;
 };
 
-const joinus = async (req: Request, userData: UserData) => {
+export const joinus = async (req: Request, userData: UserData) => {
   const oldUser = await userModel
     .findOne(
       {
@@ -106,7 +106,7 @@ const joinus = async (req: Request, userData: UserData) => {
   return true;
 };
 
-const update = async (userData: UserData) => {
+export const update = async (userData: UserData) => {
   const updateInfo = {
     name: userData.name,
     email: userData.email,
