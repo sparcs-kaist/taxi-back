@@ -9,6 +9,7 @@ import {
 } from "@/modules/stores/mongo";
 import { emitChatEvent } from "@/modules/socket";
 import logger from "@/modules/logger";
+import { getUnreadCounts } from "@/modules/buddyNotification";
 import {
   roomPopulateOption,
   formatSettlement,
@@ -596,14 +597,22 @@ export const searchByUserHandler: RequestHandler = async (req, res) => {
         .json({ error: "Rooms/searchByUser : User not found" });
     }
 
+    // 각 방의 안 읽은 채팅 수 (Buddy 앱의 안 읽음 배지에 사용)
+    const unreadCounts = await getUnreadCounts(req.userOid!, [
+      ...user.ongoingRoom.map((room) => room._id),
+      ...user.doneRoom.map((room) => room._id),
+    ]);
+
     // 정산완료여부 기준으로 진행중인 방과 완료된 방을 분리해서 응답을 전송합니다.
     return res.json({
-      ongoing: user.ongoingRoom.map((room) =>
-        formatSettlement(room, { isOver: false })
-      ),
-      done: user.doneRoom.map((room) =>
-        formatSettlement(room, { isOver: true })
-      ),
+      ongoing: user.ongoingRoom.map((room) => ({
+        ...formatSettlement(room, { isOver: false }),
+        unreadCount: unreadCounts[room._id.toString()] ?? 0,
+      })),
+      done: user.doneRoom.map((room) => ({
+        ...formatSettlement(room, { isOver: true }),
+        unreadCount: unreadCounts[room._id.toString()] ?? 0,
+      })),
     });
   } catch (err) {
     logger.error(err);
