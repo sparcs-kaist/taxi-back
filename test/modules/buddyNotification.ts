@@ -6,7 +6,7 @@ import {
   getUnreadCounts,
   type BuddyChatNotification,
 } from "@/modules/buddyNotification";
-import { chatModel, userModel } from "@/modules/stores/mongo";
+import { chatModel, roomModel, userModel } from "@/modules/stores/mongo";
 import {
   userGenerator,
   roomGenerator,
@@ -217,6 +217,23 @@ describe("[buddyNotification] unread counts", () => {
     ]);
 
     expect(counts).to.deep.equal({ [room._id.toString()]: 2 });
+  });
+
+  it("leaves rides done more than 30 days ago out of the badge", async () => {
+    const [reader] = testData.users;
+    const [room] = testData.rooms;
+    await userModel.updateOne(
+      { _id: reader._id },
+      { $pull: { ongoingRoom: room._id }, $push: { doneRoom: room._id } }
+    );
+
+    expect(await getTotalUnreadCount(reader._id)).to.equal(2);
+
+    await roomModel.updateOne(
+      { _id: room._id },
+      { time: new Date(Date.now() - 31 * 24 * 60 * 60 * 1000) }
+    );
+    expect(await getTotalUnreadCount(reader._id)).to.equal(0);
   });
 
   it("returns no counts for no rooms", async () => {
