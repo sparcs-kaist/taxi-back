@@ -1,7 +1,10 @@
 import { expect } from "chai";
 import {
+  buildBuddyPushRequest,
+  buildBuddyPushText,
   getTotalUnreadCount,
   getUnreadCounts,
+  type BuddyChatNotification,
 } from "@/modules/buddyNotification";
 import { chatModel, userModel } from "@/modules/stores/mongo";
 import {
@@ -18,6 +21,130 @@ const testData: TestData = {
   location: [],
   report: [],
 };
+
+const chat = (
+  overrides: Partial<BuddyChatNotification>
+): BuddyChatNotification => ({
+  roomId: "room-1",
+  roomName: "To Daejeon",
+  chatId: "chat-1",
+  type: "text",
+  content: "Hello",
+  time: new Date("2026-10-28T09:00:00Z"),
+  author: {
+    oid: "author-oid",
+    nickname: "Goose",
+    profileImageUrl: "https://example.com/goose.png",
+  },
+  ...overrides,
+});
+
+describe("[buddyNotification] push text", () => {
+  it("uses the sender as the title of a text chat", () => {
+    expect(buildBuddyPushText(chat({}))).to.deep.equal({
+      title: "Goose",
+      body: "Hello",
+    });
+  });
+
+  it("truncates long text chats", () => {
+    const text = buildBuddyPushText(chat({ content: "a".repeat(500) }));
+    expect(text!.body!.length).to.equal(300);
+    expect(text!.body!.endsWith("…")).to.equal(true);
+  });
+
+  it("localizes images and accounts on the device", () => {
+    expect(buildBuddyPushText(chat({ type: "s3img" }))).to.deep.equal({
+      title: "Goose",
+      bodyLocKey: "TAXI_CHAT_IMAGE",
+    });
+    expect(buildBuddyPushText(chat({ type: "account" }))).to.deep.equal({
+      title: "Goose",
+      bodyLocKey: "TAXI_CHAT_ACCOUNT",
+    });
+  });
+
+  it("titles room events with the room name", () => {
+    expect(
+      buildBuddyPushText(chat({ type: "in", inOutNames: ["Goose", "Cat"] }))
+    ).to.deep.equal({
+      title: "To Daejeon",
+      bodyLocKey: "TAXI_IN",
+      bodyLocArgs: ["Goose, Cat"],
+    });
+    expect(
+      buildBuddyPushText(
+        chat({ type: "departure", content: "15", author: undefined })
+      )
+    ).to.deep.equal({
+      title: "To Daejeon",
+      bodyLocKey: "TAXI_DEPARTURE",
+      bodyLocArgs: ["15"],
+    });
+  });
+
+  it("does not notify minigame chats", () => {
+    for (const type of ["wordChain", "racing", "raceLog"] as const) {
+      expect(buildBuddyPushText(chat({ type }))).to.equal(undefined);
+      expect(buildBuddyPushRequest(chat({ type }), "uid", 0, 0)).to.equal(
+        undefined
+      );
+    }
+  });
+});
+
+describe("[buddyNotification] push request", () => {
+  it("builds a conversation push with sender, image and options", () => {
+    const request = buildBuddyPushRequest(
+      chat({ type: "s3img", content: "chat-1" }),
+      "recipient-uid",
+      5,
+      2
+    )!;
+
+    expect(request.user_uid).to.equal("recipient-uid");
+    expect(request.service).to.equal(3);
+    expect(request.title).to.equal("Goose");
+    expect(request.body_loc_key).to.equal("TAXI_CHAT_IMAGE");
+    expect(request.body_loc_args).to.deep.equal([]);
+    expect(request.data).to.include({
+      category: "taxi_chat",
+      type: "s3img",
+      room_id: "room-1",
+      room_name: "To Daejeon",
+      chat_id: "chat-1",
+      sender_id: "author-oid",
+      sender_name: "Goose",
+      sender_avatar_url: "https://example.com/goose.png",
+      room_unread: "2",
+      url: "/myroom/room-1",
+      sent_at: "2026-10-28T09:00:00.000Z",
+    });
+    expect(request.data.image_url).to.match(/\/chat-img\/chat-1$/);
+    expect(request.options).to.deep.equal({
+      mutable_content: true,
+      thread_id: "room-1",
+      badge: 5,
+      category: "TAXI_CHAT",
+      sound: "default",
+      android_data_only: true,
+    });
+  });
+
+  it("marks room events as taxi_event without a sender", () => {
+    const request = buildBuddyPushRequest(
+      chat({ type: "arrival", content: "60", author: undefined }),
+      "recipient-uid",
+      0,
+      0
+    )!;
+
+    expect(request.data.category).to.equal("taxi_event");
+    expect(request.data).to.not.have.property("sender_id");
+    expect(request.body).to.equal(null);
+    expect(request.body_loc_key).to.equal("TAXI_ARRIVAL");
+  });
+});
 
 describe("[buddyNotification] unread counts", () => {
   after(async () => {
