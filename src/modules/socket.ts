@@ -179,7 +179,8 @@ export const emitChatEvent = async (
       (authorId &&
         (await userModel.findById(authorId, "nickname profileImageUrl"))) ||
       {};
-    if (authorId && (!nickname || !profileImageUrl)) {
+    // 탈퇴한 사용자는 profileImageUrl이 ""이므로 닉네임만 확인합니다.
+    if (authorId && !nickname) {
       throw new IllegalArgumentsException();
     }
 
