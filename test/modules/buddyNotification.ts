@@ -2,6 +2,8 @@ import { expect } from "chai";
 import {
   buildBuddyPushRequest,
   buildBuddyPushText,
+  clearBuddyRecipientCache,
+  findBuddyRecipients,
   getTotalUnreadCount,
   getUnreadCounts,
   type BuddyChatNotification,
@@ -240,5 +242,52 @@ describe("[buddyNotification] unread counts", () => {
     expect(await getUnreadCounts("000000000000000000000000", [])).to.deep.equal(
       {}
     );
+  });
+});
+
+describe("[buddyNotification] recipients", () => {
+  const realFetch = globalThis.fetch;
+  let asked: string[][] = [];
+  let respond: (uids: string[]) => Response;
+
+  beforeEach(() => {
+    clearBuddyRecipientCache();
+    asked = [];
+    globalThis.fetch = (async (_url: string, init: RequestInit) => {
+      const { user_uids } = JSON.parse(init.body as string);
+      asked.push(user_uids);
+      return respond(user_uids);
+    }) as typeof fetch;
+  });
+
+  afterEach(() => {
+    globalThis.fetch = realFetch;
+  });
+
+  it("keeps only Buddy users, and remembers the answer", async () => {
+    respond = () => Response.json({ user_uids: ["buddy"] });
+
+    expect(await findBuddyRecipients(["buddy", "web"], "taxi_chat")).to.deep.equal(
+      ["buddy"]
+    );
+    expect(await findBuddyRecipients(["buddy", "web"], "taxi_chat")).to.deep.equal(
+      ["buddy"]
+    );
+    expect(asked).to.deep.equal([["buddy", "web"]]);
+  });
+
+  it("asks again for another kind of notification", async () => {
+    respond = (uids) => Response.json({ user_uids: uids });
+
+    await findBuddyRecipients(["buddy"], "taxi_chat");
+    await findBuddyRecipients(["buddy"], "taxi_event");
+
+    expect(asked).to.deep.equal([["buddy"], ["buddy"]]);
+  });
+
+  it("sends to no one it couldn't check", async () => {
+    respond = () => new Response(null, { status: 500 });
+
+    expect(await findBuddyRecipients(["buddy"], "taxi_chat")).to.deep.equal([]);
   });
 });

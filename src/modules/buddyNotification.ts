@@ -125,6 +125,10 @@ export const getTotalUnreadCount = async (userOid: Types.ObjectId | string) =>
     0
   );
 
+/** 채팅의 Buddy 알림 종류: 사람이 보낸 대화이면 채팅, 아니면 탑승 알림입니다. */
+const buddyPushCategory = (chat: { type: ChatType }) =>
+  conversationChatTypes.includes(chat.type) ? chatCategory : eventCategory;
+
 export interface BuddyChatNotification {
   roomId: string;
   roomName: string;
@@ -226,9 +230,7 @@ export const buildBuddyPushRequest = (
   const text = buildBuddyPushText(chat);
   if (!text) return undefined;
 
-  const category = conversationChatTypes.includes(chat.type)
-    ? chatCategory
-    : eventCategory;
+  const category = buddyPushCategory(chat);
   const data: Record<string, string> = {
     category,
     type: chat.type,
@@ -270,12 +272,11 @@ export const buildBuddyPushRequest = (
   };
 };
 
-const postToBuddy = async (body: object) => {
-  const endpoint = `${externalNotificationApiBaseUrl.replace(
-    /\/+$/,
-    ""
-  )}/v1/notification/external/send`;
-  const response = await fetch(endpoint, {
+const buddyEndpoint = (path: string) =>
+  `${externalNotificationApiBaseUrl.replace(/\/+$/, "")}${path}`;
+
+const postJsonToBuddy = (path: string, body: object) =>
+  fetch(buddyEndpoint(path), {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -284,6 +285,79 @@ const postToBuddy = async (body: object) => {
     body: JSON.stringify(body),
     signal: AbortSignal.timeout(5000),
   });
+
+/** Buddy 백엔드로 동시에 보내는 요청 수의 상한입니다. 채팅이 몰려도 요청이 한꺼번에 쌓이지 않게 합니다. */
+const maxConcurrentBuddyRequests = 8;
+let activeBuddyRequests = 0;
+const waitingBuddyRequests: (() => void)[] = [];
+
+/** 동시에 `maxConcurrentBuddyRequests`개까지만 실행하며, 나머지는 먼저 온 순서대로 기다립니다. */
+const withBuddyRequestSlot = async <T>(task: () => Promise<T>) => {
+  if (activeBuddyRequests >= maxConcurrentBuddyRequests) {
+    await new Promise<void>((resolve) => waitingBuddyRequests.push(resolve));
+  } else {
+    activeBuddyRequests += 1;
+  }
+  try {
+    return await task();
+  } finally {
+    const next = waitingBuddyRequests.shift();
+    if (next) next();
+    else activeBuddyRequests -= 1;
+  }
+};
+
+/** Buddy 알림을 받을 수 있는지에 대한 답을 잠시 기억합니다. 채팅마다 묻지 않게 합니다. */
+const recipientCacheMillis = 60 * 1000;
+const recipientCache = new Map<string, { isRecipient: boolean; until: number }>();
+
+/**
+ * 주어진 사용자 중 Buddy 앱 알림을 받을 수 있는 사용자의 SSO uid를 반환합니다.
+ * (Buddy에 기기를 등록했고, 이 종류의 알림을 모든 기기에서 끄지는 않은 사용자)
+ * Buddy를 쓰지 않는 사용자의 채팅 내용은 Buddy로 보내지 않기 위해 사용합니다.
+ * 확인할 수 없으면 아무에게도 보내지 않습니다.
+ */
+export const findBuddyRecipients = async (uids: string[], category: string) => {
+  const now = Date.now();
+  const cached = (uid: string) => {
+    const entry = recipientCache.get(`${category}:${uid}`);
+    return entry && entry.until > now ? entry : undefined;
+  };
+  const unknown = uids.filter((uid) => !cached(uid));
+  if (unknown.length > 0) {
+    const response = await withBuddyRequestSlot(() =>
+      postJsonToBuddy("/v1/notification/external/recipients", {
+        user_uids: unknown,
+        category,
+      })
+    );
+    if (!response.ok) {
+      logger.error(
+        `External notification recipients API returned status ${response.status}.`
+      );
+      return uids.filter((uid) => cached(uid)?.isRecipient);
+    }
+    const { user_uids: recipientUids } = (await response.json()) as {
+      user_uids: string[];
+    };
+    const recipients = new Set(recipientUids);
+    unknown.forEach((uid) =>
+      recipientCache.set(`${category}:${uid}`, {
+        isRecipient: recipients.has(uid),
+        until: now + recipientCacheMillis,
+      })
+    );
+  }
+  return uids.filter((uid) => recipientCache.get(`${category}:${uid}`)?.isRecipient);
+};
+
+/** 테스트에서 캐시를 비웁니다. */
+export const clearBuddyRecipientCache = () => recipientCache.clear();
+
+const postToBuddy = async (body: object) => {
+  const response = await withBuddyRequestSlot(() =>
+    postJsonToBuddy("/v1/notification/external/send", body)
+  );
   // 404는 Buddy 앱에 기기가 없거나 알림을 끈 사용자이므로 정상입니다.
   if (!response.ok && response.status !== 404) {
     logger.error(
@@ -313,9 +387,19 @@ export const notifyBuddyParticipants = async (
   const recipientOids = participantOids.filter(
     (oid) => oid !== chat.author?.oid
   );
-  const recipients = await userModel
+  const users = await userModel
     .find({ _id: { $in: recipientOids }, withdraw: false }, "_id id")
     .lean();
+  const buddyUids = new Set(
+    await findBuddyRecipients(
+      users.map((user) => user.id),
+      buddyPushCategory(chat)
+    ).catch((error) => {
+      logger.error(error);
+      return [] as string[];
+    })
+  );
+  const recipients = users.filter((user) => buddyUids.has(user.id));
 
   await Promise.all(
     recipients.map(async (recipient) => {
