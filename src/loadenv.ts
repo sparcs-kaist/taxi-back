@@ -58,6 +58,7 @@ export const externalNotificationApiBaseUrl =
   process.env.EXTERNAL_NOTIFICATION_API_BASE_URL || "";
 export const externalNotificationApiKey =
   process.env.EXTERNAL_NOTIFICATION_API_KEY || "";
+export const buddyApiKey = process.env.BUDDY_API_KEY || "";
 export const testAccounts =
   (process.env.TEST_ACCOUNTS &&
     (JSON.parse(process.env.TEST_ACCOUNTS) as string[])) ||

@@ -115,6 +115,93 @@ authDocs[`${apiPrefix}/login/replace`] = {
   },
 };
 
+authDocs[`${apiPrefix}/buddy/resolve`] = {
+  post: {
+    tags: [tag],
+    summary: "버디 SSO 사용자 정보를 택시 사용자와 연결",
+    description:
+      "버디 백엔드 전용 API 키를 확인하고, 기존 택시 사용자를 찾거나 가입 가능한 사용자를 생성한 뒤 oid를 반환합니다.",
+    parameters: [
+      {
+        in: "header",
+        name: "X-BUDDY-API-KEY",
+        required: true,
+        schema: { type: "string" },
+        description: "버디 백엔드와 공유하는 전용 API 키",
+      },
+    ],
+    requestBody: {
+      required: true,
+      content: {
+        "application/json": {
+          schema: {
+            type: "object",
+            required: [
+              "uid",
+              "sid",
+              "email",
+              "first_name",
+              "last_name",
+              "gender",
+              "birthday",
+              "flags",
+              "facebook_id",
+              "twitter_id",
+              "kaist_id",
+              "kaist_info",
+              "kaist_info_time",
+              "kaist_v2_info",
+              "kaist_v2_info_time",
+              "sparcs_id",
+            ],
+            description: "SPARCS SSO에서 받은 사용자 정보 전체",
+            properties: {
+              uid: { type: "string" },
+              sid: { type: "string" },
+              email: { type: "string" },
+              first_name: { type: "string" },
+              last_name: { type: "string" },
+              gender: { type: "string" },
+              birthday: { type: "string" },
+              flags: { type: "array", items: { type: "string" } },
+              facebook_id: { type: "string", nullable: true },
+              twitter_id: { type: "string", nullable: true },
+              kaist_id: { type: "string", nullable: true },
+              kaist_info: { type: "string", nullable: true },
+              kaist_info_time: { type: "string" },
+              kaist_v2_info: { type: "string", nullable: true },
+              kaist_v2_info_time: { type: "string" },
+              sparcs_id: { type: "string", nullable: true },
+            },
+          },
+        },
+      },
+    },
+    responses: {
+      200: {
+        description: "택시 사용자 조회 또는 생성 성공",
+        content: {
+          "application/json": {
+            schema: {
+              type: "object",
+              required: ["oid"],
+              properties: {
+                oid: {
+                  type: "string",
+                  description: "택시 User 문서의 ObjectId",
+                },
+              },
+            },
+          },
+        },
+      },
+      401: { description: "잘못된 API 키" },
+      403: { description: "택시 가입 조건 불충족" },
+      503: { description: "Buddy 연동 API 키 미설정" },
+    },
+  },
+};
+
 authDocs[`${apiPrefix}/logout`] = {
   get: {
     tags: [tag],

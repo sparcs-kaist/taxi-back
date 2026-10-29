@@ -3,6 +3,7 @@ import type { RequestHandler } from "express";
 const whitelist = [
   "/auth/sparcssso/callback", // SPARCS SSO 콜백 요청의 헤더에는 origin이 없음
   "/auth/sparcsapp/login", // 원앱에서 보내는 로그인 요청의 헤더에는 origin이 없음
+  "/auth/buddy/resolve", // Buddy 백엔드 요청에는 origin이 없음
 ];
 
 const originValidatorMiddleware: RequestHandler = (req, res, next) => {
