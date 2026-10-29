@@ -9,6 +9,7 @@ import { getLoginInfo, getBearerToken } from "@/modules/auths/login";
 import { resolveS3Url } from "@/modules/stores/aws";
 import { roomModel, userModel, chatModel } from "@/modules/stores/mongo";
 import { getTokensOfUsers, sendMessageByTokens } from "@/modules/fcm";
+import { notifyBuddyParticipants } from "@/modules/buddyNotification";
 import { corsWhiteList } from "@/loadenv";
 import {
   chatPopulateOption,
@@ -179,7 +180,8 @@ export const emitChatEvent = async (
       (authorId &&
         (await userModel.findById(authorId, "nickname profileImageUrl"))) ||
       {};
-    if (authorId && (!nickname || !profileImageUrl)) {
+    // 탈퇴한 사용자는 profileImageUrl이 ""이므로 닉네임만 확인합니다.
+    if (authorId && !nickname) {
       throw new IllegalArgumentsException();
     }
 
@@ -219,6 +221,27 @@ export const emitChatEvent = async (
         })
       )
     );
+
+    // Buddy 앱 사용자들에게 알림을 보냅니다. 채팅 전송 응답이 늦어지지 않도록 기다리지 않습니다.
+    notifyBuddyParticipants(
+      {
+        roomId: roomId.toString(),
+        roomName: name,
+        chatId: chatDocument._id.toString(),
+        type,
+        content,
+        time: new Date(chatDocument.time),
+        author: authorId
+          ? {
+              oid: authorId.toString(),
+              nickname: nickname!,
+              profileImageUrl,
+            }
+          : undefined,
+        inOutNames: chatsForRoom[0]?.inOutNames,
+      },
+      userIds
+    ).catch((error) => logger.error(error));
 
     // 방의 작성자를 제외한 참여중인 사용자들에게 푸시 알림을 전송합니다.
     const deviceTokensExceptAuthor = await getTokensOfUsers(
