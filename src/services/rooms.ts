@@ -9,7 +9,10 @@ import {
 } from "@/modules/stores/mongo";
 import { emitChatEvent } from "@/modules/socket";
 import logger from "@/modules/logger";
-import { getUnreadCounts } from "@/modules/buddyNotification";
+import {
+  doneRoomBadgeCutoff,
+  getUnreadCounts,
+} from "@/modules/buddyNotification";
 import {
   roomPopulateOption,
   formatSettlement,
@@ -598,10 +601,17 @@ export const searchByUserHandler: RequestHandler = async (req, res) => {
     }
 
     // 각 방의 안 읽은 채팅 수 (Buddy 앱의 안 읽음 배지에 사용)
+    // 진행 중인 방과 최근 완료된 방만 셉니다. 세지 못해도 방 목록은 보여 줍니다.
+    const cutoff = doneRoomBadgeCutoff();
     const unreadCounts = await getUnreadCounts(req.userOid!, [
       ...user.ongoingRoom.map((room) => room._id),
-      ...user.doneRoom.map((room) => room._id),
-    ]);
+      ...user.doneRoom
+        .filter((room) => new Date(room.time) >= cutoff)
+        .map((room) => room._id),
+    ]).catch((error) => {
+      logger.error(error);
+      return {} as Record<string, number>;
+    });
 
     // 정산완료여부 기준으로 진행중인 방과 완료된 방을 분리해서 응답을 전송합니다.
     return res.json({

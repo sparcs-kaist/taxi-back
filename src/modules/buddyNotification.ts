@@ -88,19 +88,42 @@ export const getUnreadCounts = async (
   );
 };
 
+/** 완료된 방은 출발 후 이 기간이 지나면 배지에 세지 않습니다. 오래된 방의 채팅이 배지를 영원히 남기지 않게 합니다. */
+const doneRoomBadgeDays = 30;
+
+/** 배지에 세는 완료된 방의 출발 시각 하한입니다. */
+export const doneRoomBadgeCutoff = () =>
+  new Date(Date.now() - doneRoomBadgeDays * 24 * 60 * 60 * 1000);
+
 /**
- * 사용자가 참여한 모든 방(진행중, 완료)의 안 읽은 채팅 수 합계를 반환합니다.
- * Buddy 앱 아이콘 배지 숫자로 사용됩니다.
+ * 사용자의 배지에 세는 방들의 안 읽은 채팅 수를 방 ObjectId 문자열을 key로 하여 반환합니다.
+ * 진행 중인 방 전부와 최근(`doneRoomBadgeDays`) 완료된 방을 셉니다.
+ * @param userOid - 사용자의 ObjectId입니다.
  */
-export const getTotalUnreadCount = async (userOid: Types.ObjectId | string) => {
+export const getBadgeUnreadCounts = async (userOid: Types.ObjectId | string) => {
   const user = await userModel.findById(userOid, "ongoingRoom doneRoom").lean();
-  if (!user) return 0;
-  const counts = await getUnreadCounts(userOid, [
+  if (!user) return {};
+  const recentDoneRooms = await roomModel
+    .find(
+      { _id: { $in: user.doneRoom }, time: { $gte: doneRoomBadgeCutoff() } },
+      "_id"
+    )
+    .lean();
+  return getUnreadCounts(userOid, [
     ...user.ongoingRoom,
-    ...user.doneRoom,
+    ...recentDoneRooms.map((room) => room._id),
   ]);
-  return Object.values(counts).reduce((sum, n) => sum + n, 0);
 };
+
+/**
+ * 사용자의 안 읽은 채팅 수 합계를 반환합니다. Buddy 앱 아이콘 배지 숫자로 사용됩니다.
+ * @param userOid - 사용자의 ObjectId입니다.
+ */
+export const getTotalUnreadCount = async (userOid: Types.ObjectId | string) =>
+  Object.values(await getBadgeUnreadCounts(userOid)).reduce(
+    (sum, n) => sum + n,
+    0
+  );
 
 export interface BuddyChatNotification {
   roomId: string;
@@ -297,15 +320,14 @@ export const notifyBuddyParticipants = async (
   await Promise.all(
     recipients.map(async (recipient) => {
       try {
-        const [badge, roomCounts] = await Promise.all([
-          getTotalUnreadCount(recipient._id),
-          getUnreadCounts(recipient._id, [chat.roomId]),
-        ]);
+        // 이 방을 포함한 배지 대상 방들을 한 번에 셉니다.
+        const counts = await getBadgeUnreadCounts(recipient._id);
+        const badge = Object.values(counts).reduce((sum, n) => sum + n, 0);
         const body = buildBuddyPushRequest(
           chat,
           recipient.id,
           badge,
-          roomCounts[chat.roomId] ?? 0
+          counts[chat.roomId] ?? 0
         );
         if (body) await postToBuddy(body);
       } catch (error) {
