@@ -21,8 +21,12 @@ export const minigameChatTypes: ChatType[] = ["wordChain", "racing", "raceLog"];
 /** 사람이 보낸 대화로 표시되는 채팅 유형입니다. 나머지는 방 이벤트로 표시됩니다. */
 const conversationChatTypes: ChatType[] = ["text", "s3img", "account"];
 
-/** Buddy 백엔드의 SparcsService enum 값 (TAXI = 3) */
-const buddyTaxiService = 3;
+/**
+ * Buddy 백엔드의 알림 종류 (NotificationCategory). 사용자는 Buddy 앱 설정에서 기기마다 이를 끌 수 있고,
+ * 끈 기기에는 알림이 가지 않습니다. 앱도 같은 값을 data.category로 받아 알림 모양을 정합니다.
+ */
+const chatCategory = "taxi_chat";
+const eventCategory = "taxi_event";
 
 /** iOS 알림 카테고리. 앱이 이 카테고리에 빠른 답장 액션을 등록합니다. */
 const iosReplyCategory = "TAXI_CHAT";
@@ -199,9 +203,11 @@ export const buildBuddyPushRequest = (
   const text = buildBuddyPushText(chat);
   if (!text) return undefined;
 
-  const isConversation = conversationChatTypes.includes(chat.type);
+  const category = conversationChatTypes.includes(chat.type)
+    ? chatCategory
+    : eventCategory;
   const data: Record<string, string> = {
-    category: isConversation ? "taxi_chat" : "taxi_event",
+    category,
     type: chat.type,
     room_id: chat.roomId,
     room_name: chat.roomName,
@@ -222,7 +228,7 @@ export const buildBuddyPushRequest = (
 
   return {
     user_uid: recipientUid,
-    service: buddyTaxiService,
+    category,
     title: text.title,
     body: text.body ?? null,
     title_loc_key: null,

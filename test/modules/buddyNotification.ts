@@ -103,7 +103,7 @@ describe("[buddyNotification] push request", () => {
     )!;
 
     expect(request.user_uid).to.equal("recipient-uid");
-    expect(request.service).to.equal(3);
+    expect(request.category).to.equal("taxi_chat");
     expect(request.title).to.equal("Goose");
     expect(request.body_loc_key).to.equal("TAXI_CHAT_IMAGE");
     expect(request.body_loc_args).to.deep.equal([]);
@@ -139,6 +139,7 @@ describe("[buddyNotification] push request", () => {
       0
     )!;
 
+    expect(request.category).to.equal("taxi_event");
     expect(request.data.category).to.equal("taxi_event");
     expect(request.data).to.not.have.property("sender_id");
     expect(request.body).to.equal(null);
