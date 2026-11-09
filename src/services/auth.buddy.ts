@@ -30,6 +30,23 @@ export const buddyApiKeyMiddleware: RequestHandler = (req, res, next) => {
 };
 
 const buddyResolveHandler: RequestHandler = async (req, res) => {
+  if (!("email" in req.body)) {
+    try {
+      const user = await userModel.findOne(
+        { id: req.body.uid, withdraw: false },
+        "_id"
+      );
+      if (!user) {
+        return res.status(404).json({ error: "user not found" });
+      }
+
+      return res.json({ oid: user.get("_id").toString() });
+    } catch (error) {
+      logger.error(error);
+      return res.status(500).json({ error: "internal server error" });
+    }
+  } // uid 만으로 요청이 들어온 경우, SSO에서 제공하는 정보가 없으므로 DB 조회만 수행
+
   let userData: ReturnType<typeof transUserData>;
   try {
     userData = transUserData(req.body as SparcsssoUserData);
