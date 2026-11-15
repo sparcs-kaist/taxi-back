@@ -38,6 +38,14 @@ export const getBearerToken = (req: Request) => {
 };
 
 export const getLoginInfo = (req: Request) => {
+  if (req.buddyLoginInfo) {
+    return {
+      id: req.buddyLoginInfo.id,
+      sid: undefined,
+      oid: req.buddyLoginInfo.oid,
+    };
+  }
+
   const bearerToken = getBearerToken(req);
   if (bearerToken) {
     const decoded = oneAppJwt.verify(bearerToken);
