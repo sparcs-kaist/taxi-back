@@ -11,6 +11,7 @@ import {
 } from "@/loadenv";
 import {
   banMiddleware,
+  buddyTokenMiddleware,
   corsMiddleware,
   errorHandler,
   informationMiddleware,
@@ -67,6 +68,7 @@ app.use(corsMiddleware);
 // [Middleware] 세션 및 쿠키
 app.use(sessionMiddleware);
 app.use(cookieParser());
+app.use(buddyTokenMiddleware);
 
 // [Middleware] Timestamp 및 clientIP 확인
 app.use(informationMiddleware);

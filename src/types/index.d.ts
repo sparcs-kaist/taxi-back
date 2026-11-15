@@ -10,6 +10,11 @@ declare global {
       userOid?: string;
       /** 사용자의 UserID */
       userUid?: string;
+      /** Buddy JWT에서 검증하고 조회한 로그인 정보 */
+      buddyLoginInfo?: {
+        id: string;
+        oid: string;
+      };
       /** 요청의 origin. */
       origin?: string;
       /** 사용자의 IP 주소. */

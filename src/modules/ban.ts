@@ -40,7 +40,7 @@ export const validateServiceBanRecord = async (
       .replace("T", " ")
       .split(".")[0];
     const banErrorMessage = `${req.originalUrl} : user ${userId.id} (${
-      req.session.loginInfo!.sid
+      userId.sid ?? "unknown"
     }) is temporarily restricted from service until ${formattedExpireAt}.`;
     return banErrorMessage;
   }
