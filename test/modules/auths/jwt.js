@@ -73,13 +73,59 @@ describe("[jwt] 1.sign & verify", () => {
     expect(verifyBuddyToken(token)).to.equal(undefined);
   });
 
-  it("should reject expired Buddy tokens", async () => {
+  it("should report expired Buddy tokens as TOKEN_EXPIRED", async () => {
     const token = jsonwebtoken.sign(
       {
         uid: "buddy-user",
         type: "access",
         iss: "buddy",
         exp: Math.floor(Date.now() / 1000) - 1,
+      },
+      jwtConfig.secretKey,
+      { algorithm: "HS256" }
+    );
+
+    expect(verifyBuddyToken(token)).to.equal(jwtConfig.TOKEN_EXPIRED);
+  });
+
+  it("should not report expired tokens from other issuers as Buddy tokens", async () => {
+    const token = jsonwebtoken.sign(
+      {
+        uid: "buddy-user",
+        type: "access",
+        iss: "other-service",
+        exp: Math.floor(Date.now() / 1000) - 1,
+      },
+      jwtConfig.secretKey,
+      { algorithm: "HS256" }
+    );
+
+    expect(verifyBuddyToken(token)).to.equal(undefined);
+  });
+
+  it("should not report expired Buddy tokens signed with another secret", async () => {
+    const token = jsonwebtoken.sign(
+      {
+        uid: "buddy-user",
+        type: "access",
+        iss: "buddy",
+        exp: Math.floor(Date.now() / 1000) - 1,
+      },
+      "different-secret",
+      { algorithm: "HS256" }
+    );
+
+    expect(verifyBuddyToken(token)).to.equal(undefined);
+  });
+
+  it("should reject Buddy tokens that carry an oid", async () => {
+    const token = jsonwebtoken.sign(
+      {
+        uid: "buddy-user",
+        oid: "507f1f77bcf86cd799439011",
+        type: "access",
+        iss: "buddy",
+        exp: Math.floor(Date.now() / 1000) + 60,
       },
       jwtConfig.secretKey,
       { algorithm: "HS256" }

@@ -27,13 +27,19 @@ export const verify = (token: string) => {
   }
 };
 
+/**
+ * Buddy access token을 검증합니다.
+ * 서명과 issuer가 유효하지만 만료된 Buddy 토큰은 TOKEN_EXPIRED를 반환합니다.
+ * 앱은 401을 받아야 Buddy에서 토큰을 갱신하므로, 만료를 다른 실패와 구분합니다.
+ */
 export const verifyBuddyToken = (
   token: string
-): BuddyTokenPayload | undefined => {
+): BuddyTokenPayload | typeof TOKEN_EXPIRED | undefined => {
   try {
     const payload = jwt.verify(token, secretKey, {
       algorithms: [option.algorithm],
       issuer: buddyJwtIssuer,
+      ignoreExpiration: true,
     });
     if (
       typeof payload === "string" ||
@@ -48,6 +54,9 @@ export const verifyBuddyToken = (
       "id" in payload
     ) {
       return undefined;
+    }
+    if (Math.floor(Date.now() / 1000) >= payload.exp) {
+      return TOKEN_EXPIRED;
     }
 
     return {
