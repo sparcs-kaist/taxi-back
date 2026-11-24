@@ -3,7 +3,7 @@ import express from "express";
 import jsonwebtoken from "jsonwebtoken";
 import request from "supertest";
 import type { Socket } from "socket.io";
-import { jwt as jwtConfig } from "@/loadenv";
+import { oneApp as oneAppConfig } from "@/loadenv";
 import { authMiddleware } from "@/middlewares";
 import buddyTokenMiddleware, {
   buddySocketMiddleware,
@@ -26,7 +26,7 @@ const buddyToken = (uid: string, expiresInSeconds = 60) =>
       iss: "buddy",
       exp: Math.floor(Date.now() / 1000) + expiresInSeconds,
     },
-    jwtConfig.secretKey,
+    oneAppConfig.secretKey,
     { algorithm: "HS256" }
   );
 

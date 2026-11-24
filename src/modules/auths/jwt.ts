@@ -1,5 +1,9 @@
 import jwt, { type SignOptions } from "jsonwebtoken";
-import { buddyJwtIssuer, jwt as jwtConfig } from "@/loadenv";
+import {
+  buddyJwtIssuer,
+  jwt as jwtConfig,
+  oneApp as oneAppConfig,
+} from "@/loadenv";
 import type { BuddyTokenPayload, TaxiAppTokenPayload } from "@/types/jwt";
 
 const { secretKey, option, TOKEN_EXPIRED, TOKEN_INVALID } = jwtConfig;
@@ -29,6 +33,7 @@ export const verify = (token: string) => {
 
 /**
  * Buddy access token을 검증합니다.
+ * Buddy 토큰은 원앱 토큰과 같은 ONEAPP_TOKEN_SECRET으로 서명되므로 oneApp.secretKey로 검증합니다.
  * 서명과 issuer가 유효하지만 만료된 Buddy 토큰은 TOKEN_EXPIRED를 반환합니다.
  * 앱은 401을 받아야 Buddy에서 토큰을 갱신하므로, 만료를 다른 실패와 구분합니다.
  */
@@ -36,7 +41,7 @@ export const verifyBuddyToken = (
   token: string
 ): BuddyTokenPayload | typeof TOKEN_EXPIRED | undefined => {
   try {
-    const payload = jwt.verify(token, secretKey, {
+    const payload = jwt.verify(token, oneAppConfig.secretKey, {
       algorithms: [option.algorithm],
       issuer: buddyJwtIssuer,
       ignoreExpiration: true,
