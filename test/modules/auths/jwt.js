@@ -1,7 +1,10 @@
 const { expect } = require("chai");
 const jsonwebtoken = require("jsonwebtoken");
 const { sign, verify, verifyBuddyToken } = require("../../../src/modules/auths/jwt");
-const { jwt: jwtConfig } = require("../../../src/loadenv");
+const {
+  jwt: jwtConfig,
+  oneApp: oneAppConfig,
+} = require("../../../src/loadenv");
 
 // jwt.js 관련 2개의 함수를 테스트
 // 1. jwt 서명과 검증이 성공적으로 되는지 테스트
@@ -37,7 +40,7 @@ describe("[jwt] 1.sign & verify", () => {
         iss: "buddy",
         exp: Math.floor(Date.now() / 1000) + 60,
       },
-      jwtConfig.secretKey,
+      oneAppConfig.secretKey,
       { algorithm: "HS256" }
     );
 
@@ -51,7 +54,7 @@ describe("[jwt] 1.sign & verify", () => {
   it("should reject Buddy tokens without the required claims", async () => {
     const token = jsonwebtoken.sign(
       { uid: "buddy-user", type: "access", iss: "buddy" },
-      jwtConfig.secretKey,
+      oneAppConfig.secretKey,
       { algorithm: "HS256" }
     );
 
@@ -73,6 +76,21 @@ describe("[jwt] 1.sign & verify", () => {
     expect(verifyBuddyToken(token)).to.equal(undefined);
   });
 
+  it("should reject Buddy tokens signed with the Taxi JWT secret", async () => {
+    const token = jsonwebtoken.sign(
+      {
+        uid: "buddy-user",
+        type: "access",
+        iss: "buddy",
+        exp: Math.floor(Date.now() / 1000) + 60,
+      },
+      jwtConfig.secretKey,
+      { algorithm: "HS256" }
+    );
+
+    expect(verifyBuddyToken(token)).to.equal(undefined);
+  });
+
   it("should report expired Buddy tokens as TOKEN_EXPIRED", async () => {
     const token = jsonwebtoken.sign(
       {
@@ -81,7 +99,7 @@ describe("[jwt] 1.sign & verify", () => {
         iss: "buddy",
         exp: Math.floor(Date.now() / 1000) - 1,
       },
-      jwtConfig.secretKey,
+      oneAppConfig.secretKey,
       { algorithm: "HS256" }
     );
 
@@ -96,7 +114,7 @@ describe("[jwt] 1.sign & verify", () => {
         iss: "other-service",
         exp: Math.floor(Date.now() / 1000) - 1,
       },
-      jwtConfig.secretKey,
+      oneAppConfig.secretKey,
       { algorithm: "HS256" }
     );
 
@@ -127,7 +145,7 @@ describe("[jwt] 1.sign & verify", () => {
         iss: "buddy",
         exp: Math.floor(Date.now() / 1000) + 60,
       },
-      jwtConfig.secretKey,
+      oneAppConfig.secretKey,
       { algorithm: "HS256" }
     );
 
@@ -142,7 +160,7 @@ describe("[jwt] 1.sign & verify", () => {
         iss: "other-service",
         exp: Math.floor(Date.now() / 1000) + 60,
       },
-      jwtConfig.secretKey,
+      oneAppConfig.secretKey,
       { algorithm: "HS256" }
     );
 
