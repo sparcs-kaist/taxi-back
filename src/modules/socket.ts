@@ -96,42 +96,47 @@ const getMessageBody = (type: ChatType, nickname = "", content = "") => {
   const ellipsisedNickname =
     nickname.length > 9 ? nickname.slice(0, 7) + "..." : nickname;
 
-  // TODO: 채팅 메시지 유형에 따라 Body를 다르게 표시합니다.
-  // TODO: 사용자 언어를 가져올 수 있으면 개선할 수 있다고 생각합니다.
+  const localizedBody = (body: string, args: string[]) => ({
+    body,
+    localization: { key: `taxi_notification_${type}`, args },
+  });
+
   switch (type) {
     case "text":
-      return `${ellipsisedNickname}: ${content}`;
-    case "s3img": {
-      const suffix = "님이 이미지를 전송하였습니다";
-      return `${ellipsisedNickname} ${suffix}`;
-    }
-    case "in": {
-      const suffix = "님이 입장하였습니다";
-      return `${ellipsisedNickname} ${suffix}`;
-    }
-    case "out": {
-      const suffix = "님이 퇴장하였습니다";
-      return `${ellipsisedNickname} ${suffix}`;
-    }
-    case "settlement": {
-      const suffix = "님이 정산을 시작하였습니다";
-      return `${ellipsisedNickname} ${suffix}`;
-    }
-    case "payment": {
-      const suffix = "님이 송금을 완료하였습니다";
-      return `${ellipsisedNickname} ${suffix}`;
-    }
-    case "account": {
-      const suffix = "님이 계좌번호를 전송하였습니다";
-      return `${ellipsisedNickname} ${suffix}`;
-    }
+      return { body: `${ellipsisedNickname}: ${content}` };
+    case "s3img":
+      return localizedBody(`${ellipsisedNickname} 님이 이미지를 전송하였습니다`, [
+        ellipsisedNickname,
+      ]);
+    case "in":
+      return localizedBody(`${ellipsisedNickname} 님이 입장하였습니다`, [
+        ellipsisedNickname,
+      ]);
+    case "out":
+      return localizedBody(`${ellipsisedNickname} 님이 퇴장하였습니다`, [
+        ellipsisedNickname,
+      ]);
+    case "settlement":
+      return localizedBody(`${ellipsisedNickname} 님이 정산을 시작하였습니다`, [
+        ellipsisedNickname,
+      ]);
+    case "payment":
+      return localizedBody(`${ellipsisedNickname} 님이 송금을 완료하였습니다`, [
+        ellipsisedNickname,
+      ]);
+    case "account":
+      return localizedBody(`${ellipsisedNickname} 님이 계좌번호를 전송하였습니다`, [
+        ellipsisedNickname,
+      ]);
     case "departure":
-      return `택시 출발 ${content}분 전 입니다`;
+      return localizedBody(`택시 출발 ${content}분 전 입니다`, [content]);
     case "arrival":
-      return "아직 정산 시작을 하지 않았거나 송금을 완료하지 않은 사용자가 있습니다";
+      return localizedBody(
+        "아직 정산 시작을 하지 않았거나 송금을 완료하지 않은 사용자가 있습니다",
+        []
+      );
     default:
-      // 정의되지 않은 type의 경우에는 nickname만 반환합니다.
-      return ellipsisedNickname;
+      return { body: ellipsisedNickname };
   }
 };
 
@@ -226,13 +231,15 @@ export const emitChatEvent = async (
       userIdsExceptAuthor,
       { chatting: true }
     );
+    const { body, localization } = getMessageBody(type, nickname, content);
     await sendMessageByTokens(
       deviceTokensExceptAuthor,
       type,
       name,
-      getMessageBody(type, nickname, content),
+      body,
       resolveS3Url(profileImageUrl),
-      `/myroom/${roomId}`
+      `/myroom/${roomId}`,
+      localization
     );
 
     return true;

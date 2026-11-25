@@ -19,11 +19,14 @@ const externalNotificationEndpoint = `${externalNotificationApiBaseUrl.replace(
   ""
 )}/v1/notification/external/send`;
 
+type NotificationBodyLocalization = { key: string; args: string[] };
+
 const sendExternalNotifications = async (
   userUids: string[],
   title: string,
   body: string,
-  data: Record<string, unknown>
+  data: Record<string, unknown>,
+  bodyLocalization?: NotificationBodyLocalization
 ) => {
   if (!externalNotificationApiBaseUrl && !externalNotificationApiKey) return;
   if (!externalNotificationApiBaseUrl || !externalNotificationApiKey) {
@@ -43,11 +46,11 @@ const sendExternalNotifications = async (
           body: JSON.stringify({
             user_uid: userUid,
             title,
-            body,
+            body: bodyLocalization ? "" : body,
             title_loc_key: "",
             title_loc_args: [],
-            body_loc_key: "",
-            body_loc_args: [],
+            body_loc_key: bodyLocalization?.key ?? "",
+            body_loc_args: bodyLocalization?.args ?? [],
             data,
           }),
           signal: AbortSignal.timeout(5000),
@@ -82,11 +85,18 @@ const sendExternalNotificationsForTokens = async (
   tokens: string[],
   title: string,
   body: string,
-  data: Record<string, unknown>
+  data: Record<string, unknown>,
+  bodyLocalization?: NotificationBodyLocalization
 ) => {
   try {
     const userUids = await getUserUidsForTokens(tokens);
-    await sendExternalNotifications(userUids, title, body, data);
+    await sendExternalNotifications(
+      userUids,
+      title,
+      body,
+      data,
+      bodyLocalization
+    );
   } catch (error) {
     logger.error(error);
   }
@@ -317,6 +327,7 @@ export const getTokensOfUsers = async (
  * @param body - 보낼 메시지의 본문입니다.
  * @param icon - 메시지를 보낸 사람의 프로필 사진 주소입니다.
  * @param link - 메시지 알림 팝업을 클릭했을 때 이동할 주소입니다.
+ * @param bodyLocalization - 외부 알림 API에 전달할 본문 번역 키와 인자입니다.
  * @return 메시지 알림 전송에 실패한 기기의 수를 반환합니다. 오류가 발생하면 -1을 반환합니다.
  */
 export const sendMessageByTokens = async (
@@ -325,7 +336,8 @@ export const sendMessageByTokens = async (
   title: string,
   body: string,
   icon?: string,
-  link?: string
+  link?: string,
+  bodyLocalization?: NotificationBodyLocalization
 ) => {
   if (tokens.length === 0) return -1;
   try {
@@ -345,10 +357,13 @@ export const sendMessageByTokens = async (
     };
     const [{ responses, failureCount }] = await Promise.all([
       getMessaging().sendEachForMulticast(message),
-      sendExternalNotificationsForTokens(tokens, title, body, {
-        ...message.data,
-        type,
-      }),
+      sendExternalNotificationsForTokens(
+        tokens,
+        title,
+        body,
+        { ...message.data, type },
+        bodyLocalization
+      ),
     ]);
 
     // 메시지 전송에 실패한 기기가 존재할 경우, 해당 기기의 deviceToken을 DB에서 삭제합니다.
