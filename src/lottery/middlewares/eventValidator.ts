@@ -1,6 +1,7 @@
 import type { RequestHandler } from "express";
 import { eventStatusModel } from "../modules/stores/mongo";
 import logger from "@/modules/logger";
+import type { EventStatus } from "@/lottery/types";
 
 /**
  * 사용자가 차단 되었는지 여부를 판단합니다.
@@ -22,7 +23,7 @@ const eventValidateMiddleware: RequestHandler = async (req, res, next) => {
         .json({ error: "eventValidator: nonexistent eventStatus" });
     }
 
-    req.eventStatus = eventStatus;
+    req.eventStatus = eventStatus as unknown as EventStatus;
     next();
   } catch (err) {
     logger.error(err);

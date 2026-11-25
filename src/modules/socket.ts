@@ -4,6 +4,7 @@ import { Types } from "mongoose";
 import { Server } from "socket.io";
 
 import { sessionMiddleware } from "@/middlewares";
+import { buddySocketMiddleware } from "@/middlewares/buddyToken";
 import logger from "@/modules/logger";
 import { getLoginInfo, getBearerToken } from "@/modules/auths/login";
 import { resolveS3Url } from "@/modules/stores/aws";
@@ -277,6 +278,8 @@ export const startSocketServer = (server: HttpServer) => {
     },
   });
   io.engine.use(sessionMiddleware);
+  // app.use(buddyTokenMiddleware)는 핸드셰이크에서 실행되지 않으므로 소켓에도 등록합니다.
+  io.use(buddySocketMiddleware);
 
   io.on("connection", (socket) => {
     try {

@@ -2,6 +2,7 @@
 export { default as authMiddleware } from "./auth";
 export { default as authAdminMiddleware } from "./authAdmin";
 export { default as banMiddleware } from "./ban";
+export { default as buddyTokenMiddleware } from "./buddyToken";
 export { default as corsMiddleware } from "./cors";
 export { default as errorHandler } from "./errorHandler";
 export { default as informationMiddleware } from "./information";

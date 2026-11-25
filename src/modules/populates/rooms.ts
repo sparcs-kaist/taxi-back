@@ -75,6 +75,7 @@ export interface FormattedRoom {
     hasCarrier: boolean;
   }[];
   settlementTotal?: number;
+  isWeeklyRoom?: boolean;
   isOver?: boolean;
   isDeparted: boolean;
 }

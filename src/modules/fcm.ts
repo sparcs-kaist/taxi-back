@@ -1,13 +1,115 @@
 import firebaseAdmin from "firebase-admin";
 import { type SendResponse, getMessaging } from "firebase-admin/messaging";
-import { googleApplicationCredentials } from "@/loadenv";
+import {
+  externalNotificationApiBaseUrl,
+  externalNotificationApiKey,
+  googleApplicationCredentials,
+} from "@/loadenv";
 import logger from "@/modules/logger";
 import {
   deviceTokenModel,
   notificationOptionModel,
   topicSubscriptionModel,
+  userModel,
 } from "@/modules/stores/mongo";
 import type { ChatType } from "@/types/mongo";
+
+const externalNotificationEndpoint = `${externalNotificationApiBaseUrl.replace(
+  /\/+$/,
+  ""
+)}/v1/notification/external/send`;
+
+const sendExternalNotifications = async (
+  userUids: string[],
+  title: string,
+  body: string,
+  data: Record<string, unknown>
+) => {
+  if (!externalNotificationApiBaseUrl && !externalNotificationApiKey) return;
+  if (!externalNotificationApiBaseUrl || !externalNotificationApiKey) {
+    logger.error("External notification API URL or API key is not configured.");
+    return;
+  }
+
+  await Promise.all(
+    [...new Set(userUids)].map(async (userUid) => {
+      try {
+        const response = await fetch(externalNotificationEndpoint, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "X-NOTIFICATION-API-KEY": externalNotificationApiKey,
+          },
+          body: JSON.stringify({
+            user_uid: userUid,
+            title,
+            body,
+            title_loc_key: "",
+            title_loc_args: [],
+            body_loc_key: "",
+            body_loc_args: [],
+            data,
+          }),
+          signal: AbortSignal.timeout(5000),
+        });
+
+        if (!response.ok) {
+          logger.error(
+            `External notification API returned status ${response.status}.`
+          );
+        }
+      } catch (error) {
+        logger.error(error);
+      }
+    })
+  );
+};
+
+const getUserUidsForTokens = async (tokens: string[]) => {
+  if (tokens.length === 0) return [];
+
+  const deviceTokens = await deviceTokenModel
+    .find({ deviceTokens: { $in: tokens } }, "userId")
+    .lean();
+  const users = await userModel
+    .find({ _id: { $in: deviceTokens.map(({ userId }) => userId) } }, "id")
+    .lean();
+
+  return users.map(({ id }) => id);
+};
+
+const sendExternalNotificationsForTokens = async (
+  tokens: string[],
+  title: string,
+  body: string,
+  data: Record<string, unknown>
+) => {
+  try {
+    const userUids = await getUserUidsForTokens(tokens);
+    await sendExternalNotifications(userUids, title, body, data);
+  } catch (error) {
+    logger.error(error);
+  }
+};
+
+const sendExternalNotificationsForTopic = async (
+  topic: string,
+  title: string,
+  body: string,
+  data: Record<string, unknown>
+) => {
+  try {
+    const subscriptions = await topicSubscriptionModel
+      .find({ topic }, "deviceToken")
+      .lean();
+    const tokens = subscriptions
+      .map(({ deviceToken }) => deviceToken)
+      .filter((token): token is string => typeof token === "string");
+    await sendExternalNotificationsForTokens(tokens, title, body, data);
+  } catch (error) {
+    logger.error(error);
+  }
+};
 
 /**
  * credential을 등록합니다.
@@ -241,8 +343,13 @@ export const sendMessageByTokens = async (
         priority: "high" as const,
       },
     };
-    const { responses, failureCount } =
-      await getMessaging().sendEachForMulticast(message);
+    const [{ responses, failureCount }] = await Promise.all([
+      getMessaging().sendEachForMulticast(message),
+      sendExternalNotificationsForTokens(tokens, title, body, {
+        ...message.data,
+        type,
+      }),
+    ]);
 
     // 메시지 전송에 실패한 기기가 존재할 경우, 해당 기기의 deviceToken을 DB에서 삭제합니다.
     if (failureCount) {
@@ -289,7 +396,13 @@ export const sendMessageByTopic = async (
         ttl: 0,
       },
     };
-    await getMessaging().send(message);
+    await Promise.all([
+      getMessaging().send(message),
+      sendExternalNotificationsForTopic(topic, title, body, {
+        ...message.data,
+        type,
+      }),
+    ]);
     logger.info(`Notification sent to token ${topic}`);
     return true;
   } catch (error) {

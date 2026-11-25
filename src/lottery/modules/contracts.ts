@@ -1,17 +1,16 @@
-import { transactionModel } from "./stores/mongo";
+import { buildQuests, completeQuest } from "./quests";
+import logger from "@/modules/logger";
+import { eventConfig } from "@/loadenv";
+import type { Room } from "@/types/mongo";
+import type { Types } from "mongoose";
 
-const { buildQuests, completeQuest } = require("./quests");
-const mongoose = require("mongoose");
-const logger = require("@/modules/logger").default;
-
-const { eventConfig } = require("@/loadenv");
 const eventPeriod = eventConfig && {
   startAt: new Date(eventConfig.period.startAt),
   endAt: new Date(eventConfig.period.endAt),
 };
 
 /** 전체 퀘스트 목록입니다. */
-const quests = buildQuests({
+export const quests = buildQuests({
   // firstLogin: {
   //   name: "첫 발걸음",
   //   description:
@@ -204,121 +203,49 @@ const quests = buildQuests({
 
 /**
  * phoneVerification 퀘스트의 완료를 요청합니다.
- * @param {string|mongoose.Types.ObjectId} userId - 퀘스트를 완료한 사용자의 ObjectId입니다.
- * @param {number|Date} timestamp - 퀘스트 완료를 요청한 시각입니다.
- * @returns {Promise}
  * @usage lottery/globalState - createUserGlobalStateHandler
  */
-const completePhoneVerificationQuest = async (userId, timestamp) => {
-  return await completeQuest(userId, timestamp, quests.phoneVerification);
-};
+export const completePhoneVerificationQuest = async (
+  userId: string | Types.ObjectId,
+  timestamp: number | Date
+) => await completeQuest(userId, timestamp, quests!.phoneVerification);
 
 /**
  * ReferralInviter 퀘스트의 완료를 요청합니다.
- * @param {string|mongoose.Types.ObjectId} inviterId - 퀘스트를 완료한 사용자의 ObjectId입니다.
- * @param {number|Date} timestamp - 퀘스트 완료를 요청한 시각입니다.
- * @returns {Promise}
  * @usage lottery/globalState - createUserGlobalStateHandler
  */
-const completeReferralInviterCredit = async (inviterId, timestamp) =>
-  await completeQuest(inviterId, timestamp, quests.referralInviterCredit);
+export const completeReferralInviterCredit = async (
+  inviterId: string | Types.ObjectId,
+  timestamp: number | Date
+) => await completeQuest(inviterId, timestamp, quests!.referralInviterCredit);
 
 /**
  * ReferralInvitee 퀘스트의 완료를 요청합니다.
- * @param {string|mongoose.Types.ObjectId} inviteeId - 퀘스트를 완료한 사용자의 ObjectId입니다.
- * @param {number|Date} timestamp - 퀘스트 완료를 요청한 시각입니다.
- * @returns {Promise}
  * @usage lottery/globalState - createUserGlobalStateHandler
  */
-const completeReferralInviteeCredit = async (inviteeId, timestamp) =>
-  await completeQuest(inviteeId, timestamp, quests.referralInviteeCredit);
-
-/**
- * AllBadgedSettlement 퀘스트 완료를 요청합니다.
- * @param {number|Date} timestamp - 퀘스트 완료를 요청한 시각입니다.
- * @param {Object} roomObject - populate된 방 정보입니다.
- * @param {Object} userModel - 사용자 모델입니다.
- * @returns {Promise}
- * @description 정산 요청이 이루어질 때마다 호출해 주세요.
- * @usage rooms - commitSettlementHandler
- */
-const completeAllBadgedSettlementQuest = async (
-  timestamp,
-  roomObject,
-  userModel
-) => {
-  // 참가자 2명 미만이면 무시(정산 조건과 맞춤)
-  if (!roomObject?.part || roomObject.part.length < 2) return null;
-  if (
-    !eventPeriod ||
-    roomObject.time >= eventPeriod.endAt ||
-    roomObject.time < eventPeriod.startAt
-  )
-    return null;
-
-  // 전원 뱃지 여부 확인 (user.badge === true)
-  const userIds = roomObject.part.map((p) => p.user._id ?? p.user);
-  const users = await userModel.find({ _id: { $in: userIds } }, "badge").lean();
-  const allHave =
-    users.length === userIds.length && users.every((u) => !!u.badge);
-  if (!allHave) return null;
-
-  // 퀘스트 완료
-  for (const uid of userIds) {
-    const alreadyGiven = await transactionModel.findOne({
-      userId: uid,
-      questId: quests.allBadgedSettlement.id,
-    });
-    if (!alreadyGiven) {
-      await completeQuest(uid, timestamp, quests.allBadgedSettlement);
-    } else {
-      const givenDate = alreadyGiven.createdAt;
-      const givenDateKST = new Date(givenDate.getTime() + 9 * 60 * 60 * 1000);
-      const nowKST = new Date(Date.now() + 9 * 60 * 60 * 1000);
-      if (givenDateKST.toDateString() === nowKST.toDateString()) {
-        continue; //이미 오늘 받음
-      }
-    }
-  }
-  return true;
-};
-
-/**
- * firstLogin 퀘스트의 완료를 요청합니다.
- * @param {string|mongoose.Types.ObjectId} userId - 퀘스트를 완료한 사용자의 ObjectId입니다.
- * @param {number|Date} timestamp - 퀘스트 완료를 요청한 시각입니다.
- * @returns {Promise}
- * @usage lottery/globalState - createUserGlobalStateHandler
- */
-const completeFirstLoginQuest = async (userId, timestamp) => {
-  return await completeQuest(userId, timestamp, quests.firstLogin);
-};
+export const completeReferralInviteeCredit = async (
+  inviteeId: string | Types.ObjectId,
+  timestamp: number | Date
+) => await completeQuest(inviteeId, timestamp, quests!.referralInviteeCredit);
 
 /**
  * firstRoomCreation 퀘스트의 완료를 요청합니다.
- * @param {string|mongoose.Types.ObjectId} userId - 퀘스트를 완료한 사용자의 ObjectId입니다.
- * @param {number|Date} timestamp - 퀘스트 완료를 요청한 시각입니다.
- * @returns {Promise}
  * @description 방을 만들 때마다 호출해 주세요.
- * @usage rooms - createHandler
  */
-const completeFirstRoomCreationQuest = async (userId, timestamp) => {
-  return await completeQuest(userId, timestamp, quests.firstRoomCreation);
-};
+export const completeFirstRoomCreationQuest = async (
+  userId: string | Types.ObjectId,
+  timestamp: number | Date
+) => await completeQuest(userId, timestamp, quests!.firstRoomCreation);
 
 /**
  * fareSettlement 퀘스트의 완료를 요청합니다. 방의 참가자 수가 2명 미만이면 요청하지 않습니다.
- * @param {string|mongoose.Types.ObjectId} userId - 퀘스트를 완료한 사용자의 ObjectId입니다.
- * @param {number|Date} timestamp - 퀘스트 완료를 요청한 시각입니다.
- * @param {Object} roomObject - 방의 정보입니다.
- * @param {mongoose.Types.ObjectId} roomObject._id - 방의 ObjectId입니다.
- * @param {Array<{ user: mongoose.Types.ObjectId }>} roomObject.part - 참여자 목록입니다.
- * @param {Date} roomObject.time - 출발 시각입니다.
- * @returns {Promise}
  * @description 정산 요청이 이루어질 때마다 호출해 주세요.
- * @usage rooms - commitSettlementHandler
  */
-const completeFareSettlementQuest = async (userId, timestamp, roomObject) => {
+export const completeFareSettlementQuest = async (
+  userId: string | Types.ObjectId,
+  timestamp: number | Date,
+  roomObject: Room
+) => {
   logger.info(
     `User ${userId} requested to complete fareSettlementQuest in Room ${roomObject._id}`
   );
@@ -331,22 +258,18 @@ const completeFareSettlementQuest = async (userId, timestamp, roomObject) => {
   )
     return null; // 택시 출발 시각이 이벤트 기간 내에 포함되지 않는 경우 퀘스트 완료 요청을 하지 않습니다.
 
-  return await completeQuest(userId, timestamp, quests.fareSettlement);
+  return await completeQuest(userId, timestamp, quests!.fareSettlement);
 };
 
 /**
  * farePayment 퀘스트의 완료를 요청합니다. 방의 참가자 수가 2명 미만이면 요청하지 않습니다.
- * @param {string|mongoose.Types.ObjectId} userId - 퀘스트를 완료한 사용자의 ObjectId입니다.
- * @param {number|Date} timestamp - 퀘스트 완료를 요청한 시각입니다.
- * @param {Object} roomObject - 방의 정보입니다.
- * @param {mongoose.Types.ObjectId} roomObject._id - 방의 ObjectId입니다.
- * @param {Array<{ user: mongoose.Types.ObjectId }>} roomObject.part - 참여자 목록입니다.
- * @param {Date} roomObject.time - 출발 시각입니다.
- * @returns {Promise}
  * @description 송금이 이루어질 때마다 호출해 주세요.
- * @usage rooms - commitPaymentHandler
  */
-const completeFarePaymentQuest = async (userId, timestamp, roomObject) => {
+export const completeFarePaymentQuest = async (
+  userId: string | Types.ObjectId,
+  timestamp: number | Date,
+  roomObject: Room
+) => {
   logger.info(
     `User ${userId} requested to complete farePaymentQuest in Room ${roomObject._id}`
   );
@@ -359,168 +282,109 @@ const completeFarePaymentQuest = async (userId, timestamp, roomObject) => {
   )
     return null; // 택시 출발 시각이 이벤트 기간 내에 포함되지 않는 경우 퀘스트 완료 요청을 하지 않습니다.
 
-  return await completeQuest(userId, timestamp, quests.farePayment);
+  return await completeQuest(userId, timestamp, quests!.farePayment);
 };
 
 /**
  * nicknameChanging 퀘스트의 완료를 요청합니다.
- * @param {string|mongoose.Types.ObjectId} userId - 퀘스트를 완료한 사용자의 ObjectId입니다.
- * @param {number|Date} timestamp - 퀘스트 완료를 요청한 시각입니다.
- * @returns {Promise}
  * @description 닉네임을 변경할 때마다 호출해 주세요.
- * @usage users - editNicknameHandler
  */
-const completeNicknameChangingQuest = async (userId, timestamp) => {
-  return await completeQuest(userId, timestamp, quests.nicknameChanging);
-};
+export const completeNicknameChangingQuest = async (
+  userId: string | Types.ObjectId,
+  timestamp: number | Date
+) => await completeQuest(userId, timestamp, quests!.nicknameChanging);
 
 /**
  * accountChanging 퀘스트의 완료를 요청합니다.
- * @param {string|mongoose.Types.ObjectId} userId - 퀘스트를 완료한 사용자의 ObjectId입니다.
- * @param {number|Date} timestamp - 퀘스트 완료를 요청한 시각입니다.
- * @param {string} newAccount - 변경된 계좌입니다.
- * @returns {Promise}
  * @description 계좌를 변경할 때마다 호출해 주세요.
- * @usage users - editAccountHandler
  */
-const completeAccountChangingQuest = async (userId, timestamp, newAccount) => {
+export const completeAccountChangingQuest = async (
+  userId: string | Types.ObjectId,
+  timestamp: number | Date,
+  newAccount: string
+) => {
   if (newAccount === "") return null;
-
-  return await completeQuest(userId, timestamp, quests.accountChanging);
+  return await completeQuest(userId, timestamp, quests!.accountChanging);
 };
 
 /**
  * adPushAgreement 퀘스트의 완료를 요청합니다.
- * @param {string|mongoose.Types.ObjectId} userId - 퀘스트를 완료한 사용자의 ObjectId입니다.
- * @param {number|Date} timestamp - 퀘스트 완료를 요청한 시각입니다.
- * @param {boolean} advertisement - 변경된 광고성 알림 수신 동의 여부입니다.
- * @returns {Promise}
  * @description 알림 옵션을 변경할 때마다 호출해 주세요.
- * @usage notifications - editOptionsHandler
  */
-const completeAdPushAgreementQuest = async (
-  userId,
-  timestamp,
-  advertisement
+export const completeAdPushAgreementQuest = async (
+  userId: string | Types.ObjectId,
+  timestamp: number | Date,
+  advertisement: boolean
 ) => {
   if (!advertisement) return null;
-
-  return await completeQuest(userId, timestamp, quests.adPushAgreement);
-};
-
-/**
- * eventSharing 퀘스트의 완료를 요청합니다.
- * @param {string|mongoose.Types.ObjectId} userId - 퀘스트를 완료한 사용자의 ObjectId입니다.
- * @param {number|Date} timestamp - 퀘스트 완료를 요청한 시각입니다.
- * @returns {Promise}
- * @usage lottery/globalState - createUserGlobalStateHandler
- */
-const completeEventSharingQuest = async (userId, timestamp) => {
-  return await completeQuest(userId, timestamp, quests.eventSharing);
+  return await completeQuest(userId, timestamp, quests!.adPushAgreement);
 };
 
 /**
  * indirectEventSharing 퀘스트의 완료를 요청합니다.
- * @param {string|mongoose.Types.ObjectId} userId - 퀘스트를 완료한 사용자의 ObjectId입니다.
- * @param {number|Date} timestamp - 퀘스트 완료를 요청한 시각입니다.
- * @returns {Promise}
  * @usage lottery/globalState - createUserGlobalStateHandler
  */
-const completeIndirectEventSharingQuest = async (userId, timestamp) => {
-  return await completeQuest(userId, timestamp, quests.indirectEventSharing);
-};
-
-/**
- * completeAnswerCorrectlyQuest 퀘스트의 완료를 요청합니다.
- * @param {string|mongoose.Types.ObjectId} userId - 퀘스트를 완료한 사용자의 ObjectId입니다.
- * @param {number|Date} timestamp - 퀘스트 완료를 요청한 시각입니다.
- * @returns {Promise}
- * @usage lottery/schedules/dailyQuiz - determineQuizResult
- */
-//2025 가을 이벤트에서는 퀴즈가 없습니다.
-/*
-export const completeAnswerCorrectlyQuest = async (userId, timestamp) => {
-  return await completeQuest(userId, timestamp, quests.answerCorrectly);
-};
-*/
-
-/**
- * itemPurchase 퀘스트의 완료를 요청합니다.
- * @param {string|mongoose.Types.ObjectId} userId - 퀘스트를 완료한 사용자의 ObjectId입니다.
- * @param {number|Date} timestamp - 퀘스트 완료를 요청한 시각입니다.
- * @returns {Promise}
- * @description 상품을 구입할 때마다 호출해 주세요.
- */
-const completeItemPurchaseQuest = async (userId, timestamp) => {
-  return await completeQuest(userId, timestamp, quests.itemPurchase);
-};
+export const completeIndirectEventSharingQuest = async (
+  userId: string | Types.ObjectId,
+  timestamp: number | Date
+) => await completeQuest(userId, timestamp, quests!.indirectEventSharing);
 
 /**
  * firstReinforcement 퀘스트의 완료를 요청합니다.
- * @param {string|mongoose.Types.ObjectId} userId - 퀘스트를 완료한 사용자의 ObjectId입니다.
- * @param {number|Date} timestamp - 퀘스트 완료를 요청한 시각입니다.
- * @returns {Promise}
  * @usage miniGame - reinforcementHandler
  */
-const completeFirstReinforcementQuest = async (userId, timestamp) => {
-  return await completeQuest(userId, timestamp, quests.firstReinforcement);
-};
+export const completeFirstReinforcementQuest = async (
+  userId: string | Types.ObjectId,
+  timestamp: number | Date
+) => await completeQuest(userId, timestamp, quests!.firstReinforcement);
 
 /**
- * firstMinigame 퀘스트의 완료를 요청합니다.
- * @param {string|mongoose.Types.ObjectId} userId - 퀘스트를 완료한 사용자의 ObjectId입니다.
- * @param {number|Date} timestamp - 퀘스트 완료를 요청한 시각입니다.
- * @returns {Promise}
- * @usage minigame - updateCreditHandler
+ * firstMiniGame 퀘스트의 완료를 요청합니다.
+ * @usage miniGame - updateCreditHandler
  */
-const completeFirstMinigameQuest = async (userId, timestamp) => {
-  return await completeQuest(userId, timestamp, quests.firstMiniGame);
-};
+export const completeFirstMinigameQuest = async (
+  userId: string | Types.ObjectId,
+  timestamp: number | Date
+) => await completeQuest(userId, timestamp, quests!.firstMiniGame);
 
 /**
  * useCoupon1 퀘스트의 완료를 요청합니다.
- * @param {string|mongoose.Types.ObjectId} userId - 퀘스트를 완료한 사용자의 ObjectId입니다.
- * @param {number|Date} timestamp - 퀘스트 완료를 요청한 시각입니다.
- * @returns {Promise}
  * @usage items - useCouponHandler
  */
-const completeUseCoupon1Quest = async (userId, timestamp) => {
-  return await completeQuest(userId, timestamp, quests.useCoupon1);
-};
+export const completeUseCoupon1Quest = async (
+  userId: string | Types.ObjectId,
+  timestamp: number | Date
+) => await completeQuest(userId, timestamp, quests!.useCoupon1);
 
 /**
  * useCoupon2 퀘스트의 완료를 요청합니다.
- * @param {string|mongoose.Types.ObjectId} userId - 퀘스트를 완료한 사용자의 ObjectId입니다.
- * @param {number|Date} timestamp - 퀘스트 완료를 요청한 시각입니다.
- * @returns {Promise}
  * @usage items - useCouponHandler
  */
-const completeUseCoupon2Quest = async (userId, timestamp) => {
-  return await completeQuest(userId, timestamp, quests.useCoupon2);
-};
+export const completeUseCoupon2Quest = async (
+  userId: string | Types.ObjectId,
+  timestamp: number | Date
+) => await completeQuest(userId, timestamp, quests!.useCoupon2);
 
-module.exports = {
-  quests,
-  completeIndirectEventSharingQuest,
-  completePhoneVerificationQuest,
-  completeReferralInviterCredit,
-  completeReferralInviteeCredit,
-  completeFirstRoomCreationQuest,
-  completeFareSettlementQuest,
-  completeFarePaymentQuest,
-  completeNicknameChangingQuest,
-  completeAccountChangingQuest,
-  completeAdPushAgreementQuest,
-  completeFirstReinforcementQuest,
-  completeFirstMinigameQuest,
-  completeUseCoupon1Quest,
-  completeUseCoupon2Quest,
-  /*
-  completeFirstLoginQuest,
-  completeAccountChangingQuest,
-  completeAdPushAgreementQuest,
-  completeEventSharingQuest,
-  completeAnswerCorrectlyQuest,
-  completeItemPurchaseQuest,
-  */
-};
+// 아래 퀘스트 완료 함수들은 현재 이벤트에서 사용되지 않습니다.
+/*
+export const completeFirstLoginQuest = async (
+  userId: string | Types.ObjectId,
+  timestamp: number | Date
+) => await completeQuest(userId, timestamp, quests!.firstLogin);
+
+export const completeEventSharingQuest = async (
+  userId: string | Types.ObjectId,
+  timestamp: number | Date
+) => await completeQuest(userId, timestamp, quests!.eventSharing);
+
+//2025 가을 이벤트에서는 퀴즈가 없습니다.
+export const completeAnswerCorrectlyQuest = async (
+  userId: string | Types.ObjectId,
+  timestamp: number | Date
+) => await completeQuest(userId, timestamp, quests!.answerCorrectly);
+
+export const completeItemPurchaseQuest = async (
+  userId: string | Types.ObjectId,
+  timestamp: number | Date
+) => await completeQuest(userId, timestamp, quests!.itemPurchase);
+*/

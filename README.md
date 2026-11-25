@@ -30,6 +30,10 @@ $ pnpm install
 ### Set Environment Configuration
 See [notion page](https://www.notion.so/sparcs/Environment-Variables-1b404bd385fa495bac6d5517b57d72bf).
 Refer to [.env.example](.env.example) and write your own `.env`.
+Buddy access tokens are verified with the configured `ONEAPP_TOKEN_SECRET`
+(which must match Buddy's `JWT_SECRET`) and
+`BUDDY_JWT_ISSUER` (default: `buddy`). If Buddy changes its `iss` claim, update
+`BUDDY_JWT_ISSUER` to match.
 
 ## Backend Route Information
 API specification is defined on Swagger.

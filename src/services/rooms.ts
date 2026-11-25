@@ -182,7 +182,7 @@ export const createHandler: RequestHandler = async (req, res) => {
     });
 
     // 이벤트 코드입니다.
-    await contracts?.completeFirstRoomCreationQuest(req.userOid, req.timestamp);
+    await contracts?.completeFirstRoomCreationQuest(req.userOid as string, req.timestamp as number);
 
     const roomObject = (
       await room.populate(roomPopulateOption)
@@ -545,7 +545,10 @@ export const searchHandler: RequestHandler = async (req, res) => {
     if (to) query.to = to;
 
     query.time = { $gte: minTime, $lt: maxTime };
-    query["part.0"] = { $exists: true }; // 참여자가 1명 이상인 방만 반환
+    query.$or = [
+      { "part.0": { $exists: true } },
+      { isWeeklyRoom: true },
+    ];
 
     const rooms = await roomModel
       .find(query)
@@ -656,7 +659,10 @@ export const searchByTimeGapHandler: RequestHandler = async (req, res) => {
       from: new Types.ObjectId(from),
       to: new Types.ObjectId(to),
       time: { $gte: minTime, $lte: maxTime },
-      "part.0": { $exists: true }, // Ensure at least one participant exists
+      $or: [
+        { "part.0": { $exists: true } },
+        { isWeeklyRoom: true },
+      ],
     };
 
     const agg: PipelineStage[] = [
@@ -787,9 +793,9 @@ export const commitSettlementHandler: RequestHandler = async (req, res) => {
     // );
     // 이벤트 코드입니다.
     await contracts?.completeFareSettlementQuest(
-      req.userOid,
-      req.timestamp,
-      roomObject
+      req.userOid as string,
+      req.timestamp as number,
+      roomObject as unknown as Room
     );
     // 이벤트 코드입니다.
     allRaceDone(roomId);
@@ -872,9 +878,9 @@ export const commitPaymentHandler: RequestHandler = async (req, res) => {
 
     // 이벤트 코드입니다.
     await contracts?.completeFarePaymentQuest(
-      req.userOid,
-      req.timestamp,
-      roomObject
+      req.userOid as string,
+      req.timestamp as number,
+      roomObject as unknown as Room
     );
 
     // 유저의 아낀 금액을 갱신합니다.

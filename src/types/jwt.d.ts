@@ -5,6 +5,15 @@ export interface TaxiAppTokenPayload {
   type: "access" | "refresh";
 }
 
+/** Buddy 앱에서 Taxi API를 호출할 때 사용하는 access token payload */
+export interface BuddyTokenPayload {
+  uid: string;
+  type: "access";
+  iat: number;
+  exp: number;
+  iss: string;
+}
+
 /** 원앱에서 사용되는 JWT의 Payload */
 export interface OneAppTokenPayload {
   /**

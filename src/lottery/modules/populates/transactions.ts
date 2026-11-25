@@ -1,11 +1,11 @@
-const transactionPopulateOption = [
+export const transactionPopulateOption = [
   {
     path: "itemId",
     select: "name imageUrl",
   },
 ];
 
-const publicNoticePopulateOption = [
+export const publicNoticePopulateOption = [
   {
     path: "userId",
     select: "nickname",
@@ -15,8 +15,3 @@ const publicNoticePopulateOption = [
     select: "name price description",
   },
 ];
-
-module.exports = {
-  transactionPopulateOption,
-  publicNoticePopulateOption,
-};

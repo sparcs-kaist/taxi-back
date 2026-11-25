@@ -167,6 +167,41 @@ describe("[rooms] 5.searchHandler", () => {
     expect(resJson[0]).to.has.property("name", "test-room");
     expect(resJson[0].settlementTotal).to.be.undefined;
   });
+
+  it("should return empty weekly rooms", async () => {
+    const testFrom = await locationModel.findOne({ koName: "대전역" });
+    const testTo = await locationModel.findOne({ koName: "택시승강장" });
+    const weeklyRoom = await roomModel.create({
+      name: "weekly-empty-room",
+      from: testFrom!._id,
+      to: testTo!._id,
+      time: new Date(Date.now() + 60 * 1000),
+      part: [],
+      madeat: new Date(),
+      maxPartLength: 4,
+      settlementTotal: 0,
+      isWeeklyRoom: true,
+    });
+    testData["rooms"].push(weeklyRoom);
+
+    let req = httpMocks.createRequest({
+      query: {
+        name: "weekly-empty-room",
+        from: testFrom!._id,
+        to: testTo!._id,
+        time: Date.now(),
+        withTime: true,
+        maxPartLength: 4,
+      },
+    });
+    let res = httpMocks.createResponse();
+    await roomsHandlers.searchHandler(req, res, () => {});
+
+    const resJson = res._getJSONData();
+    expect(resJson[0]).to.has.property("name", "weekly-empty-room");
+    expect(resJson[0]).to.has.property("isWeeklyRoom", true);
+    expect(resJson[0].part).to.have.lengthOf(0);
+  });
 });
 
 // 6. 방에 속한 유저를 통해 검색
