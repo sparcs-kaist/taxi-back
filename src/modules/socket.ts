@@ -96,44 +96,52 @@ const getMessageBody = (type: ChatType, nickname = "", content = "") => {
   const ellipsisedNickname =
     nickname.length > 9 ? nickname.slice(0, 7) + "..." : nickname;
 
-  const localizedBody = (body: string, args: string[]) => ({
+  const localizedBody = (body: string, key: string, args: string[] = []) => ({
     body,
-    localization: { key: `taxi_notification_${type}`, args },
+    localization: { key, args },
   });
 
   switch (type) {
     case "text":
       return { body: `${ellipsisedNickname}: ${content}` };
     case "s3img":
-      return localizedBody(`${ellipsisedNickname} 님이 이미지를 전송하였습니다`, [
-        ellipsisedNickname,
-      ]);
+      return localizedBody(
+        `${ellipsisedNickname} 님이 이미지를 전송하였습니다`,
+        "TAXI_CHAT_IMAGE"
+      );
     case "in":
-      return localizedBody(`${ellipsisedNickname} 님이 입장하였습니다`, [
+      return localizedBody(`${ellipsisedNickname} 님이 입장하였습니다`, "TAXI_IN", [
         ellipsisedNickname,
       ]);
     case "out":
-      return localizedBody(`${ellipsisedNickname} 님이 퇴장하였습니다`, [
+      return localizedBody(`${ellipsisedNickname} 님이 퇴장하였습니다`, "TAXI_OUT", [
         ellipsisedNickname,
       ]);
     case "settlement":
-      return localizedBody(`${ellipsisedNickname} 님이 정산을 시작하였습니다`, [
-        ellipsisedNickname,
-      ]);
+      return localizedBody(
+        `${ellipsisedNickname} 님이 정산을 시작하였습니다`,
+        "TAXI_SETTLEMENT",
+        [ellipsisedNickname]
+      );
     case "payment":
-      return localizedBody(`${ellipsisedNickname} 님이 송금을 완료하였습니다`, [
-        ellipsisedNickname,
-      ]);
+      return localizedBody(
+        `${ellipsisedNickname} 님이 송금을 완료하였습니다`,
+        "TAXI_PAYMENT",
+        [ellipsisedNickname]
+      );
     case "account":
-      return localizedBody(`${ellipsisedNickname} 님이 계좌번호를 전송하였습니다`, [
-        ellipsisedNickname,
-      ]);
+      return localizedBody(
+        `${ellipsisedNickname} 님이 계좌번호를 전송하였습니다`,
+        "TAXI_CHAT_ACCOUNT"
+      );
     case "departure":
-      return localizedBody(`택시 출발 ${content}분 전 입니다`, [content]);
+      return localizedBody(`택시 출발 ${content}분 전 입니다`, "TAXI_DEPARTURE", [
+        content,
+      ]);
     case "arrival":
       return localizedBody(
         "아직 정산 시작을 하지 않았거나 송금을 완료하지 않은 사용자가 있습니다",
-        []
+        "TAXI_ARRIVAL"
       );
     default:
       return { body: ellipsisedNickname };
