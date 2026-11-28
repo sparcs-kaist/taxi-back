@@ -44,6 +44,10 @@ const buddyTokenMiddleware: RequestHandler = async (req, res, next) => {
   if (req.path === "/admin" || req.path.startsWith("/admin/")) {
     return next();
   }
+  // 아직 택시 회원이 없는 사용자도 호출하므로, 핸들러가 토큰을 직접 검증합니다.
+  if (req.path === "/auth/buddy/bootstrap") {
+    return next();
+  }
 
   try {
     const result = await authenticateBuddyRequest(req);

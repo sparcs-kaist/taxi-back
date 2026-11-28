@@ -2,9 +2,7 @@ import express from "express";
 
 import { validateBody, validateQuery } from "@/middlewares";
 import * as authHandlers from "@/services/auth";
-import buddyResolveHandler, {
-  buddyApiKeyMiddleware,
-} from "@/services/auth.buddy";
+import buddyBootstrapHandler from "@/services/auth.buddy";
 import * as authReplaceHandlers from "@/services/auth.replace";
 import * as mobileAuthHandlers from "@/services/auth.mobile";
 import * as oneAppAuthHandlers from "@/services/auth.oneapp";
@@ -30,11 +28,11 @@ router.post(
   (isAuthReplace ? authReplaceHandlers : authHandlers).loginReplaceHandler
 );
 
+// (Buddy 전용) Buddy 로그인 직후 택시 회원을 생성하거나 갱신합니다.
 router.post(
-  "/buddy/resolve",
-  buddyApiKeyMiddleware,
-  validateBody(authZod.buddyResolveHandler),
-  buddyResolveHandler
+  "/buddy/bootstrap",
+  validateBody(authZod.buddyBootstrapHandler),
+  buddyBootstrapHandler
 );
 
 // 로그아웃 후 redirect
