@@ -115,19 +115,19 @@ authDocs[`${apiPrefix}/login/replace`] = {
   },
 };
 
-authDocs[`${apiPrefix}/buddy/resolve`] = {
+authDocs[`${apiPrefix}/buddy/bootstrap`] = {
   post: {
     tags: [tag],
-    summary: "버디 사용자 정보를 택시 사용자와 연결",
+    summary: "Buddy 로그인 후 택시 회원 생성 또는 갱신",
     description:
-      "버디 백엔드 전용 API 키를 확인합니다. uid만 전달하면 기존 택시 회원을 조회하고, SSO 사용자 정보를 전달하면 기존 사용자를 갱신하거나 가입 가능한 사용자를 생성한 뒤 oid를 반환합니다.",
+      "Buddy 앱이 로그인 직후 호출합니다. Bearer로 Buddy access token을, body로 Buddy 로그인 응답의 ssoInfo를 받아 두 토큰의 uid가 같은지 확인합니다. 택시 회원이 없으면 가입 조건을 확인해 생성하고, 있으면 이름·이메일·학번 정보를 갱신합니다.",
     parameters: [
       {
         in: "header",
-        name: "X-BUDDY-API-KEY",
+        name: "Authorization",
         required: true,
         schema: { type: "string" },
-        description: "버디 백엔드와 공유하는 전용 API 키",
+        description: "Bearer {Buddy access token}",
       },
     ],
     requestBody: {
@@ -135,83 +135,24 @@ authDocs[`${apiPrefix}/buddy/resolve`] = {
       content: {
         "application/json": {
           schema: {
-            oneOf: [
-              {
-                type: "object",
-                required: ["uid"],
-                additionalProperties: false,
-                description: "기존 택시 회원 조회",
-                properties: {
-                  uid: { type: "string" },
-                },
-              },
-              {
-                type: "object",
-                required: [
-                  "uid",
-                  "sid",
-                  "email",
-                  "first_name",
-                  "last_name",
-                  "gender",
-                  "birthday",
-                  "flags",
-                  "facebook_id",
-                  "twitter_id",
-                  "kaist_id",
-                  "kaist_info",
-                  "kaist_info_time",
-                  "kaist_v2_info",
-                  "kaist_v2_info_time",
-                  "sparcs_id",
-                ],
-                description: "SPARCS SSO에서 받은 사용자 정보 전체",
-                properties: {
-                  uid: { type: "string" },
-                  sid: { type: "string" },
-                  email: { type: "string" },
-                  first_name: { type: "string" },
-                  last_name: { type: "string" },
-                  gender: { type: "string" },
-                  birthday: { type: "string" },
-                  flags: { type: "array", items: { type: "string" } },
-                  facebook_id: { type: "string", nullable: true },
-                  twitter_id: { type: "string", nullable: true },
-                  kaist_id: { type: "string", nullable: true },
-                  kaist_info: { type: "string", nullable: true },
-                  kaist_info_time: { type: "string" },
-                  kaist_v2_info: { type: "string", nullable: true },
-                  kaist_v2_info_time: { type: "string" },
-                  sparcs_id: { type: "string", nullable: true },
-                },
-              },
-            ],
-          },
-        },
-      },
-    },
-    responses: {
-      200: {
-        description: "택시 사용자 조회 또는 생성 성공",
-        content: {
-          "application/json": {
-            schema: {
-              type: "object",
-              required: ["oid"],
-              properties: {
-                oid: {
-                  type: "string",
-                  description: "택시 User 문서의 ObjectId",
-                },
+            type: "object",
+            required: ["ssoInfo"],
+            properties: {
+              ssoInfo: {
+                type: "string",
+                description: "Buddy 로그인 응답의 ssoInfo JWT (5분간 유효)",
               },
             },
           },
         },
       },
-      404: { description: "uid에 해당하는 택시 회원이 없음" },
-      401: { description: "잘못된 API 키" },
-      403: { description: "택시 가입 조건 불충족" },
-      503: { description: "Buddy 연동 API 키 미설정" },
+    },
+    responses: {
+      200: { description: "기존 택시 회원 (필요하면 정보 갱신)" },
+      201: { description: "택시 회원 생성" },
+      400: { description: "잘못되었거나 만료된 ssoInfo, 또는 uid 불일치" },
+      401: { description: "잘못되었거나 만료된 Buddy access token" },
+      403: { description: "택시 가입 조건 불충족 또는 탈퇴 후 7일 이내" },
     },
   },
 };
