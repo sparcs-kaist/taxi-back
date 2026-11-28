@@ -49,27 +49,9 @@ export const authZod = {
   oneAppTokenRefreshHandler: z.object({
     refreshToken: z.string().min(1), // Not a JWT
   }),
-  buddyResolveHandler: z.union([
-    z.object({
-      uid: z.string().min(1),
-      sid: z.string(),
-      email: z.string().min(1),
-      first_name: z.string(),
-      last_name: z.string(),
-      gender: z.string(),
-      birthday: z.string(),
-      flags: z.array(z.string()),
-      facebook_id: z.string().nullable(),
-      twitter_id: z.string().nullable(),
-      kaist_id: z.string().nullable(),
-      kaist_info: z.string().nullable(),
-      kaist_info_time: z.string(),
-      kaist_v2_info: z.string().nullable(),
-      kaist_v2_info_time: z.string(),
-      sparcs_id: z.string().nullable(),
-    }),
-    z.object({ uid: z.string().min(1) }).strict(),
-  ]),
+  buddyBootstrapHandler: z.object({
+    ssoInfo: z.string().regex(jwtToken),
+  }),
 };
 
 export const authSchema = zodToSchemaObject(authZod);
@@ -92,3 +74,4 @@ export type OneAppTokenIssueBody = z.infer<
 export type OneAppTokenRefreshBody = z.infer<
   typeof authZod.oneAppTokenRefreshHandler
 >;
+export type BuddyBootstrapBody = z.infer<typeof authZod.buddyBootstrapHandler>;

@@ -75,3 +75,25 @@ export const verifyBuddyToken = (
     return undefined;
   }
 };
+
+/**
+ * Buddy 로그인 응답의 ssoInfo JWT를 검증하고 payload를 반환합니다.
+ * access token과 같은 키와 issuer로 서명되며, type이 "sso_info"이고 수명은 5분입니다.
+ * 만료되었거나 유효하지 않으면 undefined를 반환합니다. payload의 형태는 호출하는 쪽에서 검증합니다.
+ */
+export const verifyBuddySsoInfo = (
+  token: string
+): Record<string, unknown> | undefined => {
+  try {
+    const payload = jwt.verify(token, oneAppConfig.secretKey, {
+      algorithms: [option.algorithm],
+      issuer: buddyJwtIssuer,
+    });
+    if (typeof payload === "string" || payload.type !== "sso_info") {
+      return undefined;
+    }
+    return payload;
+  } catch {
+    return undefined;
+  }
+};
